@@ -20,13 +20,13 @@ class CardMarker extends StatelessWidget {
       padding: EdgeInsets.all(layout.cardPadding),
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surfaceTint.withOpacity(0.07),
+          color: colorScheme.surfaceTint.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           mark,
           size: layout.cardSize.width * 0.5,
-          color: colorScheme.surfaceTint.withOpacity(0.1),
+          color: colorScheme.surfaceTint.withOpacity(0.2),
         ),
       ),
     );

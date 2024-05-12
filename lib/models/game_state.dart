@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../utils/index_iterator.dart';
@@ -19,7 +20,7 @@ class GameState extends ChangeNotifier {
 
   late PlayCardList discardPile;
 
-  late List<PlayCardList> tableaux;
+  late List<PlayCardList> tableauPile;
 
   late GameRules gameRules = Klondike();
 
@@ -30,6 +31,8 @@ class GameState extends ChangeNotifier {
   late int _currentMoveIndex;
 
   late int _reshuffleCount;
+
+  bool _showDebugPanel = false;
 
   final _stopWatch = Stopwatch();
 
@@ -49,13 +52,8 @@ class GameState extends ChangeNotifier {
 
   int get reshuffleCount => _reshuffleCount;
 
-  PlayCardList? get lastCardMoved {
-    final lastAction = _history.lastOrNull?.action;
-    if (lastAction is MoveCards) {
-      return lastAction.cards.copy();
-    } else {
-      return null;
-    }
+  Action? get latestAction {
+    return _history.lastOrNull?.action;
   }
 
   void startNewGame({bool keepSeed = false}) {
@@ -93,12 +91,12 @@ class GameState extends ChangeNotifier {
         .toList();
     foundationPile = List.generate(Suit.values.length, (index) => []);
     discardPile = [];
-    tableaux = List.generate(gameRules.numberOfTableaux, (index) => []);
+    tableauPile = List.generate(gameRules.numberOfTableaux, (index) => []);
   }
 
   void distributeToTableau() {
-    for (int i = 0; i < tableaux.length; i++) {
-      final tableau = tableaux[i];
+    for (int i = 0; i < tableauPile.length; i++) {
+      final tableau = tableauPile[i];
       for (int k = 0; k <= i; k++) {
         final card = drawPile.removeLast();
 
@@ -170,6 +168,12 @@ class GameState extends ChangeNotifier {
   }
 
   bool tryQuickPlace(PlayCardList cardsInHand, CardLocation from) {
+    if (from is Tableau) {
+      if (!gameRules.canPickFromTableau(cardsInHand)) {
+        return false;
+      }
+    }
+
     final foundationIndexes = RollingIndexIterator(
       count: foundationPile.length,
       start: 0,
@@ -177,14 +181,13 @@ class GameState extends ChangeNotifier {
     );
 
     final tableauIndexes = RollingIndexIterator(
-      count: tableaux.length,
-      start: from is Tableau ? from.index : tableaux.length - 1,
+      count: tableauPile.length,
+      start: from is Tableau ? from.index : tableauPile.length - 1,
       direction: -1,
     );
 
     // Try placing on foundation pile first
     // For cards from foundation, no need to move to other foundations
-
     if (from is! Foundation) {
       for (final i in foundationIndexes) {
         if (gameRules.canPlaceInFoundation(cardsInHand, foundationPile[i])) {
@@ -196,7 +199,7 @@ class GameState extends ChangeNotifier {
 
     // Try placing on tableau next
     for (final i in tableauIndexes) {
-      if (gameRules.canPlaceInTableau(cardsInHand, tableaux[i])) {
+      if (gameRules.canPlaceInTableau(cardsInHand, tableauPile[i])) {
         placeCards(MoveCards(cardsInHand, from, Tableau(i)));
         return true;
       }
@@ -204,6 +207,9 @@ class GameState extends ChangeNotifier {
 
     return false;
   }
+
+  bool get canUndo => _currentMoveIndex > 0;
+  bool get canRedo => _currentMoveIndex < _history.length - 1;
 
   void undoMove() {
     if (_currentMoveIndex == 0) {
@@ -230,7 +236,7 @@ class GameState extends ChangeNotifier {
       Draw() => drawPile,
       Discard() => discardPile,
       Foundation(index: var index) => foundationPile[index],
-      Tableau(index: var index) => tableaux[index],
+      Tableau(index: var index) => tableauPile[index],
     };
   }
 
@@ -239,7 +245,9 @@ class GameState extends ChangeNotifier {
     print('Placing $cardsInHand} from $from to $to');
 
     final cardsFrom = _getPileFromLocation(from);
-    final cardsToCheck = cardsFrom.slice(cardsFrom.length - cardsInHand.length);
+    final cardsToCheck = cardsFrom
+        .getRange(cardsFrom.length - cardsInHand.length, cardsFrom.length)
+        .toList();
 
     if (!const ListEquality<PlayCard>().equals(cardsToCheck, cardsInHand)) {
       throw AssertionError('Cards in hand should be equal with cards on table');
@@ -288,7 +296,7 @@ class GameState extends ChangeNotifier {
     final newHistory = GameHistory(
       drawPile,
       discardPile,
-      tableaux,
+      tableauPile,
       foundationPile,
       recentAction,
     );
@@ -301,10 +309,11 @@ class GameState extends ChangeNotifier {
 
     drawPile = history.drawPile.copy();
     discardPile = history.discardPile.copy();
-    tableaux = history.tableaux.copy();
+    tableauPile = history.tableauPile.copy();
     foundationPile = history.foundationPile.copy();
 
-    print('Restored from [$historyIndex]: T=${tableaux.map((e) => e.length)}');
+    print(
+        'Restored from [$historyIndex]: T=${tableauPile.map((e) => e.length)}');
   }
 
   void _postCheckAfterPlacement() {
@@ -312,6 +321,13 @@ class GameState extends ChangeNotifier {
       HapticFeedback.heavyImpact();
       _isWinning = true;
     }
+  }
+
+  bool get isDebugPanelShowing => _showDebugPanel;
+
+  void toggleDebugPanel() {
+    _showDebugPanel = !_showDebugPanel;
+    notifyListeners();
   }
 }
 
@@ -374,17 +390,17 @@ class GameHistory {
   GameHistory(
     PlayCardList drawPile,
     PlayCardList discardPile,
-    List<PlayCardList> tableaux,
+    List<PlayCardList> tableauPile,
     List<PlayCardList> foundationPile,
     this.action,
   )   : drawPile = drawPile.copy(),
         discardPile = discardPile.copy(),
-        tableaux = tableaux.copy(),
+        tableauPile = tableauPile.copy(),
         foundationPile = foundationPile.copy();
 
   final PlayCardList drawPile;
   final PlayCardList discardPile;
-  final List<PlayCardList> tableaux;
+  final List<PlayCardList> tableauPile;
   final List<PlayCardList> foundationPile;
   final Action action;
 }

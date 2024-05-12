@@ -13,37 +13,47 @@ class DebugHUD extends StatelessWidget {
     final gameState = context.watch<GameState>();
     final gameTheme = context.watch<GameTheme>();
 
-    return IgnorePointer(
-      ignoring: true,
-      child: DefaultTextStyle(
-        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-              color: Colors.white.withOpacity(0.7),
-            ),
-        child: Container(
-          color: Colors.black.withOpacity(0.2),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Random seed: ${gameState.gameSeed}'),
-              Text('Moves: ${gameState.moves}'),
-              StreamBuilder<Null>(
-                stream: Stream.periodic(const Duration(milliseconds: 50)),
-                builder: (context, snapshot) {
-                  final playtimeString = gameState.playTime.toString();
-                  return Text(
-                    'Time: ${playtimeString.substring(0, playtimeString.lastIndexOf('.') + 2)}',
-                  );
-                },
-              ),
-              Text('History: ${gameState.historyCount}'),
-              Text('Reshuffle: ${gameState.reshuffleCount}'),
-              Text('Theme mode: ${gameTheme.currentMode.name}'),
-              Text(
-                  'Theme color palette: ${gameTheme.currentPresetColor?.shade500 ?? '(dynamic)'}'),
-            ],
+    final debugText = """
+Random seed: ${gameState.gameSeed}
+Moves: ${gameState.moves} (History: ${gameState.historyCount})
+Reshuffle: ${gameState.reshuffleCount}
+Theme mode: ${gameTheme.currentMode.name}
+Theme color palette: ${gameTheme.currentPresetColor?.shade500 ?? '(dynamic)'}
+Last move: ${gameState.latestAction}
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+""";
+
+    return DefaultTextStyle(
+      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+            color: Colors.white.withOpacity(1),
           ),
+      child: Container(
+        color: Colors.black.withOpacity(0.3),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            StreamBuilder<Null>(
+              stream: Stream.periodic(const Duration(milliseconds: 50)),
+              builder: (context, snapshot) {
+                final playtimeString = gameState.playTime.toString();
+                return Text(
+                  'Time: ${playtimeString.substring(0, playtimeString.lastIndexOf('.') + 2)}',
+                );
+              },
+            ),
+            Text(debugText),
+          ],
         ),
       ),
     );

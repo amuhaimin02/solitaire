@@ -19,7 +19,7 @@ class TableauPile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (int index = 0; index < gameState.tableaux.length; index++)
+        for (int index = 0; index < gameState.tableauPile.length; index++)
           Expanded(
             child: TableauColumn(
               index: index,
@@ -39,7 +39,7 @@ class TableauColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
 
-    final tableau = gameState.tableaux[index];
+    final tableau = gameState.tableauPile[index];
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -61,8 +61,9 @@ class TableauColumn extends StatelessWidget {
   void _onCardTap(BuildContext context, PlayCard card, int cardIndex) {
     final gameState = context.read<GameState>();
 
-    final tableauStack = gameState.tableaux[index];
-    final cardsToPick = tableauStack.slice(cardIndex);
+    final tableauStack = gameState.tableauPile[index];
+    final cardsToPick =
+        tableauStack.getRange(cardIndex, tableauStack.length).toList();
 
     final handled = gameState.tryQuickPlace(cardsToPick, Tableau(index));
 

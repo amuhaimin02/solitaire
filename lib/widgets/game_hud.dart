@@ -49,6 +49,14 @@ class GameHUD extends StatelessWidget {
         ),
       ),
       IconButton(
+        tooltip: 'Toggle debug panel',
+        isSelected: gameState.isDebugPanelShowing,
+        onPressed: () {
+          gameState.toggleDebugPanel();
+        },
+        icon: Icon(MdiIcons.bug, size: 32),
+      ),
+      IconButton(
         tooltip: 'Start new game',
         onPressed: () {
           gameTheme.changePresetColor();
@@ -65,16 +73,12 @@ class GameHUD extends StatelessWidget {
       ),
       IconButton(
         tooltip: 'Undo',
-        onPressed: () {
-          gameState.undoMove();
-        },
+        onPressed: gameState.canUndo ? () => gameState.undoMove() : null,
         icon: const Icon(Icons.undo, size: 32),
       ),
       IconButton(
         tooltip: 'Redo',
-        onPressed: () {
-          gameState.redoMove();
-        },
+        onPressed: gameState.canRedo ? () => gameState.redoMove() : null,
         icon: const Icon(Icons.redo, size: 32),
       ),
     ];
@@ -88,7 +92,7 @@ class GameHUD extends StatelessWidget {
               Orientation.landscape => Axis.vertical,
               Orientation.portrait => Axis.horizontal,
             },
-            spacing: 16,
+            spacing: 32,
             runSpacing: 16,
             crossAxisAlignment: WrapCrossAlignment.center,
             alignment: WrapAlignment.center,

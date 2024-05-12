@@ -18,25 +18,30 @@ class GameTable extends StatelessWidget {
     final cardSize = layout.cardSize;
 
     if (layout.orientation == Orientation.landscape) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const FoundationPile(
-            arrangementAxis: Axis.vertical,
-          ),
-          SizedBox(width: cardSize.width / 2),
-          const Expanded(child: TableauPile()),
-          SizedBox(width: cardSize.width / 2),
-          const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      return Center(
+        child: AspectRatio(
+          aspectRatio: 25 / 14,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              DiscardPile(
+              const FoundationPile(
                 arrangementAxis: Axis.vertical,
               ),
-              DrawPile(),
-            ],
-          )
-        ].reverseIf(() => layout.mirrorPileArrangement),
+              SizedBox(width: cardSize.width / 2),
+              const Expanded(child: TableauPile()),
+              SizedBox(width: cardSize.width / 2),
+              const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DiscardPile(
+                    arrangementAxis: Axis.vertical,
+                  ),
+                  DrawPile(),
+                ],
+              )
+            ].reverseIf(() => layout.mirrorPileArrangement),
+          ),
+        ),
       );
     } else {
       return Column(

@@ -26,7 +26,7 @@ class DrawPile extends StatelessWidget {
       child: CardStack(
         direction: CardStackDirection.bottomToFront,
         cards: drawPile,
-        markerIcon: MdiIcons.reload,
+        markerIcon: MdiIcons.refresh,
         showCardCount: true,
       ),
     );

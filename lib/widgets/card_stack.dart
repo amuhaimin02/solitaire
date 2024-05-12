@@ -87,7 +87,9 @@ class CardStack extends StatelessWidget {
     }
 
     if (maxCardsToShow != null) {
-      cardsToShow = cards.slice(max(cards.length - maxCardsToShow!, 0));
+      cardsToShow = cards
+          .getRange(max(cards.length - maxCardsToShow!, 0), cards.length)
+          .toList();
     } else {
       cardsToShow = cards;
     }
