@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../app.dart';
 import '../models/game_state.dart';
+import '../models/game_theme.dart';
 
 class GameHUD extends StatelessWidget {
   const GameHUD({super.key});
@@ -10,21 +12,22 @@ class GameHUD extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
+    final gameTheme = context.watch<GameTheme>();
 
     final children = [
       IconButton(
         tooltip: 'Change theme',
         onPressed: () {
-          final themeChanger = context.read<ThemeChanger>();
-          final currentThemeMode = themeChanger.current;
+          final gameTheme = context.read<GameTheme>();
+          final currentThemeMode = gameTheme.currentMode;
           final nextThemeMode = ThemeMode.values[
               (ThemeMode.values.indexOf(currentThemeMode) + 1) %
                   ThemeMode.values.length];
 
-          themeChanger.change(nextThemeMode);
+          gameTheme.changeMode(nextThemeMode);
         },
         icon: Icon(
-          switch (context.watch<ThemeChanger>().current) {
+          switch (gameTheme.currentMode) {
             ThemeMode.light => Icons.light_mode,
             ThemeMode.dark => Icons.dark_mode,
             ThemeMode.system => Icons.contrast,
@@ -33,8 +36,22 @@ class GameHUD extends StatelessWidget {
         ),
       ),
       IconButton(
+        isSelected: gameTheme.usingRandomColors,
+        tooltip: 'Toggle random theme',
+        onPressed: () {
+          gameTheme.toggleUsePresetColors(!gameTheme.usingRandomColors);
+        },
+        icon: Icon(
+          gameTheme.usingRandomColors
+              ? MdiIcons.dice5
+              : MdiIcons.imageFilterBlackWhite,
+          size: 32,
+        ),
+      ),
+      IconButton(
         tooltip: 'Start new game',
         onPressed: () {
+          gameTheme.changePresetColor();
           gameState.startNewGame();
         },
         icon: const Icon(Icons.restart_alt, size: 32),
@@ -65,17 +82,18 @@ class GameHUD extends StatelessWidget {
     return OrientationBuilder(
       builder: (context, orientation) {
         return Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: switch (orientation) {
-            Orientation.landscape => Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: children,
-              ),
-            Orientation.portrait => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: children,
-              ),
-          },
+          padding: const EdgeInsets.all(16.0),
+          child: Wrap(
+            direction: switch (orientation) {
+              Orientation.landscape => Axis.vertical,
+              Orientation.portrait => Axis.horizontal,
+            },
+            spacing: 16,
+            runSpacing: 16,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            alignment: WrapAlignment.center,
+            children: children,
+          ),
         );
       },
     );

@@ -56,26 +56,5 @@ class FoundationPile extends StatelessWidget {
     if (handled) {
       HapticFeedback.mediumImpact();
     }
-
-    // if (gameState.isCardInHand()) {
-    //   final pickedCardLocation = gameState.cardsInHand!.location;
-    //   if (pickedCardLocation is Foundation &&
-    //       pickedCardLocation.index == index) {
-    //     final handled = gameState.tryQuickPlace();
-    //     if (!handled) {
-    //       gameState.releaseCardsFromHand();
-    //       return;
-    //     }
-    //   }
-    // }
-    //
-    // if (gameState.isCardInHand()) {
-    //   gameState.placeCards(Foundation(index));
-    // } else {
-    //   final foundationStack = gameState.foundationPile[index];
-    //   if (foundationStack.isNotEmpty) {
-    //     gameState.holdCards([foundationStack.last], Foundation(index));
-    //   }
-    // }
   }
 }

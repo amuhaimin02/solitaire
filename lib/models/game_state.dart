@@ -11,21 +11,17 @@ import 'card.dart';
 import 'game_rules.dart';
 
 class GameState extends ChangeNotifier {
-  final numberOfTableaux = 7;
-
   late int _gameSeed;
 
-  late PlayCardStack drawPile;
+  late PlayCardList drawPile;
 
-  late List<PlayCardStack> foundationPile;
+  late List<PlayCardList> foundationPile;
 
-  late PlayCardStack discardPile;
+  late PlayCardList discardPile;
 
-  late List<PlayCardStack> tableaux;
+  late List<PlayCardList> tableaux;
 
-  PickedCards? _pickedCards;
-
-  late GameRules gameRules;
+  late GameRules gameRules = Klondike();
 
   late bool _isWinning;
 
@@ -33,10 +29,11 @@ class GameState extends ChangeNotifier {
 
   late int _currentMoveIndex;
 
+  late int _reshuffleCount;
+
   final _stopWatch = Stopwatch();
 
   GameState() {
-    gameRules = Klondike();
     startNewGame();
   }
 
@@ -48,12 +45,24 @@ class GameState extends ChangeNotifier {
 
   int get historyCount => _history.length;
 
-  PickedCards? get cardsInHand => _pickedCards;
-
   Duration get playTime => _stopWatch.elapsed;
 
-  void startNewGame() {
-    _gameSeed = DateTime.now().millisecondsSinceEpoch;
+  int get reshuffleCount => _reshuffleCount;
+
+  PlayCardList? get lastCardMoved {
+    final lastAction = _history.lastOrNull?.action;
+    if (lastAction is MoveCards) {
+      return lastAction.cards.copy();
+    } else {
+      return null;
+    }
+  }
+
+  void startNewGame({bool keepSeed = false}) {
+    if (!keepSeed) {
+      _gameSeed = DateTime.now().millisecondsSinceEpoch;
+    }
+
     resetStates();
     setupPiles();
     distributeToTableau();
@@ -66,11 +75,15 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void restartGame() {
+    startNewGame(keepSeed: true);
+  }
+
   void resetStates() {
-    _pickedCards = null;
     _isWinning = false;
     _history = [];
     _currentMoveIndex = 0;
+    _reshuffleCount = 0;
   }
 
   void setupPiles() {
@@ -80,7 +93,7 @@ class GameState extends ChangeNotifier {
         .toList();
     foundationPile = List.generate(Suit.values.length, (index) => []);
     discardPile = [];
-    tableaux = List.generate(numberOfTableaux, (index) => []);
+    tableaux = List.generate(gameRules.numberOfTableaux, (index) => []);
   }
 
   void distributeToTableau() {
@@ -111,34 +124,7 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  void holdCards(PlayCardStack cards, CardLocation location) {
-    // Validate tableau picks
-    if (location is Tableau) {
-      // Check if the possible combination of card ordering is valid to pick up
-      if (!gameRules.canPickFromTableau(cards)) {
-        print('cannot pick this card as it is invalid pick');
-        return;
-      }
-    }
-    _pickedCards = PickedCards(cards, location);
-
-    notifyListeners();
-  }
-
-  bool isCardInHand() {
-    return _pickedCards != null;
-  }
-
-  void releaseCardsFromHand({bool notify = true}) {
-    _pickedCards = null;
-
-    if (notify) {
-      notifyListeners();
-    }
-  }
-
   void pickFromDrawPile() {
-    releaseCardsFromHand(notify: false);
     final pickedCard = drawPile.removeLast();
 
     discardPile.add(pickedCard.faceUp());
@@ -149,8 +135,6 @@ class GameState extends ChangeNotifier {
   }
 
   void refreshDrawPile() {
-    releaseCardsFromHand(notify: false);
-
     final remainderCards =
         discardPile.reversed.map((c) => c.faceDown()).toList();
 
@@ -158,6 +142,8 @@ class GameState extends ChangeNotifier {
     discardPile = [];
 
     _updateHistory(MoveCards([...remainderCards], Discard(), Draw()));
+
+    _reshuffleCount++;
 
     notifyListeners();
   }
@@ -179,11 +165,11 @@ class GameState extends ChangeNotifier {
     } catch (e) {
       rethrow;
     } finally {
-      releaseCardsFromHand();
+      notifyListeners();
     }
   }
 
-  bool tryQuickPlace(PlayCardStack cardsInHand, CardLocation from) {
+  bool tryQuickPlace(PlayCardList cardsInHand, CardLocation from) {
     final foundationIndexes = RollingIndexIterator(
       count: foundationPile.length,
       start: 0,
@@ -239,19 +225,7 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void restartGame() {
-    _restoreFromHistory(0);
-    _currentMoveIndex = 0;
-    _history.removeRange(1, _history.length);
-
-    _stopWatch
-      ..reset()
-      ..start();
-
-    notifyListeners();
-  }
-
-  PlayCardStack _getPileFromLocation(CardLocation location) {
+  PlayCardList _getPileFromLocation(CardLocation location) {
     return switch (location) {
       Draw() => drawPile,
       Discard() => discardPile,
@@ -261,7 +235,7 @@ class GameState extends ChangeNotifier {
   }
 
   void _validatePlacement(
-      PlayCardStack cardsInHand, CardLocation from, CardLocation to) {
+      PlayCardList cardsInHand, CardLocation from, CardLocation to) {
     print('Placing $cardsInHand} from $from to $to');
 
     final cardsFrom = _getPileFromLocation(from);
@@ -284,7 +258,7 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  void _checkAndRemoveCards(PlayCardStack cardsInHand, CardLocation location) {
+  void _checkAndRemoveCards(PlayCardList cardsInHand, CardLocation location) {
     final cardsOnTable = _getPileFromLocation(location);
 
     cardsOnTable.removeRange(
@@ -295,7 +269,7 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  void _placeCardsOnTable(PlayCardStack cardsInHand, CardLocation location) {
+  void _placeCardsOnTable(PlayCardList cardsInHand, CardLocation location) {
     final cardsOnTable = _getPileFromLocation(location);
 
     // Move all cards on hand to location
@@ -372,7 +346,7 @@ class Tableau extends CardLocation {
 }
 
 class PickedCards {
-  final PlayCardStack cards;
+  final PlayCardList cards;
   final CardLocation location;
 
   PickedCards(this.cards, this.location);
@@ -381,7 +355,7 @@ class PickedCards {
 sealed class Action {}
 
 class MoveCards extends Action {
-  final PlayCardStack cards;
+  final PlayCardList cards;
   final CardLocation from;
   final CardLocation to;
 
@@ -398,19 +372,19 @@ class GameStart extends Action {
 
 class GameHistory {
   GameHistory(
-    PlayCardStack drawPile,
-    PlayCardStack discardPile,
-    List<PlayCardStack> tableaux,
-    List<PlayCardStack> foundationPile,
+    PlayCardList drawPile,
+    PlayCardList discardPile,
+    List<PlayCardList> tableaux,
+    List<PlayCardList> foundationPile,
     this.action,
   )   : drawPile = drawPile.copy(),
         discardPile = discardPile.copy(),
         tableaux = tableaux.copy(),
         foundationPile = foundationPile.copy();
 
-  final PlayCardStack drawPile;
-  final PlayCardStack discardPile;
-  final List<PlayCardStack> tableaux;
-  final List<PlayCardStack> foundationPile;
+  final PlayCardList drawPile;
+  final PlayCardList discardPile;
+  final List<PlayCardList> tableaux;
+  final List<PlayCardList> foundationPile;
   final Action action;
 }

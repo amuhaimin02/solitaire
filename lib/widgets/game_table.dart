@@ -39,23 +39,25 @@ class GameTable extends StatelessWidget {
         ].reverseIf(() => layout.mirrorPileArrangement),
       );
     } else {
-      return Column(children: [
-        Row(
-          children: [
-            const FoundationPile(
-              arrangementAxis: Axis.horizontal,
-            ),
-            const DiscardPile(
-              arrangementAxis: Axis.horizontal,
-            ),
-            const DrawPile(),
-          ].reverseIf(() => layout.mirrorPileArrangement),
-        ),
-        SizedBox(height: cardSize.height / 4),
-        const Expanded(
-          child: TableauPile(),
-        ),
-      ]);
+      return Column(
+        children: [
+          Row(
+            children: [
+              const FoundationPile(
+                arrangementAxis: Axis.horizontal,
+              ),
+              const DiscardPile(
+                arrangementAxis: Axis.horizontal,
+              ),
+              const DrawPile(),
+            ].reverseIf(() => layout.mirrorPileArrangement),
+          ),
+          SizedBox(height: cardSize.height / 4),
+          const Expanded(
+            child: TableauPile(),
+          ),
+        ],
+      );
     }
   }
 }

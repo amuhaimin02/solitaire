@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
 import '../models/game_state.dart';
+import '../utils/color_utils.dart';
 
 class PlayingCard extends StatelessWidget {
   const PlayingCard(
@@ -19,9 +20,10 @@ class PlayingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final layout = context.watch<GameLayout>();
+    final gameState = context.watch<GameState>();
+    final colorScheme = Theme.of(context).colorScheme;
 
-    final highlightedCards = context
-        .select<GameState, PlayCardStack?>((state) => state.cardsInHand?.cards);
+    // bool highlight = gameState.lastCardMoved?.contains(card) ?? false;
 
     return GestureDetector(
       onTap: onTap,
@@ -29,12 +31,12 @@ class PlayingCard extends StatelessWidget {
         padding: EdgeInsets.all(layout.cardPadding),
         width: layout.cardSize.width,
         height: layout.cardSize.height,
-        decoration: highlightedCards?.contains(card) == true
-            ? BoxDecoration(
-                color: Colors.orangeAccent,
-                borderRadius: BorderRadius.circular(8),
-              )
-            : null,
+        // decoration: highlight
+        //     ? BoxDecoration(
+        //         borderRadius: BorderRadius.circular(8),
+        //         color: colorScheme.tertiary,
+        //       )
+        //     : null,
         child: Material(
           borderRadius: BorderRadius.circular(8),
           elevation: elevation ?? 2,
@@ -124,15 +126,19 @@ class CardCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final layout = context.watch<GameLayout>();
+
     final colorScheme = Theme.of(context).colorScheme;
+
+    final cardColor = colorScheme.primary;
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.primary,
+        color: cardColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          width: 6,
-          color: colorScheme.primary.harmonizeWith(Colors.green),
+          width: layout.cardSize.width * 0.1,
+          color: cardColor.darken(0.07),
         ),
       ),
     );

@@ -10,6 +10,8 @@ class CardMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     final layout = context.watch<GameLayout>();
 
     return Container(
@@ -18,13 +20,13 @@ class CardMarker extends StatelessWidget {
       padding: EdgeInsets.all(layout.cardPadding),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.05),
+          color: colorScheme.surfaceTint.withOpacity(0.07),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           mark,
           size: layout.cardSize.width * 0.5,
-          color: Colors.black.withOpacity(0.07),
+          color: colorScheme.surfaceTint.withOpacity(0.1),
         ),
       ),
     );

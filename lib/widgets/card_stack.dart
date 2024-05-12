@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../models/card.dart';
 import '../models/game_layout.dart';
+import '../utils/color_utils.dart';
 import 'card_marker.dart';
 import 'playing_card.dart';
 
@@ -25,7 +26,7 @@ class CardStack extends StatelessWidget {
 
   final CardStackDirection direction;
 
-  final PlayCardStack cards;
+  final PlayCardList cards;
 
   final IconData? markerIcon;
 
@@ -79,7 +80,7 @@ class CardStack extends StatelessWidget {
       BuildContext context, BoxConstraints constraints) {
     final layout = context.watch<GameLayout>();
 
-    final PlayCardStack cardsToShow;
+    final PlayCardList cardsToShow;
 
     onTapCallback(PlayCard card, int index) {
       return onCardTap != null ? () => onCardTap!(card, index) : null;
@@ -167,7 +168,7 @@ class CardCountIndicator extends StatelessWidget {
       margin: EdgeInsets.all(layout.cardPadding * 3.5),
       padding: EdgeInsets.all(layout.cardPadding * 1.5),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4),
+        color: Colors.white.withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -175,7 +176,7 @@ class CardCountIndicator extends StatelessWidget {
         style: const TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontSize: 20,
         ),
       ),
     );

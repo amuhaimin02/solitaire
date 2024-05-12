@@ -69,16 +69,5 @@ class DiscardPile extends StatelessWidget {
     if (handled) {
       HapticFeedback.mediumImpact();
     }
-
-    // if (gameState.isCardInHand() &&
-    //     gameState.cardsInHand!.location is Discard) {
-    //   final handled = gameState.tryQuickPlace();
-    //   if (!handled) {
-    //     gameState.releaseCardsFromHand();
-    //     return;
-    //   }
-    // } else if (discardPile.isNotEmpty) {
-    //   gameState.holdCards([gameState.discardPile.last], Discard());
-    // }
   }
 }

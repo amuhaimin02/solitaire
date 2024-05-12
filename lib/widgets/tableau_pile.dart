@@ -61,13 +61,6 @@ class TableauColumn extends StatelessWidget {
   void _onCardTap(BuildContext context, PlayCard card, int cardIndex) {
     final gameState = context.read<GameState>();
 
-    // if (!gameState.isCardInHand()) {
-    //   final tableauStack = gameState.tableaux[index];
-    //   if (tableauStack.isNotEmpty) {
-    //     final cardsToPick = tableauStack.slice(cardIndex);
-    //     gameState.holdCards(cardsToPick, Tableau(index));
-    //   }
-    // }
     final tableauStack = gameState.tableaux[index];
     final cardsToPick = tableauStack.slice(cardIndex);
 
@@ -79,24 +72,6 @@ class TableauColumn extends StatelessWidget {
   }
 
   bool _onTap(BuildContext context, int index) {
-    // final gameState = context.read<GameState>();
-    //
-    // if (gameState.isCardInHand()) {
-    //   final pickedCardLocation = gameState.cardsInHand!.location;
-    //
-    //   if (pickedCardLocation is Tableau && pickedCardLocation.index == index) {
-    //     final handled = gameState.tryQuickPlace();
-    //     if (!handled) {
-    //       gameState.releaseCardsFromHand();
-    //       return true;
-    //     }
-    //   }
-    //
-    //   gameState.placeCards(Tableau(index));
-    //   return true;
-    // }
-    //
-    // return false;
     return false;
   }
 }

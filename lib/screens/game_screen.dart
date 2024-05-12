@@ -31,12 +31,14 @@ class _GameScreenState extends State<GameScreen> {
           body: AnimatedContainer(
             duration: standardAnimationDuration,
             curve: standardAnimationCurve,
-            color: colorScheme.surfaceVariant,
+            color: isWinning
+                ? colorScheme.errorContainer
+                : colorScheme.surfaceVariant,
             child: Stack(
               children: [
                 Positioned.fill(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: OrientationBuilder(
                       builder: (context, orientation) {
                         if (orientation == Orientation.landscape) {
@@ -107,7 +109,7 @@ class _GameScreenState extends State<GameScreen> {
 
         final layout = GameLayout(
           cardSize: Size(cardWidth, cardHeight),
-          cardPadding: cardWidth * 0.05,
+          cardPadding: cardWidth * 0.04,
           verticalStackGap: cardHeight * 0.3,
           horizontalStackGap: cardWidth * 0.4,
           orientation:

@@ -62,7 +62,7 @@ class PlayCard {
   @override
   int get hashCode => Object.hash(suit, value);
 
-  static final PlayCardStack fullSet = [
+  static final PlayCardList fullSet = [
     for (final suit in Suit.values)
       for (final value in Value.values) PlayCard(suit, value)
   ];
@@ -82,12 +82,12 @@ class PlayCard {
   }
 
   /// Get a new set of cards, shuffled
-  static PlayCardStack newShuffledDeck([Random? random]) {
+  static PlayCardList newShuffledDeck([Random? random]) {
     return List.from(fullSet)..shuffle(random);
   }
 }
 
-typedef PlayCardStack = List<PlayCard>;
+typedef PlayCardList = List<PlayCard>;
 
 PlayCard getRandomCard({bool? flipped}) {
   return PlayCard(

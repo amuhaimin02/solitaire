@@ -3,18 +3,22 @@ import 'package:collection/collection.dart';
 import 'card.dart';
 
 abstract class GameRules {
-  bool winningCondition(List<PlayCardStack> foundationPile);
+  int get numberOfTableaux;
+
+  bool winningCondition(List<PlayCardList> foundationPile);
 
   bool canPlaceInFoundation(
-      PlayCardStack cardsInHand, PlayCardStack cardsOnFoundation);
-  bool canPlaceInTableau(
-      PlayCardStack cardsInHand, PlayCardStack cardsOnTableau);
-  bool canPickFromTableau(PlayCardStack cardsToPick);
+      PlayCardList cardsInHand, PlayCardList cardsOnFoundation);
+  bool canPlaceInTableau(PlayCardList cardsInHand, PlayCardList cardsOnTableau);
+  bool canPickFromTableau(PlayCardList cardsToPick);
 }
 
 class Klondike extends GameRules {
   @override
-  bool winningCondition(List<PlayCardStack> foundationPile) {
+  int get numberOfTableaux => 7;
+
+  @override
+  bool winningCondition(List<PlayCardList> foundationPile) {
     // Easiest way to check is to ensure all cards are already in foundation pile
     return foundationPile.map((pile) => pile.length).sum ==
         PlayCard.fullSet.length;
@@ -22,7 +26,7 @@ class Klondike extends GameRules {
 
   @override
   bool canPlaceInFoundation(
-      PlayCardStack cardsInHand, PlayCardStack cardsOnFoundation) {
+      PlayCardList cardsInHand, PlayCardList cardsOnFoundation) {
     if (cardsInHand.length > 1) {
       // Cannot move more than one cards all at once to foundation pile
       return false;
@@ -44,7 +48,7 @@ class Klondike extends GameRules {
   }
 
   @override
-  bool canPickFromTableau(PlayCardStack cardsToPick) {
+  bool canPickFromTableau(PlayCardList cardsToPick) {
     // One card pick is always acceptable as long as it is facing up
     if (cardsToPick.length == 1) {
       return cardsToPick.single.isFacingUp;
@@ -68,7 +72,7 @@ class Klondike extends GameRules {
 
   @override
   bool canPlaceInTableau(
-      PlayCardStack cardsInHand, PlayCardStack cardsOnTableau) {
+      PlayCardList cardsInHand, PlayCardList cardsOnTableau) {
     // If column is empty, only King or card group starting with King can be placed
     if (cardsOnTableau.isEmpty) {
       return cardsInHand.first.value == Value.king;
