@@ -28,26 +28,20 @@ class Klondike extends GameRules {
           gridSize: const Size(7, 6),
           items: [
             DrawPileItem(
-              placement: const Offset(6, 0),
-              size: const Size(1, 1),
+              region: const Rect.fromLTWH(6, 0, 1, 1),
             ),
             DiscardPileItem(
-              placement: const Offset(4, 0),
-              size: const Size(2, 1),
-              stackDirection: PileStackDirection.rightToLeft,
+              region: const Rect.fromLTWH(4, 0, 2, 1),
             ),
             for (int i = 0; i < 4; i++)
               FoundationPileItem(
-                placement: Offset(i.toDouble(), 0),
-                size: const Size(1, 1),
+                region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
                 index: i,
               ),
             for (int i = 0; i < 7; i++)
               TableauPileItem(
-                placement: Offset(i.toDouble(), 1.3),
-                size: const Size(1, 4.7),
+                region: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
                 index: i,
-                stackDirection: PileStackDirection.topDown,
               ),
           ],
         );
@@ -56,25 +50,19 @@ class Klondike extends GameRules {
           gridSize: const Size(10, 4),
           items: [
             DiscardPileItem(
-              placement: const Offset(9, 0.5),
-              size: const Size(1, 2),
-              stackDirection: PileStackDirection.topDown,
+              region: const Rect.fromLTWH(9, 0.5, 1, 2),
             ),
             DrawPileItem(
-              placement: const Offset(9, 2.5),
-              size: const Size(1, 1),
+              region: const Rect.fromLTWH(9, 2.5, 1, 1),
             ),
             for (int i = 0; i < 4; i++)
               FoundationPileItem(
-                placement: Offset(0, i.toDouble()),
-                size: const Size(1, 1),
+                region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
                 index: i,
               ),
             for (int i = 0; i < 7; i++)
               TableauPileItem(
-                placement: Offset(i.toDouble() + 1.5, 0),
-                size: const Size(1, 4),
-                stackDirection: PileStackDirection.topDown,
+                region: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
                 index: i,
               ),
           ],
@@ -167,38 +155,29 @@ class TableLayout {
 
 sealed class TableItem {
   TableItem({
-    required this.placement,
-    required this.size,
-    this.stackDirection,
+    required this.region,
   });
 
-  final Offset placement;
-  final Size size;
-
-  final PileStackDirection? stackDirection;
+  final Rect region;
 }
 
 enum PileStackDirection { topDown, rightToLeft, zStack }
 
 class DrawPileItem extends TableItem {
   DrawPileItem({
-    required super.placement,
-    required super.size,
+    required super.region,
   });
 }
 
 class DiscardPileItem extends TableItem {
   DiscardPileItem({
-    required super.placement,
-    required super.size,
-    required super.stackDirection,
+    required super.region,
   });
 }
 
 class FoundationPileItem extends TableItem {
   FoundationPileItem({
-    required super.placement,
-    required super.size,
+    required super.region,
     required this.index,
   });
 
@@ -207,9 +186,7 @@ class FoundationPileItem extends TableItem {
 
 class TableauPileItem extends TableItem {
   TableauPileItem({
-    required super.placement,
-    required super.size,
-    required super.stackDirection,
+    required super.region,
     required this.index,
   });
 

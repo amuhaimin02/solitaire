@@ -52,20 +52,17 @@ class GameTable extends StatelessWidget {
                     children: [
                       for (final item in tableLayout.items)
                         Positioned(
-                          left: item.placement.dx * gridUnit.width,
-                          top: item.placement.dy * gridUnit.height,
-                          width: item.size.width * gridUnit.width,
-                          height: item.size.height * gridUnit.height,
+                          left: item.region.left * gridUnit.width,
+                          top: item.region.top * gridUnit.height,
+                          width: item.region.width * gridUnit.width,
+                          height: item.region.height * gridUnit.height,
                           child: switch (item) {
                             DrawPileItem() => const DrawPile(),
                             DiscardPileItem() => DiscardPile(
-                                arrangementAxis: switch (item.stackDirection) {
-                                  PileStackDirection.topDown => Axis.vertical,
-                                  PileStackDirection.rightToLeft =>
-                                    Axis.horizontal,
-                                  _ => throw ArgumentError(
-                                      'Cannot use ${item.stackDirection} on DiscardPile')
-                                },
+                                arrangementAxis:
+                                    item.region.width > item.region.height
+                                        ? Axis.horizontal
+                                        : Axis.vertical,
                               ),
                             FoundationPileItem(index: var index) =>
                               FoundationPile(index: index),

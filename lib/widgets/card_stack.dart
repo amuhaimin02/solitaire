@@ -41,6 +41,7 @@ class CardStack extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final layout = context.watch<GameLayout>();
         return Stack(
           children: [
             if (markerIcon != null)
@@ -49,12 +50,16 @@ class CardStack extends StatelessWidget {
                 child: CardMarker(mark: markerIcon!),
               ),
             if (cards.isNotEmpty) ...[
-              ..._buildCardWidgets(context, constraints),
+              ..._buildCardWidgets(context, constraints, layout),
               if (showCardCount &&
                   direction == CardStackDirection.bottomToFront)
                 Positioned.fill(
-                  child: Center(
-                    child: CardCountIndicator(count: cards.length),
+                  child: Padding(
+                    padding: EdgeInsets.all(layout.cardPadding),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: CardCountIndicator(count: cards.length),
+                    ),
                   ),
                 )
             ],
@@ -76,9 +81,7 @@ class CardStack extends StatelessWidget {
   }
 
   Iterable<Widget> _buildCardWidgets(
-      BuildContext context, BoxConstraints constraints) {
-    final layout = context.watch<GameLayout>();
-
+      BuildContext context, BoxConstraints constraints, GameLayout layout) {
     final PlayCardList cardsToShow;
 
     onTapCallback(PlayCard card, int index) {
@@ -166,19 +169,21 @@ class CardCountIndicator extends StatelessWidget {
     final layout = context.watch<GameLayout>();
 
     return Container(
-      margin: EdgeInsets.all(layout.cardPadding * 3.5),
       padding: EdgeInsets.all(layout.cardPadding * 1.5),
+      margin: EdgeInsets.all(layout.cardPadding * 5),
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white.withOpacity(0.7),
+        shape: BoxShape.circle,
       ),
       child: Text(
         count.toString(),
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.bold,
-          fontSize: 20,
+          fontSize: layout.cardSize.width * 0.25,
         ),
+        textAlign: TextAlign.center,
       ),
     );
   }
