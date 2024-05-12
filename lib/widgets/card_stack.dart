@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../models/card.dart';
 import '../models/game_layout.dart';
-import '../utils/color_utils.dart';
 import 'card_marker.dart';
 import 'playing_card.dart';
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../app.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
 
@@ -32,7 +31,7 @@ class GameHUD extends StatelessWidget {
             ThemeMode.dark => Icons.dark_mode,
             ThemeMode.system => Icons.contrast,
           },
-          size: 32,
+          size: 24,
         ),
       ),
       IconButton(
@@ -45,7 +44,7 @@ class GameHUD extends StatelessWidget {
           gameTheme.usingRandomColors
               ? MdiIcons.dice5
               : MdiIcons.imageFilterBlackWhite,
-          size: 32,
+          size: 24,
         ),
       ),
       IconButton(
@@ -54,7 +53,7 @@ class GameHUD extends StatelessWidget {
         onPressed: () {
           gameState.toggleDebugPanel();
         },
-        icon: Icon(MdiIcons.bug, size: 32),
+        icon: Icon(MdiIcons.bug, size: 24),
       ),
       IconButton(
         tooltip: 'Start new game',
@@ -62,24 +61,24 @@ class GameHUD extends StatelessWidget {
           gameTheme.changePresetColor();
           gameState.startNewGame();
         },
-        icon: const Icon(Icons.restart_alt, size: 32),
+        icon: const Icon(Icons.restart_alt, size: 24),
       ),
       IconButton(
         tooltip: 'Restart game',
         onPressed: () {
           gameState.restartGame();
         },
-        icon: const Icon(Icons.fast_rewind, size: 32),
+        icon: const Icon(Icons.fast_rewind, size: 24),
       ),
       IconButton(
         tooltip: 'Undo',
         onPressed: gameState.canUndo ? () => gameState.undoMove() : null,
-        icon: const Icon(Icons.undo, size: 32),
+        icon: const Icon(Icons.undo, size: 24),
       ),
       IconButton(
         tooltip: 'Redo',
         onPressed: gameState.canRedo ? () => gameState.redoMove() : null,
-        icon: const Icon(Icons.redo, size: 32),
+        icon: const Icon(Icons.redo, size: 24),
       ),
     ];
 
@@ -92,8 +91,8 @@ class GameHUD extends StatelessWidget {
               Orientation.landscape => Axis.vertical,
               Orientation.portrait => Axis.horizontal,
             },
-            spacing: 32,
-            runSpacing: 16,
+            spacing: 16,
+            runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             alignment: WrapAlignment.center,
             children: children,

@@ -1,9 +1,12 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 
 import 'card.dart';
 
 abstract class GameRules {
   int get numberOfTableaux;
+
+  TableLayout getLayout(TableLayoutOptions options);
 
   bool winningCondition(List<PlayCardList> foundationPile);
 
@@ -16,6 +19,68 @@ abstract class GameRules {
 class Klondike extends GameRules {
   @override
   int get numberOfTableaux => 7;
+
+  @override
+  TableLayout getLayout(TableLayoutOptions options) {
+    switch (options.orientation) {
+      case Orientation.portrait:
+        return TableLayout(
+          gridSize: const Size(7, 6),
+          items: [
+            DrawPileItem(
+              placement: const Offset(6, 0),
+              size: const Size(1, 1),
+            ),
+            DiscardPileItem(
+              placement: const Offset(4, 0),
+              size: const Size(2, 1),
+              stackDirection: PileStackDirection.rightToLeft,
+            ),
+            for (int i = 0; i < 4; i++)
+              FoundationPileItem(
+                placement: Offset(i.toDouble(), 0),
+                size: const Size(1, 1),
+                index: i,
+              ),
+            for (int i = 0; i < 7; i++)
+              TableauPileItem(
+                placement: Offset(i.toDouble(), 1.3),
+                size: const Size(1, 4.7),
+                index: i,
+                stackDirection: PileStackDirection.topDown,
+              ),
+          ],
+        );
+      case Orientation.landscape:
+        return TableLayout(
+          gridSize: const Size(10, 4),
+          items: [
+            DiscardPileItem(
+              placement: const Offset(9, 0.5),
+              size: const Size(1, 2),
+              stackDirection: PileStackDirection.topDown,
+            ),
+            DrawPileItem(
+              placement: const Offset(9, 2.5),
+              size: const Size(1, 1),
+            ),
+            for (int i = 0; i < 4; i++)
+              FoundationPileItem(
+                placement: Offset(0, i.toDouble()),
+                size: const Size(1, 1),
+                index: i,
+              ),
+            for (int i = 0; i < 7; i++)
+              TableauPileItem(
+                placement: Offset(i.toDouble() + 1.5, 0),
+                size: const Size(1, 4),
+                stackDirection: PileStackDirection.topDown,
+                index: i,
+              ),
+          ],
+        );
+    }
+  }
 
   @override
   bool winningCondition(List<PlayCardList> foundationPile) {
@@ -83,8 +148,76 @@ class Klondike extends GameRules {
     // Card on top of each other should follow ranks in decreasing order,
     // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
     // In this case, we compare the suit "group" as they will be classified by color
+
     return topmostCard.isFacingUp &&
         cardsInHand.first.value.rank == topmostCard.value.rank - 1 &&
         cardsInHand.first.suit.group != topmostCard.suit.group;
   }
+}
+
+class TableLayout {
+  final Size gridSize;
+  final List<TableItem> items;
+
+  TableLayout({
+    required this.gridSize,
+    required this.items,
+  });
+}
+
+sealed class TableItem {
+  TableItem({
+    required this.placement,
+    required this.size,
+    this.stackDirection,
+  });
+
+  final Offset placement;
+  final Size size;
+
+  final PileStackDirection? stackDirection;
+}
+
+enum PileStackDirection { topDown, rightToLeft, zStack }
+
+class DrawPileItem extends TableItem {
+  DrawPileItem({
+    required super.placement,
+    required super.size,
+  });
+}
+
+class DiscardPileItem extends TableItem {
+  DiscardPileItem({
+    required super.placement,
+    required super.size,
+    required super.stackDirection,
+  });
+}
+
+class FoundationPileItem extends TableItem {
+  FoundationPileItem({
+    required super.placement,
+    required super.size,
+    required this.index,
+  });
+
+  final int index;
+}
+
+class TableauPileItem extends TableItem {
+  TableauPileItem({
+    required super.placement,
+    required super.size,
+    required super.stackDirection,
+    required this.index,
+  });
+
+  final int index;
+}
+
+class TableLayoutOptions {
+  TableLayoutOptions({required this.orientation, required this.mirror});
+  final Orientation orientation;
+  final bool mirror;
 }

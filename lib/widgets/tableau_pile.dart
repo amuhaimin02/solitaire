@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -9,29 +8,7 @@ import '../models/game_state.dart';
 import 'card_stack.dart';
 
 class TableauPile extends StatelessWidget {
-  const TableauPile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final gameState = context.watch<GameState>();
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (int index = 0; index < gameState.tableauPile.length; index++)
-          Expanded(
-            child: TableauColumn(
-              index: index,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class TableauColumn extends StatelessWidget {
-  const TableauColumn({super.key, required this.index});
+  const TableauPile({super.key, required this.index});
 
   final int index;
 
