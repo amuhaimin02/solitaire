@@ -9,3 +9,11 @@ extension NestedListCopyExtension<T> on List<List<T>> {
     return List<List<T>>.from(map((e) => e.copy()));
   }
 }
+
+extension ExtractListExtension<T> on List<T> {
+  List<T> extractAll() {
+    final copy = List<T>.from(this);
+    clear();
+    return copy;
+  }
+}

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -54,6 +55,11 @@ class GameTable extends StatelessWidget {
                   builder: (context, child) {
                     final layout = context.watch<GameLayout>();
 
+                    final layers = [
+                      for (final item in tableLayout.items)
+                        _buildPile(context, item),
+                    ];
+
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapUp: (details) {
@@ -69,8 +75,9 @@ class GameTable extends StatelessWidget {
                       },
                       child: Stack(
                         children: [
-                          for (final item in tableLayout.items)
-                            ..._buildPile(context, item),
+                          ...layers.map((w) => w.markerLayer).flattened,
+                          ...layers.map((w) => w.cardLayer).flattened,
+                          ...layers.map((w) => w.overlayLayer).flattened,
                         ],
                       ),
                     );
@@ -84,7 +91,7 @@ class GameTable extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildPile(BuildContext context, TableItem item) {
+  _WidgetLayer _buildPile(BuildContext context, TableItem item) {
     final layout = context.watch<GameLayout>();
     final gameState = context.watch<GameState>();
 
@@ -95,12 +102,33 @@ class GameTable extends StatelessWidget {
     Rect measure(Rect rect) => _measure(rect, gridUnit);
 
     Offset calculateStackGap(int index, int stackLength, Direction direction) {
-      final int offset;
+      final int visualIndex, visualLength, offset;
+
+      if (item.numberOfCardsToShow != null) {
+        visualLength = item.numberOfCardsToShow!;
+        if (stackLength > visualLength) {
+          visualIndex =
+              max(0, item.numberOfCardsToShow! - (stackLength - index));
+        } else {
+          if (item.shiftStackOnPlace) {
+            visualIndex = visualLength - (stackLength - index);
+          } else {
+            visualIndex = index;
+          }
+        }
+      } else {
+        visualLength = stackLength;
+        visualIndex = index;
+      }
 
       if (item.shiftStackOnPlace) {
-        offset = stackLength - index - 1;
+        offset = visualLength - visualIndex - 1;
       } else {
-        offset = index;
+        offset = visualIndex;
+      }
+
+      if (item.type is Discard) {
+        print('i $index, ni $visualIndex, off $offset');
       }
 
       return Offset(
@@ -108,14 +136,14 @@ class GameTable extends StatelessWidget {
             ? (offset *
                     direction.dx *
                     min(layout.maxStackGap.dx,
-                        (region.width - 1) / (stackLength - 1)))
+                        (region.width - 1) / (visualLength - 1)))
                 .toDouble()
             : 0,
         direction.dy != 0
             ? (offset *
                     direction.dy *
                     min(layout.maxStackGap.dy,
-                        (region.height - 1) / (stackLength - 1)))
+                        (region.height - 1) / (visualLength - 1)))
                 .toDouble()
             : 0,
       );
@@ -123,41 +151,40 @@ class GameTable extends StatelessWidget {
 
     PlayCardList cards = gameState.pile(item.type);
 
-    if (item.numberOfCardsToShow != null) {
-      cards = cards
-          .getRange(
-              max(cards.length - item.numberOfCardsToShow!, 0), cards.length)
-          .toList();
-    }
-
     switch (item.stackDirection) {
       case Direction.none:
-        return [
-          Positioned.fromRect(
-            rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-            child: _buildMarker(item),
-          ),
-          if (cards.isNotEmpty) ...[
-            for (final (i, card) in cards.indexed)
-              AnimatedPositioned.fromRect(
-                key: ValueKey(card),
-                duration: cardMoveAnimation.duration,
-                curve: cardMoveAnimation.curve,
-                rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-                child: CardView(
-                  card: card,
-                  elevation: i == cards.length - 1
-                      ? cards.length.clamp(2, 24).toDouble()
-                      : 0,
+        return _WidgetLayer(
+          markerLayer: [
+            Positioned.fromRect(
+              rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
+              child: _buildMarker(item),
+            ),
+          ],
+          cardLayer: [
+            if (cards.isNotEmpty)
+              for (final (i, card) in cards.indexed)
+                AnimatedPositioned.fromRect(
+                  key: ValueKey(card),
+                  duration: cardMoveAnimation.duration,
+                  curve: cardMoveAnimation.curve,
+                  rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
+                  child: CardView(
+                    card: card,
+                    elevation: i == cards.length - 1
+                        ? cards.length.clamp(2, 24).toDouble()
+                        : 0,
+                  ),
                 ),
-              ),
-            if (item.showCountIndicator)
+          ],
+          overlayLayer: [
+            if (cards.isNotEmpty && item.showCountIndicator)
               Positioned.fromRect(
                 rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
                 child: CountIndicator(count: cards.length),
               ),
           ],
-        ];
+        );
+
       default:
         Rect markerLocation;
         if (item.shiftStackOnPlace) {
@@ -176,28 +203,39 @@ class GameTable extends StatelessWidget {
           stackAnchor = Offset.zero;
         }
 
-        return [
-          Positioned.fromRect(
-            rect: measure(markerLocation),
-            child: _buildMarker(item),
-          ),
-          for (final (i, card) in cards.indexed)
-            AnimatedPositioned.fromRect(
-              key: ValueKey(card),
-              duration: cardMoveAnimation.duration,
-              curve: cardMoveAnimation.curve,
-              rect: measure(
-                Rect.fromLTWH(region.left, region.top, 1, 1)
-                    .shift(stackAnchor)
-                    .shift(calculateStackGap(
-                        i, cards.length, item.stackDirection)),
-              ),
-              child: GestureDetector(
-                onTap: () => _onCardTap(context, card, item.type),
-                child: CardView(card: card),
-              ),
+        return _WidgetLayer(
+          markerLayer: [
+            Positioned.fromRect(
+              rect: measure(markerLocation),
+              child: _buildMarker(item),
             ),
-        ];
+          ],
+          cardLayer: [
+            for (final (i, card) in cards.indexed)
+              AnimatedPositioned.fromRect(
+                key: ValueKey(card),
+                duration: cardMoveAnimation.duration,
+                curve: cardMoveAnimation.curve,
+                rect: measure(
+                  Rect.fromLTWH(region.left, region.top, 1, 1)
+                      .shift(stackAnchor)
+                      .shift(calculateStackGap(
+                          i, cards.length, item.stackDirection)),
+                ),
+                child: GestureDetector(
+                  onTap: () => _onCardTap(context, card, item.type),
+                  child: CardView(
+                    card: card,
+                    elevation: item.numberOfCardsToShow != null &&
+                            i < cards.length - item.numberOfCardsToShow!
+                        ? 0
+                        : null,
+                  ),
+                ),
+              ),
+          ],
+          overlayLayer: [],
+        );
     }
   }
 
@@ -325,4 +363,16 @@ class CountIndicator extends StatelessWidget {
       ),
     );
   }
+}
+
+class _WidgetLayer {
+  final List<Widget> markerLayer;
+  final List<Widget> cardLayer;
+  final List<Widget> overlayLayer;
+
+  _WidgetLayer({
+    required this.markerLayer,
+    required this.cardLayer,
+    required this.overlayLayer,
+  });
 }

@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../utils/index_iterator.dart';
-import '../utils/list_copy.dart';
+import '../utils/iterators.dart';
+import '../utils/lists.dart';
 import 'card.dart';
 import 'game_rules.dart';
 
@@ -55,6 +55,11 @@ class GameState extends ChangeNotifier {
   Action? get latestAction {
     return _history[_currentMoveIndex].action;
   }
+
+  Iterable<PlayCardList> get allFoundationPiles => Iterable.generate(
+      gameRules.numberOfFoundationPiles, (index) => pile(Foundation(index)));
+  Iterable<PlayCardList> get allTableauPiles => Iterable.generate(
+      gameRules.numberOfTableauPiles, (index) => pile(Tableau(index)));
 
   void startNewGame({bool keepSeed = false}) {
     if (!keepSeed) {
@@ -121,6 +126,18 @@ class GameState extends ChangeNotifier {
     for (int i = 0; i < 7; i++) {
       pile(Discard()).add(pile(Draw()).removeLast().faceUp());
     }
+  }
+
+  void restoreToDrawPile() {
+    final drawPile = pile(Draw());
+    for (final f in allFoundationPiles) {
+      drawPile.addAll(f.extractAll().allFaceDown);
+    }
+    for (final t in allTableauPiles) {
+      drawPile.addAll(t.extractAll().allFaceDown);
+    }
+    drawPile.addAll(pile(Discard()).extractAll().allFaceDown);
+    notifyListeners();
   }
 
   PlayCardList pile(CardLocation location) {

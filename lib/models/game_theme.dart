@@ -45,7 +45,12 @@ class GameTheme extends ChangeNotifier {
 
   void changePresetColor() {
     if (_presetColor != null) {
-      _presetColor = _pickRandomColorFromPalette();
+      MaterialColor newColor;
+      do {
+        newColor = _pickRandomColorFromPalette();
+      } while (newColor == _presetColor);
+      _presetColor = newColor;
+
       notifyListeners();
     }
   }

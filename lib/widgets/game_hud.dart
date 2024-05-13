@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
+import '../animations.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
 
@@ -59,7 +60,11 @@ class GameHUD extends StatelessWidget {
         tooltip: 'Start new game',
         onPressed: () {
           gameTheme.changePresetColor();
-          gameState.startNewGame();
+          gameState.restoreToDrawPile();
+          Future.delayed(
+            cardMoveAnimation.duration,
+            () => gameState.restartGame(),
+          );
         },
         icon: const Icon(Icons.restart_alt, size: 24),
       ),

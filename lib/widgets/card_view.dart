@@ -6,7 +6,7 @@ import '../animations.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
 import '../models/game_state.dart';
-import '../utils/color_utils.dart';
+import '../utils/colors.dart';
 
 class CardView extends StatelessWidget {
   const CardView({super.key, required this.card, this.elevation});

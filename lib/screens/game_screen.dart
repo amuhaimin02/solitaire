@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../animations.dart';
 import '../models/game_state.dart';
-import '../utils/color_utils.dart';
+import '../utils/colors.dart';
 import '../widgets/debug_hud.dart';
 import '../widgets/game_hud.dart';
 import '../widgets/game_table.dart';
@@ -40,61 +40,76 @@ class _GameScreenState extends State<GameScreen> {
             color: isWinning ? colorScheme.errorContainer : backgroundColor,
             child: OrientationBuilder(
               builder: (context, orientation) {
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: switch (orientation) {
-                        Orientation.landscape => const Padding(
-                            padding: EdgeInsets.all(40.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                GameHUD(),
-                                Flexible(child: GameTable()),
-                              ],
-                            ),
-                          ),
-                        Orientation.portrait => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 32.0),
-                                  child: GameHUD(),
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isMobile = constraints.biggest.shortestSide < 600;
+
+                    final outerMargin = isMobile
+                        ? const EdgeInsets.all(8)
+                        : const EdgeInsets.all(40);
+
+                    return Stack(
+                      children: [
+                        Positioned.fill(
+                          child: switch (orientation) {
+                            Orientation.landscape => Padding(
+                                padding: outerMargin,
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    GameHUD(),
+                                    Flexible(child: GameTable()),
+                                  ],
                                 ),
-                                Flexible(
-                                  child: GameTable(),
+                              ),
+                            Orientation.portrait => Padding(
+                                padding: outerMargin,
+                                child: const Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 32.0),
+                                      child: GameHUD(),
+                                    ),
+                                    Flexible(
+                                      child: GameTable(),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                      },
-                    ),
-                    if (showDebugPanel)
-                      switch (orientation) {
-                        Orientation.landscape => const Align(
-                            alignment: Alignment.centerRight,
-                            child: SizedBox(
-                              width: 200,
-                              height: double.infinity,
-                              child: DebugHUD(),
-                            ),
-                          ),
-                        Orientation.portrait => const Align(
-                            alignment: Alignment.bottomCenter,
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 250,
-                              child: DebugHUD(),
-                            ),
-                          ),
-                      }
-                  ],
+                              ),
+                          },
+                        ),
+                        if (showDebugPanel)
+                          switch (orientation) {
+                            Orientation.landscape => const Align(
+                                alignment: Alignment.centerRight,
+                                child: SizedBox(
+                                  width: 200,
+                                  height: double.infinity,
+                                  child: DebugHUD(),
+                                ),
+                              ),
+                            Orientation.portrait => const Align(
+                                alignment: Alignment.bottomCenter,
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 250,
+                                  child: DebugHUD(),
+                                ),
+                              ),
+                          }
+                      ],
+                    );
+                  },
                 );
               },
             ),

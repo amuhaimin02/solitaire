@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'models/game_theme.dart';
 import 'screens/game_screen.dart';
-import 'utils/index_iterator.dart';
+import 'utils/iterators.dart';
 
 class SolitaireApp extends StatelessWidget {
   const SolitaireApp({super.key});

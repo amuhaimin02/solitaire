@@ -88,6 +88,12 @@ class PlayCard {
 
 typedef PlayCardList = List<PlayCard>;
 
+extension PlayCardListExtension on List<PlayCard> {
+  PlayCardList get allFaceDown => map((e) => e.faceDown()).toList();
+
+  PlayCardList get allFaceUp => map((e) => e.faceUp()).toList();
+}
+
 PlayCard getRandomCard({bool? flipped}) {
   return PlayCard(
     Suit.values.sample(1).single,
