@@ -31,4 +31,10 @@ extension ListExtension<T> on List<T> {
 
     return (a, b);
   }
+
+  T toggle(T currentValue) {
+    final currentIndex = indexOf(currentValue);
+    final newIndex = (currentIndex + 1) % length;
+    return this[newIndex];
+  }
 }

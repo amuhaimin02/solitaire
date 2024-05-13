@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/lists.dart';
+
 class GameTheme extends ChangeNotifier {
   ThemeMode _currentThemeMode = ThemeMode.system;
 
@@ -42,8 +44,7 @@ class GameTheme extends ChangeNotifier {
   }
 
   void changePresetColor() {
-    _presetColor = colorPalette[
-        (colorPalette.indexOf(_presetColor) + 1) % colorPalette.length];
+    _presetColor = colorPalette.toggle(_presetColor);
 
     notifyListeners();
   }

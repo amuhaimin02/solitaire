@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'models/game_settings.dart';
 import 'models/game_theme.dart';
+import 'providers/system_orientation.dart';
 import 'screens/game_screen.dart';
 import 'utils/iterators.dart';
 
@@ -27,8 +29,12 @@ class SolitaireApp extends StatelessWidget {
           );
         }
 
-        return ChangeNotifierProvider(
-          create: (_) => GameTheme(),
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => GameTheme()),
+            ChangeNotifierProvider(create: (_) => SystemOrientationManager()),
+            ChangeNotifierProvider(create: (_) => GameSettings()),
+          ],
           builder: (context, child) {
             final gameTheme = context.watch<GameTheme>();
             final ColorScheme? lightColorScheme, darkColorScheme;

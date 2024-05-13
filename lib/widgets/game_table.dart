@@ -11,6 +11,7 @@ import '../models/card.dart';
 import '../models/direction.dart';
 import '../models/game_layout.dart';
 import '../models/game_rules.dart';
+import '../models/game_settings.dart';
 import '../models/game_state.dart';
 import '../utils/lists.dart';
 import 'card_marker.dart';
@@ -102,6 +103,7 @@ class GameTable extends StatelessWidget {
                         }
                       },
                       child: Stack(
+                        clipBehavior: Clip.none,
                         children: [
                           ...layers.map((w) => w.markerLayer).flattened,
                           ...cardWidgets,
@@ -315,11 +317,13 @@ class GameTable extends StatelessWidget {
           gameState.pickFromDrawPile();
           _feedbackOnPlace(Discard());
 
-          Future.delayed(
-            cardMoveAnimation.duration ~/ 2,
-            () => _feedbackOnPlace(gameState.tryQuickPlace(
-                gameState.pile(Discard()).last, Discard())),
-          );
+          if (context.read<GameSettings>().autoMoveOnDraw.current) {
+            Future.delayed(
+              cardMoveAnimation.duration,
+              () => _feedbackOnPlace(gameState.tryQuickPlace(
+                  gameState.pile(Discard()).last, Discard())),
+            );
+          }
         } else {
           gameState.refreshDrawPile();
           _feedbackOnPlace(Draw());

@@ -4,8 +4,10 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
+import '../models/game_settings.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
+import '../providers/system_orientation.dart';
 
 class ControlPane extends StatelessWidget {
   const ControlPane({super.key});
@@ -14,6 +16,8 @@ class ControlPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
     final gameTheme = context.watch<GameTheme>();
+    final systemOrientationManager = context.watch<SystemOrientationManager>();
+    final gameSettings = context.watch<GameSettings>();
 
     final children = [
       IconButton(
@@ -58,6 +62,37 @@ class ControlPane extends StatelessWidget {
         icon: Icon(MdiIcons.formatPaint, size: 24),
       ),
       IconButton(
+        tooltip: 'Toggle device orientation',
+        isSelected: systemOrientationManager.current != SystemOrientation.auto,
+        onPressed: () {
+          context.read<SystemOrientationManager>().toggle();
+        },
+        icon: Icon(
+          switch (systemOrientationManager.current) {
+            SystemOrientation.auto => Icons.screen_rotation,
+            SystemOrientation.landscape => Icons.stay_current_landscape,
+            SystemOrientation.portrait => Icons.stay_current_portrait,
+          },
+          size: 24,
+        ),
+      ),
+      IconButton(
+        isSelected: gameSettings.autoMoveOnDraw.current,
+        tooltip: 'Auto move on draw',
+        onPressed: () {
+          context
+              .read<GameSettings>()
+              .autoMoveOnDraw
+              .set(!gameSettings.autoMoveOnDraw.current);
+        },
+        icon: Icon(
+          gameSettings.autoMoveOnDraw.current
+              ? MdiIcons.handBackLeft
+              : MdiIcons.handBackLeftOff,
+          size: 24,
+        ),
+      ),
+      IconButton(
         tooltip: 'Toggle debug panel',
         isSelected: gameState.isDebugPanelShowing,
         onPressed: () {
@@ -70,7 +105,7 @@ class ControlPane extends StatelessWidget {
         onPressed: () {
           gameState.restoreToDrawPile();
           Future.delayed(
-            cardMoveAnimation.duration,
+            cardMoveAnimation.duration * 2,
             () {
               HapticFeedback.heavyImpact();
               gameState.startNewGame();
