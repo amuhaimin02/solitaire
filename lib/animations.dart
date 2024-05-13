@@ -8,4 +8,7 @@ class DurationCurve {
 }
 
 const cardMoveAnimation =
-    DurationCurve(Duration(milliseconds: 200), Curves.fastOutSlowIn);
+    DurationCurve(Duration(milliseconds: 300), Curves.fastOutSlowIn);
+
+const themeChangeAnimation =
+    DurationCurve(Duration(milliseconds: 500), Curves.fastOutSlowIn);

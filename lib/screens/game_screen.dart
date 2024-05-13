@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../constants.dart';
+import '../animations.dart';
 import '../models/game_state.dart';
 import '../utils/color_utils.dart';
 import '../widgets/debug_hud.dart';
@@ -35,8 +35,8 @@ class _GameScreenState extends State<GameScreen> {
 
         return Scaffold(
           body: AnimatedContainer(
-            duration: standardAnimationDuration,
-            curve: standardAnimationCurve,
+            duration: themeChangeAnimation.duration,
+            curve: themeChangeAnimation.curve,
             color: isWinning ? colorScheme.errorContainer : backgroundColor,
             child: OrientationBuilder(
               builder: (context, orientation) {

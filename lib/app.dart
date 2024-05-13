@@ -14,10 +14,8 @@ class SolitaireApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    print(RollingIndexIterator(count: 7, start: 1, startInclusive: true));
-    print(RollingIndexIterator(count: 7, start: 1, startInclusive: false));
-
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         ThemeData buildTheme(ColorScheme? colorScheme) {

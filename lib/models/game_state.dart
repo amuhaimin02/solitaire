@@ -53,7 +53,7 @@ class GameState extends ChangeNotifier {
   int get reshuffleCount => _reshuffleCount;
 
   Action? get latestAction {
-    return _history.lastOrNull?.action;
+    return _history[_currentMoveIndex].action;
   }
 
   void startNewGame({bool keepSeed = false}) {
@@ -179,7 +179,7 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  bool tryQuickPlace(PlayCard card, CardLocation from) {
+  CardLocation? tryQuickPlace(PlayCard card, CardLocation from) {
     final cardsInHand = switch (from) {
       Tableau() || Foundation() => [
           ...pile(from).getRange(pile(from).indexOf(card), pile(from).length)
@@ -189,7 +189,7 @@ class GameState extends ChangeNotifier {
 
     if (from is Tableau) {
       if (!gameRules.canPick(cardsInHand, from)) {
-        return false;
+        return null;
       }
     }
 
@@ -210,23 +210,24 @@ class GameState extends ChangeNotifier {
     // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
       for (final i in foundationIndexes) {
-        if (gameRules.canPlace(
-            cardsInHand, Foundation(i), pile(Foundation(i)))) {
-          placeCards(MoveCards(cardsInHand, from, Foundation(i)));
-          return true;
+        final foundation = Foundation(i);
+        if (gameRules.canPlace(cardsInHand, foundation, pile(foundation))) {
+          placeCards(MoveCards(cardsInHand, from, foundation));
+          return foundation;
         }
       }
     }
 
     // Try placing on tableau next
     for (final i in tableauIndexes) {
-      if (gameRules.canPlace(cardsInHand, Tableau(i), pile(Tableau(i)))) {
-        placeCards(MoveCards(cardsInHand, from, Tableau(i)));
-        return true;
+      final tableau = Tableau(i);
+      if (gameRules.canPlace(cardsInHand, tableau, pile(tableau))) {
+        placeCards(MoveCards(cardsInHand, from, tableau));
+        return tableau;
       }
     }
 
-    return false;
+    return null;
   }
 
   bool get canUndo => _currentMoveIndex > 0;

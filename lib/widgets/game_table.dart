@@ -1,18 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
-import '../constants.dart';
 import '../models/card.dart';
 import '../models/direction.dart';
 import '../models/game_layout.dart';
 import '../models/game_rules.dart';
 import '../models/game_state.dart';
 import 'card_marker.dart';
-import 'playing_card.dart';
+import 'card_view.dart';
 
 class GameTable extends StatelessWidget {
   const GameTable({super.key});
@@ -98,7 +98,7 @@ class GameTable extends StatelessWidget {
       final int offset;
 
       if (item.shiftStackOnPlace) {
-        offset = index;
+        offset = stackLength - index - 1;
       } else {
         offset = index;
       }
@@ -138,16 +138,19 @@ class GameTable extends StatelessWidget {
             child: _buildMarker(item),
           ),
           if (cards.isNotEmpty) ...[
-            AnimatedPositioned.fromRect(
-              key: ValueKey(cards.last),
-              duration: cardMoveAnimation.duration,
-              curve: cardMoveAnimation.curve,
-              rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-              child: PlayingCard(
-                card: cards.last,
-                elevation: cards.length.clamp(2, 24).toDouble(),
+            for (final (i, card) in cards.indexed)
+              AnimatedPositioned.fromRect(
+                key: ValueKey(card),
+                duration: cardMoveAnimation.duration,
+                curve: cardMoveAnimation.curve,
+                rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
+                child: CardView(
+                  card: card,
+                  elevation: i == cards.length - 1
+                      ? cards.length.clamp(2, 24).toDouble()
+                      : 0,
+                ),
               ),
-            ),
             if (item.showCountIndicator)
               Positioned.fromRect(
                 rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
@@ -191,7 +194,7 @@ class GameTable extends StatelessWidget {
               ),
               child: GestureDetector(
                 onTap: () => _onCardTap(context, card, item.type),
-                child: PlayingCard(card: card),
+                child: CardView(card: card),
               ),
             ),
         ];
@@ -228,8 +231,8 @@ class GameTable extends StatelessWidget {
     final gameState = context.read<GameState>();
 
     switch (location) {
-      case Tableau(index: var index):
-        gameState.tryQuickPlace(card, location);
+      case Tableau():
+        _feedbackOnPlace(gameState.tryQuickPlace(card, location));
         return;
       case _:
       // noop
@@ -247,18 +250,43 @@ class GameTable extends StatelessWidget {
       case Draw():
         if (gameState.pile(location).isNotEmpty) {
           gameState.pickFromDrawPile();
+          _feedbackOnPlace(Discard());
+
+          Future.delayed(
+            cardMoveAnimation.duration,
+            () {
+              _feedbackOnPlace(gameState.tryQuickPlace(
+                  gameState.pile(Discard()).last, Discard()));
+            },
+          );
         } else {
           gameState.refreshDrawPile();
+          _feedbackOnPlace(Draw());
         }
       case Discard():
         if (gameState.pile(location).isNotEmpty) {
-          gameState.tryQuickPlace(gameState.pile(location).last, location);
+          _feedbackOnPlace(
+              gameState.tryQuickPlace(gameState.pile(location).last, location));
         }
       case Foundation():
         if (gameState.pile(location).isNotEmpty) {
-          gameState.tryQuickPlace(gameState.pile(location).last, location);
+          _feedbackOnPlace(
+              gameState.tryQuickPlace(gameState.pile(location).last, location));
         }
       case _:
+      // noop
+    }
+  }
+
+  void _feedbackOnPlace(CardLocation? location) {
+    switch (location) {
+      case Discard():
+        HapticFeedback.lightImpact();
+      case Tableau():
+        HapticFeedback.mediumImpact();
+      case Draw() || Foundation():
+        HapticFeedback.heavyImpact();
+      case null:
       // noop
     }
   }

@@ -2,19 +2,17 @@ import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+import '../animations.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
 import '../models/game_state.dart';
 import '../utils/color_utils.dart';
 
-class PlayingCard extends StatelessWidget {
-  const PlayingCard(
-      {super.key, required this.card, this.elevation, this.onTap});
+class CardView extends StatelessWidget {
+  const CardView({super.key, required this.card, this.elevation});
 
   final PlayCard card;
   final double? elevation;
-
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -28,33 +26,42 @@ class PlayingCard extends StatelessWidget {
       'B' || _ => colorScheme.tertiary,
     };
 
-    final highlight = latestAction is MoveCards &&
-        latestAction.from is! Draw &&
-        latestAction.to is! Draw &&
-        latestAction.cards.contains(card);
+    final highlight =
+        latestAction is MoveCards && latestAction.cards.contains(card);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(layout.cardPadding),
-        width: layout.gridUnit.width,
-        height: layout.gridUnit.height,
-        decoration: highlight
-            ? BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+    return SizedBox(
+      width: layout.gridUnit.width,
+      height: layout.gridUnit.height,
+      child: Stack(
+        children: [
+          Center(
+            child: AnimatedContainer(
+              duration: cardMoveAnimation.duration,
+              curve: cardMoveAnimation.curve,
+              width: highlight ? layout.gridUnit.width : 1,
+              height: highlight ? layout.gridUnit.height : 1,
+              decoration: BoxDecoration(
                 color: faceColor,
-              )
-            : null,
-        child: Material(
-          borderRadius: BorderRadius.circular(8),
-          elevation: elevation ?? 2,
-          child: card.flipped
-              ? const CardCover()
-              : CardFace(
-                  card: card,
-                  foregroundColor: faceColor,
-                ),
-        ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.all(layout.cardPadding),
+              child: Material(
+                borderRadius: BorderRadius.circular(8),
+                elevation: elevation ?? 2,
+                child: card.flipped
+                    ? const CardCover()
+                    : CardFace(
+                        card: card,
+                        foregroundColor: faceColor,
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
