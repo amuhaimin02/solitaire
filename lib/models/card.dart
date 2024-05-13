@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 
 enum Suit {
   diamond('♢', 'R'),
-  club('♧ ', 'B'),
+  club('♧', 'B'),
   heart('♡', 'R'),
   spade('♤', 'B');
 

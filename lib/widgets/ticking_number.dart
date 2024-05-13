@@ -23,6 +23,12 @@ class _AnimatedCountState extends AnimatedWidgetBaseState<TickingNumber> {
   IntTween _numberTween = IntTween(begin: 0, end: 0);
 
   @override
+  void initState() {
+    super.initState();
+    _numberTween = IntTween(begin: widget.number, end: widget.number);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Text(
       _numberTween.evaluate(animation).toString(),

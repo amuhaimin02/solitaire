@@ -10,9 +10,17 @@ import '../utils/colors.dart';
 import 'flippable.dart';
 
 class CardView extends StatelessWidget {
-  const CardView({super.key, required this.card, this.elevation});
+  const CardView({
+    super.key,
+    required this.card,
+    required this.location,
+    this.elevation,
+  });
 
   final PlayCard card;
+
+  final CardLocation location;
+
   final double? elevation;
 
   @override
@@ -51,7 +59,8 @@ class CardView extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.all(layout.cardPadding),
               child: Flippable(
-                key: ValueKey(card),
+                duration: cardMoveAnimation.duration,
+                curve: cardMoveAnimation.curve,
                 flipped: card.flipped,
                 front: Material(
                   key: ValueKey(card.toString()),
@@ -71,6 +80,8 @@ class CardView extends StatelessWidget {
               ),
             ),
           ),
+          // Text(location.toString(),
+          //     style: const TextStyle(color: Colors.white)),
         ],
       ),
     );

@@ -12,6 +12,7 @@ import '../models/direction.dart';
 import '../models/game_layout.dart';
 import '../models/game_rules.dart';
 import '../models/game_state.dart';
+import '../utils/lists.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
 import 'ticking_number.dart';
@@ -55,11 +56,37 @@ class GameTable extends StatelessWidget {
                   ),
                   builder: (context, child) {
                     final layout = context.watch<GameLayout>();
+                    final gameState = context.watch<GameState>();
 
                     final layers = [
                       for (final item in tableLayout.items)
                         _buildPile(context, item),
                     ];
+
+                    List<Widget> cardWidgets =
+                        layers.map((w) => w.cardLayer).flattened.toList();
+
+                    // TODO: Using card as keys to determine widget owner
+
+                    // Move recently moved cards on top of render stack
+                    final recentAction = gameState.latestAction;
+
+                    if (recentAction is MoveCards &&
+                        recentAction.cards.isNotEmpty) {
+                      final recentlyMovedCards = recentAction.cards;
+
+                      final (widgetsOnTop, remainingWidgets) =
+                          cardWidgets.partition((w) {
+                        if (w.key is! ValueKey<PlayCard>) {
+                          return false;
+                        }
+                        PlayCard card = (w.key as ValueKey<PlayCard>).value;
+
+                        return recentlyMovedCards.contains(card);
+                      });
+
+                      cardWidgets = [...remainingWidgets, ...widgetsOnTop];
+                    }
 
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -77,7 +104,7 @@ class GameTable extends StatelessWidget {
                       child: Stack(
                         children: [
                           ...layers.map((w) => w.markerLayer).flattened,
-                          ...layers.map((w) => w.cardLayer).flattened,
+                          ...cardWidgets,
                           ...layers.map((w) => w.overlayLayer).flattened,
                         ],
                       ),
@@ -165,6 +192,7 @@ class GameTable extends StatelessWidget {
                   rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
                   child: CardView(
                     card: card,
+                    location: item.type,
                     elevation: i == cards.length - 1
                         ? cards.length.clamp(2, 24).toDouble()
                         : 0,
@@ -198,6 +226,8 @@ class GameTable extends StatelessWidget {
           stackAnchor = Offset.zero;
         }
 
+        final cardLimit = item.numberOfCardsToShow;
+
         return _WidgetLayer(
           markerLayer: [
             Positioned.fromRect(
@@ -221,8 +251,8 @@ class GameTable extends StatelessWidget {
                   onTap: () => _onCardTap(context, card, item.type),
                   child: CardView(
                     card: card,
-                    elevation: item.numberOfCardsToShow != null &&
-                            i < cards.length - item.numberOfCardsToShow!
+                    location: item.type,
+                    elevation: cardLimit != null && i < cards.length - cardLimit
                         ? 0
                         : null,
                   ),
@@ -352,7 +382,7 @@ class CountIndicator extends StatelessWidget {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: size * 0.3,
+            fontSize: size * 0.25,
           ),
         ),
       ),
