@@ -14,13 +14,13 @@ import 'game_rules.dart';
 class GameState extends ChangeNotifier {
   late int _gameSeed;
 
-  late PlayCardList drawPile;
+  late PlayCardList _drawPile;
 
-  late List<PlayCardList> foundationPile;
+  late List<PlayCardList> _foundationPile;
 
-  late PlayCardList discardPile;
+  late PlayCardList _discardPile;
 
-  late List<PlayCardList> tableauPile;
+  late List<PlayCardList> _tableauPile;
 
   late GameRules gameRules = Klondike();
 
@@ -64,6 +64,7 @@ class GameState extends ChangeNotifier {
     resetStates();
     setupPiles();
     distributeToTableau();
+    // testDistributeToOtherPiles();
     _updateHistory(GameStart());
 
     _stopWatch
@@ -86,19 +87,19 @@ class GameState extends ChangeNotifier {
 
   void setupPiles() {
     // Clear up tables, and set up new draw pile
-    drawPile = PlayCard.newShuffledDeck(Random(_gameSeed))
+    _drawPile = PlayCard.newShuffledDeck(Random(_gameSeed))
         .map((c) => c.faceDown())
         .toList();
-    foundationPile = List.generate(Suit.values.length, (index) => []);
-    discardPile = [];
-    tableauPile = List.generate(gameRules.numberOfTableaux, (index) => []);
+    _foundationPile = List.generate(Suit.values.length, (index) => []);
+    _discardPile = [];
+    _tableauPile = List.generate(gameRules.numberOfTableauPiles, (index) => []);
   }
 
   void distributeToTableau() {
-    for (int i = 0; i < tableauPile.length; i++) {
-      final tableau = tableauPile[i];
+    for (int i = 0; i < gameRules.numberOfTableauPiles; i++) {
+      final tableau = pile(Tableau(i));
       for (int k = 0; k <= i; k++) {
-        final card = drawPile.removeLast();
+        final card = pile(Draw()).removeLast();
 
         if (k == i) {
           // Last card, turn face up
@@ -112,20 +113,29 @@ class GameState extends ChangeNotifier {
   }
 
   void testDistributeToOtherPiles() {
-    for (final cards in foundationPile) {
-      for (int i = 0; i < 3; i++) {
-        cards.add(drawPile.removeLast().faceUp());
+    for (int i = 0; i < gameRules.numberOfFoundationPiles; i++) {
+      for (int j = 0; i < j; j++) {
+        pile(Foundation(i)).add(pile(Draw()).removeLast().faceUp());
       }
     }
-    for (int i = 0; i < 5; i++) {
-      discardPile.add(drawPile.removeLast().faceUp());
+    for (int i = 0; i < 7; i++) {
+      pile(Discard()).add(pile(Draw()).removeLast().faceUp());
     }
   }
 
-  void pickFromDrawPile() {
-    final pickedCard = drawPile.removeLast();
+  PlayCardList pile(CardLocation location) {
+    return switch (location) {
+      Draw() => _drawPile,
+      Discard() => _discardPile,
+      Foundation(index: var index) => _foundationPile[index],
+      Tableau(index: var index) => _tableauPile[index],
+    };
+  }
 
-    discardPile.add(pickedCard.faceUp());
+  void pickFromDrawPile() {
+    final pickedCard = pile(Draw()).removeLast();
+
+    pile(Discard()).add(pickedCard.faceUp());
 
     _updateHistory(MoveCards([pickedCard], Draw(), Discard()));
 
@@ -134,10 +144,12 @@ class GameState extends ChangeNotifier {
 
   void refreshDrawPile() {
     final remainderCards =
-        discardPile.reversed.map((c) => c.faceDown()).toList();
+        pile(Discard()).reversed.map((c) => c.faceDown()).toList();
 
-    drawPile = remainderCards;
-    discardPile = [];
+    pile(Draw())
+      ..clear()
+      ..addAll(remainderCards);
+    pile(Discard()).clear();
 
     _updateHistory(MoveCards([...remainderCards], Discard(), Draw()));
 
@@ -151,7 +163,7 @@ class GameState extends ChangeNotifier {
       final cardsInHand = action.cards.copy();
 
       // Make validation first before altering card in play
-      _validatePlacement(cardsInHand, action.from, action.to);
+      // _validatePlacement(cardsInHand, action.from, action.to);
 
       _checkAndRemoveCards(cardsInHand, action.from);
 
@@ -167,30 +179,39 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  bool tryQuickPlace(PlayCardList cardsInHand, CardLocation from) {
+  bool tryQuickPlace(PlayCard card, CardLocation from) {
+    final cardsInHand = switch (from) {
+      Tableau() || Foundation() => [
+          ...pile(from).getRange(pile(from).indexOf(card), pile(from).length)
+        ],
+      Draw() || Discard() => [card],
+    };
+
     if (from is Tableau) {
-      if (!gameRules.canPickFromTableau(cardsInHand)) {
+      if (!gameRules.canPick(cardsInHand, from)) {
         return false;
       }
     }
 
     final foundationIndexes = RollingIndexIterator(
-      count: foundationPile.length,
+      count: gameRules.numberOfFoundationPiles,
       start: 0,
       direction: 1,
     );
 
     final tableauIndexes = RollingIndexIterator(
-      count: tableauPile.length,
-      start: from is Tableau ? from.index : tableauPile.length - 1,
-      direction: -1,
+      count: gameRules.numberOfTableauPiles,
+      start: from is Tableau ? from.index : 0,
+      direction: 1,
+      startInclusive: from is! Tableau,
     );
 
     // Try placing on foundation pile first
     // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
       for (final i in foundationIndexes) {
-        if (gameRules.canPlaceInFoundation(cardsInHand, foundationPile[i])) {
+        if (gameRules.canPlace(
+            cardsInHand, Foundation(i), pile(Foundation(i)))) {
           placeCards(MoveCards(cardsInHand, from, Foundation(i)));
           return true;
         }
@@ -199,7 +220,7 @@ class GameState extends ChangeNotifier {
 
     // Try placing on tableau next
     for (final i in tableauIndexes) {
-      if (gameRules.canPlaceInTableau(cardsInHand, tableauPile[i])) {
+      if (gameRules.canPlace(cardsInHand, Tableau(i), pile(Tableau(i)))) {
         placeCards(MoveCards(cardsInHand, from, Tableau(i)));
         return true;
       }
@@ -230,44 +251,34 @@ class GameState extends ChangeNotifier {
     _restoreFromHistory(_currentMoveIndex);
     notifyListeners();
   }
-
-  PlayCardList _getPileFromLocation(CardLocation location) {
-    return switch (location) {
-      Draw() => drawPile,
-      Discard() => discardPile,
-      Foundation(index: var index) => foundationPile[index],
-      Tableau(index: var index) => tableauPile[index],
-    };
-  }
-
-  void _validatePlacement(
-      PlayCardList cardsInHand, CardLocation from, CardLocation to) {
-    print('Placing $cardsInHand} from $from to $to');
-
-    final cardsFrom = _getPileFromLocation(from);
-    final cardsToCheck = cardsFrom
-        .getRange(cardsFrom.length - cardsInHand.length, cardsFrom.length)
-        .toList();
-
-    if (!const ListEquality<PlayCard>().equals(cardsToCheck, cardsInHand)) {
-      throw AssertionError('Cards in hand should be equal with cards on table');
-    }
-
-    // Validate according to game rules
-    if (to is Tableau) {
-      if (!gameRules.canPlaceInTableau(cardsInHand, _getPileFromLocation(to))) {
-        throw StateError('Cannot move the card(s) to this column');
-      }
-    } else if (to is Foundation) {
-      if (!gameRules.canPlaceInFoundation(
-          cardsInHand, _getPileFromLocation(to))) {
-        throw StateError('Cannot move the card(s) to this foundation pile');
-      }
-    }
-  }
+  //
+  // void _validatePlacement(
+  //     PlayCardList cardsInHand, CardLocation from, CardLocation to) {
+  //   print('Placing $cardsInHand} from $from to $to');
+  //
+  //   final cardsFrom = pile(from);
+  //   final cardsToCheck = cardsFrom
+  //       .getRange(cardsFrom.length - cardsInHand.length, cardsFrom.length)
+  //       .toList();
+  //
+  //   if (!const ListEquality<PlayCard>().equals(cardsToCheck, cardsInHand)) {
+  //     throw AssertionError('Cards in hand should be equal with cards on table');
+  //   }
+  //
+  //   // Validate according to game rules
+  //   if (to is Tableau) {
+  //     if (!gameRules.canPlaceInTableau(cardsInHand, pile(to))) {
+  //       throw StateError('Cannot move the card(s) to this column');
+  //     }
+  //   } else if (to is Foundation) {
+  //     if (!gameRules.canPlaceInFoundation(cardsInHand, pile(to))) {
+  //       throw StateError('Cannot move the card(s) to this foundation pile');
+  //     }
+  //   }
+  // }
 
   void _checkAndRemoveCards(PlayCardList cardsInHand, CardLocation location) {
-    final cardsOnTable = _getPileFromLocation(location);
+    final cardsOnTable = pile(location);
 
     cardsOnTable.removeRange(
         cardsOnTable.length - cardsInHand.length, cardsOnTable.length);
@@ -278,7 +289,7 @@ class GameState extends ChangeNotifier {
   }
 
   void _placeCardsOnTable(PlayCardList cardsInHand, CardLocation location) {
-    final cardsOnTable = _getPileFromLocation(location);
+    final cardsOnTable = pile(location);
 
     // Move all cards on hand to location
     cardsOnTable.addAll(cardsInHand);
@@ -294,10 +305,10 @@ class GameState extends ChangeNotifier {
     }
 
     final newHistory = GameHistory(
-      drawPile,
-      discardPile,
-      tableauPile,
-      foundationPile,
+      _drawPile,
+      _discardPile,
+      _tableauPile,
+      _foundationPile,
       recentAction,
     );
 
@@ -307,17 +318,17 @@ class GameState extends ChangeNotifier {
   void _restoreFromHistory(int historyIndex) {
     final history = _history[historyIndex];
 
-    drawPile = history.drawPile.copy();
-    discardPile = history.discardPile.copy();
-    tableauPile = history.tableauPile.copy();
-    foundationPile = history.foundationPile.copy();
+    _drawPile = history.drawPile.copy();
+    _discardPile = history.discardPile.copy();
+    _tableauPile = history.tableauPile.copy();
+    _foundationPile = history.foundationPile.copy();
 
     print(
-        'Restored from [$historyIndex]: T=${tableauPile.map((e) => e.length)}');
+        'Restored from [$historyIndex]: T=${_tableauPile.map((e) => e.length)}');
   }
 
   void _postCheckAfterPlacement() {
-    if (gameRules.winningCondition(foundationPile)) {
+    if (gameRules.winConditions(this)) {
       HapticFeedback.heavyImpact();
       _isWinning = true;
     }

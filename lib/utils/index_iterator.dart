@@ -55,6 +55,7 @@ class RollingIndexIterator extends Iterable<int> implements Iterator<int> {
   RollingIndexIterator({
     required this.count,
     required this.start,
+    this.startInclusive = true,
     this.direction = 1,
   })  : assert(start >= 0 && start < count),
         assert(direction == 1 || direction == -1),
@@ -64,6 +65,8 @@ class RollingIndexIterator extends Iterable<int> implements Iterator<int> {
   final int count;
   final int start;
   final int direction;
+
+  final bool startInclusive;
 
   int _current;
   bool _first;
@@ -75,7 +78,10 @@ class RollingIndexIterator extends Iterable<int> implements Iterator<int> {
   bool moveNext() {
     if (_first) {
       _first = false;
-      return true;
+
+      if (startInclusive) {
+        return true;
+      }
     }
 
     _current += direction;
@@ -90,6 +96,10 @@ class RollingIndexIterator extends Iterable<int> implements Iterator<int> {
   }
 
   @override
-  Iterator<int> get iterator =>
-      RollingIndexIterator(count: count, start: start, direction: direction);
+  Iterator<int> get iterator => RollingIndexIterator(
+        count: count,
+        start: start,
+        direction: direction,
+        startInclusive: startInclusive,
+      );
 }

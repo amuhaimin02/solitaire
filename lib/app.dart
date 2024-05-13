@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'models/game_theme.dart';
 import 'screens/game_screen.dart';
+import 'utils/index_iterator.dart';
 
 class SolitaireApp extends StatelessWidget {
   const SolitaireApp({super.key});
@@ -13,6 +14,9 @@ class SolitaireApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    print(RollingIndexIterator(count: 7, start: 1, startInclusive: true));
+    print(RollingIndexIterator(count: 7, start: 1, startInclusive: false));
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {

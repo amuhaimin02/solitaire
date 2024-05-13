@@ -22,6 +22,12 @@ class PlayingCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final latestAction =
         context.select<GameState, Action?>((s) => s.latestAction);
+
+    final faceColor = switch (card.suit.group) {
+      'R' => colorScheme.primary,
+      'B' || _ => colorScheme.tertiary,
+    };
+
     final highlight = latestAction is MoveCards &&
         latestAction.from is! Draw &&
         latestAction.to is! Draw &&
@@ -31,18 +37,23 @@ class PlayingCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(layout.cardPadding),
-        width: layout.cardSize.width,
-        height: layout.cardSize.height,
+        width: layout.gridUnit.width,
+        height: layout.gridUnit.height,
         decoration: highlight
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: colorScheme.tertiary,
+                color: faceColor,
               )
             : null,
         child: Material(
           borderRadius: BorderRadius.circular(8),
           elevation: elevation ?? 2,
-          child: card.flipped ? const CardCover() : CardFace(card: card),
+          child: card.flipped
+              ? const CardCover()
+              : CardFace(
+                  card: card,
+                  foregroundColor: faceColor,
+                ),
         ),
       ),
     );
@@ -50,9 +61,15 @@ class PlayingCard extends StatelessWidget {
 }
 
 class CardFace extends StatelessWidget {
-  const CardFace({super.key, required this.card});
+  const CardFace({
+    super.key,
+    required this.card,
+    required this.foregroundColor,
+  });
 
   final PlayCard card;
+
+  final Color foregroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -60,14 +77,9 @@ class CardFace extends StatelessWidget {
 
     final layout = context.watch<GameLayout>();
 
-    final spacingFactor = layout.cardSize.width * 0.05;
-    final labelSizingFactor = layout.cardSize.width * 0.32;
-    final iconSizingFactor = layout.cardSize.width * 0.25;
-
-    final cardMarkingColor = switch (card.suit.group) {
-      'R' => colorScheme.primary,
-      'B' || _ => colorScheme.tertiary,
-    };
+    final spacingFactor = layout.gridUnit.width * 0.05;
+    final labelSizingFactor = layout.gridUnit.width * 0.32;
+    final iconSizingFactor = layout.gridUnit.width * 0.25;
 
     final iconSvgPath = 'assets/${card.suit.name}.svg';
 
@@ -92,7 +104,7 @@ class CardFace extends StatelessWidget {
                   style: TextStyle(
                     fontSize: labelSizingFactor,
                     fontWeight: FontWeight.bold,
-                    color: cardMarkingColor,
+                    color: foregroundColor,
                   ),
                 ),
                 SvgPicture.asset(
@@ -100,20 +112,20 @@ class CardFace extends StatelessWidget {
                   width: labelSizingFactor * 0.9,
                   height: labelSizingFactor * 0.9,
                   colorFilter:
-                      ColorFilter.mode(cardMarkingColor, BlendMode.srcIn),
+                      ColorFilter.mode(foregroundColor, BlendMode.srcIn),
                 )
               ],
             ),
           ),
           Positioned(
-            bottom: -(layout.cardSize.height * 0.1),
-            left: -(layout.cardSize.width * 0.1),
+            bottom: -(layout.gridUnit.height * 0.0),
+            left: -(layout.gridUnit.width * 0.15),
             child: SvgPicture.asset(
               iconSvgPath,
-              width: iconSizingFactor * 3.5,
-              height: iconSizingFactor * 3.5,
+              width: iconSizingFactor * 3,
+              height: iconSizingFactor * 3,
               colorFilter: ColorFilter.mode(
-                cardMarkingColor.withOpacity(0.15),
+                foregroundColor.withOpacity(0.15),
                 BlendMode.srcIn,
               ),
             ),
@@ -140,7 +152,7 @@ class CardCover extends StatelessWidget {
         color: cardColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          width: layout.cardSize.width * 0.1,
+          width: layout.gridUnit.width * 0.1,
           color: cardColor.darken(0.07),
         ),
       ),
