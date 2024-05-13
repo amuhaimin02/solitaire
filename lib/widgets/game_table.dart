@@ -14,6 +14,7 @@ import '../models/game_rules.dart';
 import '../models/game_state.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
+import 'ticking_number.dart';
 
 class GameTable extends StatelessWidget {
   const GameTable({super.key});
@@ -127,21 +128,15 @@ class GameTable extends StatelessWidget {
         offset = visualIndex;
       }
 
-      if (item.type is Discard) {
-        print('i $index, ni $visualIndex, off $offset');
-      }
-
       return Offset(
         direction.dx != 0
-            ? (offset *
-                    direction.dx *
+            ? ((offset * direction.dx) *
                     min(layout.maxStackGap.dx,
                         (region.width - 1) / (visualLength - 1)))
                 .toDouble()
             : 0,
         direction.dy != 0
-            ? (offset *
-                    direction.dy *
+            ? ((offset * direction.dy) *
                     min(layout.maxStackGap.dy,
                         (region.height - 1) / (visualLength - 1)))
                 .toDouble()
@@ -291,11 +286,9 @@ class GameTable extends StatelessWidget {
           _feedbackOnPlace(Discard());
 
           Future.delayed(
-            cardMoveAnimation.duration,
-            () {
-              _feedbackOnPlace(gameState.tryQuickPlace(
-                  gameState.pile(Discard()).last, Discard()));
-            },
+            cardMoveAnimation.duration ~/ 2,
+            () => _feedbackOnPlace(gameState.tryQuickPlace(
+                gameState.pile(Discard()).last, Discard())),
           );
         } else {
           gameState.refreshDrawPile();
@@ -352,8 +345,10 @@ class CountIndicator extends StatelessWidget {
           color: Colors.white.withOpacity(0.7),
           shape: BoxShape.circle,
         ),
-        child: Text(
-          count.toString(),
+        child: TickingNumber(
+          count,
+          duration: numberTickAnimation.duration,
+          curve: numberTickAnimation.curve,
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,

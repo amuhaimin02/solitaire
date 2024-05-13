@@ -7,6 +7,7 @@ import '../models/card.dart';
 import '../models/game_layout.dart';
 import '../models/game_state.dart';
 import '../utils/colors.dart';
+import 'flippable.dart';
 
 class CardView extends StatelessWidget {
   const CardView({super.key, required this.card, this.elevation});
@@ -49,15 +50,24 @@ class CardView extends StatelessWidget {
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.all(layout.cardPadding),
-              child: Material(
-                borderRadius: BorderRadius.circular(8),
-                elevation: elevation ?? 2,
-                child: card.flipped
-                    ? const CardCover()
-                    : CardFace(
-                        card: card,
-                        foregroundColor: faceColor,
-                      ),
+              child: Flippable(
+                key: ValueKey(card),
+                flipped: card.flipped,
+                front: Material(
+                  key: ValueKey(card.toString()),
+                  borderRadius: BorderRadius.circular(8),
+                  elevation: elevation ?? 2,
+                  child: CardFace(
+                    card: card,
+                    foregroundColor: faceColor,
+                  ),
+                ),
+                back: Material(
+                  key: ValueKey(card.toString()),
+                  borderRadius: BorderRadius.circular(8),
+                  elevation: elevation ?? 2,
+                  child: const CardCover(),
+                ),
               ),
             ),
           ),

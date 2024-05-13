@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -6,8 +7,8 @@ import '../animations.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
 
-class GameHUD extends StatelessWidget {
-  const GameHUD({super.key});
+class ControlPane extends StatelessWidget {
+  const ControlPane({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,7 @@ class GameHUD extends StatelessWidget {
 
     final children = [
       IconButton(
-        tooltip: 'Change theme',
+        tooltip: 'Toggle theme mode',
         onPressed: () {
           final gameTheme = context.read<GameTheme>();
           final currentThemeMode = gameTheme.currentMode;
@@ -37,9 +38,9 @@ class GameHUD extends StatelessWidget {
       ),
       IconButton(
         isSelected: gameTheme.usingRandomColors,
-        tooltip: 'Toggle random theme',
+        tooltip: 'Toggle dynamic/preset colors',
         onPressed: () {
-          gameTheme.toggleUsePresetColors(!gameTheme.usingRandomColors);
+          gameTheme.toggleUsePresetColors();
         },
         icon: Icon(
           gameTheme.usingRandomColors
@@ -47,6 +48,14 @@ class GameHUD extends StatelessWidget {
               : MdiIcons.imageFilterBlackWhite,
           size: 24,
         ),
+      ),
+      IconButton(
+        isSelected: gameTheme.usingRandomColors,
+        tooltip: 'Change preset colors',
+        onPressed: gameTheme.usingRandomColors
+            ? () => gameTheme.changePresetColor()
+            : null,
+        icon: Icon(MdiIcons.formatPaint, size: 24),
       ),
       IconButton(
         tooltip: 'Toggle debug panel',
@@ -59,11 +68,13 @@ class GameHUD extends StatelessWidget {
       IconButton(
         tooltip: 'Start new game',
         onPressed: () {
-          gameTheme.changePresetColor();
           gameState.restoreToDrawPile();
           Future.delayed(
             cardMoveAnimation.duration,
-            () => gameState.restartGame(),
+            () {
+              HapticFeedback.heavyImpact();
+              gameState.startNewGame();
+            },
           );
         },
         icon: const Icon(Icons.restart_alt, size: 24),
@@ -72,6 +83,7 @@ class GameHUD extends StatelessWidget {
         tooltip: 'Restart game',
         onPressed: () {
           gameState.restartGame();
+          HapticFeedback.heavyImpact();
         },
         icon: const Icon(Icons.fast_rewind, size: 24),
       ),

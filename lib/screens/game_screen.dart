@@ -5,7 +5,7 @@ import '../animations.dart';
 import '../models/game_state.dart';
 import '../utils/colors.dart';
 import '../widgets/debug_hud.dart';
-import '../widgets/game_hud.dart';
+import '../widgets/control_pane.dart';
 import '../widgets/game_table.dart';
 
 class GameScreen extends StatefulWidget {
@@ -61,7 +61,7 @@ class _GameScreenState extends State<GameScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    GameHUD(),
+                                    ControlPane(),
                                     Flexible(child: GameTable()),
                                   ],
                                 ),
@@ -78,7 +78,7 @@ class _GameScreenState extends State<GameScreen> {
                                     Padding(
                                       padding:
                                           EdgeInsets.symmetric(vertical: 32.0),
-                                      child: GameHUD(),
+                                      child: ControlPane(),
                                     ),
                                     Flexible(
                                       child: GameTable(),
