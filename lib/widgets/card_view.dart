@@ -35,8 +35,10 @@ class CardView extends StatelessWidget {
       'B' || _ => colorScheme.tertiary,
     };
 
-    final highlight =
-        latestAction is MoveCards && latestAction.cards.contains(card);
+    final highlight = latestAction is MoveCards &&
+        latestAction.from is! Draw &&
+        latestAction.to is! Draw &&
+        latestAction.cards.contains(card);
 
     return SizedBox(
       width: layout.gridUnit.width,

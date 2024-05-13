@@ -29,8 +29,8 @@ class _GameScreenState extends State<GameScreen> {
             .select<GameState, bool>((state) => state.isDebugPanelShowing);
 
         final backgroundColor = switch (colorScheme.brightness) {
-          Brightness.light => colorScheme.surfaceVariant.lighten(0.2),
-          Brightness.dark => colorScheme.surfaceVariant.darken(0.2),
+          Brightness.light => colorScheme.surfaceVariant.lighten(0.0),
+          Brightness.dark => colorScheme.surfaceVariant.darken(0.3),
         };
 
         return Scaffold(

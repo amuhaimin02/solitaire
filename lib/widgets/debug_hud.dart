@@ -19,6 +19,13 @@ Reshuffle: ${gameState.reshuffleCount}
 Theme mode: ${gameTheme.currentMode.name}
 Theme color palette: ${gameTheme.currentPresetColor?.shade500 ?? '(dynamic)'}
 Last move: ${gameState.latestAction}
+Undo count: ${gameState.undoCount}
+.
+.
+.
+.
+.
+.
 .
 .
 .

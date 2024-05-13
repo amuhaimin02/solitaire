@@ -32,6 +32,10 @@ class GameState extends ChangeNotifier {
 
   late int _reshuffleCount;
 
+  late int _undoCount;
+
+  late bool _isUndoing;
+
   bool _showDebugPanel = false;
 
   final _stopWatch = Stopwatch();
@@ -52,8 +56,16 @@ class GameState extends ChangeNotifier {
 
   int get reshuffleCount => _reshuffleCount;
 
+  int get undoCount => _undoCount;
+
+  bool get isUndoing => _isUndoing;
+
   Action? get latestAction {
-    return _history[_currentMoveIndex].action;
+    if (_isUndoing && _currentMoveIndex < _history.length - 1) {
+      return _history[_currentMoveIndex + 1].action;
+    } else {
+      return _history[_currentMoveIndex].action;
+    }
   }
 
   Iterable<PlayCardList> get allFoundationPiles => Iterable.generate(
@@ -88,6 +100,8 @@ class GameState extends ChangeNotifier {
     _history = [];
     _currentMoveIndex = 0;
     _reshuffleCount = 0;
+    _undoCount = 0;
+    _isUndoing = false;
   }
 
   void setupPiles() {
@@ -189,6 +203,8 @@ class GameState extends ChangeNotifier {
       _postCheckAfterPlacement();
 
       _updateHistory(action);
+
+      _isUndoing = false;
     } catch (e) {
       rethrow;
     } finally {
@@ -257,6 +273,8 @@ class GameState extends ChangeNotifier {
     }
     _restoreFromHistory(_currentMoveIndex - 1);
     _currentMoveIndex--;
+    _undoCount++;
+    _isUndoing = true;
     notifyListeners();
   }
 
@@ -267,6 +285,7 @@ class GameState extends ChangeNotifier {
     }
     _currentMoveIndex++;
     _restoreFromHistory(_currentMoveIndex);
+    _isUndoing = false;
     notifyListeners();
   }
   //
