@@ -36,6 +36,8 @@ class GameState extends ChangeNotifier {
 
   late bool _isUndoing;
 
+  late bool _canAutoSolve;
+
   bool _showDebugPanel = false;
 
   final _stopWatch = Stopwatch();
@@ -60,6 +62,8 @@ class GameState extends ChangeNotifier {
 
   bool get isUndoing => _isUndoing;
 
+  bool get canAutoSolve => _canAutoSolve;
+
   Action? get latestAction {
     if (_isUndoing && _currentMoveIndex < _history.length - 1) {
       return _history[_currentMoveIndex + 1].action;
@@ -67,6 +71,8 @@ class GameState extends ChangeNotifier {
       return _history[_currentMoveIndex].action;
     }
   }
+
+  bool get isOnStartingPoint => _history.length == 1;
 
   Iterable<PlayCardList> get allFoundationPiles => Iterable.generate(
       gameRules.numberOfFoundationPiles, (index) => pile(Foundation(index)));
@@ -81,7 +87,9 @@ class GameState extends ChangeNotifier {
     resetStates();
     setupPiles();
     distributeToTableau();
-    // testDistributeToOtherPiles();
+
+    // testCustomLayout();
+
     _updateHistory(GameStart());
 
     _stopWatch
@@ -89,6 +97,37 @@ class GameState extends ChangeNotifier {
       ..start();
 
     notifyListeners();
+  }
+
+  void testCustomLayout() {
+    _drawPile = [
+      const PlayCard(Suit.club, Value.two).faceDown(),
+    ];
+    _discardPile = [];
+    _foundationPile = [
+      [const PlayCard(Suit.heart, Value.ace)],
+      [const PlayCard(Suit.spade, Value.ace)],
+      [const PlayCard(Suit.diamond, Value.ace)],
+      [const PlayCard(Suit.club, Value.ace)]
+    ];
+    _tableauPile = [
+      [
+        const PlayCard(Suit.heart, Value.three),
+        const PlayCard(Suit.heart, Value.two),
+      ],
+      [
+        const PlayCard(Suit.spade, Value.three),
+        const PlayCard(Suit.spade, Value.two),
+      ],
+      [
+        const PlayCard(Suit.diamond, Value.three),
+        const PlayCard(Suit.diamond, Value.two),
+      ],
+      [const PlayCard(Suit.club, Value.three)],
+      [],
+      [],
+      []
+    ];
   }
 
   void restartGame() {
@@ -102,6 +141,7 @@ class GameState extends ChangeNotifier {
     _reshuffleCount = 0;
     _undoCount = 0;
     _isUndoing = false;
+    _canAutoSolve = false;
   }
 
   void setupPiles() {
@@ -288,31 +328,6 @@ class GameState extends ChangeNotifier {
     _isUndoing = false;
     notifyListeners();
   }
-  //
-  // void _validatePlacement(
-  //     PlayCardList cardsInHand, CardLocation from, CardLocation to) {
-  //   print('Placing $cardsInHand} from $from to $to');
-  //
-  //   final cardsFrom = pile(from);
-  //   final cardsToCheck = cardsFrom
-  //       .getRange(cardsFrom.length - cardsInHand.length, cardsFrom.length)
-  //       .toList();
-  //
-  //   if (!const ListEquality<PlayCard>().equals(cardsToCheck, cardsInHand)) {
-  //     throw AssertionError('Cards in hand should be equal with cards on table');
-  //   }
-  //
-  //   // Validate according to game rules
-  //   if (to is Tableau) {
-  //     if (!gameRules.canPlaceInTableau(cardsInHand, pile(to))) {
-  //       throw StateError('Cannot move the card(s) to this column');
-  //     }
-  //   } else if (to is Foundation) {
-  //     if (!gameRules.canPlaceInFoundation(cardsInHand, pile(to))) {
-  //       throw StateError('Cannot move the card(s) to this foundation pile');
-  //     }
-  //   }
-  // }
 
   void _checkAndRemoveCards(PlayCardList cardsInHand, CardLocation location) {
     final cardsOnTable = pile(location);
@@ -369,6 +384,8 @@ class GameState extends ChangeNotifier {
       HapticFeedback.heavyImpact();
       _isWinning = true;
     }
+
+    _canAutoSolve = !_isWinning && gameRules.canAutoSolve(this);
   }
 
   bool get isDebugPanelShowing => _showDebugPanel;

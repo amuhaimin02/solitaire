@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
+import '../models/game_settings.dart';
 import '../models/game_state.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
@@ -30,6 +31,9 @@ class CardView extends StatelessWidget {
     final latestAction =
         context.select<GameState, Action?>((s) => s.latestAction);
 
+    final showMoveHighlight =
+        context.select<GameSettings, bool>((s) => s.showMoveHighlight());
+
     final faceColor = switch (card.suit.group) {
       'R' => colorScheme.primary,
       'B' || _ => colorScheme.tertiary,
@@ -45,18 +49,19 @@ class CardView extends StatelessWidget {
       height: layout.gridUnit.height,
       child: Stack(
         children: [
-          Center(
-            child: AnimatedContainer(
-              duration: cardMoveAnimation.duration,
-              curve: cardMoveAnimation.curve,
-              width: highlight ? layout.gridUnit.width : 1,
-              height: highlight ? layout.gridUnit.height : 1,
-              decoration: BoxDecoration(
-                color: faceColor,
-                borderRadius: BorderRadius.circular(12),
+          if (showMoveHighlight)
+            Center(
+              child: AnimatedContainer(
+                duration: cardMoveAnimation.duration,
+                curve: cardMoveAnimation.curve,
+                width: highlight ? layout.gridUnit.width : 1,
+                height: highlight ? layout.gridUnit.height : 1,
+                decoration: BoxDecoration(
+                  color: faceColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-          ),
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.all(layout.cardPadding),

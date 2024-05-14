@@ -16,6 +16,7 @@ import '../models/game_state.dart';
 import '../utils/lists.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
+import 'shrinkable.dart';
 import 'ticking_number.dart';
 
 class GameTable extends StatelessWidget {
@@ -108,6 +109,15 @@ class GameTable extends StatelessWidget {
                           ...layers.map((w) => w.markerLayer).flattened,
                           ...cardWidgets,
                           ...layers.map((w) => w.overlayLayer).flattened,
+                          if (gameState.canAutoSolve)
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: FloatingActionButton.extended(
+                                onPressed: () => _doAutoSort(context),
+                                icon: const Icon(Icons.auto_fix_high),
+                                label: const Text('Auto solve'),
+                              ),
+                            ),
                         ],
                       ),
                     );
@@ -175,6 +185,17 @@ class GameTable extends StatelessWidget {
 
     PlayCardList cards = gameState.pile(item.type);
 
+    DurationCurve calculateAnimation(int cardIndex) {
+      if (item.type is Tableau && gameState.isOnStartingPoint) {
+        final tableau = item.type as Tableau;
+        final delayFactor = cardMoveAnimation.duration * 0.3;
+        return cardMoveAnimation
+            .delayed(delayFactor * (tableau.index + cardIndex));
+      } else {
+        return cardMoveAnimation;
+      }
+    }
+
     switch (item.stackDirection) {
       case Direction.none:
         return _WidgetLayer(
@@ -189,8 +210,8 @@ class GameTable extends StatelessWidget {
               for (final (i, card) in cards.indexed)
                 AnimatedPositioned.fromRect(
                   key: ValueKey(card),
-                  duration: cardMoveAnimation.duration,
-                  curve: cardMoveAnimation.curve,
+                  duration: calculateAnimation(i).duration,
+                  curve: calculateAnimation(i).curve,
                   rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
                   child: CardView(
                     card: card,
@@ -202,7 +223,7 @@ class GameTable extends StatelessWidget {
                 ),
           ],
           overlayLayer: [
-            if (cards.isNotEmpty && item.showCountIndicator)
+            if (item.showCountIndicator)
               Positioned.fromRect(
                 rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
                 child: CountIndicator(count: cards.length),
@@ -241,8 +262,8 @@ class GameTable extends StatelessWidget {
             for (final (i, card) in cards.indexed)
               AnimatedPositioned.fromRect(
                 key: ValueKey(card),
-                duration: cardMoveAnimation.duration,
-                curve: cardMoveAnimation.curve,
+                duration: calculateAnimation(i).duration,
+                curve: calculateAnimation(i).curve,
                 rect: measure(
                   Rect.fromLTWH(region.left, region.top, 1, 1)
                       .shift(stackAnchor)
@@ -317,7 +338,7 @@ class GameTable extends StatelessWidget {
           gameState.pickFromDrawPile();
           _feedbackOnPlace(Discard());
 
-          if (context.read<GameSettings>().autoMoveOnDraw.current) {
+          if (context.read<GameSettings>().autoMoveOnDraw()) {
             Future.delayed(
               cardMoveAnimation.duration,
               () => _feedbackOnPlace(gameState.tryQuickPlace(
@@ -341,6 +362,27 @@ class GameTable extends StatelessWidget {
       case _:
       // noop
     }
+  }
+
+  void _doAutoSort(BuildContext context) async {
+    final gameState = context.read<GameState>();
+
+    bool handled;
+
+    do {
+      handled = false;
+      for (final steps in gameState.gameRules.autoSortSteps(gameState)) {
+        final newLocation = gameState.tryQuickPlace(steps.$1, steps.$2);
+        if (newLocation != null) {
+          handled = true;
+          _feedbackOnPlace(newLocation);
+          await Future.delayed(cardMoveAnimation.duration * 0.5);
+          break;
+        }
+      }
+    } while (handled);
+
+    print('Auto solve done');
   }
 
   void _feedbackOnPlace(CardLocation? location) {
@@ -373,20 +415,23 @@ class CountIndicator extends StatelessWidget {
 
     return Align(
       alignment: const Alignment(0, -0.75),
-      child: Container(
-        padding: EdgeInsets.all(size * 0.15),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
-          shape: BoxShape.circle,
-        ),
-        child: TickingNumber(
-          count,
-          duration: numberTickAnimation.duration,
-          curve: numberTickAnimation.curve,
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: size * 0.25,
+      child: Shrinkable(
+        show: count > 0,
+        child: Container(
+          padding: EdgeInsets.all(size * 0.15),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.7),
+            shape: BoxShape.circle,
+          ),
+          child: TickingNumber(
+            count,
+            duration: cardMoveAnimation.duration * 1.5,
+            curve: cardMoveAnimation.curve,
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: size * 0.25,
+            ),
           ),
         ),
       ),

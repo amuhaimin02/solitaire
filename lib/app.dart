@@ -6,9 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'models/game_settings.dart';
 import 'models/game_theme.dart';
-import 'providers/system_orientation.dart';
 import 'screens/game_screen.dart';
-import 'utils/iterators.dart';
 
 class SolitaireApp extends StatelessWidget {
   const SolitaireApp({super.key});
@@ -32,7 +30,6 @@ class SolitaireApp extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => GameTheme()),
-            ChangeNotifierProvider(create: (_) => SystemOrientationManager()),
             ChangeNotifierProvider(create: (_) => GameSettings()),
           ],
           builder: (context, child) {

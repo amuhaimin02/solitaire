@@ -7,7 +7,7 @@ import '../animations.dart';
 import '../models/game_settings.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
-import '../providers/system_orientation.dart';
+import '../utils/system_orientation.dart';
 
 class ControlPane extends StatelessWidget {
   const ControlPane({super.key});
@@ -16,8 +16,7 @@ class ControlPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
     final gameTheme = context.watch<GameTheme>();
-    final systemOrientationManager = context.watch<SystemOrientationManager>();
-    final gameSettings = context.watch<GameSettings>();
+    final settings = context.watch<GameSettings>();
 
     final children = [
       IconButton(
@@ -63,12 +62,12 @@ class ControlPane extends StatelessWidget {
       ),
       IconButton(
         tooltip: 'Toggle device orientation',
-        isSelected: systemOrientationManager.current != SystemOrientation.auto,
+        isSelected: settings.screenOrientation() != SystemOrientation.auto,
         onPressed: () {
-          context.read<SystemOrientationManager>().toggle();
+          context.read<GameSettings>().screenOrientation.toggle();
         },
         icon: Icon(
-          switch (systemOrientationManager.current) {
+          switch (settings.screenOrientation()) {
             SystemOrientation.auto => Icons.screen_rotation,
             SystemOrientation.landscape => Icons.stay_current_landscape,
             SystemOrientation.portrait => Icons.stay_current_portrait,
@@ -77,18 +76,26 @@ class ControlPane extends StatelessWidget {
         ),
       ),
       IconButton(
-        isSelected: gameSettings.autoMoveOnDraw.current,
+        isSelected: settings.autoMoveOnDraw(),
         tooltip: 'Auto move on draw',
         onPressed: () {
-          context
-              .read<GameSettings>()
-              .autoMoveOnDraw
-              .set(!gameSettings.autoMoveOnDraw.current);
+          context.read<GameSettings>().autoMoveOnDraw.toggle();
         },
         icon: Icon(
-          gameSettings.autoMoveOnDraw.current
+          settings.autoMoveOnDraw()
               ? MdiIcons.handBackLeft
               : MdiIcons.handBackLeftOff,
+          size: 24,
+        ),
+      ),
+      IconButton(
+        isSelected: settings.showMoveHighlight(),
+        tooltip: 'Toggle highlights',
+        onPressed: () {
+          context.read<GameSettings>().showMoveHighlight.toggle();
+        },
+        icon: Icon(
+          settings.showMoveHighlight() ? MdiIcons.eye : MdiIcons.eyeOff,
           size: 24,
         ),
       ),

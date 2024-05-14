@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../utils/lists.dart';
-
 enum SystemOrientation { auto, landscape, portrait }
 
-class SystemOrientationManager with ChangeNotifier {
-  SystemOrientation _orientation = SystemOrientation.auto;
-
-  void set(SystemOrientation orientation) {
-    _orientation = orientation;
-
+class SystemOrientationManager {
+  static void change(SystemOrientation orientation) {
+    print('Changing orientation to $orientation');
     switch (orientation) {
       case SystemOrientation.auto:
         SystemChrome.setPreferredOrientations([]);
@@ -23,13 +18,5 @@ class SystemOrientationManager with ChangeNotifier {
         SystemChrome.setPreferredOrientations(
             [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
     }
-
-    notifyListeners();
   }
-
-  void toggle() {
-    set(SystemOrientation.values.toggle(_orientation));
-  }
-
-  SystemOrientation get current => _orientation;
 }

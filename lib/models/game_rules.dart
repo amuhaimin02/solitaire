@@ -18,6 +18,10 @@ abstract class GameRules {
 
   bool canPlace(
       PlayCardList cards, CardLocation target, PlayCardList cardsInPile);
+
+  bool canAutoSolve(GameState state);
+
+  Iterable<(PlayCard card, CardLocation from)> autoSortSteps(GameState state);
 }
 
 class Klondike extends GameRules {
@@ -162,6 +166,32 @@ class Klondike extends GameRules {
       case _:
         // TODO: unimplemented yet
         throw UnimplementedError();
+    }
+  }
+
+  @override
+  bool canAutoSolve(GameState state) {
+    if (state.pile(Draw()).isNotEmpty || state.pile(Discard()).isNotEmpty) {
+      return false;
+    }
+    for (int i = 0; i < numberOfTableauPiles; i++) {
+      final tableau = state.pile(Tableau(i));
+      if (tableau.isNotEmpty && tableau.every((c) => c.isFacingDown)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // TODO: Improve return type
+  @override
+  Iterable<(PlayCard card, CardLocation from)> autoSortSteps(
+      GameState state) sync* {
+    for (int i = 0; i < numberOfTableauPiles; i++) {
+      final tableau = state.pile(Tableau(i));
+      if (tableau.isNotEmpty) {
+        yield (tableau.last, Tableau(i));
+      }
     }
   }
 }
