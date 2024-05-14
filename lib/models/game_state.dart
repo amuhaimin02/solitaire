@@ -5,13 +5,14 @@ import 'package:flutter/services.dart';
 
 import '../utils/iterators.dart';
 import '../utils/lists.dart';
+import '../utils/prng.dart';
 import 'card.dart';
 import 'pile.dart';
 import 'rules/klondike.dart';
 import 'rules/rules.dart';
 
 class GameState extends ChangeNotifier {
-  late int _gameSeed;
+  late String _gameSeed;
 
   late PlayCardList _drawPile;
 
@@ -47,7 +48,7 @@ class GameState extends ChangeNotifier {
 
   bool get isWinning => _isWinning;
 
-  int get gameSeed => _gameSeed;
+  String get gameSeed => _gameSeed;
 
   int get moves => _currentMoveIndex;
 
@@ -80,14 +81,14 @@ class GameState extends ChangeNotifier {
 
   void startNewGame({bool keepSeed = false}) {
     if (!keepSeed) {
-      _gameSeed = DateTime.now().millisecondsSinceEpoch;
+      _gameSeed = CustomPRNG.generateSeed(length: 12);
     }
 
     resetStates();
     setupPiles();
     distributeToTableau();
 
-    testCustomLayout();
+    // testCustomLayout();
 
     _updateHistory(GameStart());
 
@@ -149,7 +150,7 @@ class GameState extends ChangeNotifier {
 
   void setupPiles() {
     // Clear up tables, and set up new draw pile
-    _drawPile = PlayCard.newShuffledDeck(Random(_gameSeed))
+    _drawPile = PlayCard.newShuffledDeck(CustomPRNG.create(_gameSeed))
         .map((c) => c.faceDown())
         .toList();
     _foundationPile = List.generate(Suit.values.length, (index) => []);

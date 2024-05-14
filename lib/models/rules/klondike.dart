@@ -161,7 +161,7 @@ class Klondike extends Rules {
   bool canAutoSolve(PileGetter pile) {
     for (final t in allTableaus) {
       final tableau = pile(t);
-      if (tableau.isNotEmpty && tableau.every((c) => c.isFacingDown)) {
+      if (tableau.isNotEmpty && tableau.any((c) => c.isFacingDown)) {
         return false;
       }
     }
