@@ -7,6 +7,7 @@ import '../models/card.dart';
 import '../models/game_layout.dart';
 import '../models/game_settings.dart';
 import '../models/game_state.dart';
+import '../models/pile.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
 
@@ -14,13 +15,13 @@ class CardView extends StatelessWidget {
   const CardView({
     super.key,
     required this.card,
-    required this.location,
+    required this.pile,
     this.elevation,
   });
 
   final PlayCard card;
 
-  final CardLocation location;
+  final Pile pile;
 
   final double? elevation;
 
@@ -39,7 +40,7 @@ class CardView extends StatelessWidget {
       'B' || _ => colorScheme.tertiary,
     };
 
-    final highlight = latestAction is MoveCards &&
+    final highlight = latestAction is Move &&
         latestAction.from is! Draw &&
         latestAction.to is! Draw &&
         latestAction.cards.contains(card);
@@ -87,7 +88,7 @@ class CardView extends StatelessWidget {
               ),
             ),
           ),
-          // Text(location.toString(),
+          // Text(pile.toString(),
           //     style: const TextStyle(color: Colors.white)),
         ],
       ),

@@ -1,30 +1,13 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import 'card.dart';
-import 'direction.dart';
-import 'game_state.dart';
+import '../card.dart';
+import '../direction.dart';
+import '../game_state.dart';
+import '../pile.dart';
+import 'rules.dart';
 
-abstract class GameRules {
-  int get numberOfTableauPiles;
-
-  int get numberOfFoundationPiles;
-
-  TableLayout getLayout(TableLayoutOptions options);
-
-  bool winConditions(GameState state);
-
-  bool canPick(PlayCardList cards, CardLocation from);
-
-  bool canPlace(
-      PlayCardList cards, CardLocation target, PlayCardList cardsInPile);
-
-  bool canAutoSolve(GameState state);
-
-  Iterable<(PlayCard card, CardLocation from)> autoSortSteps(GameState state);
-}
-
-class Klondike extends GameRules {
+class Klondike extends Rules {
   @override
   int get numberOfTableauPiles => 7;
 
@@ -32,56 +15,62 @@ class Klondike extends GameRules {
   int get numberOfFoundationPiles => 4;
 
   @override
-  TableLayout getLayout(TableLayoutOptions options) {
+  Layout getLayout(LayoutOptions options) {
     switch (options.orientation) {
       case Orientation.portrait:
-        return TableLayout(
+        return Layout(
           gridSize: const Size(7, 6),
           items: [
             for (int i = 0; i < numberOfTableauPiles; i++)
-              TableauPileItem(
+              LayoutItem(
+                kind: Tableau(i),
                 region: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
                 stackDirection: Direction.down,
-                index: i,
               ),
-            DrawPileItem(
+            LayoutItem(
+              kind: const Draw(),
               region: const Rect.fromLTWH(6, 0, 1, 1),
+              showCountIndicator: true,
             ),
-            DiscardPileItem(
+            LayoutItem(
+              kind: const Discard(),
               region: const Rect.fromLTWH(4, 0, 2, 1),
               stackDirection: Direction.left,
               shiftStackOnPlace: true,
               numberOfCardsToShow: 3,
             ),
             for (int i = 0; i < numberOfFoundationPiles; i++)
-              FoundationPileItem(
+              LayoutItem(
+                kind: Foundation(i),
                 region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-                index: i,
               ),
           ],
         );
       case Orientation.landscape:
-        return TableLayout(
+        return Layout(
           gridSize: const Size(10, 4),
           items: [
             for (int i = 0; i < numberOfTableauPiles; i++)
-              TableauPileItem(
+              LayoutItem(
+                kind: Tableau(i),
                 region: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
                 stackDirection: Direction.down,
-                index: i,
               ),
-            DrawPileItem(
+            LayoutItem(
+              kind: const Draw(),
               region: const Rect.fromLTWH(9, 2.5, 1, 1),
+              showCountIndicator: true,
             ),
-            DiscardPileItem(
+            LayoutItem(
+              kind: const Discard(),
               region: const Rect.fromLTWH(9, 0.5, 1, 2),
               stackDirection: Direction.down,
               numberOfCardsToShow: 3,
             ),
             for (int i = 0; i < numberOfFoundationPiles; i++)
-              FoundationPileItem(
+              LayoutItem(
+                kind: Foundation(i),
                 region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
-                index: i,
               ),
           ],
         );
@@ -97,12 +86,7 @@ class Klondike extends GameRules {
   }
 
   @override
-  bool canPick(PlayCardList cards, CardLocation from) {
-    // Only tableau piles are allowed for picking multiple cards
-    if (from is! Tableau && cards.length > 1) {
-      return false;
-    }
-
+  bool canPick(PlayCardList cards, Pile from) {
     // Cards in hand must all face up
     if (cards.any((c) => c.isFacingDown)) {
       return false;
@@ -120,14 +104,18 @@ class Klondike extends GameRules {
         }
         return true;
       case _:
-        // TODO: unimplemented yet
-        throw UnimplementedError();
+        // Only tableau piles are allowed for picking multiple cards
+        if (cards.length > 1) {
+          return false;
+        }
+        return true;
     }
   }
 
   @override
-  bool canPlace(
-      PlayCardList cards, CardLocation target, PlayCardList cardsInPile) {
+  bool canPlace(PlayCardList cards, Pile target, PileGetter pile) {
+    final cardsInPile = pile(target);
+
     switch (target) {
       case Foundation():
         // Cannot move more than one cards all at once to foundation pile
@@ -170,12 +158,9 @@ class Klondike extends GameRules {
   }
 
   @override
-  bool canAutoSolve(GameState state) {
-    if (state.pile(Draw()).isNotEmpty || state.pile(Discard()).isNotEmpty) {
-      return false;
-    }
-    for (int i = 0; i < numberOfTableauPiles; i++) {
-      final tableau = state.pile(Tableau(i));
+  bool canAutoSolve(PileGetter pile) {
+    for (final t in allTableaus) {
+      final tableau = pile(t);
       if (tableau.isNotEmpty && tableau.every((c) => c.isFacingDown)) {
         return false;
       }
@@ -185,89 +170,24 @@ class Klondike extends GameRules {
 
   // TODO: Improve return type
   @override
-  Iterable<(PlayCard card, CardLocation from)> autoSortSteps(
-      GameState state) sync* {
-    for (int i = 0; i < numberOfTableauPiles; i++) {
-      final tableau = state.pile(Tableau(i));
-      if (tableau.isNotEmpty) {
-        yield (tableau.last, Tableau(i));
+  Iterable<Move> tryAutoSolve(PileGetter pile) sync* {
+    // Try moving cards from tableau to foundation
+    for (final t in allTableaus) {
+      for (final f in allFoundations) {
+        final tableau = pile(t);
+        if (tableau.isNotEmpty) {
+          yield Move([tableau.last], t, f);
+        }
+        final discard = pile(const Discard());
+        if (discard.isNotEmpty) {
+          yield Move([discard.last], const Discard(), t);
+          yield Move([discard.last], const Discard(), f);
+        }
       }
     }
+    final draw = pile(const Draw());
+    if (draw.isNotEmpty) {
+      yield Move([draw.last], const Draw(), const Discard());
+    }
   }
-}
-
-class TableLayout {
-  final Size gridSize;
-  final List<TableItem> items;
-
-  TableLayout({
-    required this.gridSize,
-    required this.items,
-  });
-}
-
-sealed class TableItem {
-  TableItem({
-    required this.type,
-    required this.region,
-    required this.stackDirection,
-    this.showCountIndicator = false,
-    this.shiftStackOnPlace = false,
-    this.numberOfCardsToShow,
-  });
-
-  final CardLocation type;
-
-  final Rect region;
-  final Direction stackDirection;
-
-  final bool showCountIndicator;
-
-  final bool shiftStackOnPlace;
-
-  final int? numberOfCardsToShow;
-}
-
-class DrawPileItem extends TableItem {
-  DrawPileItem({
-    required super.region,
-  }) : super(
-          type: Draw(),
-          stackDirection: Direction.none,
-          showCountIndicator: true,
-        );
-}
-
-class DiscardPileItem extends TableItem {
-  DiscardPileItem({
-    required super.region,
-    required super.stackDirection,
-    super.shiftStackOnPlace,
-    super.numberOfCardsToShow,
-  }) : super(type: Discard());
-}
-
-class FoundationPileItem extends TableItem {
-  FoundationPileItem({
-    required super.region,
-    required this.index,
-  }) : super(type: Foundation(index), stackDirection: Direction.none);
-
-  final int index;
-}
-
-class TableauPileItem extends TableItem {
-  TableauPileItem({
-    required super.region,
-    required super.stackDirection,
-    required this.index,
-  }) : super(type: Tableau(index));
-
-  final int index;
-}
-
-class TableLayoutOptions {
-  TableLayoutOptions({required this.orientation, required this.mirror});
-  final Orientation orientation;
-  final bool mirror;
 }

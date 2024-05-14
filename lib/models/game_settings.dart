@@ -3,6 +3,24 @@ import 'package:flutter/widgets.dart';
 import '../utils/lists.dart';
 import '../utils/system_orientation.dart';
 
+class GameSettings with ChangeNotifier {
+  late final autoMoveOnDraw = SettingItem(this, defaultValue: false);
+
+  late final showMoveHighlight = SettingItem(this, defaultValue: false);
+
+  late final screenOrientation = SettingItem(
+    this,
+    defaultValue: SystemOrientation.auto,
+    options: SystemOrientation.values,
+    onChange: SystemOrientationManager.change,
+  );
+
+  @protected
+  void broadcast() {
+    notifyListeners();
+  }
+}
+
 class SettingItem<T> {
   final GameSettings _settings;
 
@@ -46,23 +64,5 @@ class SettingItem<T> {
     if (T == bool) {
       set(!(_value as bool) as T);
     }
-  }
-}
-
-class GameSettings with ChangeNotifier {
-  late final autoMoveOnDraw = SettingItem(this, defaultValue: false);
-
-  late final showMoveHighlight = SettingItem(this, defaultValue: false);
-
-  late final screenOrientation = SettingItem(
-    this,
-    defaultValue: SystemOrientation.auto,
-    options: SystemOrientation.values,
-    onChange: SystemOrientationManager.change,
-  );
-
-  @protected
-  void broadcast() {
-    notifyListeners();
   }
 }

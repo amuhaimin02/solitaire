@@ -88,7 +88,7 @@ class PlayCard {
 
 typedef PlayCardList = List<PlayCard>;
 
-extension PlayCardListExtension on List<PlayCard> {
+extension PlayCardListExtension on Iterable<PlayCard> {
   PlayCardList get allFaceDown => map((e) => e.faceDown()).toList();
 
   PlayCardList get allFaceUp => map((e) => e.faceUp()).toList();

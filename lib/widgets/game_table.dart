@@ -10,9 +10,10 @@ import '../animations.dart';
 import '../models/card.dart';
 import '../models/direction.dart';
 import '../models/game_layout.dart';
-import '../models/game_rules.dart';
 import '../models/game_settings.dart';
 import '../models/game_state.dart';
+import '../models/pile.dart';
+import '../models/rules/rules.dart';
 import '../utils/lists.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
@@ -26,12 +27,11 @@ class GameTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
-        final gameRules =
-            context.select<GameState, GameRules>((s) => s.gameRules);
+        final gameRules = context.select<GameState, Rules>((s) => s.rules);
 
         const cardUnitSize = Size(2.5, 3.5);
 
-        final options = TableLayoutOptions(
+        final options = LayoutOptions(
           orientation: orientation,
           mirror: false,
         );
@@ -73,8 +73,7 @@ class GameTable extends StatelessWidget {
                     // Move recently moved cards on top of render stack
                     final recentAction = gameState.latestAction;
 
-                    if (recentAction is MoveCards &&
-                        recentAction.cards.isNotEmpty) {
+                    if (recentAction is Move && recentAction.cards.isNotEmpty) {
                       final recentlyMovedCards = recentAction.cards;
 
                       final (widgetsOnTop, remainingWidgets) =
@@ -98,7 +97,7 @@ class GameTable extends StatelessWidget {
 
                         for (final item in tableLayout.items) {
                           if (item.region.contains(point)) {
-                            _onPileTap(context, item.type);
+                            _onPileTap(context, item.kind);
                             break;
                           }
                         }
@@ -131,7 +130,7 @@ class GameTable extends StatelessWidget {
     );
   }
 
-  _WidgetLayer _buildPile(BuildContext context, TableItem item) {
+  _WidgetLayer _buildPile(BuildContext context, LayoutItem item) {
     final layout = context.watch<GameLayout>();
     final gameState = context.watch<GameState>();
 
@@ -183,11 +182,11 @@ class GameTable extends StatelessWidget {
       );
     }
 
-    PlayCardList cards = gameState.pile(item.type);
+    PlayCardList cards = gameState.pile(item.kind);
 
     DurationCurve calculateAnimation(int cardIndex) {
-      if (item.type is Tableau && gameState.isOnStartingPoint) {
-        final tableau = item.type as Tableau;
+      if (item.kind is Tableau && gameState.isOnStartingPoint) {
+        final tableau = item.kind as Tableau;
         final delayFactor = cardMoveAnimation.duration * 0.3;
         return cardMoveAnimation
             .delayed(delayFactor * (tableau.index + cardIndex));
@@ -215,7 +214,7 @@ class GameTable extends StatelessWidget {
                   rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
                   child: CardView(
                     card: card,
-                    location: item.type,
+                    pile: item.kind,
                     elevation: i == cards.length - 1
                         ? cards.length.clamp(2, 24).toDouble()
                         : 0,
@@ -271,10 +270,10 @@ class GameTable extends StatelessWidget {
                           i, cards.length, item.stackDirection)),
                 ),
                 child: GestureDetector(
-                  onTap: () => _onCardTap(context, card, item.type),
+                  onTap: () => _onCardTap(context, card, item.kind),
                   child: CardView(
                     card: card,
-                    location: item.type,
+                    pile: item.kind,
                     elevation: cardLimit != null && i < cards.length - cardLimit
                         ? 0
                         : null,
@@ -287,13 +286,13 @@ class GameTable extends StatelessWidget {
     }
   }
 
-  Widget _buildMarker(TableItem item) {
+  Widget _buildMarker(LayoutItem item) {
     return CardMarker(
-      mark: switch (item) {
-        DrawPileItem() => MdiIcons.refresh,
-        DiscardPileItem() => MdiIcons.cardsPlaying,
-        FoundationPileItem() => MdiIcons.circleOutline,
-        TableauPileItem() => MdiIcons.close,
+      mark: switch (item.kind) {
+        Draw() => MdiIcons.refresh,
+        Discard() => MdiIcons.cardsPlaying,
+        Foundation() => MdiIcons.circleOutline,
+        Tableau() => MdiIcons.close,
       },
     );
   }
@@ -311,53 +310,56 @@ class GameTable extends StatelessWidget {
     return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
   }
 
-  void _onCardTap(BuildContext context, PlayCard card, CardLocation location) {
-    print('card tap! $card at $location');
+  void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
+    print('card tap! $card at $pile');
 
     final gameState = context.read<GameState>();
 
-    switch (location) {
+    switch (pile) {
       case Tableau():
-        _feedbackOnPlace(gameState.tryQuickPlace(card, location));
+        _feedbackOnPlace(gameState.tryQuickPlace(card, pile));
         return;
       case _:
       // noop
     }
 
-    _onPileTap(context, location);
+    _onPileTap(context, pile);
   }
 
-  void _onPileTap(BuildContext context, CardLocation location) {
-    print('pile tap! $location');
+  void _onPileTap(BuildContext context, Pile pile) {
+    print('pile tap! $pile');
 
     final gameState = context.read<GameState>();
 
-    switch (location) {
+    switch (pile) {
       case Draw():
-        if (gameState.pile(location).isNotEmpty) {
-          gameState.pickFromDrawPile();
-          _feedbackOnPlace(Discard());
+        if (gameState.pile(pile).isNotEmpty) {
+          final move =
+              Move([gameState.pile(pile).last], const Draw(), const Discard());
+          if (gameState.tryMove(move) != null) {
+            _feedbackOnPlace(const Discard());
 
-          if (context.read<GameSettings>().autoMoveOnDraw()) {
-            Future.delayed(
-              cardMoveAnimation.duration,
-              () => _feedbackOnPlace(gameState.tryQuickPlace(
-                  gameState.pile(Discard()).last, Discard())),
-            );
+            if (context.read<GameSettings>().autoMoveOnDraw()) {
+              Future.delayed(
+                cardMoveAnimation.duration,
+                () => _feedbackOnPlace(gameState.tryQuickPlace(
+                    gameState.pile(const Discard()).last, const Discard())),
+              );
+            }
           }
         } else {
           gameState.refreshDrawPile();
-          _feedbackOnPlace(Draw());
+          _feedbackOnPlace(const Draw());
         }
       case Discard():
-        if (gameState.pile(location).isNotEmpty) {
+        if (gameState.pile(pile).isNotEmpty) {
           _feedbackOnPlace(
-              gameState.tryQuickPlace(gameState.pile(location).last, location));
+              gameState.tryQuickPlace(gameState.pile(pile).last, pile));
         }
       case Foundation():
-        if (gameState.pile(location).isNotEmpty) {
+        if (gameState.pile(pile).isNotEmpty) {
           _feedbackOnPlace(
-              gameState.tryQuickPlace(gameState.pile(location).last, location));
+              gameState.tryQuickPlace(gameState.pile(pile).last, pile));
         }
       case _:
       // noop
@@ -371,11 +373,10 @@ class GameTable extends StatelessWidget {
 
     do {
       handled = false;
-      for (final steps in gameState.gameRules.autoSortSteps(gameState)) {
-        final newLocation = gameState.tryQuickPlace(steps.$1, steps.$2);
-        if (newLocation != null) {
+      for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
+        if (gameState.tryMove(move) != null) {
           handled = true;
-          _feedbackOnPlace(newLocation);
+          _feedbackOnPlace(move.to);
           await Future.delayed(cardMoveAnimation.duration * 0.5);
           break;
         }
@@ -385,8 +386,8 @@ class GameTable extends StatelessWidget {
     print('Auto solve done');
   }
 
-  void _feedbackOnPlace(CardLocation? location) {
-    switch (location) {
+  void _feedbackOnPlace(Pile? pile) {
+    switch (pile) {
       case Discard():
         HapticFeedback.lightImpact();
       case Tableau():
