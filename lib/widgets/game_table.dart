@@ -17,11 +17,20 @@ import '../models/rules/rules.dart';
 import '../utils/lists.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
+import 'shakeable.dart';
 import 'shrinkable.dart';
 import 'ticking_number.dart';
 
-class GameTable extends StatelessWidget {
+class GameTable extends StatefulWidget {
   const GameTable({super.key});
+
+  @override
+  State<GameTable> createState() => _GameTableState();
+}
+
+class _GameTableState extends State<GameTable> {
+  // TODO: Move this out of here
+  PlayCard? _touchedCard;
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +204,24 @@ class GameTable extends StatelessWidget {
       }
     }
 
+    Widget buildCard({required PlayCard card, double? elevation}) {
+      return Shakeable(
+        duration: cardMoveAnimation.duration,
+        curve: cardMoveAnimation.curve,
+        shake: card == _touchedCard,
+        onAnimationEnd: () {
+          setState(() {
+            _touchedCard = null;
+          });
+        },
+        child: CardView(
+          card: card,
+          pile: item.kind,
+          elevation: elevation,
+        ),
+      );
+    }
+
     switch (item.stackDirection) {
       case Direction.none:
         return _WidgetLayer(
@@ -212,9 +239,8 @@ class GameTable extends StatelessWidget {
                   duration: calculateAnimation(i).duration,
                   curve: calculateAnimation(i).curve,
                   rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-                  child: CardView(
+                  child: buildCard(
                     card: card,
-                    pile: item.kind,
                     elevation: i == cards.length - 1
                         ? cards.length.clamp(2, 24).toDouble()
                         : 0,
@@ -271,9 +297,8 @@ class GameTable extends StatelessWidget {
                 ),
                 child: GestureDetector(
                   onTap: () => _onCardTap(context, card, item.kind),
-                  child: CardView(
+                  child: buildCard(
                     card: card,
-                    pile: item.kind,
                     elevation: cardLimit != null && i < cards.length - cardLimit
                         ? 0
                         : null,
@@ -317,7 +342,14 @@ class GameTable extends StatelessWidget {
 
     switch (pile) {
       case Tableau():
-        _feedbackOnPlace(gameState.tryQuickPlace(card, pile));
+        final result = gameState.tryQuickPlace(card, pile);
+        if (result != null) {
+          _feedbackOnPlace(result);
+        } else {
+          setState(() {
+            _touchedCard = card;
+          });
+        }
         return;
       case _:
       // noop
@@ -351,15 +383,17 @@ class GameTable extends StatelessWidget {
           gameState.refreshDrawPile();
           _feedbackOnPlace(const Draw());
         }
-      case Discard():
+      case Discard() || Foundation():
         if (gameState.pile(pile).isNotEmpty) {
-          _feedbackOnPlace(
-              gameState.tryQuickPlace(gameState.pile(pile).last, pile));
-        }
-      case Foundation():
-        if (gameState.pile(pile).isNotEmpty) {
-          _feedbackOnPlace(
-              gameState.tryQuickPlace(gameState.pile(pile).last, pile));
+          final result =
+              gameState.tryQuickPlace(gameState.pile(pile).last, pile);
+          if (result != null) {
+            _feedbackOnPlace(result);
+          } else {
+            setState(() {
+              _touchedCard = gameState.pile(pile).last;
+            });
+          }
         }
       case _:
       // noop

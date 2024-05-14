@@ -54,7 +54,7 @@ class _FlippableState extends State<Flippable>
     }
   }
 
-  Future<void> _startAnimation() async {
+  void _startAnimation() {
     _controller.reset();
     _controller.forward(from: 0.0);
   }
