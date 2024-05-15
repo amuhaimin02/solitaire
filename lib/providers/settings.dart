@@ -17,6 +17,8 @@ class Settings with ChangeNotifier {
     onChange: SystemOrientationManager.change,
   );
 
+  late final useStandardColors = SettingItem(this, defaultValue: false);
+
   @protected
   void broadcast() {
     notifyListeners();

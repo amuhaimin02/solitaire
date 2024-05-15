@@ -19,58 +19,53 @@ class ControlPane extends StatelessWidget {
     final settings = context.watch<Settings>();
 
     final children = [
-      GestureDetector(
-        onLongPress: () {
-          final gameTheme = context.read<GameTheme>();
-          gameTheme.changeMode(ThemeMode.system);
-        },
-        child: Listener(
-          onPointerUp: (event) => _setRippleCenter(context, event),
-          child: IconButton(
-            tooltip: 'Toggle theme mode',
-            onPressed: () {
-              final currentThemeMode = gameTheme.currentMode;
-              if (currentThemeMode == ThemeMode.light) {
-                gameTheme.changeMode(ThemeMode.dark);
-              } else {
-                gameTheme.changeMode(ThemeMode.light);
+      IconButton(
+        tooltip: 'Toggle theme mode',
+        onPressed: !settings.useStandardColors()
+            ? () {
+                final currentThemeMode = gameTheme.currentMode;
+                if (currentThemeMode == ThemeMode.light) {
+                  gameTheme.changeMode(ThemeMode.dark);
+                } else {
+                  gameTheme.changeMode(ThemeMode.light);
+                }
               }
-            },
-            icon: Icon(
-              switch (gameTheme.currentMode) {
-                ThemeMode.light => Icons.light_mode,
-                ThemeMode.dark => Icons.dark_mode,
-                ThemeMode.system => Icons.contrast,
-              },
-              size: 24,
-            ),
-          ),
-        ),
-      ),
-      Listener(
-        onPointerUp: (event) => _setRippleCenter(context, event),
-        child: IconButton(
-          tooltip: 'Toggle dynamic/preset colors',
-          onPressed: () {
-            gameTheme.toggleUsePresetColors();
+            : null,
+        icon: Icon(
+          switch (gameTheme.currentMode) {
+            ThemeMode.light => Icons.light_mode,
+            ThemeMode.dark => Icons.dark_mode,
+            ThemeMode.system => Icons.contrast,
           },
-          icon: Icon(
-            gameTheme.usingRandomColors
-                ? MdiIcons.formatPaint
-                : MdiIcons.imageFilterBlackWhite,
-            size: 24,
-          ),
+          size: 24,
         ),
       ),
-      Listener(
-        onPointerUp: (event) => _setRippleCenter(context, event),
-        child: IconButton(
-          tooltip: 'Change preset colors',
-          onPressed: gameTheme.usingRandomColors
-              ? () => gameTheme.changePresetColor()
-              : null,
-          icon: Icon(MdiIcons.dice5, size: 24),
+      IconButton(
+        tooltip: 'Toggle dynamic/preset colors',
+        onPressed: !settings.useStandardColors()
+            ? () {
+                gameTheme.toggleUsePresetColors();
+              }
+            : null,
+        icon: Icon(
+          gameTheme.usingRandomColors
+              ? MdiIcons.formatPaint
+              : MdiIcons.imageFilterBlackWhite,
+          size: 24,
         ),
+      ),
+      IconButton(
+        tooltip: 'Change preset colors',
+        onPressed: !settings.useStandardColors() && gameTheme.usingRandomColors
+            ? () => gameTheme.changePresetColor()
+            : null,
+        icon: Icon(MdiIcons.dice5, size: 24),
+      ),
+      IconButton(
+        tooltip: 'Use standard colors',
+        isSelected: settings.useStandardColors(),
+        onPressed: () => settings.useStandardColors.toggle(),
+        icon: Icon(MdiIcons.invertColors, size: 24),
       ),
       IconButton(
         tooltip: 'Toggle device orientation',
@@ -79,7 +74,7 @@ class ControlPane extends StatelessWidget {
         },
         icon: Icon(
           switch (settings.screenOrientation()) {
-            SystemOrientation.auto => Icons.screen_rotation,
+            SystemOrientation.auto => Icons.screen_rotation_alt,
             SystemOrientation.landscape => Icons.stay_current_landscape,
             SystemOrientation.portrait => Icons.stay_current_portrait,
           },
@@ -174,9 +169,5 @@ class ControlPane extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _setRippleCenter(BuildContext context, PointerUpEvent event) {
-    RippleBackground.maybeOf(context)?.setRippleCenter(event.position);
   }
 }

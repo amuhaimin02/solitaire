@@ -83,23 +83,23 @@ class PlayCard {
     return PlayCard(suit, value, deck: deck, flipped: false);
   }
 
-  bool sameSuit(PlayCard other) {
+  bool isSameSuitWith(PlayCard other) {
     return suit == other.suit;
   }
 
-  bool sameSuitAndRank(PlayCard other) {
+  bool isSameSuitAndRank(PlayCard other) {
     return suit == other.suit && value == other.value;
   }
 
-  bool sameColor(PlayCard other) {
+  bool isSameColor(PlayCard other) {
     return suit.color == other.suit.color;
   }
 
-  bool oneRankOver(PlayCard other) {
+  bool isOneRankOver(PlayCard other) {
     return value.rank == other.value.rank + 1;
   }
 
-  bool oneRankUnder(PlayCard other) {
+  bool isOneRankUnder(PlayCard other) {
     return value.rank == other.value.rank - 1;
   }
 }

@@ -140,8 +140,8 @@ class Klondike extends Rules {
 
         // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
         return card.isFacingUp &&
-            // card.sameSuit(topmostCard) &&
-            card.oneRankOver(topmostCard);
+            card.isSameSuitWith(topmostCard) &&
+            card.isOneRankOver(topmostCard);
 
       case Tableau():
         // If column is empty, only King or card group starting with King can be placed
@@ -155,8 +155,8 @@ class Klondike extends Rules {
         // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
         // In this case, we compare the suit "group" as they will be classified by color
         return topmostCard.isFacingUp &&
-            cards.first.oneRankUnder(topmostCard) &&
-            !cards.first.sameColor(topmostCard);
+            cards.first.isOneRankUnder(topmostCard) &&
+            !cards.first.isSameColor(topmostCard);
 
       case _:
         // TODO: unimplemented yet

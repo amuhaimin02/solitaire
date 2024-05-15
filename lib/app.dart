@@ -35,7 +35,8 @@ class SolitaireApp extends StatelessWidget {
           ],
           builder: (context, child) {
             final gameTheme = context.watch<GameTheme>();
-            final ColorScheme? lightColorScheme, darkColorScheme;
+            final settings = context.watch<Settings>();
+            ColorScheme? lightColorScheme, darkColorScheme;
 
             if (gameTheme.usingRandomColors) {
               final presetColor = gameTheme.currentPresetColor!;
@@ -46,6 +47,18 @@ class SolitaireApp extends StatelessWidget {
             } else {
               lightColorScheme = lightDynamic;
               darkColorScheme = darkDynamic;
+            }
+
+            if (settings.useStandardColors()) {
+              lightColorScheme = ColorScheme.light(
+                surface: Colors.white,
+                primary: Colors.grey.shade800,
+                primaryContainer: Colors.green.shade800,
+                secondary: Colors.yellow,
+                tertiary: Colors.red.shade700,
+              );
+              darkColorScheme =
+                  lightColorScheme.copyWith(brightness: Brightness.dark);
             }
 
             return MaterialApp(

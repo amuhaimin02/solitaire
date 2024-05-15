@@ -12,9 +12,9 @@ class SimpleBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // duration: themeChangeAnimation.duration,
-      // curve: themeChangeAnimation.curve,
+    return AnimatedContainer(
+      duration: themeChangeAnimation.duration,
+      curve: themeChangeAnimation.curve,
       color: color,
       child: child,
     );
@@ -32,35 +32,11 @@ class RippleBackground extends StatefulWidget {
 
   final Widget child;
 
-  static RippleBackgroundState? maybeOf(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<_BackgroundScope>();
-    return scope?.state;
-  }
-
-  static RippleBackgroundState of(BuildContext context) {
-    final result = maybeOf(context);
-    assert(result != null, 'No Background widget found in context');
-    return result!;
-  }
-
   @override
-  State<RippleBackground> createState() => RippleBackgroundState();
+  State<RippleBackground> createState() => _RippleBackgroundState();
 }
 
-class _BackgroundScope extends InheritedWidget {
-  const _BackgroundScope({
-    required super.child,
-    required this.state,
-  });
-
-  final RippleBackgroundState state;
-
-  @override
-  bool updateShouldNotify(_BackgroundScope old) => false;
-}
-
-class RippleBackgroundState extends State<RippleBackground>
+class _RippleBackgroundState extends State<RippleBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -102,14 +78,13 @@ class RippleBackgroundState extends State<RippleBackground>
     }
   }
 
-  void setRippleCenter(Offset offset) {
-    _rippleOffset = offset;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _BackgroundScope(
-      state: this,
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerUp: (event) {
+        _rippleOffset = event.localPosition;
+      },
       child: _buildChild(context),
     );
   }

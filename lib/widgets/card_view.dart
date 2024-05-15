@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
@@ -87,6 +88,13 @@ class CardFace extends StatelessWidget {
 
   final PlayCard card;
 
+  static final suitIcons = {
+    Suit.diamond: MdiIcons.cardsDiamond,
+    Suit.club: MdiIcons.cardsClub,
+    Suit.heart: MdiIcons.cardsHeart,
+    Suit.spade: MdiIcons.cardsSpade,
+  };
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -128,27 +136,37 @@ class CardFace extends StatelessWidget {
                     color: cardColor,
                   ),
                 ),
-                SvgPicture.asset(
-                  iconSvgPath,
-                  width: labelSizingFactor * 0.9,
-                  height: labelSizingFactor * 0.9,
-                  colorFilter: ColorFilter.mode(cardColor, BlendMode.srcIn),
-                )
+                Icon(
+                  suitIcons[card.suit],
+                  size: labelSizingFactor * 0.9,
+                  color: cardColor,
+                ),
+                // SvgPicture.asset(
+                //   iconSvgPath,
+                //   width: labelSizingFactor * 0.9,
+                //   height: labelSizingFactor * 0.9,
+                //   colorFilter: ColorFilter.mode(cardColor, BlendMode.srcIn),
+                // )
               ],
             ),
           ),
           Positioned(
             bottom: -(layout.gridUnit.height * 0.0),
             left: -(layout.gridUnit.width * 0.15),
-            child: SvgPicture.asset(
-              iconSvgPath,
-              width: iconSizingFactor * 3,
-              height: iconSizingFactor * 3,
-              colorFilter: ColorFilter.mode(
-                cardColor.withOpacity(0.2),
-                BlendMode.srcIn,
-              ),
+            child: Icon(
+              suitIcons[card.suit],
+              size: iconSizingFactor * 3,
+              color: cardColor.withOpacity(0.2),
             ),
+            // child: SvgPicture.asset(
+            //   iconSvgPath,
+            //   width: iconSizingFactor * 3,
+            //   height: iconSizingFactor * 3,
+            //   colorFilter: ColorFilter.mode(
+            //     cardColor.withOpacity(0.2),
+            //     BlendMode.srcIn,
+            //   ),
+            // ),
           )
         ],
       ),
