@@ -8,6 +8,7 @@ import '../models/game_settings.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
 import '../utils/system_orientation.dart';
+import 'background.dart';
 
 class ControlPane extends StatelessWidget {
   const ControlPane({super.key});
@@ -19,50 +20,61 @@ class ControlPane extends StatelessWidget {
     final settings = context.watch<GameSettings>();
 
     final children = [
-      IconButton(
-        tooltip: 'Toggle theme mode',
-        onPressed: () {
+      GestureDetector(
+        onLongPress: () {
           final gameTheme = context.read<GameTheme>();
-          final currentThemeMode = gameTheme.currentMode;
-          final nextThemeMode = ThemeMode.values[
-              (ThemeMode.values.indexOf(currentThemeMode) + 1) %
-                  ThemeMode.values.length];
-
-          gameTheme.changeMode(nextThemeMode);
+          gameTheme.changeMode(ThemeMode.system);
         },
-        icon: Icon(
-          switch (gameTheme.currentMode) {
-            ThemeMode.light => Icons.light_mode,
-            ThemeMode.dark => Icons.dark_mode,
-            ThemeMode.system => Icons.contrast,
+        child: Listener(
+          onPointerUp: (event) => _setRippleCenter(context, event),
+          child: IconButton(
+            tooltip: 'Toggle theme mode',
+            onPressed: () {
+              final currentThemeMode = gameTheme.currentMode;
+              if (currentThemeMode == ThemeMode.light) {
+                gameTheme.changeMode(ThemeMode.dark);
+              } else {
+                gameTheme.changeMode(ThemeMode.light);
+              }
+            },
+            icon: Icon(
+              switch (gameTheme.currentMode) {
+                ThemeMode.light => Icons.light_mode,
+                ThemeMode.dark => Icons.dark_mode,
+                ThemeMode.system => Icons.contrast,
+              },
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+      Listener(
+        onPointerUp: (event) => _setRippleCenter(context, event),
+        child: IconButton(
+          tooltip: 'Toggle dynamic/preset colors',
+          onPressed: () {
+            gameTheme.toggleUsePresetColors();
           },
-          size: 24,
+          icon: Icon(
+            gameTheme.usingRandomColors
+                ? MdiIcons.formatPaint
+                : MdiIcons.imageFilterBlackWhite,
+            size: 24,
+          ),
         ),
       ),
-      IconButton(
-        isSelected: gameTheme.usingRandomColors,
-        tooltip: 'Toggle dynamic/preset colors',
-        onPressed: () {
-          gameTheme.toggleUsePresetColors();
-        },
-        icon: Icon(
-          gameTheme.usingRandomColors
-              ? MdiIcons.formatPaint
-              : MdiIcons.imageFilterBlackWhite,
-          size: 24,
+      Listener(
+        onPointerUp: (event) => _setRippleCenter(context, event),
+        child: IconButton(
+          tooltip: 'Change preset colors',
+          onPressed: gameTheme.usingRandomColors
+              ? () => gameTheme.changePresetColor()
+              : null,
+          icon: Icon(MdiIcons.dice5, size: 24),
         ),
-      ),
-      IconButton(
-        isSelected: gameTheme.usingRandomColors,
-        tooltip: 'Change preset colors',
-        onPressed: gameTheme.usingRandomColors
-            ? () => gameTheme.changePresetColor()
-            : null,
-        icon: Icon(MdiIcons.dice5, size: 24),
       ),
       IconButton(
         tooltip: 'Toggle device orientation',
-        isSelected: settings.screenOrientation() != SystemOrientation.auto,
         onPressed: () {
           context.read<GameSettings>().screenOrientation.toggle();
         },
@@ -159,5 +171,9 @@ class ControlPane extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _setRippleCenter(BuildContext context, PointerUpEvent event) {
+    Background.of(context).setRippleCenter(event.position);
   }
 }

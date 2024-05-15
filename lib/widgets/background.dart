@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../animations.dart';
+import '../utils/math.dart';
 
 class Background extends StatefulWidget {
   const Background({
@@ -15,17 +16,43 @@ class Background extends StatefulWidget {
 
   final Widget child;
 
+  static BackgroundState? maybeOf(BuildContext context) {
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<_BackgroundScope>();
+    return scope?.state;
+  }
+
+  static BackgroundState of(BuildContext context) {
+    final result = maybeOf(context);
+    assert(result != null, 'No Background widget found in context');
+    return result!;
+  }
+
   @override
-  State<Background> createState() => _BackgroundState();
+  State<Background> createState() => BackgroundState();
 }
 
-class _BackgroundState extends State<Background>
+class _BackgroundScope extends InheritedWidget {
+  const _BackgroundScope({
+    required super.child,
+    required this.state,
+  });
+
+  final BackgroundState state;
+
+  @override
+  bool updateShouldNotify(_BackgroundScope old) => false;
+}
+
+class BackgroundState extends State<Background>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   late Animation<double> _animation;
 
   late Color _color;
+
+  late Offset _rippleOffset = Offset.zero;
 
   @override
   void initState() {
@@ -59,15 +86,29 @@ class _BackgroundState extends State<Background>
     }
   }
 
+  void setRippleCenter(Offset offset) {
+    _rippleOffset = offset;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return _BackgroundScope(
+      state: this,
+      child: _buildChild(context),
+    );
+  }
+
+  Widget _buildChild(BuildContext context) {
     if (_controller.status == AnimationStatus.forward) {
       return LayoutBuilder(
         builder: (context, constraints) {
           final parentSize = constraints.biggest;
+          final rippleCenter = _rippleOffset;
 
-          final circleDiameter = sqrt(parentSize.width * parentSize.width +
-              parentSize.height * parentSize.height);
+          final circleRadius = findDistanceToFarthestRectCorner(
+            Offset.zero & parentSize,
+            rippleCenter,
+          );
 
           return AnimatedBuilder(
             animation: _controller,
@@ -76,17 +117,21 @@ class _BackgroundState extends State<Background>
               final newColor = widget.color;
 
               return Stack(
-                alignment: Alignment.center,
                 children: [
                   Positioned.fill(child: Container(color: oldColor)),
                   OverflowBox(
                     maxWidth: double.infinity,
                     maxHeight: double.infinity,
-                    child: Container(
-                      width: _animation.value * circleDiameter,
-                      height: _animation.value * circleDiameter,
-                      decoration: BoxDecoration(
-                          color: newColor, shape: BoxShape.circle),
+                    child: Transform.translate(
+                      offset: _rippleOffset - parentSize.center(Offset.zero),
+                      child: Container(
+                        width: _animation.value * circleRadius * 2,
+                        height: _animation.value * circleRadius * 2,
+                        decoration: BoxDecoration(
+                          color: newColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                     ),
                   ),
                   widget.child,

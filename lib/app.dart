@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'models/game_settings.dart';
+import 'models/game_state.dart';
 import 'models/game_theme.dart';
 import 'screens/game_screen.dart';
 
@@ -52,7 +53,12 @@ class SolitaireApp extends StatelessWidget {
               theme: buildTheme(lightColorScheme),
               darkTheme: buildTheme(darkColorScheme),
               themeMode: gameTheme.currentMode,
-              home: const GameScreen(),
+              home: MultiProvider(
+                providers: [
+                  ChangeNotifierProvider(create: (_) => GameState()),
+                ],
+                child: const GameScreen(),
+              ),
             );
           },
         );
