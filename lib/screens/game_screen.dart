@@ -1,29 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../animations.dart';
-import '../models/game_state.dart';
-import '../utils/colors.dart';
+import '../providers/settings.dart';
 import '../widgets/background.dart';
-import '../widgets/debug_hud.dart';
 import '../widgets/control_pane.dart';
+import '../widgets/debug_hud.dart';
 import '../widgets/game_table.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends StatelessWidget {
   const GameScreen({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
-}
-
-class _GameScreenState extends State<GameScreen> {
-  @override
   Widget build(BuildContext context) {
-    final showDebugPanel =
-        context.select<GameState, bool>((state) => state.isDebugPanelShowing);
-
     return Scaffold(
-      body: Background(
+      body: RippleBackground(
         color: Theme.of(context).colorScheme.primaryContainer,
         child: OrientationBuilder(
           builder: (context, orientation) {
@@ -47,7 +37,7 @@ class _GameScreenState extends State<GameScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 ControlPane(),
-                                Flexible(child: GameTable()),
+                                Expanded(child: GameTable()),
                               ],
                             ),
                           ),
@@ -58,19 +48,14 @@ class _GameScreenState extends State<GameScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 32.0),
-                                  child: ControlPane(),
-                                ),
-                                Flexible(
-                                  child: GameTable(),
-                                ),
+                                ControlPane(),
+                                Expanded(child: GameTable()),
                               ],
                             ),
                           ),
                       },
                     ),
-                    if (showDebugPanel)
+                    if (context.watch<Settings>().showDebugPanel())
                       switch (orientation) {
                         Orientation.landscape => const Align(
                             alignment: Alignment.centerRight,

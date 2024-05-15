@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'models/game_settings.dart';
+import 'providers/settings.dart';
 import 'models/game_state.dart';
 import 'models/game_theme.dart';
 import 'screens/game_screen.dart';
@@ -31,7 +31,7 @@ class SolitaireApp extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => GameTheme()),
-            ChangeNotifierProvider(create: (_) => GameSettings()),
+            ChangeNotifierProvider(create: (_) => Settings()),
           ],
           builder: (context, child) {
             final gameTheme = context.watch<GameTheme>();
@@ -53,6 +53,7 @@ class SolitaireApp extends StatelessWidget {
               theme: buildTheme(lightColorScheme),
               darkTheme: buildTheme(darkColorScheme),
               themeMode: gameTheme.currentMode,
+              themeAnimationStyle: AnimationStyle.noAnimation,
               home: MultiProvider(
                 providers: [
                   ChangeNotifierProvider(create: (_) => GameState()),

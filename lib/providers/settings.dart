@@ -3,8 +3,10 @@ import 'package:flutter/widgets.dart';
 import '../utils/lists.dart';
 import '../utils/system_orientation.dart';
 
-class GameSettings with ChangeNotifier {
+class Settings with ChangeNotifier {
   late final autoMoveOnDraw = SettingItem(this, defaultValue: false);
+
+  late final showDebugPanel = SettingItem(this, defaultValue: false);
 
   late final showMoveHighlight = SettingItem(this, defaultValue: false);
 
@@ -22,7 +24,7 @@ class GameSettings with ChangeNotifier {
 }
 
 class SettingItem<T> {
-  final GameSettings _settings;
+  final Settings _settings;
 
   T _value;
 

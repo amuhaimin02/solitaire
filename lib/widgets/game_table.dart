@@ -10,7 +10,7 @@ import '../animations.dart';
 import '../models/card.dart';
 import '../models/direction.dart';
 import '../models/game_layout.dart';
-import '../models/game_settings.dart';
+import '../providers/settings.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
@@ -371,7 +371,7 @@ class _GameTableState extends State<GameTable> {
           if (gameState.tryMove(move) != null) {
             _feedbackOnPlace(const Discard());
 
-            if (context.read<GameSettings>().autoMoveOnDraw()) {
+            if (context.read<Settings>().autoMoveOnDraw()) {
               Future.delayed(
                 cardMoveAnimation.duration,
                 () => _feedbackOnPlace(gameState.tryQuickPlace(

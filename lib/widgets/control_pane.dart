@@ -4,7 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
-import '../models/game_settings.dart';
+import '../providers/settings.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
 import '../utils/system_orientation.dart';
@@ -15,9 +15,8 @@ class ControlPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameState>();
     final gameTheme = context.watch<GameTheme>();
-    final settings = context.watch<GameSettings>();
+    final settings = context.watch<Settings>();
 
     final children = [
       GestureDetector(
@@ -76,7 +75,7 @@ class ControlPane extends StatelessWidget {
       IconButton(
         tooltip: 'Toggle device orientation',
         onPressed: () {
-          context.read<GameSettings>().screenOrientation.toggle();
+          context.read<Settings>().screenOrientation.toggle();
         },
         icon: Icon(
           switch (settings.screenOrientation()) {
@@ -91,7 +90,7 @@ class ControlPane extends StatelessWidget {
         isSelected: settings.autoMoveOnDraw(),
         tooltip: 'Auto move on draw',
         onPressed: () {
-          context.read<GameSettings>().autoMoveOnDraw.toggle();
+          context.read<Settings>().autoMoveOnDraw.toggle();
         },
         icon: Icon(
           settings.autoMoveOnDraw()
@@ -104,7 +103,7 @@ class ControlPane extends StatelessWidget {
         isSelected: settings.showMoveHighlight(),
         tooltip: 'Toggle highlights',
         onPressed: () {
-          context.read<GameSettings>().showMoveHighlight.toggle();
+          context.read<Settings>().showMoveHighlight.toggle();
         },
         icon: Icon(
           settings.showMoveHighlight() ? MdiIcons.eye : MdiIcons.eyeOff,
@@ -113,21 +112,21 @@ class ControlPane extends StatelessWidget {
       ),
       IconButton(
         tooltip: 'Toggle debug panel',
-        isSelected: gameState.isDebugPanelShowing,
+        isSelected: settings.showDebugPanel(),
         onPressed: () {
-          gameState.toggleDebugPanel();
+          settings.showDebugPanel.toggle();
         },
         icon: Icon(MdiIcons.bug, size: 24),
       ),
       IconButton(
         tooltip: 'Start new game',
         onPressed: () {
-          gameState.restoreToDrawPile();
+          context.read<GameState>().restoreToDrawPile();
           Future.delayed(
             cardMoveAnimation.duration * 2,
             () {
               HapticFeedback.heavyImpact();
-              gameState.startNewGame();
+              context.read<GameState>().startNewGame();
             },
           );
         },
@@ -136,19 +135,23 @@ class ControlPane extends StatelessWidget {
       IconButton(
         tooltip: 'Restart game',
         onPressed: () {
-          gameState.restartGame();
+          context.read<GameState>().restartGame();
           HapticFeedback.heavyImpact();
         },
         icon: const Icon(Icons.fast_rewind, size: 24),
       ),
       IconButton(
         tooltip: 'Undo',
-        onPressed: gameState.canUndo ? () => gameState.undoMove() : null,
+        onPressed: context.watch<GameState>().canUndo
+            ? () => context.read<GameState>().undoMove()
+            : null,
         icon: const Icon(Icons.undo, size: 24),
       ),
       IconButton(
         tooltip: 'Redo',
-        onPressed: gameState.canRedo ? () => gameState.redoMove() : null,
+        onPressed: context.watch<GameState>().canRedo
+            ? () => context.read<GameState>().redoMove()
+            : null,
         icon: const Icon(Icons.redo, size: 24),
       ),
     ];
@@ -174,6 +177,6 @@ class ControlPane extends StatelessWidget {
   }
 
   void _setRippleCenter(BuildContext context, PointerUpEvent event) {
-    Background.of(context).setRippleCenter(event.position);
+    RippleBackground.maybeOf(context)?.setRippleCenter(event.position);
   }
 }

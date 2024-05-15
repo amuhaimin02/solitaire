@@ -1,12 +1,28 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../animations.dart';
 import '../utils/math.dart';
 
-class Background extends StatefulWidget {
-  const Background({
+class SimpleBackground extends StatelessWidget {
+  const SimpleBackground({super.key, required this.color, required this.child});
+
+  final Color color;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // duration: themeChangeAnimation.duration,
+      // curve: themeChangeAnimation.curve,
+      color: color,
+      child: child,
+    );
+  }
+}
+
+class RippleBackground extends StatefulWidget {
+  const RippleBackground({
     super.key,
     required this.child,
     required this.color,
@@ -16,20 +32,20 @@ class Background extends StatefulWidget {
 
   final Widget child;
 
-  static BackgroundState? maybeOf(BuildContext context) {
+  static RippleBackgroundState? maybeOf(BuildContext context) {
     final scope =
         context.dependOnInheritedWidgetOfExactType<_BackgroundScope>();
     return scope?.state;
   }
 
-  static BackgroundState of(BuildContext context) {
+  static RippleBackgroundState of(BuildContext context) {
     final result = maybeOf(context);
     assert(result != null, 'No Background widget found in context');
     return result!;
   }
 
   @override
-  State<Background> createState() => BackgroundState();
+  State<RippleBackground> createState() => RippleBackgroundState();
 }
 
 class _BackgroundScope extends InheritedWidget {
@@ -38,13 +54,13 @@ class _BackgroundScope extends InheritedWidget {
     required this.state,
   });
 
-  final BackgroundState state;
+  final RippleBackgroundState state;
 
   @override
   bool updateShouldNotify(_BackgroundScope old) => false;
 }
 
-class BackgroundState extends State<Background>
+class RippleBackgroundState extends State<RippleBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -79,7 +95,7 @@ class BackgroundState extends State<Background>
   }
 
   @override
-  void didUpdateWidget(covariant Background oldWidget) {
+  void didUpdateWidget(covariant RippleBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.color != oldWidget.color) {
       _controller.forward(from: 0.0);

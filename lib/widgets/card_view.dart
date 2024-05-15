@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
-import '../models/game_settings.dart';
+import '../providers/settings.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../utils/colors.dart';
@@ -34,7 +34,7 @@ class CardView extends StatelessWidget {
         context.select<GameState, Action?>((s) => s.latestAction);
 
     final showMoveHighlight =
-        context.select<GameSettings, bool>((s) => s.showMoveHighlight());
+        context.select<Settings, bool>((s) => s.showMoveHighlight());
 
     return SizedBox(
       width: layout.gridUnit.width,
@@ -56,7 +56,6 @@ class CardView extends StatelessWidget {
                 curve: cardMoveAnimation.curve,
                 flipped: card.flipped,
                 front: Material(
-                  key: ValueKey(card.toString()),
                   borderRadius: BorderRadius.circular(8),
                   elevation: elevation ?? 2,
                   child: CardFace(
@@ -64,7 +63,6 @@ class CardView extends StatelessWidget {
                   ),
                 ),
                 back: Material(
-                  key: ValueKey(card.toString()),
                   borderRadius: BorderRadius.circular(8),
                   elevation: elevation ?? 2,
                   child: const CardCover(),
@@ -166,7 +164,9 @@ class CardCover extends StatelessWidget {
 
     final cardColor = colorScheme.primary;
 
-    return Container(
+    return AnimatedContainer(
+      duration: themeChangeAnimation.duration,
+      curve: themeChangeAnimation.curve,
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(8),

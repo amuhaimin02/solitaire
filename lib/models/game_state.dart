@@ -38,8 +38,6 @@ class GameState extends ChangeNotifier {
 
   late bool _canAutoSolve;
 
-  bool _showDebugPanel = false;
-
   final _stopWatch = Stopwatch();
 
   GameState() {
@@ -396,13 +394,6 @@ class GameState extends ChangeNotifier {
     }
 
     _canAutoSolve = !_isWinning && rules.canAutoSolve(pile);
-  }
-
-  bool get isDebugPanelShowing => _showDebugPanel;
-
-  void toggleDebugPanel() {
-    _showDebugPanel = !_showDebugPanel;
-    notifyListeners();
   }
 }
 
