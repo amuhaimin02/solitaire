@@ -47,7 +47,7 @@ class ControlPane extends StatelessWidget {
         },
         icon: Icon(
           gameTheme.usingRandomColors
-              ? MdiIcons.dice5
+              ? MdiIcons.formatPaint
               : MdiIcons.imageFilterBlackWhite,
           size: 24,
         ),
@@ -58,7 +58,7 @@ class ControlPane extends StatelessWidget {
         onPressed: gameTheme.usingRandomColors
             ? () => gameTheme.changePresetColor()
             : null,
-        icon: Icon(MdiIcons.formatPaint, size: 24),
+        icon: Icon(MdiIcons.dice5, size: 24),
       ),
       IconButton(
         tooltip: 'Toggle device orientation',

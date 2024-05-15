@@ -434,6 +434,18 @@ class _GameTableState extends State<GameTable> {
   }
 }
 
+class _WidgetLayer {
+  final List<Widget> markerLayer;
+  final List<Widget> cardLayer;
+  final List<Widget> overlayLayer;
+
+  _WidgetLayer({
+    required this.markerLayer,
+    required this.cardLayer,
+    required this.overlayLayer,
+  });
+}
+
 class CountIndicator extends StatelessWidget {
   const CountIndicator({
     super.key,
@@ -448,40 +460,36 @@ class CountIndicator extends StatelessWidget {
 
     final size = layout.gridUnit.shortestSide;
 
-    return Align(
-      alignment: const Alignment(0, -0.75),
-      child: Shrinkable(
-        show: count > 0,
-        child: Container(
-          padding: EdgeInsets.all(size * 0.15),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.7),
-            shape: BoxShape.circle,
-          ),
-          child: TickingNumber(
-            count,
-            duration: cardMoveAnimation.duration * 1.5,
-            curve: cardMoveAnimation.curve,
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: size * 0.25,
+    return FractionalTranslation(
+      translation: const Offset(0, -1),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Shrinkable(
+          show: count > 0,
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: size * 0.45,
+            height: size * 0.45,
+            margin: EdgeInsets.all(layout.cardPadding),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.7),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: TickingNumber(
+              count,
+              duration: cardMoveAnimation.duration * 1.5,
+              curve: cardMoveAnimation.curve,
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: size * 0.25,
+                height: 1,
+              ),
             ),
           ),
         ),
       ),
     );
   }
-}
-
-class _WidgetLayer {
-  final List<Widget> markerLayer;
-  final List<Widget> cardLayer;
-  final List<Widget> overlayLayer;
-
-  _WidgetLayer({
-    required this.markerLayer,
-    required this.cardLayer,
-    required this.overlayLayer,
-  });
 }

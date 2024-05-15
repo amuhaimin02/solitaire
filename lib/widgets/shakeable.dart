@@ -42,8 +42,8 @@ class _ShakeableState extends State<Shakeable>
       vsync: this,
       duration: widget.duration,
     );
-    _controller.addListener(() {
-      if (_controller.isCompleted) {
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
         widget.onAnimationEnd?.call();
       }
     });
@@ -65,7 +65,6 @@ class _ShakeableState extends State<Shakeable>
   }
 
   void _startAnimation() {
-    _controller.reset();
     _controller.forward(from: 0.0);
   }
 

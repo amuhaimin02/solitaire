@@ -55,7 +55,6 @@ class _FlippableState extends State<Flippable>
   }
 
   void _startAnimation() {
-    _controller.reset();
     _controller.forward(from: 0.0);
   }
 

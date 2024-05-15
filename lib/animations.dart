@@ -17,13 +17,13 @@ class DurationCurve {
 }
 
 const cardMoveAnimation =
-    DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);
+    DurationCurve(Duration(milliseconds: 350), Curves.fastOutSlowIn);
 
 const standardAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);
 
 const themeChangeAnimation =
-    DurationCurve(Duration(milliseconds: 400), Curves.fastOutSlowIn);
+    DurationCurve(Duration(milliseconds: 500), Curves.easeOutQuad);
 
 const numberTickAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);

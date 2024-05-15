@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/game_state.dart';
 import '../utils/colors.dart';
+import '../widgets/background.dart';
 import '../widgets/debug_hud.dart';
 import '../widgets/control_pane.dart';
 import '../widgets/game_table.dart';
@@ -18,26 +19,15 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return ChangeNotifierProvider(
       create: (_) => GameState(),
       builder: (context, child) {
-        final isWinning =
-            context.select<GameState, bool>((state) => state.isWinning);
         final showDebugPanel = context
             .select<GameState, bool>((state) => state.isDebugPanelShowing);
 
-        final backgroundColor = switch (colorScheme.brightness) {
-          Brightness.light => colorScheme.surfaceVariant.lighten(0.0),
-          Brightness.dark => colorScheme.surfaceVariant.darken(0.3),
-        };
-
         return Scaffold(
-          body: AnimatedContainer(
-            duration: themeChangeAnimation.duration,
-            curve: themeChangeAnimation.curve,
-            color: isWinning ? colorScheme.errorContainer : backgroundColor,
+          body: Background(
+            color: Theme.of(context).colorScheme.primaryContainer,
             child: OrientationBuilder(
               builder: (context, orientation) {
                 return LayoutBuilder(
