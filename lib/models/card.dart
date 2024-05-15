@@ -1,14 +1,19 @@
 enum Suit {
-  diamond('♢', 'R'),
-  club('♧', 'B'),
-  heart('♡', 'R'),
-  spade('♤', 'B');
+  diamond('♢', SuitColor.red),
+  club('♧', SuitColor.black),
+  heart('♡', SuitColor.red),
+  spade('♤', SuitColor.black);
 
   final String symbol;
 
-  final String group;
+  final SuitColor color;
 
-  const Suit(this.symbol, this.group);
+  const Suit(this.symbol, this.color);
+}
+
+enum SuitColor {
+  red,
+  black;
 }
 
 enum Value {
@@ -33,17 +38,16 @@ enum Value {
 }
 
 class PlayCard {
-  static final fullCardSet = List<PlayCard>.unmodifiable([
-    for (final suit in Suit.values)
-      for (final value in Value.values) PlayCard(suit, value)
-  ]);
+  static final numberOfCardsInDeck = Suit.values.length * Value.values.length;
 
   final Suit suit;
   final Value value;
 
   final bool flipped;
 
-  const PlayCard(this.suit, this.value, {this.flipped = false});
+  final int deck;
+
+  const PlayCard(this.suit, this.value, {this.deck = 1, this.flipped = false});
 
   @override
   String toString() {
@@ -56,11 +60,14 @@ class PlayCard {
 
   @override
   bool operator ==(Object other) {
-    return other is PlayCard && suit == other.suit && value == other.value;
+    return other is PlayCard &&
+        suit == other.suit &&
+        value == other.value &&
+        deck == other.deck;
   }
 
   @override
-  int get hashCode => Object.hash(suit, value);
+  int get hashCode => Object.hash(suit, value, deck);
 
   bool get isFacingUp => flipped == false;
 
@@ -68,20 +75,24 @@ class PlayCard {
 
   PlayCard faceDown() {
     if (flipped == true) return this;
-    return PlayCard(suit, value, flipped: true);
+    return PlayCard(suit, value, deck: deck, flipped: true);
   }
 
   PlayCard faceUp() {
     if (flipped == false) return this;
-    return PlayCard(suit, value, flipped: false);
+    return PlayCard(suit, value, deck: deck, flipped: false);
   }
 
   bool sameSuit(PlayCard other) {
     return suit == other.suit;
   }
 
+  bool sameSuitAndRank(PlayCard other) {
+    return suit == other.suit && value == other.value;
+  }
+
   bool sameColor(PlayCard other) {
-    return suit.group == other.suit.group;
+    return suit.color == other.suit.color;
   }
 
   bool oneRankOver(PlayCard other) {

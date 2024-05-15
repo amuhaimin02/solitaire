@@ -146,10 +146,7 @@ class GameState extends ChangeNotifier {
 
   void setupPiles() {
     // Clear up tables, and set up new draw pile
-    _drawPile = PlayCardGenerator.generateShuffledDeck(
-      random: CustomPRNG.create(_gameSeed),
-      numberOfSuits: 1,
-    ).map((c) => c.faceDown()).toList();
+    _drawPile = rules.prepareDrawPile(CustomPRNG.create(_gameSeed)).allFaceDown;
     _foundationPile = List.generate(Suit.values.length, (index) => []);
     _discardPile = [];
     _tableauPile = List.generate(rules.numberOfTableauPiles, (index) => []);

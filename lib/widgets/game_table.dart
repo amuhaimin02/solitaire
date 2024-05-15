@@ -206,6 +206,8 @@ class _GameTableState extends State<GameTable> {
       }
     }
 
+    const cardShowThreshold = 2;
+
     Widget buildCard({
       required PlayCard card,
       double? elevation,
@@ -251,7 +253,8 @@ class _GameTableState extends State<GameTable> {
                     elevation: i == cards.length - 1
                         ? cards.length.clamp(2, 24).toDouble()
                         : 0,
-                    hideFace: i - cards.length <= 0,
+                    hideFace: cards.length > cardShowThreshold &&
+                        cards.length - 1 - i - cardShowThreshold > 0,
                   ),
                 ),
           ],
@@ -310,8 +313,8 @@ class _GameTableState extends State<GameTable> {
                     elevation: cardLimit != null && i < cards.length - cardLimit
                         ? 0
                         : null,
-                    hideFace:
-                        cardLimit != null && i < cards.length - cardLimit - 2,
+                    hideFace: cardLimit != null &&
+                        i < cards.length - cardLimit - cardShowThreshold,
                   ),
                 ),
               ),

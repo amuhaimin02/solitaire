@@ -94,10 +94,19 @@ extension PlayCardListExtension on List<PlayCard> {
 }
 
 class PlayCardGenerator {
-  static PlayCardList generateShuffledDeck(
-      {Random? random, int numberOfSuits = 1}) {
-    return List.generate(numberOfSuits, (times) {
-      return List<PlayCard>.from(PlayCard.fullCardSet)..shuffle(random);
+  static PlayCardList generateOrderedDeck(
+      {int numberOfDecks = 1, bool Function(PlayCard card)? criteria}) {
+    return List.generate(numberOfDecks, (times) {
+      final cards = <PlayCard>[];
+      for (final suit in Suit.values) {
+        for (final value in Value.values) {
+          final card = PlayCard(suit, value, deck: times);
+          if (criteria == null || criteria(card)) {
+            cards.add(card);
+          }
+        }
+      }
+      return cards;
     }).flattened.toList();
   }
 }

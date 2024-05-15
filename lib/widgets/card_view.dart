@@ -99,9 +99,9 @@ class CardFace extends StatelessWidget {
 
     final iconSvgPath = 'assets/${card.suit.name}.svg';
 
-    final cardColor = switch (card.suit.group) {
-      "R" => colorScheme.tertiary,
-      "B" || _ => colorScheme.primary,
+    final cardColor = switch (card.suit.color) {
+      SuitColor.red => colorScheme.tertiary,
+      SuitColor.black => colorScheme.primary,
     };
 
     return Container(

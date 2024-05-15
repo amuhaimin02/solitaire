@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -78,6 +80,11 @@ class Klondike extends Rules {
   }
 
   @override
+  PlayCardList prepareDrawPile(Random random) {
+    return PlayCardGenerator.generateOrderedDeck()..shuffle(random);
+  }
+
+  @override
   void setup(PileGetter pile) {
     for (final t in allTableaus.cast<Tableau>()) {
       final tableau = pile(t);
@@ -93,7 +100,7 @@ class Klondike extends Rules {
     // Easiest way to check is to ensure all cards are already in foundation pile
     return Iterable.generate(numberOfFoundationPiles,
             (f) => state.pile(Foundation(f)).length).sum ==
-        PlayCard.fullCardSet.length;
+        PlayCard.numberOfCardsInDeck;
   }
 
   @override
@@ -133,7 +140,7 @@ class Klondike extends Rules {
 
         // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
         return card.isFacingUp &&
-            card.sameSuit(topmostCard) &&
+            // card.sameSuit(topmostCard) &&
             card.oneRankOver(topmostCard);
 
       case Tableau():

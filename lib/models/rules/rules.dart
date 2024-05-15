@@ -1,6 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
-import '../card.dart';
 import '../direction.dart';
 import '../game_state.dart';
 import '../pile.dart';
@@ -11,6 +12,8 @@ abstract class Rules {
   int get numberOfFoundationPiles;
 
   Layout getLayout(LayoutOptions options);
+
+  PlayCardList prepareDrawPile(Random random);
 
   void setup(PileGetter pile);
 
