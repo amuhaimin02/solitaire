@@ -28,11 +28,6 @@ class Klondike extends Rules {
                 stackDirection: Direction.down,
               ),
             LayoutItem(
-              kind: const Draw(),
-              region: const Rect.fromLTWH(6, 0, 1, 1),
-              showCountIndicator: true,
-            ),
-            LayoutItem(
               kind: const Discard(),
               region: const Rect.fromLTWH(4, 0, 2, 1),
               stackDirection: Direction.left,
@@ -44,6 +39,11 @@ class Klondike extends Rules {
                 kind: Foundation(i),
                 region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
               ),
+            LayoutItem(
+              kind: const Draw(),
+              region: const Rect.fromLTWH(6, 0, 1, 1),
+              showCountIndicator: true,
+            ),
           ],
         );
       case Orientation.landscape:
@@ -56,24 +56,35 @@ class Klondike extends Rules {
                 region: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
                 stackDirection: Direction.down,
               ),
-            LayoutItem(
-              kind: const Draw(),
-              region: const Rect.fromLTWH(9, 2.5, 1, 1),
-              showCountIndicator: true,
-            ),
+            for (int i = 0; i < numberOfFoundationPiles; i++)
+              LayoutItem(
+                kind: Foundation(i),
+                region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+              ),
             LayoutItem(
               kind: const Discard(),
               region: const Rect.fromLTWH(9, 0.5, 1, 2),
               stackDirection: Direction.down,
               numberOfCardsToShow: 3,
             ),
-            for (int i = 0; i < numberOfFoundationPiles; i++)
-              LayoutItem(
-                kind: Foundation(i),
-                region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
-              ),
+            LayoutItem(
+              kind: const Draw(),
+              region: const Rect.fromLTWH(9, 2.5, 1, 1),
+              showCountIndicator: true,
+            ),
           ],
         );
+    }
+  }
+
+  @override
+  void setup(PileGetter pile) {
+    for (final t in allTableaus.cast<Tableau>()) {
+      final tableau = pile(t);
+      final cards = pile(const Draw()).pickLast(t.index + 1);
+      cards.last = cards.last.faceUp();
+
+      tableau.addAll(cards);
     }
   }
 
@@ -82,33 +93,22 @@ class Klondike extends Rules {
     // Easiest way to check is to ensure all cards are already in foundation pile
     return Iterable.generate(numberOfFoundationPiles,
             (f) => state.pile(Foundation(f)).length).sum ==
-        PlayCard.fullSet.length;
+        fullCardSet.length;
   }
 
   @override
   bool canPick(PlayCardList cards, Pile from) {
     // Cards in hand must all face up
-    if (cards.any((c) => c.isFacingDown)) {
+    if (!cards.isAllFacingUp) {
       return false;
     }
 
     switch (from) {
       case Tableau():
-        int? lastRank;
-        for (final card in cards) {
-          // Ensure cards in hand follows their ranking order based on numbers (e.g. A < 2 < 3)
-          if (lastRank != null) {
-            return card.value.rank == lastRank - 1;
-          }
-          lastRank = card.value.rank;
-        }
-        return true;
+        return cards.followRankDecreasingOrder();
       case _:
         // Only tableau piles are allowed for picking multiple cards
-        if (cards.length > 1) {
-          return false;
-        }
-        return true;
+        return cards.isSingle;
     }
   }
 
@@ -119,7 +119,7 @@ class Klondike extends Rules {
     switch (target) {
       case Foundation():
         // Cannot move more than one cards all at once to foundation pile
-        if (cards.length > 1) {
+        if (!cards.isSingle) {
           return false;
         }
 
@@ -133,8 +133,8 @@ class Klondike extends Rules {
 
         // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
         return card.isFacingUp &&
-            card.suit == topmostCard.suit &&
-            card.value.rank == topmostCard.value.rank + 1;
+            card.sameSuit(topmostCard) &&
+            card.oneRankOver(topmostCard);
 
       case Tableau():
         // If column is empty, only King or card group starting with King can be placed
@@ -148,8 +148,8 @@ class Klondike extends Rules {
         // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
         // In this case, we compare the suit "group" as they will be classified by color
         return topmostCard.isFacingUp &&
-            cards.first.value.rank == topmostCard.value.rank - 1 &&
-            cards.first.suit.group != topmostCard.suit.group;
+            cards.first.oneRankUnder(topmostCard) &&
+            !cards.first.sameColor(topmostCard);
 
       case _:
         // TODO: unimplemented yet
@@ -161,7 +161,7 @@ class Klondike extends Rules {
   bool canAutoSolve(PileGetter pile) {
     for (final t in allTableaus) {
       final tableau = pile(t);
-      if (tableau.isNotEmpty && tableau.any((c) => c.isFacingDown)) {
+      if (tableau.isNotEmpty && !tableau.isAllFacingUp) {
         return false;
       }
     }

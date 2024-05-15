@@ -81,10 +81,8 @@ class GameState extends ChangeNotifier {
     if (!keepSeed) {
       _gameSeed = CustomPRNG.generateSeed(length: 12);
     }
-
     resetStates();
     setupPiles();
-    distributeToTableau();
 
     // testCustomLayout();
 
@@ -148,29 +146,14 @@ class GameState extends ChangeNotifier {
 
   void setupPiles() {
     // Clear up tables, and set up new draw pile
-    _drawPile = PlayCard.newShuffledDeck(CustomPRNG.create(_gameSeed))
+    _drawPile = newShuffledDeck(CustomPRNG.create(_gameSeed))
         .map((c) => c.faceDown())
         .toList();
     _foundationPile = List.generate(Suit.values.length, (index) => []);
     _discardPile = [];
     _tableauPile = List.generate(rules.numberOfTableauPiles, (index) => []);
-  }
 
-  void distributeToTableau() {
-    for (int i = 0; i < rules.numberOfTableauPiles; i++) {
-      final tableau = pile(Tableau(i));
-      for (int k = 0; k <= i; k++) {
-        final card = pile(const Draw()).removeLast();
-
-        if (k == i) {
-          // Last card, turn face up
-          tableau.add(card.faceUp());
-        } else {
-          // Any other card, keep face down
-          tableau.add(card.faceDown());
-        }
-      }
-    }
+    rules.setup(pile);
   }
 
   void testDistributeToOtherPiles() {
@@ -206,7 +189,7 @@ class GameState extends ChangeNotifier {
   }
 
   void refreshDrawPile() {
-    final remainderCards = pile(const Discard()).reversed.allFaceDown.toList();
+    final remainderCards = pile(const Discard()).reversed.toList().allFaceDown;
 
     _discardPile = [];
     _drawPile = remainderCards;

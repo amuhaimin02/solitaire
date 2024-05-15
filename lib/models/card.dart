@@ -1,7 +1,3 @@
-import 'dart:math';
-
-import 'package:collection/collection.dart';
-
 enum Suit {
   diamond('♢', 'R'),
   club('♧', 'B'),
@@ -61,11 +57,6 @@ class PlayCard {
   @override
   int get hashCode => Object.hash(suit, value);
 
-  static final PlayCardList fullSet = [
-    for (final suit in Suit.values)
-      for (final value in Value.values) PlayCard(suit, value)
-  ];
-
   bool get isFacingUp => flipped == false;
 
   bool get isFacingDown => flipped == true;
@@ -80,24 +71,19 @@ class PlayCard {
     return PlayCard(suit, value, flipped: false);
   }
 
-  /// Get a new set of cards, shuffled
-  static PlayCardList newShuffledDeck([Random? random]) {
-    return List.from(fullSet)..shuffle(random);
+  bool sameSuit(PlayCard other) {
+    return suit == other.suit;
   }
-}
 
-typedef PlayCardList = List<PlayCard>;
+  bool sameColor(PlayCard other) {
+    return suit.group == other.suit.group;
+  }
 
-extension PlayCardListExtension on Iterable<PlayCard> {
-  PlayCardList get allFaceDown => map((e) => e.faceDown()).toList();
+  bool oneRankOver(PlayCard other) {
+    return value.rank == other.value.rank + 1;
+  }
 
-  PlayCardList get allFaceUp => map((e) => e.faceUp()).toList();
-}
-
-PlayCard getRandomCard({bool? flipped}) {
-  return PlayCard(
-    Suit.values.sample(1).single,
-    Value.values.sample(1).single,
-    flipped: flipped ?? Random().nextBool(),
-  );
+  bool oneRankUnder(PlayCard other) {
+    return value.rank == other.value.rank - 1;
+  }
 }

@@ -12,6 +12,8 @@ abstract class Rules {
 
   Layout getLayout(LayoutOptions options);
 
+  void setup(PileGetter pile);
+
   bool winConditions(GameState state);
 
   bool canPick(PlayCardList cards, Pile from);

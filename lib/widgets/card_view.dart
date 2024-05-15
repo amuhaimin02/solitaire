@@ -164,9 +164,7 @@ class CardCover extends StatelessWidget {
 
     final cardColor = colorScheme.primary;
 
-    return AnimatedContainer(
-      duration: themeChangeAnimation.duration,
-      curve: themeChangeAnimation.curve,
+    return Container(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(8),

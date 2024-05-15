@@ -82,7 +82,9 @@ class _GameTableState extends State<GameTable> {
                     // Move recently moved cards on top of render stack
                     final recentAction = gameState.latestAction;
 
-                    if (recentAction is Move && recentAction.cards.isNotEmpty) {
+                    if (recentAction is Move &&
+                        recentAction.from != const Draw() &&
+                        recentAction.cards.isNotEmpty) {
                       final recentlyMovedCards = recentAction.cards;
 
                       final (widgetsOnTop, remainingWidgets) =
