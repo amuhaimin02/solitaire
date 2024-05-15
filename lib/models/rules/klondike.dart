@@ -93,7 +93,7 @@ class Klondike extends Rules {
     // Easiest way to check is to ensure all cards are already in foundation pile
     return Iterable.generate(numberOfFoundationPiles,
             (f) => state.pile(Foundation(f)).length).sum ==
-        fullCardSet.length;
+        PlayCard.fullCardSet.length;
   }
 
   @override

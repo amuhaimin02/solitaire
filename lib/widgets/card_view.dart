@@ -17,6 +17,7 @@ class CardView extends StatelessWidget {
     required this.card,
     required this.pile,
     this.elevation,
+    this.hideFace = false,
   });
 
   final PlayCard card;
@@ -24,6 +25,8 @@ class CardView extends StatelessWidget {
   final Pile pile;
 
   final double? elevation;
+
+  final bool hideFace;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +57,7 @@ class CardView extends StatelessWidget {
               child: Flippable(
                 duration: cardMoveAnimation.duration,
                 curve: cardMoveAnimation.curve,
-                flipped: card.flipped,
+                flipped: hideFace || card.flipped,
                 front: Material(
                   borderRadius: BorderRadius.circular(8),
                   elevation: elevation ?? 2,

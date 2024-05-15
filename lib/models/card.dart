@@ -33,6 +33,11 @@ enum Value {
 }
 
 class PlayCard {
+  static final fullCardSet = List<PlayCard>.unmodifiable([
+    for (final suit in Suit.values)
+      for (final value in Value.values) PlayCard(suit, value)
+  ]);
+
   final Suit suit;
   final Value value;
 

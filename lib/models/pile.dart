@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
+
 import 'card.dart';
 
 sealed class Pile {
@@ -91,11 +93,11 @@ extension PlayCardListExtension on List<PlayCard> {
   bool get isAllFacingDown => every((e) => e.isFacingDown);
 }
 
-PlayCardList fullCardSet = [
-  for (final suit in Suit.values)
-    for (final value in Value.values) PlayCard(suit, value)
-];
-
-PlayCardList newShuffledDeck([Random? random]) {
-  return List.from(fullCardSet)..shuffle(random);
+class PlayCardGenerator {
+  static PlayCardList generateShuffledDeck(
+      {Random? random, int numberOfSuits = 1}) {
+    return List.generate(numberOfSuits, (times) {
+      return List<PlayCard>.from(PlayCard.fullCardSet)..shuffle(random);
+    }).flattened.toList();
+  }
 }

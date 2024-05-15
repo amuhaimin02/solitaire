@@ -15,8 +15,6 @@ class CardMarker extends StatelessWidget {
     final layout = context.watch<GameLayout>();
 
     return Container(
-      // width: layout.cardSize.width,
-      // height: layout.cardSize.height,
       padding: EdgeInsets.all(layout.cardPadding),
       child: Container(
         decoration: BoxDecoration(

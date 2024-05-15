@@ -206,7 +206,11 @@ class _GameTableState extends State<GameTable> {
       }
     }
 
-    Widget buildCard({required PlayCard card, double? elevation}) {
+    Widget buildCard({
+      required PlayCard card,
+      double? elevation,
+      required bool hideFace,
+    }) {
       return Shakeable(
         duration: cardMoveAnimation.duration,
         curve: cardMoveAnimation.curve,
@@ -220,6 +224,7 @@ class _GameTableState extends State<GameTable> {
           card: card,
           pile: item.kind,
           elevation: elevation,
+          hideFace: hideFace,
         ),
       );
     }
@@ -246,6 +251,7 @@ class _GameTableState extends State<GameTable> {
                     elevation: i == cards.length - 1
                         ? cards.length.clamp(2, 24).toDouble()
                         : 0,
+                    hideFace: i - cards.length <= 0,
                   ),
                 ),
           ],
@@ -304,6 +310,8 @@ class _GameTableState extends State<GameTable> {
                     elevation: cardLimit != null && i < cards.length - cardLimit
                         ? 0
                         : null,
+                    hideFace:
+                        cardLimit != null && i < cards.length - cardLimit - 2,
                   ),
                 ),
               ),
