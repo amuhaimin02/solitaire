@@ -73,10 +73,10 @@ class GameScreen extends StatelessWidget {
                           Orientation.portrait => Padding(
                               padding: outerMargin,
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 32, horizontal: 24),
+                                    padding: const EdgeInsets.only(bottom: 48),
                                     child: StatusPane(orientation: orientation),
                                   ),
                                   const Flexible(

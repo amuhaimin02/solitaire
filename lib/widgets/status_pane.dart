@@ -35,9 +35,9 @@ class StatusPane extends StatelessWidget {
           children: [
             const Expanded(child: Center(child: TimeLabel())),
             divider,
-            const Expanded(child: Center(child: MoveLabel())),
-            divider,
             const Expanded(child: Center(child: ScoreLabel())),
+            divider,
+            const Expanded(child: Center(child: MoveLabel())),
           ],
         ),
     };

@@ -33,6 +33,8 @@ class _GameTableState extends State<GameTable> {
   PlayCardList? _touchingCard;
   Pile? _touchingCardPile;
 
+  bool _isStarting = true;
+
   bool _isAutoSolving = false;
 
   Offset? _touchPoint;
@@ -76,35 +78,18 @@ class _GameTableState extends State<GameTable> {
                     final layout = context.watch<GameLayout>();
                     final gameState = context.watch<GameState>();
 
+                    // TODO: Hack: Using play time to determine start of game
+                    if (!_isStarting &&
+                        gameState.playTime < const Duration(seconds: 1)) {
+                      _isStarting = true;
+                    }
+
                     final layers = [
                       for (final item in tableLayout.items)
                         _buildPile(context, item),
                     ];
 
-                    List<Widget> cardWidgets =
-                        layers.map((w) => w.cardLayer).flattened.toList();
-
-                    // TODO: Using card as keys to determine widget owner
-                    // Move recently moved cards on top of render stack
-                    final recentAction = gameState.latestAction;
-
-                    if (recentAction is Move && recentAction.cards.isNotEmpty) {
-                      final recentlyMovedCards = recentAction.cards;
-
-                      final (widgetsOnTop, remainingWidgets) =
-                          cardWidgets.partition((w) {
-                        if (w.key is! ValueKey<PlayCard>) {
-                          return false;
-                        }
-                        PlayCard card = (w.key as ValueKey<PlayCard>).value;
-
-                        return recentlyMovedCards.contains(card);
-                      });
-
-                      cardWidgets = [...remainingWidgets, ...widgetsOnTop];
-                    }
-
-                    void onCardUndrop() {
+                    void onPointerCancel() {
                       setState(() {
                         _touchPoint = null;
                         _touchingCard = null;
@@ -112,7 +97,16 @@ class _GameTableState extends State<GameTable> {
                       });
                     }
 
-                    void onCardDrop(PointerUpEvent event) {
+                    void onPointerDown(PointerDownEvent event) {
+                      print('set false');
+                      if (_isStarting) {
+                        setState(() {
+                          _isStarting = false;
+                        });
+                      }
+                    }
+
+                    void onPointerUp(PointerUpEvent event) {
                       final point =
                           _convertToGrid(event.localPosition, layout.gridUnit);
 
@@ -136,10 +130,10 @@ class _GameTableState extends State<GameTable> {
                         }
                       }
 
-                      onCardUndrop();
+                      onPointerCancel();
                     }
 
-                    void onCardDrag(PointerMoveEvent event) {
+                    void onPointerMove(PointerMoveEvent event) {
                       if (_touchingCard != null) {
                         setState(() {
                           _touchPoint = event.localPosition;
@@ -147,16 +141,47 @@ class _GameTableState extends State<GameTable> {
                       }
                     }
 
+                    List<Widget> sortCardWidgets(Iterable<Widget> cardWidgets) {
+                      final widgetsOnTop = <Widget>[];
+                      final remainingWidgets = <Widget>[];
+
+                      // TODO: Using card as keys to determine widget owner
+                      // Move recently moved cards on top of render stack
+                      final recentAction = gameState.latestAction;
+                      final recentlyMovedCards =
+                          recentAction is Move ? recentAction.cards : null;
+
+                      for (final widget in cardWidgets) {
+                        final key = widget.key;
+                        if (key is! ValueKey<PlayCard>) {
+                          throw ArgumentError(
+                              'Card widgets should have a ValueKey containing a PlayCard instance');
+                        }
+                        final card = key.value;
+
+                        if (recentlyMovedCards?.contains(card) == true ||
+                            _touchingCard?.contains(card) == true) {
+                          widgetsOnTop.add(widget);
+                        } else {
+                          remainingWidgets.add(widget);
+                        }
+                      }
+
+                      return [...remainingWidgets, ...widgetsOnTop];
+                    }
+
                     return Listener(
                       behavior: HitTestBehavior.opaque,
-                      onPointerUp: onCardDrop,
-                      onPointerMove: onCardDrag,
-                      onPointerCancel: (_) => onCardUndrop(),
+                      onPointerDown: onPointerDown,
+                      onPointerUp: onPointerUp,
+                      onPointerMove: onPointerMove,
+                      onPointerCancel: (_) => onPointerCancel(),
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
                           ...layers.map((w) => w.markerLayer).flattened,
-                          ...cardWidgets,
+                          ...sortCardWidgets(
+                              layers.map((w) => w.cardLayer).flattened),
                           ...layers.map((w) => w.overlayLayer).flattened,
                           Align(
                             alignment: Alignment.bottomCenter,
@@ -258,10 +283,9 @@ class _GameTableState extends State<GameTable> {
     PlayCardList cards = gameState.pile(item.kind);
 
     DurationCurve calculateAnimation(int cardIndex) {
-      // TODO: Animation starting bug
-      if (item.kind is Tableau &&
-          gameState.isOnStartingPoint &&
-          _touchingCard != null) {
+      if (_touchingCard != null) {
+        return cardDragAnimation;
+      } else if (item.kind is Tableau && _isStarting) {
         final tableau = item.kind as Tableau;
         final delayFactor = cardMoveAnimation.duration * 0.3;
         return cardMoveAnimation
@@ -310,9 +334,7 @@ class _GameTableState extends State<GameTable> {
               for (final (i, card) in cards.indexed)
                 AnimatedPositioned.fromRect(
                   key: ValueKey(card),
-                  duration: _touchingCard != null
-                      ? Duration.zero
-                      : calculateAnimation(i).duration,
+                  duration: calculateAnimation(i).duration,
                   curve: calculateAnimation(i).curve,
                   rect: getCardPosition(
                       card, Rect.fromLTWH(region.left, region.top, 1, 1)),
@@ -369,9 +391,7 @@ class _GameTableState extends State<GameTable> {
             for (final (i, card) in cards.indexed)
               AnimatedPositioned.fromRect(
                 key: ValueKey(card),
-                duration: _touchingCard != null
-                    ? Duration.zero
-                    : calculateAnimation(i).duration,
+                duration: calculateAnimation(i).duration,
                 curve: calculateAnimation(i).curve,
                 rect: getCardPosition(
                   card,
