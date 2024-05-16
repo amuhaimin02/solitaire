@@ -29,11 +29,13 @@ class GameTable extends StatefulWidget {
 }
 
 class _GameTableState extends State<GameTable> {
-  // TODO: Move this out of here
   PlayCard? _touchedCard;
+  bool _isAutoSolving = false;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return OrientationBuilder(
       builder: (context, orientation) {
         final gameRules = context.select<GameState, Rules>((s) => s.rules);
@@ -78,7 +80,6 @@ class _GameTableState extends State<GameTable> {
                         layers.map((w) => w.cardLayer).flattened.toList();
 
                     // TODO: Using card as keys to determine widget owner
-
                     // Move recently moved cards on top of render stack
                     final recentAction = gameState.latestAction;
 
@@ -119,15 +120,23 @@ class _GameTableState extends State<GameTable> {
                           ...layers.map((w) => w.markerLayer).flattened,
                           ...cardWidgets,
                           ...layers.map((w) => w.overlayLayer).flattened,
-                          if (gameState.canAutoSolve)
-                            Align(
-                              alignment: Alignment.bottomCenter,
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Shrinkable(
+                              show: gameState.canAutoSolve,
                               child: FloatingActionButton.extended(
-                                onPressed: () => _doAutoSolve(context),
+                                backgroundColor: colorScheme.tertiary,
+                                foregroundColor: colorScheme.onTertiary,
+                                onPressed: _isAutoSolving
+                                    ? null
+                                    : () => _doAutoSolve(context),
                                 icon: const Icon(Icons.auto_fix_high),
-                                label: const Text('Auto solve'),
+                                label: _isAutoSolving
+                                    ? const Text('Auto solving...')
+                                    : const Text('Auto solve'),
                               ),
                             ),
+                          ),
                         ],
                       ),
                     );
@@ -399,23 +408,32 @@ class _GameTableState extends State<GameTable> {
   void _doAutoSolve(BuildContext context) async {
     final gameState = context.read<GameState>();
 
-    bool handled;
+    try {
+      bool handled;
 
-    do {
-      handled = false;
-      for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
-        final result = _feedbackMoveResult(gameState.tryMove(move));
-        if (result is MoveSuccess) {
-          handled = true;
-          if (gameState.isWinning) {
-            print('Auto solve done');
-            return;
+      setState(() {
+        _isAutoSolving = true;
+      });
+      do {
+        handled = false;
+        for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
+          final result = _feedbackMoveResult(gameState.tryMove(move));
+          if (result is MoveSuccess) {
+            handled = true;
+            if (gameState.isWinning) {
+              print('Auto solve done');
+              return;
+            }
+            await Future.delayed(cardMoveAnimation.duration * 0.5);
+            break;
           }
-          await Future.delayed(cardMoveAnimation.duration * 2);
-          break;
         }
-      }
-    } while (handled);
+      } while (handled);
+    } finally {
+      setState(() {
+        _isAutoSolving = false;
+      });
+    }
   }
 
   MoveResult _feedbackMoveResult(MoveResult result) {

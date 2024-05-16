@@ -1,11 +1,9 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../card.dart';
 import '../direction.dart';
-import '../game_state.dart';
 import '../pile.dart';
 import 'rules.dart';
 

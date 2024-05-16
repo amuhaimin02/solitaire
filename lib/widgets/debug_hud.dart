@@ -49,15 +49,6 @@ Undo count: ${gameState.undoCount}
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            StreamBuilder<Null>(
-              stream: Stream.periodic(const Duration(milliseconds: 50)),
-              builder: (context, snapshot) {
-                final playtimeString = gameState.playTime.toString();
-                return Text(
-                  'Time: ${playtimeString.substring(0, playtimeString.lastIndexOf('.') + 2)}',
-                );
-              },
-            ),
             Text(debugText),
           ],
         ),

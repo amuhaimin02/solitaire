@@ -32,6 +32,8 @@ class GameState extends ChangeNotifier {
 
   late int _reshuffleCount;
 
+  late int _score;
+
   late int _undoCount;
 
   late bool _isUndoing;
@@ -54,6 +56,8 @@ class GameState extends ChangeNotifier {
 
   Duration get playTime => _stopWatch.elapsed;
 
+  int get score => moves * 10;
+
   int get reshuffleCount => _reshuffleCount;
 
   int get undoCount => _undoCount;
@@ -72,19 +76,12 @@ class GameState extends ChangeNotifier {
 
   bool get isOnStartingPoint => _history.length == 1;
 
-  Iterable<PlayCardList> get allFoundationPiles => Iterable.generate(
-      rules.numberOfFoundationPiles, (index) => pile(Foundation(index)));
-  Iterable<PlayCardList> get allTableauPiles => Iterable.generate(
-      rules.numberOfTableauPiles, (index) => pile(Tableau(index)));
-
   void startNewGame({bool keepSeed = false}) {
     if (!keepSeed) {
       _gameSeed = CustomPRNG.generateSeed(length: 12);
     }
     resetStates();
     setupPiles();
-
-    // testCustomLayout();
 
     _updateHistory(GameStart());
 
@@ -96,6 +93,11 @@ class GameState extends ChangeNotifier {
   }
 
   void testCustomLayout() {
+    resetStates();
+    setupPiles();
+
+    _updateHistory(GameStart());
+
     _drawPile = [
       const PlayCard(Suit.club, Value.four).faceDown(),
       const PlayCard(Suit.heart, Value.four).faceDown(),
@@ -130,6 +132,8 @@ class GameState extends ChangeNotifier {
       [],
       []
     ];
+
+    notifyListeners();
   }
 
   void restartGame() {
@@ -142,6 +146,7 @@ class GameState extends ChangeNotifier {
     _currentMoveIndex = 0;
     _reshuffleCount = 0;
     _undoCount = 0;
+    _score = 0;
     _isUndoing = false;
     _canAutoSolve = false;
   }
@@ -169,11 +174,11 @@ class GameState extends ChangeNotifier {
 
   void restoreToDrawPile() {
     final drawPile = pile(const Draw());
-    for (final f in allFoundationPiles) {
-      drawPile.addAll(f.extractAll().allFaceDown);
+    for (final f in rules.allFoundations) {
+      drawPile.addAll(pile(f).extractAll().allFaceDown);
     }
-    for (final t in allTableauPiles) {
-      drawPile.addAll(t.extractAll().allFaceDown);
+    for (final t in rules.allTableaus) {
+      drawPile.addAll(pile(t).extractAll().allFaceDown);
     }
     drawPile.addAll(pile(const Discard()).extractAll().allFaceDown);
     notifyListeners();
@@ -336,24 +341,28 @@ class GameState extends ChangeNotifier {
 
   void undoMove() {
     if (_currentMoveIndex == 0) {
-      print('Cannot undo any further as the game is already at the beginning');
       return;
     }
     _restoreFromHistory(_currentMoveIndex - 1);
     _currentMoveIndex--;
     _undoCount++;
     _isUndoing = true;
+
+    _postCheckAfterPlacement();
+
     notifyListeners();
   }
 
   void redoMove() {
     if (_currentMoveIndex >= _history.length - 1) {
-      print('Cannot red any further as the game is already at latest point');
       return;
     }
     _currentMoveIndex++;
     _restoreFromHistory(_currentMoveIndex);
     _isUndoing = false;
+
+    _postCheckAfterPlacement();
+
     notifyListeners();
   }
 
@@ -367,10 +376,10 @@ class GameState extends ChangeNotifier {
     }
 
     final newHistory = GameHistory(
-      _drawPile,
-      _discardPile,
-      _tableauPile,
-      _foundationPile,
+      _drawPile.copy(),
+      _discardPile.copy(),
+      _tableauPile.copy(),
+      _foundationPile.copy(),
       recentAction,
     );
 
@@ -390,26 +399,19 @@ class GameState extends ChangeNotifier {
   }
 
   void _postCheckAfterPlacement() {
-    if (rules.winConditions(pile)) {
-      HapticFeedback.heavyImpact();
-      _isWinning = true;
-    }
-
+    _isWinning = rules.winConditions(pile);
     _canAutoSolve = !_isWinning && rules.canAutoSolve(pile);
   }
 }
 
 class GameHistory {
   GameHistory(
-    PlayCardList drawPile,
-    PlayCardList discardPile,
-    List<PlayCardList> tableauPile,
-    List<PlayCardList> foundationPile,
+    this.drawPile,
+    this.discardPile,
+    this.tableauPile,
+    this.foundationPile,
     this.action,
-  )   : drawPile = drawPile.copy(),
-        discardPile = discardPile.copy(),
-        tableauPile = tableauPile.copy(),
-        foundationPile = foundationPile.copy();
+  );
 
   final PlayCardList drawPile;
   final PlayCardList discardPile;
