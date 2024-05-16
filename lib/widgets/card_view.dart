@@ -133,7 +133,7 @@ class CardFace extends StatelessWidget {
                   style: GoogleFonts.dosis(
                     fontSize: labelSizingFactor,
                     color: cardColor,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 Icon(

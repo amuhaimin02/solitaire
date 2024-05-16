@@ -9,6 +9,7 @@ import '../widgets/debug_control_pane.dart';
 import '../widgets/debug_hud.dart';
 import '../widgets/game_table.dart';
 import '../widgets/status_pane.dart';
+import '../widgets/touch_focusable.dart';
 
 class GameScreen extends StatelessWidget {
   const GameScreen({super.key});
@@ -42,6 +43,9 @@ class GameScreen extends StatelessWidget {
                     ),
                   );
 
+                  final isPreparing =
+                      context.select<GameState, bool>((s) => s.isPreparing);
+
                   return Stack(
                     children: [
                       Positioned.fill(
@@ -53,18 +57,28 @@ class GameScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Flexible(child: GameTable()),
-                                  Container(
-                                    width: 144,
-                                    margin: const EdgeInsets.only(left: 32),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        StatusPane(orientation: orientation),
-                                        divider,
-                                        ControlPane(orientation: orientation),
-                                      ],
+                                  Flexible(
+                                    child: TouchFocusable(
+                                      active: !isPreparing,
+                                      opacityWhenUnfocus: 1,
+                                      child: const GameTable(),
+                                    ),
+                                  ),
+                                  TouchFocusable(
+                                    active: !isPreparing,
+                                    opacityWhenUnfocus: 0,
+                                    child: Container(
+                                      width: 144,
+                                      margin: const EdgeInsets.only(left: 32),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          StatusPane(orientation: orientation),
+                                          divider,
+                                          ControlPane(orientation: orientation),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -75,15 +89,29 @@ class GameScreen extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 48),
-                                    child: StatusPane(orientation: orientation),
+                                  TouchFocusable(
+                                    active: !isPreparing,
+                                    opacityWhenUnfocus: 0,
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 48),
+                                      child:
+                                          StatusPane(orientation: orientation),
+                                    ),
                                   ),
-                                  const Flexible(
-                                    flex: 0,
-                                    child: GameTable(),
+                                  Flexible(
+                                    child: TouchFocusable(
+                                      active: !isPreparing,
+                                      opacityWhenUnfocus: 1,
+                                      child: const GameTable(),
+                                    ),
                                   ),
-                                  ControlPane(orientation: orientation),
+                                  TouchFocusable(
+                                    active: isPreparing,
+                                    opacityWhenUnfocus: 0,
+                                    child:
+                                        ControlPane(orientation: orientation),
+                                  ),
                                 ],
                               ),
                             ),

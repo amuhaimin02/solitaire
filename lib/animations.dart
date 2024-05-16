@@ -17,7 +17,7 @@ class DurationCurve {
 }
 
 const cardMoveAnimation =
-    DurationCurve(Duration(milliseconds: 350), Curves.fastOutSlowIn);
+    DurationCurve(Duration(milliseconds: 300), Curves.fastOutSlowIn);
 
 const cardDragAnimation =
     DurationCurve(Duration(milliseconds: 350), Curves.easeOutCirc);

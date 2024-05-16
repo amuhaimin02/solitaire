@@ -19,14 +19,7 @@ class ControlPane extends StatelessWidget {
       IconButton(
         tooltip: 'Start new game',
         onPressed: () {
-          context.read<GameState>().restoreToDrawPile();
-          Future.delayed(
-            cardMoveAnimation.duration * 2,
-            () {
-              HapticFeedback.heavyImpact();
-              context.read<GameState>().startNewGame();
-            },
-          );
+          context.read<GameState>().startNewGame();
         },
         icon: const Icon(Icons.restart_alt, size: 24),
       ),

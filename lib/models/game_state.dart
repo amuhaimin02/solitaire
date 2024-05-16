@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Action;
 
+import '../animations.dart';
 import '../utils/iterators.dart';
 import '../utils/lists.dart';
 import '../utils/prng.dart';
@@ -22,6 +23,8 @@ class GameState extends ChangeNotifier {
   late Rules rules = Klondike();
 
   late bool _isWinning;
+
+  late bool _isPreparing;
 
   late List<GameHistory> _history;
 
@@ -61,37 +64,53 @@ class GameState extends ChangeNotifier {
 
   bool get isUndoing => _isUndoing;
 
+  bool get isPreparing => _isPreparing;
+
   bool get canAutoSolve => _canAutoSolve;
 
   Action? get latestAction {
     if (_isUndoing && _currentMoveIndex < _history.length - 1) {
       return _history[_currentMoveIndex + 1].action;
     } else {
+      if (_currentMoveIndex == 0) {
+        return null;
+      }
       return _history[_currentMoveIndex].action;
     }
   }
 
-  bool get isOnStartingPoint => _history.length == 1;
+  bool get isJustStarting => _history.length == 1;
 
-  void startNewGame({bool keepSeed = false}) {
+  Future<void> startNewGame({bool keepSeed = false}) async {
     if (!keepSeed) {
       _gameSeed = CustomPRNG.generateSeed(length: 12);
     }
-    resetStates();
-    setupPiles();
 
-    _updateHistory(GameStart());
-
+    _resetStates();
+    _isPreparing = true;
     _stopWatch
-      ..reset()
-      ..start();
+      ..stop()
+      ..reset();
+
+    _setupPiles();
+    notifyListeners();
+
+    await Future.delayed(cardMoveAnimation.duration * 2);
+    _distributeCards();
+    _updateHistory(GameStart());
+    notifyListeners();
+
+    await Future.delayed(cardMoveAnimation.duration * 5);
+
+    _isPreparing = false;
+    _stopWatch.start();
 
     notifyListeners();
   }
 
-  void testCustomLayout() {
-    resetStates();
-    setupPiles();
+  Future<void> testCustomLayout() async {
+    _resetStates();
+    _setupPiles();
 
     _updateHistory(GameStart());
 
@@ -137,7 +156,7 @@ class GameState extends ChangeNotifier {
     startNewGame(keepSeed: true);
   }
 
-  void resetStates() {
+  void _resetStates() {
     _isWinning = false;
     _history = [];
     _currentMoveIndex = 0;
@@ -148,13 +167,15 @@ class GameState extends ChangeNotifier {
     _canAutoSolve = false;
   }
 
-  void setupPiles() {
+  void _setupPiles() {
     // Clear up tables, and set up new draw pile
     _drawPile = rules.prepareDrawPile(CustomPRNG.create(_gameSeed)).allFaceDown;
     _foundationPile = List.generate(Suit.values.length, (index) => []);
     _discardPile = [];
     _tableauPile = List.generate(rules.numberOfTableauPiles, (index) => []);
+  }
 
+  void _distributeCards() {
     rules.setup(pile);
   }
 
@@ -167,18 +188,6 @@ class GameState extends ChangeNotifier {
     for (int i = 0; i < 7; i++) {
       pile(const Discard()).add(pile(const Draw()).removeLast().faceUp());
     }
-  }
-
-  void restoreToDrawPile() {
-    final drawPile = pile(const Draw());
-    for (final f in rules.allFoundations) {
-      drawPile.addAll(pile(f).extractAll().allFaceDown);
-    }
-    for (final t in rules.allTableaus) {
-      drawPile.addAll(pile(t).extractAll().allFaceDown);
-    }
-    drawPile.addAll(pile(const Discard()).extractAll().allFaceDown);
-    notifyListeners();
   }
 
   PlayCardList pile(Pile pile) {
