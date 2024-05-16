@@ -98,7 +98,6 @@ class _GameTableState extends State<GameTable> {
                     }
 
                     void onPointerDown(PointerDownEvent event) {
-                      print('set false');
                       if (_isStarting) {
                         setState(() {
                           _isStarting = false;

@@ -270,7 +270,8 @@ class GameState extends ChangeNotifier {
 
         final PlayCardList cardsToPick;
 
-        if (move.card != null &&
+        if (move.from is! Tableau &&
+            move.card != null &&
             cardsInPile.isNotEmpty &&
             move.card != cardsInPile.last) {
           return MoveForbidden('can only move card on top of pile', move);
