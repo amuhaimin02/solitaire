@@ -31,12 +31,9 @@ class ControlPane extends StatelessWidget {
         icon: const Icon(Icons.restart_alt, size: 24),
       ),
       IconButton(
-        tooltip: 'Restart game',
-        onPressed: () {
-          context.read<GameState>().restartGame();
-          HapticFeedback.heavyImpact();
-        },
-        icon: const Icon(Icons.fast_rewind, size: 24),
+        tooltip: 'Hint',
+        onPressed: () {},
+        icon: const Icon(Icons.lightbulb, size: 24),
       ),
       IconButton(
         tooltip: 'Undo',
@@ -60,9 +57,11 @@ class ControlPane extends StatelessWidget {
           children: children,
         );
       case Orientation.landscape:
-        return GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
+        return Wrap(
+          direction: Axis.vertical,
+          spacing: 8,
+          alignment: WrapAlignment.center,
+          runAlignment: WrapAlignment.center,
           children: children,
         );
     }

@@ -10,10 +10,10 @@ import '../animations.dart';
 import '../models/card.dart';
 import '../models/direction.dart';
 import '../models/game_layout.dart';
-import '../providers/settings.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
+import '../providers/settings.dart';
 import '../utils/lists.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
@@ -29,8 +29,13 @@ class GameTable extends StatefulWidget {
 }
 
 class _GameTableState extends State<GameTable> {
-  PlayCard? _touchedCard;
+  PlayCard? _shakingCard;
+  PlayCard? _touchingCard;
+  Pile? _touchingCardPile;
+
   bool _isAutoSolving = false;
+
+  Offset? _touchPoint;
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +88,7 @@ class _GameTableState extends State<GameTable> {
                     // Move recently moved cards on top of render stack
                     final recentAction = gameState.latestAction;
 
-                    if (recentAction is Move &&
-                        recentAction.from != const Draw() &&
-                        recentAction.cards.isNotEmpty) {
+                    if (recentAction is Move && recentAction.cards.isNotEmpty) {
                       final recentlyMovedCards = recentAction.cards;
 
                       final (widgetsOnTop, remainingWidgets) =
@@ -101,19 +104,53 @@ class _GameTableState extends State<GameTable> {
                       cardWidgets = [...remainingWidgets, ...widgetsOnTop];
                     }
 
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTapUp: (details) {
-                        final point = _convertToGrid(
-                            details.localPosition, layout.gridUnit);
+                    void onCardUndrop() {
+                      setState(() {
+                        _touchPoint = null;
+                        _touchingCard = null;
+                      });
+                    }
 
-                        for (final item in tableLayout.items) {
-                          if (item.region.contains(point)) {
-                            _onPileTap(context, item.kind);
-                            break;
+                    void onCardDrop(PointerUpEvent event) {
+                      final point =
+                          _convertToGrid(event.localPosition, layout.gridUnit);
+
+                      final dropRegion = tableLayout.items.firstWhereOrNull(
+                          (item) => item.region.contains(point));
+
+                      if (dropRegion != null) {
+                        if (_touchingCard != null &&
+                            _touchingCardPile != null &&
+                            _touchingCardPile != dropRegion.kind) {
+                          final result = gameState.tryMove(
+                            MoveIntent(_touchingCardPile!, dropRegion.kind,
+                                _touchingCard),
+                          );
+                          if (result is MoveSuccess) {
+                            _feedbackMoveResult(result);
+                          } else {
+                            print(result);
                           }
+                        } else {
+                          // Register as a normal tap (typically when user taps a tableau region not covered by cards)
+                          _onPileTap(context, dropRegion.kind);
                         }
-                      },
+                      }
+
+                      onCardUndrop();
+                    }
+
+                    void onCardDrag(PointerMoveEvent event) {
+                      setState(() {
+                        _touchPoint = event.localPosition;
+                      });
+                    }
+
+                    return Listener(
+                      behavior: HitTestBehavior.opaque,
+                      onPointerUp: onCardDrop,
+                      onPointerMove: onCardDrag,
+                      onPointerCancel: (_) => onCardUndrop(),
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -159,6 +196,17 @@ class _GameTableState extends State<GameTable> {
     final region = item.region;
 
     Rect measure(Rect rect) => _measure(rect, gridUnit);
+
+    Rect getCardPosition(PlayCard card, Rect originalPosition) {
+      if (card == _touchingCard && _touchPoint != null) {
+        return (_touchPoint! & gridUnit).translate(
+          -gridUnit.width * 0.5,
+          -gridUnit.height * 0.75,
+        );
+      } else {
+        return measure(originalPosition);
+      }
+    }
 
     Offset calculateStackGap(int index, int stackLength, Direction direction) {
       final int visualIndex, visualLength, offset;
@@ -225,10 +273,10 @@ class _GameTableState extends State<GameTable> {
       return Shakeable(
         duration: cardMoveAnimation.duration,
         curve: cardMoveAnimation.curve,
-        shake: card == _touchedCard,
+        shake: card == _shakingCard,
         onAnimationEnd: () {
           setState(() {
-            _touchedCard = null;
+            _shakingCard = null;
           });
         },
         child: CardView(
@@ -254,16 +302,22 @@ class _GameTableState extends State<GameTable> {
               for (final (i, card) in cards.indexed)
                 AnimatedPositioned.fromRect(
                   key: ValueKey(card),
-                  duration: calculateAnimation(i).duration,
+                  duration: _touchingCard != null
+                      ? Duration.zero
+                      : calculateAnimation(i).duration,
                   curve: calculateAnimation(i).curve,
-                  rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-                  child: buildCard(
-                    card: card,
-                    elevation: i == cards.length - 1
-                        ? cards.length.clamp(2, 24).toDouble()
-                        : 0,
-                    hideFace: cards.length > cardShowThreshold &&
-                        cards.length - 1 - i - cardShowThreshold > 0,
+                  rect: getCardPosition(
+                      card, Rect.fromLTWH(region.left, region.top, 1, 1)),
+                  child: GestureDetector(
+                    onTapDown: (_) => _onCardTouch(card, item.kind),
+                    child: buildCard(
+                      card: card,
+                      elevation: i == cards.length - 1
+                          ? cards.length.clamp(2, 24).toDouble()
+                          : 0,
+                      hideFace: cards.length > cardShowThreshold &&
+                          cards.length - 1 - i - cardShowThreshold > 0,
+                    ),
                   ),
                 ),
           ],
@@ -307,15 +361,19 @@ class _GameTableState extends State<GameTable> {
             for (final (i, card) in cards.indexed)
               AnimatedPositioned.fromRect(
                 key: ValueKey(card),
-                duration: calculateAnimation(i).duration,
+                duration: _touchingCard != null
+                    ? Duration.zero
+                    : calculateAnimation(i).duration,
                 curve: calculateAnimation(i).curve,
-                rect: measure(
+                rect: getCardPosition(
+                  card,
                   Rect.fromLTWH(region.left, region.top, 1, 1)
                       .shift(stackAnchor)
                       .shift(calculateStackGap(
                           i, cards.length, item.stackDirection)),
                 ),
                 child: GestureDetector(
+                  onTapDown: (_) => _onCardTouch(card, item.kind),
                   onTap: () => _onCardTap(context, card, item.kind),
                   child: buildCard(
                     card: card,
@@ -357,6 +415,11 @@ class _GameTableState extends State<GameTable> {
     return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
   }
 
+  void _onCardTouch(PlayCard card, Pile originPile) {
+    _touchingCard = card;
+    _touchingCardPile = originPile;
+  }
+
   void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
     print('card tap! $card at $pile');
 
@@ -388,8 +451,11 @@ class _GameTableState extends State<GameTable> {
             Future.delayed(
               cardMoveAnimation.duration,
               () {
-                return _feedbackMoveResult(gameState.tryQuickPlace(
-                    gameState.pile(const Discard()).last, const Discard()));
+                final autoMoveResult = gameState.tryQuickPlace(
+                    gameState.pile(const Discard()).last, const Discard());
+                if (autoMoveResult is MoveSuccess) {
+                  _feedbackMoveResult(autoMoveResult);
+                }
               },
             );
           }
@@ -449,11 +515,11 @@ class _GameTableState extends State<GameTable> {
         }
       case MoveNotDone():
         setState(() {
-          _touchedCard = result.card;
+          _shakingCard = result.card;
         });
       case MoveForbidden():
         setState(() {
-          _touchedCard = result.move.card;
+          _shakingCard = result.move.card;
         });
     }
     return result;

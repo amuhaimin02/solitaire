@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../animations.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
 import '../providers/settings.dart';
 import '../utils/system_orientation.dart';
 
-class DebugControlPane extends StatelessWidget {
+class DebugControlPane extends StatefulWidget {
   const DebugControlPane({super.key});
+
+  @override
+  State<DebugControlPane> createState() => _DebugControlPaneState();
+}
+
+class _DebugControlPaneState extends State<DebugControlPane> {
+  bool _showButtons = false;
 
   @override
   Widget build(BuildContext context) {
@@ -64,13 +69,13 @@ class DebugControlPane extends StatelessWidget {
         onPressed: !settings.useStandardColors() && gameTheme.usingRandomColors
             ? () => gameTheme.changePresetColor()
             : null,
-        icon: Icon(MdiIcons.dice5, size: 24),
+        icon: Icon(MdiIcons.dice5),
       ),
       IconButton(
         tooltip: 'Use standard colors',
         isSelected: settings.useStandardColors(),
         onPressed: () => settings.useStandardColors.toggle(),
-        icon: Icon(MdiIcons.invertColors, size: 24),
+        icon: Icon(MdiIcons.invertColors),
       ),
       IconButton(
         tooltip: 'Toggle device orientation',
@@ -116,22 +121,34 @@ class DebugControlPane extends StatelessWidget {
         onPressed: () {
           settings.showDebugPanel.toggle();
         },
-        icon: Icon(MdiIcons.bug, size: 24),
+        icon: Icon(MdiIcons.bug),
       ),
       IconButton(
         tooltip: 'Test custom layout',
         onPressed: () {
           context.read<GameState>().testCustomLayout();
         },
-        icon: Icon(MdiIcons.cardsPlaying, size: 24),
+        icon: Icon(MdiIcons.cardsPlaying),
       ),
     ];
 
     return Container(
       color: colorScheme.surface.withOpacity(0.2),
-      width: double.infinity,
       child: Wrap(
-        children: children,
+        children: [
+          if (_showButtons) ...children,
+          IconButton(
+            tooltip: 'Expand/contract debug buttons',
+            onPressed: () {
+              setState(() {
+                _showButtons = !_showButtons;
+              });
+            },
+            icon: _showButtons
+                ? const Icon(Icons.keyboard_double_arrow_left)
+                : const Icon(Icons.keyboard_double_arrow_right),
+          ),
+        ],
       ),
     );
   }

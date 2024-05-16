@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart' hide Action;
-import 'package:flutter/services.dart';
 
 import '../utils/iterators.dart';
 import '../utils/lists.dart';
@@ -56,7 +53,7 @@ class GameState extends ChangeNotifier {
 
   Duration get playTime => _stopWatch.elapsed;
 
-  int get score => moves * 10;
+  int get score => _score;
 
   int get reshuffleCount => _reshuffleCount;
 
@@ -214,6 +211,8 @@ class GameState extends ChangeNotifier {
       // Move all cards on hand to target pile
       pile(move.to).addAll(cardsInHand);
 
+      _score = rules.determineScoreForMove(_score, move);
+
       _postCheckAfterPlacement();
 
       _updateHistory(move);
@@ -269,7 +268,14 @@ class GameState extends ChangeNotifier {
         }
         final cardToMove = move.card;
         final cardsInPile = pile(move.from);
+
         final PlayCardList cardsToPick;
+
+        if (move.card != null &&
+            cardsInPile.isNotEmpty &&
+            move.card != cardsInPile.last) {
+          return MoveForbidden('can only move card on top of pile', move);
+        }
 
         if (cardToMove != null) {
           cardsToPick = cardsInPile.getUntilLast(cardToMove);

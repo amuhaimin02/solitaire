@@ -194,4 +194,9 @@ class Klondike extends Rules {
     }
     yield MoveIntent(const Draw(), const Discard());
   }
+
+  @override
+  int determineScoreForMove(int currentScore, Move move) {
+    return currentScore + 5;
+  }
 }

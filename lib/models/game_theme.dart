@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import '../utils/lists.dart';
-
 class GameTheme extends ChangeNotifier {
   ThemeMode _currentThemeMode = ThemeMode.system;
 

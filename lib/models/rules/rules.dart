@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../direction.dart';
-import '../game_state.dart';
 import '../pile.dart';
 
 abstract class Rules {
@@ -26,6 +25,8 @@ abstract class Rules {
   bool canAutoSolve(PileGetter pile);
 
   Iterable<MoveIntent> tryAutoSolve(PileGetter pile);
+
+  int determineScoreForMove(int currentScore, Move move);
 
   Iterable<Pile> get allTableaus {
     return Iterable.generate(numberOfTableauPiles, (i) => Tableau(i));

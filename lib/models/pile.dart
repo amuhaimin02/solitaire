@@ -74,12 +74,18 @@ class MoveForbidden extends MoveResult {
   final MoveIntent move;
 
   const MoveForbidden(this.reason, this.move);
+
+  @override
+  String toString() => "MoveForbidden($reason)";
 }
 
 class MoveSuccess extends MoveResult {
   final Move move;
 
   const MoveSuccess(this.move);
+
+  @override
+  String toString() => "MoveSuccess($move)";
 }
 
 class MoveNotDone extends MoveResult {
@@ -87,6 +93,9 @@ class MoveNotDone extends MoveResult {
   final Pile from;
 
   const MoveNotDone(this.card, this.from);
+
+  @override
+  String toString() => "MoveNotDone()";
 }
 
 class GameStart extends Action {

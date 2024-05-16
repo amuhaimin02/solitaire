@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'providers/settings.dart';
 import 'models/game_state.dart';
 import 'models/game_theme.dart';
+import 'providers/settings.dart';
 import 'screens/game_screen.dart';
 
 class SolitaireApp extends StatelessWidget {

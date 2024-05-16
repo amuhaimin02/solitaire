@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart' hide Action;
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
-import '../providers/settings.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
+import '../providers/settings.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
 
@@ -130,9 +130,8 @@ class CardFace extends StatelessWidget {
               children: [
                 Text(
                   card.value.symbol,
-                  style: TextStyle(
+                  style: GoogleFonts.dosis(
                     fontSize: labelSizingFactor,
-                    fontWeight: FontWeight.bold,
                     color: cardColor,
                   ),
                 ),

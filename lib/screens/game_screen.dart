@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/game_state.dart';
 import '../providers/settings.dart';
 import '../widgets/background.dart';
 import '../widgets/control_pane.dart';
@@ -14,9 +15,14 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isWinning = context.select<GameState, bool>((s) => s.isWinning);
+
     return Scaffold(
       body: RippleBackground(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: isWinning
+            ? colorScheme.tertiaryContainer
+            : colorScheme.primaryContainer,
         child: SafeArea(
           child: OrientationBuilder(
             builder: (context, orientation) {
@@ -27,6 +33,14 @@ class GameScreen extends StatelessWidget {
                   final outerMargin = isMobile
                       ? const EdgeInsets.all(8)
                       : const EdgeInsets.all(40);
+
+                  final divider = SizedBox(
+                    width: 48,
+                    child: Divider(
+                      height: 24,
+                      color: colorScheme.onPrimaryContainer.withOpacity(0.3),
+                    ),
+                  );
 
                   return Stack(
                     children: [
@@ -41,15 +55,14 @@ class GameScreen extends StatelessWidget {
                                 children: [
                                   const Flexible(child: GameTable()),
                                   Container(
-                                    width: 120,
+                                    width: 144,
                                     margin: const EdgeInsets.only(left: 32),
                                     child: Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
+                                          MainAxisAlignment.center,
                                       children: [
                                         StatusPane(orientation: orientation),
+                                        divider,
                                         ControlPane(orientation: orientation),
                                       ],
                                     ),
@@ -62,7 +75,8 @@ class GameScreen extends StatelessWidget {
                               child: Column(
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.all(32.0),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 32, horizontal: 24),
                                     child: StatusPane(orientation: orientation),
                                   ),
                                   const Flexible(
