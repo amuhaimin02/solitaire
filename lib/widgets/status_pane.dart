@@ -37,9 +37,7 @@ class StatusPane extends StatelessWidget {
             divider,
             const Expanded(child: Center(child: MoveLabel())),
             divider,
-            const Expanded(
-                child: Align(
-                    alignment: Alignment.centerRight, child: ScoreLabel())),
+            const Expanded(child: Center(child: ScoreLabel())),
           ],
         ),
     };

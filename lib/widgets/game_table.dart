@@ -30,7 +30,7 @@ class GameTable extends StatefulWidget {
 
 class _GameTableState extends State<GameTable> {
   PlayCard? _shakingCard;
-  PlayCard? _touchingCard;
+  PlayCardList? _touchingCard;
   Pile? _touchingCardPile;
 
   bool _isAutoSolving = false;
@@ -108,6 +108,7 @@ class _GameTableState extends State<GameTable> {
                       setState(() {
                         _touchPoint = null;
                         _touchingCard = null;
+                        _touchingCardPile = null;
                       });
                     }
 
@@ -124,12 +125,10 @@ class _GameTableState extends State<GameTable> {
                             _touchingCardPile != dropRegion.kind) {
                           final result = gameState.tryMove(
                             MoveIntent(_touchingCardPile!, dropRegion.kind,
-                                _touchingCard),
+                                _touchingCard!.first),
                           );
                           if (result is MoveSuccess) {
                             _feedbackMoveResult(result);
-                          } else {
-                            print(result);
                           }
                         } else {
                           // Register as a normal tap (typically when user taps a tableau region not covered by cards)
@@ -141,9 +140,11 @@ class _GameTableState extends State<GameTable> {
                     }
 
                     void onCardDrag(PointerMoveEvent event) {
-                      setState(() {
-                        _touchPoint = event.localPosition;
-                      });
+                      if (_touchingCard != null) {
+                        setState(() {
+                          _touchPoint = event.localPosition;
+                        });
+                      }
                     }
 
                     return Listener(
@@ -198,10 +199,14 @@ class _GameTableState extends State<GameTable> {
     Rect measure(Rect rect) => _measure(rect, gridUnit);
 
     Rect getCardPosition(PlayCard card, Rect originalPosition) {
-      if (card == _touchingCard && _touchPoint != null) {
-        return (_touchPoint! & gridUnit).translate(
-          -gridUnit.width * 0.5,
-          -gridUnit.height * 0.75,
+      if (_touchingCard != null &&
+          _touchingCard!.contains(card) &&
+          _touchPoint != null) {
+        final newRect = (_touchPoint! & gridUnit);
+        final index = _touchingCard!.indexOf(card);
+        return newRect.translate(
+          -(gridUnit.width * 0.5),
+          -(gridUnit.height * 0.75 - index * (gridUnit.height * 0.25)),
         );
       } else {
         return measure(originalPosition);
@@ -253,7 +258,10 @@ class _GameTableState extends State<GameTable> {
     PlayCardList cards = gameState.pile(item.kind);
 
     DurationCurve calculateAnimation(int cardIndex) {
-      if (item.kind is Tableau && gameState.isOnStartingPoint) {
+      // TODO: Animation starting bug
+      if (item.kind is Tableau &&
+          gameState.isOnStartingPoint &&
+          _touchingCard != null) {
         final tableau = item.kind as Tableau;
         final delayFactor = cardMoveAnimation.duration * 0.3;
         return cardMoveAnimation
@@ -309,7 +317,7 @@ class _GameTableState extends State<GameTable> {
                   rect: getCardPosition(
                       card, Rect.fromLTWH(region.left, region.top, 1, 1)),
                   child: GestureDetector(
-                    onTapDown: (_) => _onCardTouch(card, item.kind),
+                    onTapDown: (_) => _onCardTouch(context, card, item.kind),
                     child: buildCard(
                       card: card,
                       elevation: i == cards.length - 1
@@ -373,7 +381,7 @@ class _GameTableState extends State<GameTable> {
                           i, cards.length, item.stackDirection)),
                 ),
                 child: GestureDetector(
-                  onTapDown: (_) => _onCardTouch(card, item.kind),
+                  onTapDown: (_) => _onCardTouch(context, card, item.kind),
                   onTap: () => _onCardTap(context, card, item.kind),
                   child: buildCard(
                     card: card,
@@ -415,9 +423,15 @@ class _GameTableState extends State<GameTable> {
     return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
   }
 
-  void _onCardTouch(PlayCard card, Pile originPile) {
-    _touchingCard = card;
+  void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {
+    final gameState = context.read<GameState>();
+
     _touchingCardPile = originPile;
+    if (originPile is Tableau) {
+      _touchingCard = gameState.pile(originPile).getUntilLast(card);
+    } else {
+      _touchingCard = [card];
+    }
   }
 
   void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
@@ -433,7 +447,7 @@ class _GameTableState extends State<GameTable> {
       // noop
     }
 
-    _onPileTap(context, pile);
+    // _onPileTap(context, pile);
   }
 
   void _onPileTap(BuildContext context, Pile pile) {

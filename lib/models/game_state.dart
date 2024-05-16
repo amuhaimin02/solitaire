@@ -227,7 +227,6 @@ class GameState extends ChangeNotifier {
   }
 
   MoveResult tryMove(MoveIntent move) {
-    print('trying move $move');
     switch (move.from) {
       case Draw():
         if (move.to != const Discard()) {
@@ -399,9 +398,6 @@ class GameState extends ChangeNotifier {
     _discardPile = history.discardPile.copy();
     _tableauPile = history.tableauPile.copy();
     _foundationPile = history.foundationPile.copy();
-
-    print(
-        'Restored from [$historyIndex]: T=${_tableauPile.map((e) => e.length)}');
   }
 
   void _postCheckAfterPlacement() {
