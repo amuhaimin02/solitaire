@@ -17,7 +17,7 @@ abstract class Rules {
 
   void setup(PileGetter pile);
 
-  bool winConditions(GameState state);
+  bool winConditions(PileGetter pile);
 
   bool canPick(PlayCardList cards, Pile from);
 
@@ -25,7 +25,7 @@ abstract class Rules {
 
   bool canAutoSolve(PileGetter pile);
 
-  Iterable<Move> tryAutoSolve(PileGetter pile);
+  Iterable<MoveIntent> tryAutoSolve(PileGetter pile);
 
   Iterable<Pile> get allTableaus {
     return Iterable.generate(numberOfTableauPiles, (i) => Tableau(i));

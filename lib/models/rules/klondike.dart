@@ -96,11 +96,14 @@ class Klondike extends Rules {
   }
 
   @override
-  bool winConditions(GameState state) {
+  bool winConditions(PileGetter pile) {
+    return pile(const Draw()).isEmpty &&
+        pile(const Discard()).isEmpty &&
+        allTableaus.every((t) => pile(t).isEmpty);
     // Easiest way to check is to ensure all cards are already in foundation pile
-    return Iterable.generate(numberOfFoundationPiles,
-            (f) => state.pile(Foundation(f)).length).sum ==
-        PlayCard.numberOfCardsInDeck;
+    // return Iterable.generate(numberOfFoundationPiles,
+    //         (f) => state.pile(Foundation(f)).length).sum ==
+    //     PlayCard.numberOfCardsInDeck;
   }
 
   @override
@@ -158,9 +161,9 @@ class Klondike extends Rules {
             cards.first.isOneRankUnder(topmostCard) &&
             !cards.first.isSameColor(topmostCard);
 
-      case _:
-        // TODO: unimplemented yet
-        throw UnimplementedError();
+      case Draw() || Discard():
+        // Cannot return card back to these piles
+        return false;
     }
   }
 
@@ -175,26 +178,22 @@ class Klondike extends Rules {
     return true;
   }
 
-  // TODO: Improve return type
   @override
-  Iterable<Move> tryAutoSolve(PileGetter pile) sync* {
+  Iterable<MoveIntent> tryAutoSolve(PileGetter pile) sync* {
     // Try moving cards from tableau to foundation
     for (final t in allTableaus) {
       for (final f in allFoundations) {
         final tableau = pile(t);
         if (tableau.isNotEmpty) {
-          yield Move([tableau.last], t, f);
+          yield MoveIntent(t, f);
         }
         final discard = pile(const Discard());
         if (discard.isNotEmpty) {
-          yield Move([discard.last], const Discard(), t);
-          yield Move([discard.last], const Discard(), f);
+          yield MoveIntent(const Discard(), t);
+          yield MoveIntent(const Discard(), f);
         }
       }
     }
-    final draw = pile(const Draw());
-    if (draw.isNotEmpty) {
-      yield Move([draw.last], const Draw(), const Discard());
-    }
+    yield MoveIntent(const Draw(), const Discard());
   }
 }

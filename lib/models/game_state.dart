@@ -97,10 +97,12 @@ class GameState extends ChangeNotifier {
 
   void testCustomLayout() {
     _drawPile = [
+      const PlayCard(Suit.club, Value.four).faceDown(),
       const PlayCard(Suit.heart, Value.four).faceDown(),
       const PlayCard(Suit.spade, Value.four).faceDown(),
       const PlayCard(Suit.heart, Value.five).faceDown(),
-      const PlayCard(Suit.spade, Value.five).faceDown(),
+      const PlayCard(Suit.club, Value.five).faceDown(),
+      const PlayCard(Suit.club, Value.six).faceDown(),
       const PlayCard(Suit.club, Value.two).faceDown(),
     ];
     _discardPile = [];
@@ -186,20 +188,10 @@ class GameState extends ChangeNotifier {
     };
   }
 
-  void refreshDrawPile() {
-    final remainderCards = pile(const Discard()).reversed.toList().allFaceDown;
-
-    _discardPile = [];
-    _drawPile = remainderCards;
-    _reshuffleCount++;
-
-    notifyListeners();
-  }
-
-  void _doMoveCards(Move move) {
+  Move _doMoveCards(Move move) {
     print('moving $move');
     try {
-      final cardsInHand = move.cards.copy().allFaceUp;
+      final cardsInHand = move.cards;
 
       final cardsOnTable = pile(move.from);
 
@@ -227,47 +219,76 @@ class GameState extends ChangeNotifier {
     } finally {
       notifyListeners();
     }
-  }
-
-  Move? tryMove(Move move) {
-    switch (move.from) {
-      case Draw():
-        if (move.to != const Discard()) {
-          print('cannot move cards from draw pile to pile other than discard');
-          return null;
-        }
-        if (move.cards.length != 1) {
-          print('cannot draw more than one card');
-          return null;
-        }
-        if (move.cards.single != pile(const Draw()).last) {
-          print('can only draw topmost card');
-          return null;
-        }
-      case Discard() || Foundation() || Tableau():
-        if (move.to == const Draw()) {
-          print('cannot move cards back to draw pile');
-          return null;
-        }
-        if (move.from == move.to) {
-          print('cannot move cards back to its pile');
-          return null;
-        }
-        if (!rules.canPick(move.cards, move.from)) {
-          print('cannot pick the card(s) ${move.cards} from ${move.from}');
-          return null;
-        }
-        if (!rules.canPlace(move.cards, move.to, pile)) {
-          print('cannot place the card(s) ${move.cards} on ${move.to}');
-          return null;
-        }
-    }
-
-    _doMoveCards(move);
     return move;
   }
 
-  Pile? tryQuickPlace(PlayCard card, Pile from) {
+  MoveResult tryMove(MoveIntent move) {
+    print('trying move $move');
+    switch (move.from) {
+      case Draw():
+        if (move.to != const Discard()) {
+          return MoveForbidden(
+              'cannot move cards from draw pile to pile other than discard',
+              move);
+        }
+        final cardsInDrawPile = pile(const Draw());
+
+        if (cardsInDrawPile.isEmpty) {
+          // Refresh draw pile
+          final cardsInDiscardPile = pile(const Discard());
+
+          _reshuffleCount++;
+
+          return MoveSuccess(_doMoveCards(
+            Move(
+              cardsInDiscardPile.reversed.toList().allFaceDown,
+              const Discard(),
+              const Draw(),
+            ),
+          ));
+        } else {
+          return MoveSuccess(_doMoveCards(
+            Move(
+              [cardsInDrawPile.last.faceUp()],
+              const Draw(),
+              const Discard(),
+            ),
+          ));
+        }
+      case Discard() || Foundation() || Tableau():
+        if (move.to == const Draw()) {
+          return MoveForbidden('cannot move cards back to draw pile', move);
+        }
+        if (move.from == move.to) {
+          return MoveForbidden('cannot move cards back to its pile', move);
+        }
+        final cardToMove = move.card;
+        final cardsInPile = pile(move.from);
+        final PlayCardList cardsToPick;
+
+        if (cardToMove != null) {
+          cardsToPick = cardsInPile.getUntilLast(cardToMove);
+        } else {
+          if (cardsInPile.isEmpty) {
+            return MoveNotDone(null, move.from);
+          }
+          cardsToPick = [cardsInPile.last];
+        }
+
+        if (!rules.canPick(cardsToPick, move.from)) {
+          return MoveForbidden(
+              'cannot pick the card(s) $cardsToPick from ${move.from}', move);
+        }
+        if (!rules.canPlace(cardsToPick, move.to, pile)) {
+          return MoveForbidden(
+              'cannot place the card(s) $cardsToPick on ${move.to}', move);
+        }
+
+        return MoveSuccess(_doMoveCards(Move(cardsToPick, move.from, move.to)));
+    }
+  }
+
+  MoveResult tryQuickPlace(PlayCard card, Pile from) {
     final cardsInHand = switch (from) {
       Tableau() || Foundation() => [
           ...pile(from).getRange(pile(from).indexOf(card), pile(from).length)
@@ -292,22 +313,22 @@ class GameState extends ChangeNotifier {
     // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
       for (final i in foundationIndexes) {
-        final foundation = Foundation(i);
-        if (tryMove(Move(cardsInHand, from, foundation)) != null) {
-          return foundation;
+        final result = tryMove(MoveIntent(from, Foundation(i), card));
+        if (result is MoveSuccess) {
+          return result;
         }
       }
     }
 
     // Try placing on tableau next
     for (final i in tableauIndexes) {
-      final tableau = Tableau(i);
-      if (tryMove(Move(cardsInHand, from, tableau)) != null) {
-        return tableau;
+      final result = tryMove(MoveIntent(from, Tableau(i), card));
+      if (result is MoveSuccess) {
+        return result;
       }
     }
 
-    return null;
+    return MoveNotDone(card, from);
   }
 
   bool get canUndo => _currentMoveIndex > 0;
@@ -369,7 +390,7 @@ class GameState extends ChangeNotifier {
   }
 
   void _postCheckAfterPlacement() {
-    if (rules.winConditions(this)) {
+    if (rules.winConditions(pile)) {
       HapticFeedback.heavyImpact();
       _isWinning = true;
     }

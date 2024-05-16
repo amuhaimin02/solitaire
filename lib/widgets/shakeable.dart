@@ -77,8 +77,11 @@ class _ShakeableState extends State<Shakeable>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Transform.rotate(
-          angle: sin(_animation.value * 2 * pi) * widget.intensity,
+        return Transform(
+          transform: Matrix4.identity()
+            ..rotateX(sin(_animation.value * 2 * pi) * widget.intensity * 2)
+            ..rotateZ(sin(_animation.value * 2 * pi) * widget.intensity),
+          alignment: Alignment.center,
           child: child,
         );
       },

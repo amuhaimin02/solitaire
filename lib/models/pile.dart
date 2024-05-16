@@ -52,6 +52,43 @@ class Move extends Action {
   String toString() => 'Move($cards, $from => $to)';
 }
 
+class MoveIntent {
+  final Pile from;
+  final Pile to;
+
+  PlayCard? card;
+
+  MoveIntent(this.from, this.to, [this.card]);
+
+  @override
+  String toString() => 'MoveIntent($from => $to, card=$card)';
+}
+
+sealed class MoveResult {
+  const MoveResult();
+}
+
+class MoveForbidden extends MoveResult {
+  final String reason;
+
+  final MoveIntent move;
+
+  const MoveForbidden(this.reason, this.move);
+}
+
+class MoveSuccess extends MoveResult {
+  final Move move;
+
+  const MoveSuccess(this.move);
+}
+
+class MoveNotDone extends MoveResult {
+  final PlayCard? card;
+  final Pile from;
+
+  const MoveNotDone(this.card, this.from);
+}
+
 class GameStart extends Action {
   @override
   String toString() => 'GameStart';
@@ -72,6 +109,18 @@ extension PlayCardListExtension on List<PlayCard> {
     final cardsToPick = getRange(startRange, endRange).toList();
     removeRange(startRange, endRange);
     return cardsToPick;
+  }
+
+  PlayCardList getUntilLast(PlayCard card) {
+    if (isNotEmpty && last == card) {
+      return [card];
+    }
+
+    final startRange = indexOf(card);
+    if (startRange < 0) {
+      throw RangeError('Card $card is not in list $this');
+    }
+    return getRange(startRange, length).toList();
   }
 
   bool followRankDecreasingOrder() {

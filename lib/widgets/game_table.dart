@@ -123,7 +123,7 @@ class _GameTableState extends State<GameTable> {
                             Align(
                               alignment: Alignment.bottomCenter,
                               child: FloatingActionButton.extended(
-                                onPressed: () => _doAutoSort(context),
+                                onPressed: () => _doAutoSolve(context),
                                 icon: const Icon(Icons.auto_fix_high),
                                 label: const Text('Auto solve'),
                               ),
@@ -355,14 +355,7 @@ class _GameTableState extends State<GameTable> {
 
     switch (pile) {
       case Tableau():
-        final result = gameState.tryQuickPlace(card, pile);
-        if (result != null) {
-          _feedbackOnPlace(result);
-        } else {
-          setState(() {
-            _touchedCard = card;
-          });
-        }
+        _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
         return;
       case _:
       // noop
@@ -378,42 +371,32 @@ class _GameTableState extends State<GameTable> {
 
     switch (pile) {
       case Draw():
-        if (gameState.pile(pile).isNotEmpty) {
-          final move =
-              Move([gameState.pile(pile).last], const Draw(), const Discard());
-          if (gameState.tryMove(move) != null) {
-            _feedbackOnPlace(const Discard());
-
-            if (context.read<Settings>().autoMoveOnDraw()) {
-              Future.delayed(
-                cardMoveAnimation.duration,
-                () => _feedbackOnPlace(gameState.tryQuickPlace(
-                    gameState.pile(const Discard()).last, const Discard())),
-              );
-            }
+        final result = _feedbackMoveResult(
+            gameState.tryMove(MoveIntent(const Draw(), const Discard())));
+        if (result is MoveSuccess) {
+          if (result.move.to == const Discard() &&
+              context.read<Settings>().autoMoveOnDraw()) {
+            Future.delayed(
+              cardMoveAnimation.duration,
+              () {
+                return _feedbackMoveResult(gameState.tryQuickPlace(
+                    gameState.pile(const Discard()).last, const Discard()));
+              },
+            );
           }
-        } else {
-          gameState.refreshDrawPile();
-          _feedbackOnPlace(const Draw());
         }
+
       case Discard() || Foundation():
         if (gameState.pile(pile).isNotEmpty) {
-          final result =
-              gameState.tryQuickPlace(gameState.pile(pile).last, pile);
-          if (result != null) {
-            _feedbackOnPlace(result);
-          } else {
-            setState(() {
-              _touchedCard = gameState.pile(pile).last;
-            });
-          }
+          final cardToMove = gameState.pile(pile).last;
+          _feedbackMoveResult(gameState.tryQuickPlace(cardToMove, pile));
         }
       case _:
       // noop
     }
   }
 
-  void _doAutoSort(BuildContext context) async {
+  void _doAutoSolve(BuildContext context) async {
     final gameState = context.read<GameState>();
 
     bool handled;
@@ -421,29 +404,41 @@ class _GameTableState extends State<GameTable> {
     do {
       handled = false;
       for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
-        if (gameState.tryMove(move) != null) {
+        final result = _feedbackMoveResult(gameState.tryMove(move));
+        if (result is MoveSuccess) {
           handled = true;
-          _feedbackOnPlace(move.to);
-          await Future.delayed(cardMoveAnimation.duration * 0.5);
+          if (gameState.isWinning) {
+            print('Auto solve done');
+            return;
+          }
+          await Future.delayed(cardMoveAnimation.duration * 2);
           break;
         }
       }
     } while (handled);
-
-    print('Auto solve done');
   }
 
-  void _feedbackOnPlace(Pile? pile) {
-    switch (pile) {
-      case Discard():
-        HapticFeedback.lightImpact();
-      case Tableau():
-        HapticFeedback.mediumImpact();
-      case Draw() || Foundation():
-        HapticFeedback.heavyImpact();
-      case null:
-      // noop
+  MoveResult _feedbackMoveResult(MoveResult result) {
+    switch (result) {
+      case MoveSuccess():
+        switch (result.move.to) {
+          case Discard():
+            HapticFeedback.lightImpact();
+          case Tableau():
+            HapticFeedback.mediumImpact();
+          case Draw() || Foundation():
+            HapticFeedback.heavyImpact();
+        }
+      case MoveNotDone():
+        setState(() {
+          _touchedCard = result.card;
+        });
+      case MoveForbidden():
+        setState(() {
+          _touchedCard = result.move.card;
+        });
     }
+    return result;
   }
 }
 
