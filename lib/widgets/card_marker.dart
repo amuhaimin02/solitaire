@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../models/game_layout.dart';
+import '../models/pile.dart';
 
-class CardMarker extends StatelessWidget {
-  const CardMarker({super.key, required this.mark});
+class PileMarker extends StatelessWidget {
+  const PileMarker({super.key, required this.pile});
 
-  final IconData mark;
+  final Pile pile;
 
   @override
   Widget build(BuildContext context) {
@@ -14,17 +16,24 @@ class CardMarker extends StatelessWidget {
 
     final layout = context.watch<GameLayout>();
 
+    final icon = switch (pile) {
+      Draw() => MdiIcons.refresh,
+      Discard() => MdiIcons.cardsPlaying,
+      Foundation() => MdiIcons.circleOutline,
+      Tableau() => MdiIcons.close,
+    };
+
     return Container(
       padding: EdgeInsets.all(layout.cardPadding),
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surfaceTint.withOpacity(0.1),
+          color: colorScheme.onSurface.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
-          mark,
+          icon,
           size: layout.gridUnit.width * 0.5,
-          color: colorScheme.surfaceTint.withOpacity(0.2),
+          color: colorScheme.onSurface.withOpacity(0.3),
         ),
       ),
     );

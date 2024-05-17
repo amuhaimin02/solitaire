@@ -21,9 +21,7 @@ class GameScreen extends StatelessWidget {
 
     return Scaffold(
       body: RippleBackground(
-        color: isWinning
-            ? colorScheme.tertiaryContainer
-            : colorScheme.primaryContainer,
+        color: isWinning ? colorScheme.onPrimary : colorScheme.primaryContainer,
         child: SafeArea(
           child: OrientationBuilder(
             builder: (context, orientation) {
@@ -89,17 +87,17 @@ class GameScreen extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  TouchFocusable(
-                                    active: !isPreparing,
-                                    opacityWhenUnfocus: 0,
-                                    child: Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 48),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 48),
+                                    child: TouchFocusable(
+                                      active: !isPreparing,
+                                      opacityWhenUnfocus: 0,
                                       child:
                                           StatusPane(orientation: orientation),
                                     ),
                                   ),
                                   Flexible(
+                                    flex: 0,
                                     child: TouchFocusable(
                                       active: !isPreparing,
                                       opacityWhenUnfocus: 1,
@@ -107,7 +105,7 @@ class GameScreen extends StatelessWidget {
                                     ),
                                   ),
                                   TouchFocusable(
-                                    active: isPreparing,
+                                    active: !isPreparing,
                                     opacityWhenUnfocus: 0,
                                     child:
                                         ControlPane(orientation: orientation),

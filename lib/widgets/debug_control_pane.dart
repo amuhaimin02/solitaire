@@ -72,12 +72,6 @@ class _DebugControlPaneState extends State<DebugControlPane> {
         icon: Icon(MdiIcons.dice5),
       ),
       IconButton(
-        tooltip: 'Use standard colors',
-        isSelected: settings.useStandardColors(),
-        onPressed: () => settings.useStandardColors.toggle(),
-        icon: Icon(MdiIcons.invertColors),
-      ),
-      IconButton(
         tooltip: 'Toggle device orientation',
         onPressed: () {
           context.read<Settings>().screenOrientation.toggle();

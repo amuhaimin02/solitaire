@@ -40,6 +40,18 @@ class CardView extends StatelessWidget {
     final showMoveHighlight =
         context.select<Settings, bool>((s) => s.showMoveHighlight());
 
+    final Color foregroundColor, backgroundColor, coverColor;
+
+    switch (card.suit.color) {
+      case SuitColor.black:
+        foregroundColor = colorScheme.onSurface;
+        backgroundColor = colorScheme.surfaceContainerLowest;
+      case SuitColor.red:
+        foregroundColor = colorScheme.primary;
+        backgroundColor = colorScheme.surfaceContainerLowest;
+    }
+    coverColor = colorScheme.primary;
+
     return SizedBox(
       width: layout.gridUnit.width,
       height: layout.gridUnit.height,
@@ -64,12 +76,16 @@ class CardView extends StatelessWidget {
                   elevation: elevation ?? 2,
                   child: CardFace(
                     card: card,
+                    foregroundColor: foregroundColor,
+                    backgroundColor: backgroundColor,
                   ),
                 ),
                 back: Material(
                   borderRadius: BorderRadius.circular(8),
                   elevation: elevation ?? 2,
-                  child: const CardCover(),
+                  child: CardCover(
+                    color: coverColor,
+                  ),
                 ),
               ),
             ),
@@ -84,9 +100,13 @@ class CardFace extends StatelessWidget {
   const CardFace({
     super.key,
     required this.card,
+    required this.foregroundColor,
+    required this.backgroundColor,
   });
 
   final PlayCard card;
+  final Color foregroundColor;
+  final Color backgroundColor;
 
   static final suitIcons = {
     Suit.diamond: MdiIcons.cardsDiamond,
@@ -107,14 +127,9 @@ class CardFace extends StatelessWidget {
 
     final iconSvgPath = 'assets/${card.suit.name}.svg';
 
-    final cardColor = switch (card.suit.color) {
-      SuitColor.red => colorScheme.tertiary,
-      SuitColor.black => colorScheme.primary,
-    };
-
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Stack(
@@ -132,14 +147,14 @@ class CardFace extends StatelessWidget {
                   card.value.symbol,
                   style: GoogleFonts.dosis(
                     fontSize: labelSizingFactor,
-                    color: cardColor,
+                    color: foregroundColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Icon(
                   suitIcons[card.suit],
                   size: labelSizingFactor * 0.9,
-                  color: cardColor,
+                  color: foregroundColor,
                 ),
                 // SvgPicture.asset(
                 //   iconSvgPath,
@@ -156,7 +171,7 @@ class CardFace extends StatelessWidget {
             child: Icon(
               suitIcons[card.suit],
               size: iconSizingFactor * 3,
-              color: cardColor.withOpacity(0.2),
+              color: foregroundColor.withOpacity(0.5),
             ),
             // child: SvgPicture.asset(
             //   iconSvgPath,
@@ -175,23 +190,21 @@ class CardFace extends StatelessWidget {
 }
 
 class CardCover extends StatelessWidget {
-  const CardCover({super.key});
+  const CardCover({super.key, required this.color});
+
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final layout = context.watch<GameLayout>();
 
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final cardColor = colorScheme.primary;
-
     return Container(
       decoration: BoxDecoration(
-        color: cardColor,
+        color: color,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           width: layout.gridUnit.width * 0.1,
-          color: cardColor.darken(0.07),
+          color: color.darken(0.15),
         ),
       ),
     );

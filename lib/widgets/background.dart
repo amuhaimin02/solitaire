@@ -90,53 +90,53 @@ class _RippleBackgroundState extends State<RippleBackground>
   }
 
   Widget _buildChild(BuildContext context) {
-    if (_controller.status == AnimationStatus.forward) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final parentSize = constraints.biggest;
-          final rippleCenter = _rippleOffset;
+    // if (_controller.status == AnimationStatus.forward) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final parentSize = constraints.biggest;
+        final rippleCenter = _rippleOffset;
 
-          final circleRadius = findDistanceToFarthestRectCorner(
-            Offset.zero & parentSize,
-            rippleCenter,
-          );
+        final circleRadius = findDistanceToFarthestRectCorner(
+          Offset.zero & parentSize,
+          rippleCenter,
+        );
 
-          return AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              final oldColor = _color;
-              final newColor = widget.color;
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final oldColor = _color;
+            final newColor = widget.color;
 
-              return Stack(
-                children: [
-                  Positioned.fill(child: Container(color: oldColor)),
-                  OverflowBox(
-                    maxWidth: double.infinity,
-                    maxHeight: double.infinity,
-                    child: Transform.translate(
-                      offset: _rippleOffset - parentSize.center(Offset.zero),
-                      child: Container(
-                        width: _animation.value * circleRadius * 2,
-                        height: _animation.value * circleRadius * 2,
-                        decoration: BoxDecoration(
-                          color: newColor,
-                          shape: BoxShape.circle,
-                        ),
+            return Stack(
+              children: [
+                Positioned.fill(child: Container(color: oldColor)),
+                OverflowBox(
+                  maxWidth: double.infinity,
+                  maxHeight: double.infinity,
+                  child: Transform.translate(
+                    offset: _rippleOffset - parentSize.center(Offset.zero),
+                    child: Container(
+                      width: _animation.value * circleRadius * 2,
+                      height: _animation.value * circleRadius * 2,
+                      decoration: BoxDecoration(
+                        color: newColor,
+                        shape: BoxShape.circle,
                       ),
                     ),
                   ),
-                  widget.child,
-                ],
-              );
-            },
-          );
-        },
-      );
-    } else {
-      return Container(
-        color: _color,
-        child: widget.child,
-      );
-    }
+                ),
+                widget.child,
+              ],
+            );
+          },
+        );
+      },
+    );
+    // } else {
+    //   return Container(
+    //     color: _color,
+    //     child: widget.child,
+    //   );
+    // }
   }
 }

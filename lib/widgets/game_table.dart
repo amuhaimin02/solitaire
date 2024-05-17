@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
@@ -14,7 +14,6 @@ import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
 import '../providers/settings.dart';
-import '../utils/lists.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
 import 'shakeable.dart';
@@ -36,6 +35,8 @@ class _GameTableState extends State<GameTable> {
   bool _isAutoSolving = false;
 
   Offset? _touchPoint;
+
+  Timer? _touchDragTimer, _shakeCardTimer;
 
   @override
   Widget build(BuildContext context) {
@@ -86,8 +87,9 @@ class _GameTableState extends State<GameTable> {
                       setState(() {
                         _touchPoint = null;
                       });
-                      // However, wait for animation to finish before we remove references to touched cards list
-                      Future.delayed(cardMoveAnimation.duration, () {
+                      // However, wait for animation to finish before we remove references to touched cards list.
+                      // Using a timer to it is possible to cancel is a touch event comes again when waiting for the above.
+                      _touchDragTimer = Timer(cardMoveAnimation.duration, () {
                         if (mounted) {
                           setState(() {
                             _touchingCards = null;
@@ -97,7 +99,9 @@ class _GameTableState extends State<GameTable> {
                       });
                     }
 
-                    void onPointerDown(PointerDownEvent event) {}
+                    void onPointerDown(PointerDownEvent event) {
+                      _touchDragTimer?.cancel();
+                    }
 
                     void onPointerUp(PointerUpEvent event) {
                       final point =
@@ -135,6 +139,10 @@ class _GameTableState extends State<GameTable> {
                     }
 
                     List<Widget> sortCardWidgets(Iterable<Widget> cardWidgets) {
+                      if (_shakingCard != null) {
+                        return cardWidgets.toList();
+                      }
+
                       final recentlyMovedWidgets = <Widget>[];
                       final touchedWidgets = <Widget>[];
                       final remainingWidgets = <Widget>[];
@@ -153,10 +161,10 @@ class _GameTableState extends State<GameTable> {
                         }
                         final card = key.value;
 
-                        if (recentlyMovedCards?.contains(card) == true) {
-                          recentlyMovedWidgets.add(widget);
-                        } else if (_touchingCards?.contains(card) == true) {
+                        if (_touchingCards?.contains(card) == true) {
                           touchedWidgets.add(widget);
+                        } else if (recentlyMovedCards?.contains(card) == true) {
+                          recentlyMovedWidgets.add(widget);
                         } else {
                           remainingWidgets.add(widget);
                         }
@@ -222,7 +230,7 @@ class _GameTableState extends State<GameTable> {
 
     Rect measure(Rect rect) => _measure(rect, gridUnit);
 
-    Rect getCardPosition(PlayCard card, Rect originalPosition) {
+    Rect computePosition(PlayCard card, Rect originalPosition) {
       if (_touchingCards != null &&
           _touchingCards!.contains(card) &&
           _touchPoint != null) {
@@ -230,7 +238,8 @@ class _GameTableState extends State<GameTable> {
         final index = _touchingCards!.indexOf(card);
         return newRect.translate(
           -(gridUnit.width * 0.5),
-          -(gridUnit.height * 0.75 - index * (gridUnit.height * 0.25)),
+          -(gridUnit.height * 0.75 -
+              index * (gridUnit.height * layout.maxStackGap.dy * 0.9)),
         );
       } else {
         return measure(originalPosition);
@@ -295,38 +304,13 @@ class _GameTableState extends State<GameTable> {
       }
     }
 
-    const cardShowThreshold = 2;
-
-    Widget buildCard({
-      required PlayCard card,
-      double? elevation,
-      required bool hideFace,
-    }) {
-      return Shakeable(
-        duration: cardMoveAnimation.duration,
-        curve: cardMoveAnimation.curve,
-        shake: card == _shakingCard,
-        onAnimationEnd: () {
-          setState(() {
-            _shakingCard = null;
-          });
-        },
-        child: CardView(
-          card: card,
-          pile: item.kind,
-          elevation: elevation,
-          hideFace: hideFace,
-        ),
-      );
-    }
-
     switch (item.stackDirection) {
       case Direction.none:
         return _WidgetLayer(
           markerLayer: [
             Positioned.fromRect(
               rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-              child: _buildMarker(item),
+              child: PileMarker(pile: item.kind),
             ),
           ],
           cardLayer: [
@@ -336,18 +320,16 @@ class _GameTableState extends State<GameTable> {
                   key: ValueKey(card),
                   duration: computeAnimation(i).duration,
                   curve: computeAnimation(i).curve,
-                  rect: getCardPosition(
+                  rect: computePosition(
                       card, Rect.fromLTWH(region.left, region.top, 1, 1)),
-                  child: GestureDetector(
-                    onTapDown: (_) => _onCardTouch(context, card, item.kind),
-                    child: buildCard(
-                      card: card,
-                      elevation: i == cards.length - 1
-                          ? cards.length.clamp(2, 24).toDouble()
-                          : 0,
-                      hideFace: cards.length > cardShowThreshold &&
-                          cards.length - 1 - i - cardShowThreshold > 0,
-                    ),
+                  child: _CardWidget(
+                    shake: _shakingCard == card,
+                    isMoving: _touchPoint != null &&
+                        _touchingCards?.contains(card) == true,
+                    onTouch: () => _onCardTouch(context, card, item.kind),
+                    card: card,
+                    layout: item,
+                    getPile: gameState.pile,
                   ),
                 ),
           ],
@@ -378,13 +360,11 @@ class _GameTableState extends State<GameTable> {
           stackAnchor = Offset.zero;
         }
 
-        final cardLimit = item.numberOfCardsToShow;
-
         return _WidgetLayer(
           markerLayer: [
             Positioned.fromRect(
               rect: measure(markerLocation),
-              child: _buildMarker(item),
+              child: PileMarker(pile: item.kind),
             ),
           ],
           cardLayer: [
@@ -393,41 +373,28 @@ class _GameTableState extends State<GameTable> {
                 key: ValueKey(card),
                 duration: computeAnimation(i).duration,
                 curve: computeAnimation(i).curve,
-                rect: getCardPosition(
+                rect: computePosition(
                   card,
                   Rect.fromLTWH(region.left, region.top, 1, 1)
                       .shift(stackAnchor)
                       .shift(calculateStackGap(
                           i, cards.length, item.stackDirection)),
                 ),
-                child: GestureDetector(
-                  onTapDown: (_) => _onCardTouch(context, card, item.kind),
+                child: _CardWidget(
+                  shake: _shakingCard == card,
+                  isMoving: _touchPoint != null &&
+                      _touchingCards?.contains(card) == true,
+                  onTouch: () => _onCardTouch(context, card, item.kind),
                   onTap: () => _onCardTap(context, card, item.kind),
-                  child: buildCard(
-                    card: card,
-                    elevation: cardLimit != null && i < cards.length - cardLimit
-                        ? 0
-                        : null,
-                    hideFace: cardLimit != null &&
-                        i < cards.length - cardLimit - cardShowThreshold,
-                  ),
+                  card: card,
+                  layout: item,
+                  getPile: gameState.pile,
                 ),
               ),
           ],
           overlayLayer: [],
         );
     }
-  }
-
-  Widget _buildMarker(LayoutItem item) {
-    return CardMarker(
-      mark: switch (item.kind) {
-        Draw() => MdiIcons.refresh,
-        Discard() => MdiIcons.cardsPlaying,
-        Foundation() => MdiIcons.circleOutline,
-        Tableau() => MdiIcons.close,
-      },
-    );
   }
 
   Rect _measure(Rect gridRect, Size gridUnit) {
@@ -553,15 +520,28 @@ class _GameTableState extends State<GameTable> {
             HapticFeedback.heavyImpact();
         }
       case MoveNotDone():
-        setState(() {
-          _shakingCard = result.card;
-        });
+        _shakeCard(result.card);
       case MoveForbidden():
-        setState(() {
-          _shakingCard = result.move.card;
-        });
+        _shakeCard(result.move.card);
     }
     return result;
+  }
+
+  void _shakeCard(PlayCard? card) {
+    if (card == null) {
+      return;
+    }
+    setState(() {
+      _shakingCard = card;
+    });
+    _shakeCardTimer?.cancel();
+    _shakeCardTimer = Timer(cardMoveAnimation.duration, () {
+      if (mounted) {
+        setState(() {
+          _shakingCard = null;
+        });
+      }
+    });
   }
 }
 
@@ -620,6 +600,79 @@ class CountIndicator extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CardWidget extends StatelessWidget {
+  const _CardWidget({
+    required this.shake,
+    required this.isMoving,
+    required this.card,
+    required this.layout,
+    required this.getPile,
+    this.onTouch,
+    this.onTap,
+  });
+
+  static const cardShowThreshold = 2;
+  static const minElevation = 2.0;
+  static const maxElevation = 12.0;
+
+  final bool shake;
+
+  final bool isMoving;
+
+  final PlayCard card;
+
+  final LayoutItem layout;
+
+  final PileGetter getPile;
+
+  final VoidCallback? onTouch;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cardsInPile = getPile(layout.kind);
+    final cardPileLength = cardsInPile.length;
+    final cardIndex = cardsInPile.indexOf(card);
+
+    final double elevation;
+    final bool hideFace;
+
+    if (layout.stackDirection == Direction.none) {
+      elevation = cardIndex == cardPileLength - 1
+          ? (cardIndex / 2).clamp(minElevation, maxElevation).toDouble()
+          : 0;
+      hideFace = cardPileLength > cardShowThreshold &&
+          cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
+    } else {
+      final cardLimit = layout.numberOfCardsToShow;
+      if (cardLimit != null && cardIndex < cardPileLength - cardLimit) {
+        elevation = 0;
+      } else {
+        elevation = minElevation;
+      }
+      hideFace = cardLimit != null &&
+          cardIndex < cardPileLength - cardLimit - cardShowThreshold;
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => onTouch?.call(),
+      onTap: onTap,
+      child: Shakeable(
+        duration: cardMoveAnimation.duration,
+        curve: cardMoveAnimation.curve,
+        shake: shake,
+        child: CardView(
+          card: card,
+          pile: layout.kind,
+          elevation: elevation,
+          hideFace: hideFace,
         ),
       ),
     );

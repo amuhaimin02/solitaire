@@ -7,7 +7,6 @@ class Shakeable extends StatefulWidget {
     super.key,
     required this.child,
     this.shake = false,
-    this.onAnimationEnd,
     required this.duration,
     this.curve = standardEasing,
     this.intensity = 0.2,
@@ -22,8 +21,6 @@ class Shakeable extends StatefulWidget {
   final Curve curve;
 
   final double intensity;
-
-  final VoidCallback? onAnimationEnd;
 
   @override
   State<Shakeable> createState() => _ShakeableState();
@@ -42,11 +39,6 @@ class _ShakeableState extends State<Shakeable>
       vsync: this,
       duration: widget.duration,
     );
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        widget.onAnimationEnd?.call();
-      }
-    });
     _animation = CurveTween(curve: widget.curve).animate(_controller);
   }
 
