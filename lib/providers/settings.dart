@@ -1,72 +1,178 @@
-import 'package:flutter/widgets.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/lists.dart';
 import '../utils/system_orientation.dart';
 
-class Settings with ChangeNotifier {
-  late final autoMoveOnDraw = SettingItem(this, defaultValue: false);
+enum Settings<T> {
+  autoMoveOnDraw(defaultValue: false),
 
-  late final showDebugPanel = SettingItem(this, defaultValue: false);
+  showDebugPanel(defaultValue: false),
 
-  late final showMoveHighlight = SettingItem(this, defaultValue: false);
+  showMoveHighlight(defaultValue: false),
 
-  late final screenOrientation = SettingItem(
-    this,
+  screenOrientation(
     defaultValue: SystemOrientation.auto,
     options: SystemOrientation.values,
+    preload: true,
     onChange: SystemOrientationManager.change,
-  );
+  ),
 
-  late final useStandardColors = SettingItem(this, defaultValue: false);
+  themeMode(
+    defaultValue: ThemeMode.system,
+    options: ThemeMode.values,
+  ),
+
+  useDynamicColors(defaultValue: true),
+  presetColor(defaultValue: 0);
+
+  // ----------------------------------------
+
+  final T defaultValue;
+
+  final List<T>? options;
+
+  final void Function(T)? onChange;
+
+  final bool preload;
+
+  Type get type => defaultValue.runtimeType;
+
+  bool get isEnum => defaultValue is Enum;
+
+  const Settings({
+    required this.defaultValue,
+    this.onChange,
+    this.options,
+    this.preload = false,
+  });
+
+  void triggerOnChange(T newValue) {
+    onChange?.call(newValue);
+  }
+}
+
+class SettingsManager with ChangeNotifier {
+  bool _isPreloaded = false;
+  late SharedPreferences _prefs;
+
+  Map<Settings, dynamic>? _cache;
+
+  SettingsManager() {
+    _preload().then((_) {
+      _isPreloaded = true;
+      notifyListeners();
+    });
+  }
+
+  Future<void> _preload() async {
+    _prefs = await SharedPreferences.getInstance();
+    for (final item in Settings.values) {
+      if (item.preload) {
+        item.triggerOnChange(get(item));
+      }
+    }
+    _cache = {};
+  }
+
+  T get<T>(Settings<T> item) {
+    return _readFromPrefs(item);
+  }
+
+  T _readFromPrefs<T>(Settings<T> item) {
+    final key = item.name;
+
+    if (_cache == null) {
+      return item.defaultValue;
+    }
+    if (_cache!.containsKey(item)) {
+      return _cache![item] as T;
+    }
+
+    switch (item.type) {
+      case const (bool):
+        return (_prefs.getBool(key) ?? item.defaultValue) as T;
+      case const (int):
+        return (_prefs.getInt(key) ?? item.defaultValue) as T;
+      case const (double):
+        return (_prefs.getDouble(key) ?? item.defaultValue) as T;
+      default:
+        final storedValue = _prefs.getString(key);
+        if (item.isEnum) {
+          if (storedValue == null) {
+            return item.defaultValue;
+          }
+          final options = item.options ?? [];
+          final newEnum = (options as List<Enum>)
+              .firstWhereOrNull((e) => e.name == storedValue);
+          if (newEnum == null) {
+            return item.options!.first; // default value
+          } else {
+            return newEnum as T;
+          }
+        } else {
+          return '<none>' as T;
+        }
+    }
+  }
+
+  void set<T>(Settings<T> item, T newValue) {
+    final saved = _saveToPrefs(item, newValue);
+
+    if (saved) {
+      item.triggerOnChange(newValue);
+      notifyListeners();
+    }
+  }
+
+  bool _saveToPrefs<T>(Settings<T> item, T newValue) {
+    final key = item.name;
+
+    if (_cache != null) {
+      _cache![item] = newValue;
+    }
+
+    switch (item.type) {
+      case const (bool):
+        _prefs.setBool(key, (newValue ?? item.defaultValue) as bool);
+        return true;
+      case const (int):
+        _prefs.setInt(key, (newValue ?? item.defaultValue) as int);
+        return true;
+      case const (double):
+        _prefs.setDouble(key, (newValue ?? item.defaultValue) as double);
+        return true;
+      default:
+        if (item.isEnum) {
+          final options = item.options ?? [];
+          final newEnum =
+              options.firstWhereOrNull((e) => e == newValue) as Enum;
+          _prefs.setString(key, newEnum.name);
+          return true;
+        }
+    }
+    return false;
+  }
+
+  void toggle<T>(Settings<T> item) {
+    if (item.type == bool) {
+      set(item, !get(item as Settings<bool>));
+    } else {
+      if (item.options == null) {
+        throw ArgumentError('No options to toggle for ${item.name}');
+      }
+      final options = item.options!;
+      final currentValue = get(item);
+
+      set(item, options.toggle(currentValue));
+    }
+  }
+
+  bool get isPreloaded => _isPreloaded;
 
   @protected
   void broadcast() {
     notifyListeners();
-  }
-}
-
-class SettingItem<T> {
-  final Settings _settings;
-
-  T _value;
-
-  List<T>? options;
-
-  void Function(T value)? onChange;
-
-  SettingItem(
-    this._settings, {
-    required T defaultValue,
-    this.options,
-    this.onChange,
-  }) : _value = defaultValue {
-    onChange?.call(_value);
-  }
-
-  void set(T newValue) {
-    _value = newValue;
-    onChange?.call(_value);
-    _settings.broadcast();
-  }
-
-  T get() => _value;
-
-  T call([T? newValue]) {
-    if (newValue != null) {
-      set(newValue);
-      return _value;
-    } else {
-      return _value;
-    }
-  }
-
-  void toggle() {
-    if (options != null) {
-      set(options!.toggle(_value));
-    }
-
-    if (T == bool) {
-      set(!(_value as bool) as T);
-    }
   }
 }

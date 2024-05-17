@@ -20,28 +20,11 @@ import 'shakeable.dart';
 import 'shrinkable.dart';
 import 'ticking_number.dart';
 
-class GameTable extends StatefulWidget {
+class GameTable extends StatelessWidget {
   const GameTable({super.key});
 
   @override
-  State<GameTable> createState() => _GameTableState();
-}
-
-class _GameTableState extends State<GameTable> {
-  PlayCard? _shakingCard;
-  PlayCardList? _touchingCards;
-  Pile? _touchingCardPile;
-
-  bool _isAutoSolving = false;
-
-  Offset? _touchPoint;
-
-  Timer? _touchDragTimer, _shakeCardTimer;
-
-  @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return OrientationBuilder(
       builder: (context, orientation) {
         final gameRules = context.select<GameState, Rules>((s) => s.rules);
@@ -55,510 +38,42 @@ class _GameTableState extends State<GameTable> {
 
         final tableLayout = gameRules.getLayout(options);
 
-        return Center(
-          child: AspectRatio(
-            aspectRatio: (tableLayout.gridSize.width * cardUnitSize.width) /
-                (tableLayout.gridSize.height * cardUnitSize.height),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final gridUnit = Size(
-                  constraints.minWidth / tableLayout.gridSize.width,
-                  constraints.minHeight / tableLayout.gridSize.height,
-                );
+        return AspectRatio(
+          aspectRatio: (tableLayout.gridSize.width * cardUnitSize.width) /
+              (tableLayout.gridSize.height * cardUnitSize.height),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final gridUnit = Size(
+                constraints.minWidth / tableLayout.gridSize.width,
+                constraints.minHeight / tableLayout.gridSize.height,
+              );
 
-                return ProxyProvider0<GameLayout>(
-                  update: (context, obj) => GameLayout(
-                    gridUnit: gridUnit,
-                    cardPadding: gridUnit.shortestSide * 0.06,
-                    maxStackGap: const Offset(0.3, 0.3),
-                    orientation: orientation,
-                  ),
-                  builder: (context, child) {
-                    final layout = context.watch<GameLayout>();
-                    final gameState = context.watch<GameState>();
-
-                    final layers = [
-                      for (final item in tableLayout.items)
-                        _buildPile(context, item),
-                    ];
-
-                    void onPointerCancel() {
-                      // Reset touch point, indicating that cards are no longer held
-                      setState(() {
-                        _touchPoint = null;
-                      });
-                      // However, wait for animation to finish before we remove references to touched cards list.
-                      // Using a timer to it is possible to cancel is a touch event comes again when waiting for the above.
-                      _touchDragTimer = Timer(cardMoveAnimation.duration, () {
-                        if (mounted) {
-                          setState(() {
-                            _touchingCards = null;
-                            _touchingCardPile = null;
-                          });
-                        }
-                      });
-                    }
-
-                    void onPointerDown(PointerDownEvent event) {
-                      _touchDragTimer?.cancel();
-                    }
-
-                    void onPointerUp(PointerUpEvent event) {
-                      final point =
-                          _convertToGrid(event.localPosition, layout.gridUnit);
-
-                      final dropRegion = tableLayout.items.firstWhereOrNull(
-                          (item) => item.region.contains(point));
-
-                      if (dropRegion != null) {
-                        if (_touchingCards != null &&
-                            _touchingCardPile != null &&
-                            _touchingCardPile != dropRegion.kind) {
-                          final result = gameState.tryMove(
-                            MoveIntent(_touchingCardPile!, dropRegion.kind,
-                                _touchingCards!.first),
-                          );
-                          if (result is MoveSuccess) {
-                            _feedbackMoveResult(result);
-                          }
-                        } else {
-                          // Register as a normal tap (typically when user taps a tableau region not covered by cards)
-                          _onPileTap(context, dropRegion.kind);
-                        }
-                      }
-
-                      onPointerCancel();
-                    }
-
-                    void onPointerMove(PointerMoveEvent event) {
-                      if (_touchingCards != null) {
-                        setState(() {
-                          _touchPoint = event.localPosition;
-                        });
-                      }
-                    }
-
-                    List<Widget> sortCardWidgets(Iterable<Widget> cardWidgets) {
-                      if (_shakingCard != null) {
-                        return cardWidgets.toList();
-                      }
-
-                      final recentlyMovedWidgets = <Widget>[];
-                      final touchedWidgets = <Widget>[];
-                      final remainingWidgets = <Widget>[];
-
-                      // TODO: Using card as keys to determine widget owner
-                      // Move recently moved cards on top of render stack
-                      final recentAction = gameState.latestAction;
-                      final recentlyMovedCards =
-                          recentAction is Move ? recentAction.cards : null;
-
-                      for (final widget in cardWidgets) {
-                        final key = widget.key;
-                        if (key is! ValueKey<PlayCard>) {
-                          throw ArgumentError(
-                              'Card widgets should have a ValueKey containing a PlayCard instance');
-                        }
-                        final card = key.value;
-
-                        if (_touchingCards?.contains(card) == true) {
-                          touchedWidgets.add(widget);
-                        } else if (recentlyMovedCards?.contains(card) == true) {
-                          recentlyMovedWidgets.add(widget);
-                        } else {
-                          remainingWidgets.add(widget);
-                        }
-                      }
-
-                      return [
-                        ...remainingWidgets,
-                        ...recentlyMovedWidgets,
-                        ...touchedWidgets
-                      ];
-                    }
-
-                    return Listener(
-                      behavior: HitTestBehavior.opaque,
-                      onPointerDown: onPointerDown,
-                      onPointerUp: onPointerUp,
-                      onPointerMove: onPointerMove,
-                      onPointerCancel: (_) => onPointerCancel(),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          ...layers.map((w) => w.markerLayer).flattened,
-                          ...sortCardWidgets(
-                              layers.map((w) => w.cardLayer).flattened),
-                          ...layers.map((w) => w.overlayLayer).flattened,
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Shrinkable(
-                              show: gameState.canAutoSolve,
-                              child: FloatingActionButton.extended(
-                                backgroundColor: colorScheme.tertiary,
-                                foregroundColor: colorScheme.onTertiary,
-                                onPressed: _isAutoSolving
-                                    ? null
-                                    : () => _doAutoSolve(context),
-                                icon: const Icon(Icons.auto_fix_high),
-                                label: _isAutoSolving
-                                    ? const Text('Auto solving...')
-                                    : const Text('Auto solve'),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+              return ProxyProvider0<GameLayout>(
+                update: (context, obj) => GameLayout(
+                  gridUnit: gridUnit,
+                  cardPadding: gridUnit.shortestSide * 0.06,
+                  maxStackGap: const Offset(0.3, 0.3),
+                  orientation: orientation,
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _MarkerLayer(layout: tableLayout),
+                    _CardLayer(layout: tableLayout),
+                    _OverlayLayer(layout: tableLayout),
+                  ],
+                ),
+              );
+            },
           ),
         );
       },
     );
   }
-
-  _WidgetLayer _buildPile(BuildContext context, LayoutItem item) {
-    final layout = context.watch<GameLayout>();
-    final gameState = context.watch<GameState>();
-
-    final gridUnit = layout.gridUnit;
-
-    final region = item.region;
-
-    Rect measure(Rect rect) => _measure(rect, gridUnit);
-
-    Rect computePosition(PlayCard card, Rect originalPosition) {
-      if (_touchingCards != null &&
-          _touchingCards!.contains(card) &&
-          _touchPoint != null) {
-        final newRect = (_touchPoint! & gridUnit);
-        final index = _touchingCards!.indexOf(card);
-        return newRect.translate(
-          -(gridUnit.width * 0.5),
-          -(gridUnit.height * 0.75 -
-              index * (gridUnit.height * layout.maxStackGap.dy * 0.9)),
-        );
-      } else {
-        return measure(originalPosition);
-      }
-    }
-
-    Offset calculateStackGap(int index, int stackLength, Direction direction) {
-      final int visualIndex, visualLength, offset;
-
-      if (item.numberOfCardsToShow != null) {
-        visualLength = item.numberOfCardsToShow!;
-        if (stackLength > visualLength) {
-          visualIndex =
-              max(0, item.numberOfCardsToShow! - (stackLength - index));
-        } else {
-          if (item.shiftStackOnPlace) {
-            visualIndex = visualLength - (stackLength - index);
-          } else {
-            visualIndex = index;
-          }
-        }
-      } else {
-        visualLength = stackLength;
-        visualIndex = index;
-      }
-
-      if (item.shiftStackOnPlace) {
-        offset = visualLength - visualIndex - 1;
-      } else {
-        offset = visualIndex;
-      }
-
-      double computeOffset(int offset, int directionComponent,
-          double maxStackGap, double regionSize) {
-        return directionComponent != 0
-            ? (offset *
-                directionComponent *
-                min(maxStackGap, (regionSize - 1) / (visualLength - 1)))
-            : 0;
-      }
-
-      return Offset(
-        computeOffset(
-            offset, direction.dx, layout.maxStackGap.dx, region.width),
-        computeOffset(
-            offset, direction.dy, layout.maxStackGap.dy, region.height),
-      );
-    }
-
-    PlayCardList cards = gameState.pile(item.kind);
-
-    DurationCurve computeAnimation(int cardIndex) {
-      if (_touchPoint != null) {
-        return cardDragAnimation;
-      } else if (item.kind is Tableau && gameState.isPreparing) {
-        final tableau = item.kind as Tableau;
-        final delayFactor = cardMoveAnimation.duration * 0.3;
-        return cardMoveAnimation
-            .delayed(delayFactor * (tableau.index + cardIndex));
-      } else {
-        return cardMoveAnimation;
-      }
-    }
-
-    switch (item.stackDirection) {
-      case Direction.none:
-        return _WidgetLayer(
-          markerLayer: [
-            Positioned.fromRect(
-              rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-              child: PileMarker(pile: item.kind),
-            ),
-          ],
-          cardLayer: [
-            if (cards.isNotEmpty)
-              for (final (i, card) in cards.indexed)
-                AnimatedPositioned.fromRect(
-                  key: ValueKey(card),
-                  duration: computeAnimation(i).duration,
-                  curve: computeAnimation(i).curve,
-                  rect: computePosition(
-                      card, Rect.fromLTWH(region.left, region.top, 1, 1)),
-                  child: _CardWidget(
-                    shake: _shakingCard == card,
-                    isMoving: _touchPoint != null &&
-                        _touchingCards?.contains(card) == true,
-                    onTouch: () => _onCardTouch(context, card, item.kind),
-                    card: card,
-                    layout: item,
-                    getPile: gameState.pile,
-                  ),
-                ),
-          ],
-          overlayLayer: [
-            if (item.showCountIndicator)
-              Positioned.fromRect(
-                rect: measure(Rect.fromLTWH(region.left, region.top, 1, 1)),
-                child: CountIndicator(count: cards.length),
-              ),
-          ],
-        );
-
-      default:
-        Rect markerLocation;
-        if (item.shiftStackOnPlace) {
-          markerLocation =
-              Rect.fromLTWH(region.right - 1, region.bottom - 1, 1, 1);
-        } else {
-          markerLocation = Rect.fromLTWH(region.left, region.top, 1, 1);
-        }
-
-        Offset stackAnchor;
-        if (item.stackDirection == Direction.left) {
-          stackAnchor = Offset(region.width - 1, 0);
-        } else if (item.stackDirection == Direction.up) {
-          stackAnchor = Offset(0, region.height - 1);
-        } else {
-          stackAnchor = Offset.zero;
-        }
-
-        return _WidgetLayer(
-          markerLayer: [
-            Positioned.fromRect(
-              rect: measure(markerLocation),
-              child: PileMarker(pile: item.kind),
-            ),
-          ],
-          cardLayer: [
-            for (final (i, card) in cards.indexed)
-              AnimatedPositioned.fromRect(
-                key: ValueKey(card),
-                duration: computeAnimation(i).duration,
-                curve: computeAnimation(i).curve,
-                rect: computePosition(
-                  card,
-                  Rect.fromLTWH(region.left, region.top, 1, 1)
-                      .shift(stackAnchor)
-                      .shift(calculateStackGap(
-                          i, cards.length, item.stackDirection)),
-                ),
-                child: _CardWidget(
-                  shake: _shakingCard == card,
-                  isMoving: _touchPoint != null &&
-                      _touchingCards?.contains(card) == true,
-                  onTouch: () => _onCardTouch(context, card, item.kind),
-                  onTap: () => _onCardTap(context, card, item.kind),
-                  card: card,
-                  layout: item,
-                  getPile: gameState.pile,
-                ),
-              ),
-          ],
-          overlayLayer: [],
-        );
-    }
-  }
-
-  Rect _measure(Rect gridRect, Size gridUnit) {
-    return Rect.fromLTWH(
-      gridRect.left * gridUnit.width,
-      gridRect.top * gridUnit.height,
-      gridRect.width * gridUnit.width,
-      gridRect.height * gridUnit.height,
-    );
-  }
-
-  Offset _convertToGrid(Offset point, Size gridUnit) {
-    return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
-  }
-
-  void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {
-    final gameState = context.read<GameState>();
-
-    _touchingCardPile = originPile;
-
-    if (originPile is Tableau) {
-      _touchingCards = gameState.pile(originPile).getUntilLast(card);
-    } else if (originPile is Discard) {
-      // Always pick top most card regardless of visibility
-      final topmostCard = gameState.pile(originPile).lastOrNull;
-      _touchingCards = [topmostCard!];
-    } else {
-      _touchingCards = [card];
-    }
-  }
-
-  void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
-    print('card tap! $card at $pile');
-
-    final gameState = context.read<GameState>();
-
-    switch (pile) {
-      case Tableau():
-        _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
-        return;
-      case _:
-      // noop
-    }
-
-    // _onPileTap(context, pile);
-  }
-
-  void _onPileTap(BuildContext context, Pile pile) {
-    print('pile tap! $pile');
-
-    final gameState = context.read<GameState>();
-
-    switch (pile) {
-      case Draw():
-        final result = _feedbackMoveResult(
-            gameState.tryMove(MoveIntent(const Draw(), const Discard())));
-        if (result is MoveSuccess) {
-          if (result.move.to == const Discard() &&
-              context.read<Settings>().autoMoveOnDraw()) {
-            Future.delayed(
-              cardMoveAnimation.duration,
-              () {
-                final autoMoveResult = gameState.tryQuickPlace(
-                    gameState.pile(const Discard()).last, const Discard());
-                if (autoMoveResult is MoveSuccess) {
-                  _feedbackMoveResult(autoMoveResult);
-                }
-              },
-            );
-          }
-        }
-
-      case Discard() || Foundation():
-        if (gameState.pile(pile).isNotEmpty) {
-          final cardToMove = gameState.pile(pile).last;
-          _feedbackMoveResult(gameState.tryQuickPlace(cardToMove, pile));
-        }
-      case _:
-      // noop
-    }
-  }
-
-  void _doAutoSolve(BuildContext context) async {
-    final gameState = context.read<GameState>();
-
-    try {
-      bool handled;
-
-      setState(() {
-        _isAutoSolving = true;
-      });
-      do {
-        handled = false;
-        for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
-          final result = _feedbackMoveResult(gameState.tryMove(move));
-          if (result is MoveSuccess) {
-            handled = true;
-            if (gameState.isWinning) {
-              print('Auto solve done');
-              return;
-            }
-            await Future.delayed(cardMoveAnimation.duration * 0.5);
-            break;
-          }
-        }
-      } while (handled);
-    } finally {
-      setState(() {
-        _isAutoSolving = false;
-      });
-    }
-  }
-
-  MoveResult _feedbackMoveResult(MoveResult result) {
-    switch (result) {
-      case MoveSuccess():
-        switch (result.move.to) {
-          case Discard():
-            HapticFeedback.lightImpact();
-          case Tableau():
-            HapticFeedback.mediumImpact();
-          case Draw() || Foundation():
-            HapticFeedback.heavyImpact();
-        }
-      case MoveNotDone():
-        _shakeCard(result.card);
-      case MoveForbidden():
-        _shakeCard(result.move.card);
-    }
-    return result;
-  }
-
-  void _shakeCard(PlayCard? card) {
-    if (card == null) {
-      return;
-    }
-    setState(() {
-      _shakingCard = card;
-    });
-    _shakeCardTimer?.cancel();
-    _shakeCardTimer = Timer(cardMoveAnimation.duration, () {
-      if (mounted) {
-        setState(() {
-          _shakingCard = null;
-        });
-      }
-    });
-  }
 }
 
-class _WidgetLayer {
-  final List<Widget> markerLayer;
-  final List<Widget> cardLayer;
-  final List<Widget> overlayLayer;
-
-  _WidgetLayer({
-    required this.markerLayer,
-    required this.cardLayer,
-    required this.overlayLayer,
-  });
-}
-
-class CountIndicator extends StatelessWidget {
-  const CountIndicator({
+class _CountIndicator extends StatelessWidget {
+  const _CountIndicator({
     super.key,
     required this.count,
   });
@@ -670,7 +185,6 @@ class _CardWidget extends StatelessWidget {
         shake: shake,
         child: CardView(
           card: card,
-          pile: layout.kind,
           elevation: elevation,
           hideFace: hideFace,
         ),
@@ -678,3 +192,592 @@ class _CardWidget extends StatelessWidget {
     );
   }
 }
+
+class _MarkerLayer extends StatelessWidget {
+  const _MarkerLayer({super.key, required this.layout});
+
+  final Layout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    final gameLayout = context.watch<GameLayout>();
+    final gridUnit = gameLayout.gridUnit;
+
+    Rect measure(Rect gridRect) {
+      return Rect.fromLTWH(
+        gridRect.left * gridUnit.width,
+        gridRect.top * gridUnit.height,
+        gridRect.width * gridUnit.width,
+        gridRect.height * gridUnit.height,
+      );
+    }
+
+    return Stack(
+      children: [
+        for (final item in layout.items)
+          Positioned.fromRect(
+            rect: measure(
+              Rect.fromLTWH(
+                item.stackDirection.dx < 0 && item.shiftStackOnPlace
+                    ? item.region.right - 1
+                    : item.region.left,
+                item.stackDirection.dy < 0 && item.shiftStackOnPlace
+                    ? item.region.bottom - 1
+                    : item.region.top,
+                1,
+                1,
+              ),
+            ),
+            child: PileMarker(pile: item.kind),
+          ),
+      ],
+    );
+  }
+}
+
+class _CardLayer extends StatefulWidget {
+  const _CardLayer({super.key, required this.layout});
+
+  final Layout layout;
+
+  @override
+  State<_CardLayer> createState() => _CardLayerState();
+}
+
+class _CardLayerState extends State<_CardLayer> {
+  PlayCard? _shakingCard;
+  PlayCardList? _touchingCards;
+  Pile? _touchingCardPile;
+
+  bool _isAutoSolving = false;
+
+  Offset? _lastTouchPoint;
+
+  Timer? _touchDragTimer, _shakeCardTimer;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final gameState = context.watch<GameState>();
+    final gameLayout = context.watch<GameLayout>();
+
+    void onPointerCancel() {
+      // Reset touch point, indicating that cards are no longer held
+      setState(() {
+        _lastTouchPoint = null;
+      });
+      // However, wait for animation to finish before we remove references to touched cards list.
+      // Using a timer to it is possible to cancel is a touch event comes again when waiting for the above.
+      _touchDragTimer = Timer(cardMoveAnimation.duration, () {
+        if (mounted) {
+          setState(() {
+            _touchingCards = null;
+            _touchingCardPile = null;
+          });
+        }
+      });
+    }
+
+    void onPointerDown(PointerDownEvent event) {
+      _touchDragTimer?.cancel();
+      setState(() {});
+    }
+
+    void onPointerUp(PointerUpEvent event) {
+      final point = _convertToGrid(event.localPosition, gameLayout.gridUnit);
+
+      final dropRegion = widget.layout.items
+          .firstWhereOrNull((item) => item.region.contains(point));
+
+      if (dropRegion != null) {
+        if (_touchingCards != null &&
+            _touchingCardPile != null &&
+            _touchingCardPile != dropRegion.kind) {
+          final result = gameState.tryMove(
+            MoveIntent(
+                _touchingCardPile!, dropRegion.kind, _touchingCards!.first),
+          );
+          if (result is MoveSuccess) {
+            _feedbackMoveResult(result);
+          }
+        } else {
+          // Register as a normal tap (typically when user taps a tableau region not covered by cards)
+          _onPileTap(context, dropRegion.kind);
+        }
+      }
+
+      onPointerCancel();
+    }
+
+    void onPointerMove(PointerMoveEvent event) {
+      if (_touchingCards != null) {
+        setState(() {
+          _lastTouchPoint = event.localPosition;
+        });
+      }
+    }
+
+    List<Widget> sortCardWidgets(Iterable<Widget> cardWidgets) {
+      if (_shakingCard != null) {
+        return cardWidgets.toList();
+      }
+
+      final recentlyMovedWidgets = <Widget>[];
+      final touchedWidgets = <Widget>[];
+      final remainingWidgets = <Widget>[];
+
+      // TODO: Using card as keys to determine widget owner
+      // Move recently moved cards on top of render stack
+      final recentAction = gameState.latestAction;
+      final recentlyMovedCards =
+          recentAction is Move ? recentAction.cards : null;
+
+      for (final widget in cardWidgets) {
+        final key = widget.key;
+        if (key is! ValueKey<PlayCard>) {
+          throw ArgumentError(
+              'Card widgets should have a ValueKey containing a PlayCard instance');
+        }
+        final card = key.value;
+
+        if (_touchingCards?.contains(card) == true) {
+          touchedWidgets.add(widget);
+        } else if (recentlyMovedCards?.contains(card) == true) {
+          recentlyMovedWidgets.add(widget);
+        } else {
+          remainingWidgets.add(widget);
+        }
+      }
+
+      return [...remainingWidgets, ...recentlyMovedWidgets, ...touchedWidgets];
+    }
+
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: onPointerDown,
+      onPointerUp: onPointerUp,
+      onPointerMove: onPointerMove,
+      onPointerCancel: (_) => onPointerCancel(),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ...sortCardWidgets([
+            for (final item in widget.layout.items)
+              ..._buildPile(context, item),
+          ]),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Shrinkable(
+              show: gameState.canAutoSolve,
+              child: FloatingActionButton.extended(
+                backgroundColor: colorScheme.tertiary,
+                foregroundColor: colorScheme.onTertiary,
+                onPressed: _isAutoSolving ? null : () => _doAutoSolve(context),
+                icon: const Icon(Icons.auto_fix_high),
+                label: _isAutoSolving
+                    ? const Text('Auto solving...')
+                    : const Text('Auto solve'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildPile(BuildContext context, LayoutItem item) {
+    final layout = context.watch<GameLayout>();
+    final gameState = context.watch<GameState>();
+
+    Rect measure(Rect gridRect) {
+      return Rect.fromLTWH(
+        gridRect.left * layout.gridUnit.width,
+        gridRect.top * layout.gridUnit.height,
+        gridRect.width * layout.gridUnit.width,
+        gridRect.height * layout.gridUnit.height,
+      );
+    }
+
+    final gridUnit = layout.gridUnit;
+
+    final region = item.region;
+
+    Rect computePosition(PlayCard card, Rect originalPosition) {
+      if (_touchingCards != null &&
+          _touchingCards!.contains(card) &&
+          _lastTouchPoint != null) {
+        final newRect = (_lastTouchPoint! & gridUnit);
+        final index = _touchingCards!.indexOf(card);
+        return newRect.translate(
+          -(gridUnit.width * 0.5),
+          -(gridUnit.height * 0.75 -
+              index * (gridUnit.height * layout.maxStackGap.dy * 0.9)),
+        );
+      } else {
+        return measure(originalPosition);
+      }
+    }
+
+    Offset calculateStackGap(int index, int stackLength, Direction direction) {
+      final int visualIndex, visualLength, offset;
+
+      if (item.numberOfCardsToShow != null) {
+        visualLength = item.numberOfCardsToShow!;
+        if (stackLength > visualLength) {
+          visualIndex =
+              max(0, item.numberOfCardsToShow! - (stackLength - index));
+        } else {
+          if (item.shiftStackOnPlace) {
+            visualIndex = visualLength - (stackLength - index);
+          } else {
+            visualIndex = index;
+          }
+        }
+      } else {
+        visualLength = stackLength;
+        visualIndex = index;
+      }
+
+      if (item.shiftStackOnPlace) {
+        offset = visualLength - visualIndex - 1;
+      } else {
+        offset = visualIndex;
+      }
+
+      double computeOffset(int offset, int directionComponent,
+          double maxStackGap, double regionSize) {
+        return directionComponent != 0
+            ? (offset *
+                directionComponent *
+                min(maxStackGap, (regionSize - 1) / (visualLength - 1)))
+            : 0;
+      }
+
+      return Offset(
+        computeOffset(
+            offset, direction.dx, layout.maxStackGap.dx, region.width),
+        computeOffset(
+            offset, direction.dy, layout.maxStackGap.dy, region.height),
+      );
+    }
+
+    PlayCardList cards = gameState.pile(item.kind);
+
+    DurationCurve computeAnimation(int cardIndex) {
+      if (_lastTouchPoint != null) {
+        return cardDragAnimation;
+      } else if (item.kind is Tableau && gameState.isPreparing) {
+        final tableau = item.kind as Tableau;
+        final delayFactor = cardMoveAnimation.duration * 0.3;
+        return cardMoveAnimation
+            .delayed(delayFactor * (tableau.index + cardIndex));
+      } else {
+        return cardMoveAnimation;
+      }
+    }
+
+    switch (item.stackDirection) {
+      case Direction.none:
+        return [
+          if (cards.isNotEmpty)
+            for (final (i, card) in cards.indexed)
+              AnimatedPositioned.fromRect(
+                key: ValueKey(card),
+                duration: computeAnimation(i).duration,
+                curve: computeAnimation(i).curve,
+                rect: computePosition(
+                    card, Rect.fromLTWH(region.left, region.top, 1, 1)),
+                child: _CardWidget(
+                  shake: _shakingCard == card,
+                  isMoving: _lastTouchPoint != null &&
+                      _touchingCards?.contains(card) == true,
+                  onTouch: () => _onCardTouch(context, card, item.kind),
+                  card: card,
+                  layout: item,
+                  getPile: gameState.pile,
+                ),
+              ),
+        ];
+
+      default:
+        Rect markerLocation;
+        if (item.shiftStackOnPlace) {
+          markerLocation =
+              Rect.fromLTWH(region.right - 1, region.bottom - 1, 1, 1);
+        } else {
+          markerLocation = Rect.fromLTWH(region.left, region.top, 1, 1);
+        }
+
+        Offset stackAnchor;
+        if (item.stackDirection == Direction.left) {
+          stackAnchor = Offset(region.width - 1, 0);
+        } else if (item.stackDirection == Direction.up) {
+          stackAnchor = Offset(0, region.height - 1);
+        } else {
+          stackAnchor = Offset.zero;
+        }
+
+        return [
+          for (final (i, card) in cards.indexed)
+            AnimatedPositioned.fromRect(
+              key: ValueKey(card),
+              duration: computeAnimation(i).duration,
+              curve: computeAnimation(i).curve,
+              rect: computePosition(
+                card,
+                Rect.fromLTWH(region.left, region.top, 1, 1)
+                    .shift(stackAnchor)
+                    .shift(calculateStackGap(
+                        i, cards.length, item.stackDirection)),
+              ),
+              child: _CardWidget(
+                shake: _shakingCard == card,
+                isMoving: _lastTouchPoint != null &&
+                    _touchingCards?.contains(card) == true,
+                onTouch: () => _onCardTouch(context, card, item.kind),
+                onTap: () => _onCardTap(context, card, item.kind),
+                card: card,
+                layout: item,
+                getPile: gameState.pile,
+              ),
+            ),
+        ];
+    }
+  }
+
+  Offset _convertToGrid(Offset point, Size gridUnit) {
+    return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
+  }
+
+  void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {
+    final gameState = context.read<GameState>();
+
+    _touchingCardPile = originPile;
+
+    if (originPile is Tableau) {
+      _touchingCards = gameState.pile(originPile).getUntilLast(card);
+    } else if (originPile is Discard) {
+      // Always pick top most card regardless of visibility
+      final topmostCard = gameState.pile(originPile).lastOrNull;
+      _touchingCards = [topmostCard!];
+    } else {
+      _touchingCards = [card];
+    }
+  }
+
+  void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
+    print('card tap! $card at $pile');
+
+    final gameState = context.read<GameState>();
+
+    switch (pile) {
+      case Tableau():
+        _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
+        return;
+      case _:
+      // noop
+    }
+
+    // _onPileTap(context, pile);
+  }
+
+  void _onPileTap(BuildContext context, Pile pile) {
+    print('pile tap! $pile');
+
+    final gameState = context.read<GameState>();
+
+    switch (pile) {
+      case Draw():
+        final result = _feedbackMoveResult(
+            gameState.tryMove(MoveIntent(const Draw(), const Discard())));
+        if (result is MoveSuccess) {
+          if (result.move.to == const Discard() &&
+              context.read<SettingsManager>().get(Settings.showMoveHighlight)) {
+            Future.delayed(
+              cardMoveAnimation.duration,
+              () {
+                final autoMoveResult = gameState.tryQuickPlace(
+                    gameState.pile(const Discard()).last, const Discard());
+                if (autoMoveResult is MoveSuccess) {
+                  _feedbackMoveResult(autoMoveResult);
+                }
+              },
+            );
+          }
+        }
+
+      case Discard() || Foundation():
+        if (gameState.pile(pile).isNotEmpty) {
+          final cardToMove = gameState.pile(pile).last;
+          _feedbackMoveResult(gameState.tryQuickPlace(cardToMove, pile));
+        }
+      case _:
+      // noop
+    }
+  }
+
+  void _doAutoSolve(BuildContext context) async {
+    final gameState = context.read<GameState>();
+
+    try {
+      bool handled;
+
+      setState(() {
+        _isAutoSolving = true;
+      });
+      do {
+        handled = false;
+        for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
+          final result = _feedbackMoveResult(gameState.tryMove(move));
+          if (result is MoveSuccess) {
+            handled = true;
+            if (gameState.isWinning) {
+              print('Auto solve done');
+              return;
+            }
+            await Future.delayed(cardMoveAnimation.duration * 0.5);
+            break;
+          }
+        }
+      } while (handled);
+    } finally {
+      setState(() {
+        _isAutoSolving = false;
+      });
+    }
+  }
+
+  MoveResult _feedbackMoveResult(MoveResult result) {
+    switch (result) {
+      case MoveSuccess():
+        switch (result.move.to) {
+          case Discard():
+            HapticFeedback.lightImpact();
+          case Tableau():
+            HapticFeedback.mediumImpact();
+          case Draw() || Foundation():
+            HapticFeedback.heavyImpact();
+        }
+      case MoveNotDone():
+        _shakeCard(result.card);
+      case MoveForbidden():
+        _shakeCard(result.move.card);
+    }
+    return result;
+  }
+
+  void _shakeCard(PlayCard? card) {
+    if (card == null) {
+      return;
+    }
+    setState(() {
+      _shakingCard = card;
+    });
+    _shakeCardTimer?.cancel();
+    _shakeCardTimer = Timer(cardMoveAnimation.duration, () {
+      if (mounted) {
+        setState(() {
+          _shakingCard = null;
+        });
+      }
+    });
+  }
+}
+
+class _OverlayLayer extends StatelessWidget {
+  const _OverlayLayer({super.key, required this.layout});
+
+  final Layout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    final gameLayout = context.watch<GameLayout>();
+    final gridUnit = gameLayout.gridUnit;
+    final gameState = context.watch<GameState>();
+
+    Rect measure(Rect gridRect) {
+      return Rect.fromLTWH(
+        gridRect.left * gridUnit.width,
+        gridRect.top * gridUnit.height,
+        gridRect.width * gridUnit.width,
+        gridRect.height * gridUnit.height,
+      );
+    }
+
+    return Stack(
+      children: [
+        for (final item in layout.items)
+          if (item.showCountIndicator)
+            Positioned.fromRect(
+              rect: measure(
+                  Rect.fromLTWH(item.region.left, item.region.top, 1, 1)),
+              child: _CountIndicator(count: gameState.pile(item.kind).length),
+            ),
+      ],
+    );
+  }
+}
+
+//
+// class _CardDragOverlay extends StatefulWidget {
+//   const _CardDragOverlay({
+//     super.key,
+//     required this.draggedCards,
+//     required this.onStartDrag,
+//     required this.onStopDrag,
+//   });
+//
+//   final PlayCardList? draggedCards;
+//
+//   final PlayCardList? Function() onStartDrag;
+//
+//   final Function(PlayCardList? cards) onStopDrag;
+//
+//   @override
+//   State<_CardDragOverlay> createState() => _CardDragOverlayState();
+// }
+//
+// class _CardDragOverlayState extends State<_CardDragOverlay> {
+//   Offset? _touchPoint;
+//
+//   PlayCardList? _draggedCards;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final layout = context.watch<GameLayout>();
+//
+//     _draggedCards = widget.draggedCards;
+//
+//     return Listener(
+//       behavior: HitTestBehavior.translucent,
+//       onPointerMove: (event) {
+//         setState(() {
+//           _touchPoint = event.localPosition;
+//         });
+//       },
+//       onPointerUp: (_) {
+//         setState(() {
+//           _touchPoint = null;
+//         });
+//       },
+//       onPointerCancel: (_) {
+//         setState(() {
+//           _touchPoint = null;
+//         });
+//       },
+//       child: Stack(
+//         clipBehavior: Clip.none,
+//         children: [
+//           if (_touchPoint != null && _draggedCards != null)
+//             for (final (i, card) in _draggedCards!.indexed)
+//               Positioned.fromRect(
+//                 rect: (_touchPoint! & layout.gridUnit).shift(
+//                   Offset(0, i * layout.gridUnit.height * layout.maxStackGap.dy),
+//                 ),
+//                 child: CardView(card: card),
+//               )
+//         ],
+//       ),
+//     );
+//   }
+// }

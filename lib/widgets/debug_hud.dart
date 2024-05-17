@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
+import '../providers/settings.dart';
 
 class DebugHUD extends StatelessWidget {
   const DebugHUD({super.key});
@@ -10,14 +11,13 @@ class DebugHUD extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
-    final gameTheme = context.watch<GameTheme>();
+    final settings = context.watch<SettingsManager>();
 
     final debugText = """
 Random seed: ${gameState.gameSeed}
 Moves: ${gameState.moves} (History: ${gameState.historyCount})
 Reshuffle: ${gameState.reshuffleCount}
-Theme mode: ${gameTheme.currentMode.name}
-Theme color palette: ${gameTheme.currentPresetColor?.shade500 ?? '(dynamic)'}
+Theme mode: ${settings.get(Settings.themeMode).name}
 Last move: ${gameState.latestAction}
 Undo count: ${gameState.undoCount}
 .

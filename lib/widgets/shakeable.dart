@@ -8,7 +8,7 @@ class Shakeable extends StatefulWidget {
     required this.child,
     this.shake = false,
     required this.duration,
-    this.curve = standardEasing,
+    this.curve = Easing.standard,
     this.intensity = 0.2,
   });
 

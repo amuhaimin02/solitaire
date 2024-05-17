@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -20,29 +21,29 @@ class _DebugControlPaneState extends State<DebugControlPane> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = context.watch<Settings>();
-    final gameTheme = context.watch<GameTheme>();
+    final settings = context.watch<SettingsManager>();
 
     final children = [
       IconButton(
         tooltip: 'Toggle theme mode',
-        onPressed: !settings.useStandardColors()
-            ? () {
-                final currentThemeMode = gameTheme.currentMode;
-                if (currentThemeMode == ThemeMode.system) {
-                  gameTheme.changeMode(
-                      Theme.of(context).brightness == Brightness.light
-                          ? ThemeMode.dark
-                          : ThemeMode.light);
-                } else {
-                  gameTheme.changeMode(gameTheme.currentMode == ThemeMode.light
-                      ? ThemeMode.dark
-                      : ThemeMode.light);
-                }
-              }
-            : null,
+        onPressed: () {
+          final currentThemeMode = settings.get(Settings.themeMode);
+          if (currentThemeMode == ThemeMode.system) {
+            settings.set(
+                Settings.themeMode,
+                Theme.of(context).brightness == Brightness.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light);
+          } else {
+            settings.set(
+                Settings.themeMode,
+                currentThemeMode == ThemeMode.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light);
+          }
+        },
         icon: Icon(
-          switch (gameTheme.currentMode) {
+          switch (settings.get(Settings.themeMode)) {
             ThemeMode.light => Icons.light_mode,
             ThemeMode.dark => Icons.dark_mode,
             ThemeMode.system => Icons.contrast,
@@ -52,13 +53,11 @@ class _DebugControlPaneState extends State<DebugControlPane> {
       ),
       IconButton(
         tooltip: 'Toggle dynamic/preset colors',
-        onPressed: !settings.useStandardColors()
-            ? () {
-                gameTheme.toggleUsePresetColors();
-              }
-            : null,
+        onPressed: () {
+          settings.toggle(Settings.useDynamicColors);
+        },
         icon: Icon(
-          gameTheme.usingRandomColors
+          settings.get(Settings.useDynamicColors)
               ? MdiIcons.formatPaint
               : MdiIcons.imageFilterBlackWhite,
           size: 24,
@@ -66,18 +65,19 @@ class _DebugControlPaneState extends State<DebugControlPane> {
       ),
       IconButton(
         tooltip: 'Change preset colors',
-        onPressed: !settings.useStandardColors() && gameTheme.usingRandomColors
-            ? () => gameTheme.changePresetColor()
+        onPressed: !settings.get(Settings.useDynamicColors)
+            ? () => settings.set(Settings.presetColor,
+                GameTheme.colorPalette.sample(1).single.value)
             : null,
         icon: Icon(MdiIcons.dice5),
       ),
       IconButton(
         tooltip: 'Toggle device orientation',
         onPressed: () {
-          context.read<Settings>().screenOrientation.toggle();
+          context.read<SettingsManager>().toggle(Settings.screenOrientation);
         },
         icon: Icon(
-          switch (settings.screenOrientation()) {
+          switch (settings.get(Settings.screenOrientation)) {
             SystemOrientation.auto => Icons.screen_rotation_alt,
             SystemOrientation.landscape => Icons.stay_current_landscape,
             SystemOrientation.portrait => Icons.stay_current_portrait,
@@ -86,34 +86,36 @@ class _DebugControlPaneState extends State<DebugControlPane> {
         ),
       ),
       IconButton(
-        isSelected: settings.autoMoveOnDraw(),
+        isSelected: settings.get(Settings.autoMoveOnDraw),
         tooltip: 'Auto move on draw',
         onPressed: () {
-          context.read<Settings>().autoMoveOnDraw.toggle();
+          context.read<SettingsManager>().toggle(Settings.autoMoveOnDraw);
         },
         icon: Icon(
-          settings.autoMoveOnDraw()
+          settings.get(Settings.autoMoveOnDraw)
               ? MdiIcons.handBackLeft
               : MdiIcons.handBackLeftOff,
           size: 24,
         ),
       ),
       IconButton(
-        isSelected: settings.showMoveHighlight(),
+        isSelected: settings.get(Settings.showMoveHighlight),
         tooltip: 'Toggle highlights',
         onPressed: () {
-          context.read<Settings>().showMoveHighlight.toggle();
+          context.read<SettingsManager>().toggle(Settings.showMoveHighlight);
         },
         icon: Icon(
-          settings.showMoveHighlight() ? MdiIcons.eye : MdiIcons.eyeOff,
+          settings.get(Settings.showMoveHighlight)
+              ? MdiIcons.eye
+              : MdiIcons.eyeOff,
           size: 24,
         ),
       ),
       IconButton(
         tooltip: 'Toggle debug panel',
-        isSelected: settings.showDebugPanel(),
+        isSelected: settings.get(Settings.showDebugPanel),
         onPressed: () {
-          settings.showDebugPanel.toggle();
+          settings.toggle(Settings.showDebugPanel);
         },
         icon: Icon(MdiIcons.bug),
       ),
@@ -130,18 +132,18 @@ class _DebugControlPaneState extends State<DebugControlPane> {
       color: colorScheme.surface.withOpacity(0.2),
       child: Wrap(
         children: [
-          if (_showButtons) ...children,
-          IconButton(
-            tooltip: 'Expand/contract debug buttons',
-            onPressed: () {
-              setState(() {
-                _showButtons = !_showButtons;
-              });
-            },
-            icon: _showButtons
-                ? const Icon(Icons.keyboard_double_arrow_left)
-                : const Icon(Icons.keyboard_double_arrow_right),
-          ),
+          ...children,
+          // IconButton(
+          //   tooltip: 'Expand/contract debug buttons',
+          //   onPressed: () {
+          //     setState(() {
+          //       _showButtons = !_showButtons;
+          //     });
+          //   },
+          //   icon: _showButtons
+          //       ? const Icon(Icons.keyboard_double_arrow_left)
+          //       : const Icon(Icons.keyboard_double_arrow_right),
+          // ),
         ],
       ),
     );

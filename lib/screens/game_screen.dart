@@ -20,6 +20,7 @@ class GameScreen extends StatelessWidget {
     final isWinning = context.select<GameState, bool>((s) => s.isWinning);
 
     return Scaffold(
+      backgroundColor: colorScheme.primaryContainer,
       body: RippleBackground(
         color: isWinning ? colorScheme.onPrimary : colorScheme.primaryContainer,
         child: SafeArea(
@@ -51,8 +52,6 @@ class GameScreen extends StatelessWidget {
                           Orientation.landscape => Padding(
                               padding: outerMargin,
                               child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Flexible(
@@ -66,7 +65,7 @@ class GameScreen extends StatelessWidget {
                                     active: !isPreparing,
                                     opacityWhenUnfocus: 0,
                                     child: Container(
-                                      width: 144,
+                                      width: 120,
                                       margin: const EdgeInsets.only(left: 32),
                                       child: Column(
                                         mainAxisAlignment:
@@ -88,7 +87,7 @@ class GameScreen extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 48),
+                                    padding: const EdgeInsets.only(bottom: 32),
                                     child: TouchFocusable(
                                       active: !isPreparing,
                                       opacityWhenUnfocus: 0,
@@ -97,25 +96,29 @@ class GameScreen extends StatelessWidget {
                                     ),
                                   ),
                                   Flexible(
-                                    flex: 0,
                                     child: TouchFocusable(
                                       active: !isPreparing,
                                       opacityWhenUnfocus: 1,
                                       child: const GameTable(),
                                     ),
                                   ),
-                                  TouchFocusable(
-                                    active: !isPreparing,
-                                    opacityWhenUnfocus: 0,
-                                    child:
-                                        ControlPane(orientation: orientation),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 32),
+                                    child: TouchFocusable(
+                                      active: !isPreparing,
+                                      opacityWhenUnfocus: 0,
+                                      child:
+                                          ControlPane(orientation: orientation),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                         },
                       ),
-                      if (context.watch<Settings>().showDebugPanel())
+                      if (context
+                          .watch<SettingsManager>()
+                          .get(Settings.showDebugPanel))
                         switch (orientation) {
                           Orientation.landscape => const Align(
                               alignment: Alignment.centerRight,

@@ -8,6 +8,7 @@ import 'models/game_state.dart';
 import 'models/game_theme.dart';
 import 'providers/settings.dart';
 import 'screens/game_screen.dart';
+import 'screens/loading_screen.dart';
 
 class SolitaireApp extends StatelessWidget {
   const SolitaireApp({super.key});
@@ -31,47 +32,43 @@ class SolitaireApp extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => GameTheme()),
-            ChangeNotifierProvider(create: (_) => Settings()),
+            ChangeNotifierProvider(create: (_) => SettingsManager()),
           ],
           builder: (context, child) {
-            final gameTheme = context.watch<GameTheme>();
-            final settings = context.watch<Settings>();
+            final settings = context.watch<SettingsManager>();
             ColorScheme? lightColorScheme, darkColorScheme;
 
-            if (gameTheme.usingRandomColors) {
-              final presetColor = gameTheme.currentPresetColor!;
-              lightColorScheme = ColorScheme.fromSeed(
-                  brightness: Brightness.light, seedColor: presetColor);
-              darkColorScheme = ColorScheme.fromSeed(
-                  brightness: Brightness.dark, seedColor: presetColor);
-            } else {
+            if (settings.get(Settings.useDynamicColors)) {
               lightColorScheme = lightDynamic;
               darkColorScheme = darkDynamic;
-            }
-
-            if (settings.useStandardColors()) {
-              lightColorScheme = ColorScheme.light(
-                surface: Colors.white,
-                primary: Colors.grey.shade800,
-                primaryContainer: Colors.green.shade800,
-                secondary: Colors.yellow,
-                tertiary: Colors.red.shade700,
-              );
-              darkColorScheme =
-                  lightColorScheme.copyWith(brightness: Brightness.dark);
+            } else {
+              final presetColor = settings.get(Settings.presetColor);
+              lightColorScheme = ColorScheme.fromSeed(
+                  brightness: Brightness.light, seedColor: Color(presetColor));
+              darkColorScheme = ColorScheme.fromSeed(
+                  brightness: Brightness.dark, seedColor: Color(presetColor));
             }
 
             return MaterialApp(
               title: 'Solitaire',
               theme: buildTheme(lightColorScheme),
               darkTheme: buildTheme(darkColorScheme),
-              themeMode: gameTheme.currentMode,
+              themeMode: settings.get(Settings.themeMode),
               themeAnimationStyle: AnimationStyle.noAnimation,
               home: MultiProvider(
                 providers: [
                   ChangeNotifierProvider(create: (_) => GameState()),
                 ],
-                child: const GameScreen(),
+                builder: (context, child) {
+                  final isSettingsLoaded = context
+                      .select<SettingsManager, bool>((s) => s.isPreloaded);
+
+                  if (isSettingsLoaded) {
+                    return const GameScreen();
+                  } else {
+                    return const LoadingScreen();
+                  }
+                },
               ),
             );
           },

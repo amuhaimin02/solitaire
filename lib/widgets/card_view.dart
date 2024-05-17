@@ -16,14 +16,11 @@ class CardView extends StatelessWidget {
   const CardView({
     super.key,
     required this.card,
-    required this.pile,
     this.elevation,
     this.hideFace = false,
   });
 
   final PlayCard card;
-
-  final Pile pile;
 
   final double? elevation;
 
@@ -37,8 +34,8 @@ class CardView extends StatelessWidget {
     final latestAction =
         context.select<GameState, Action?>((s) => s.latestAction);
 
-    final showMoveHighlight =
-        context.select<Settings, bool>((s) => s.showMoveHighlight());
+    final showMoveHighlight = context.select<SettingsManager, bool>(
+        (s) => s.get(Settings.showMoveHighlight));
 
     final Color foregroundColor, backgroundColor, coverColor;
 
@@ -117,8 +114,6 @@ class CardFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final layout = context.watch<GameLayout>();
 
     final spacingFactor = layout.gridUnit.width * 0.05;
@@ -148,7 +143,7 @@ class CardFace extends StatelessWidget {
                   style: GoogleFonts.dosis(
                     fontSize: labelSizingFactor,
                     color: foregroundColor,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Icon(
@@ -171,7 +166,7 @@ class CardFace extends StatelessWidget {
             child: Icon(
               suitIcons[card.suit],
               size: iconSizingFactor * 3,
-              color: foregroundColor.withOpacity(0.5),
+              color: foregroundColor.withOpacity(0.36),
             ),
             // child: SvgPicture.asset(
             //   iconSvgPath,
