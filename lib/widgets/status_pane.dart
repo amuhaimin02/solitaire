@@ -58,7 +58,7 @@ class TimeLabel extends StatelessWidget {
         final playTime = context.read<GameState>().playTime;
         return Text(
           playTime.toMMSSString(),
-          style: textTheme.bodyLarge!.copyWith(color: color),
+          style: textTheme.titleLarge!.copyWith(color: color),
         );
       },
     );
@@ -94,7 +94,7 @@ class MoveLabel extends StatelessWidget {
       children: [
         Text(
           '$moves',
-          style: textTheme.bodyLarge!.copyWith(color: color),
+          style: textTheme.titleLarge!.copyWith(color: color),
         ),
         const SizedBox(width: 8),
         Icon(MdiIcons.cards, color: color, size: 18),

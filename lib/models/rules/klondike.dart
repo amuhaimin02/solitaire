@@ -7,12 +7,15 @@ import '../direction.dart';
 import '../pile.dart';
 import 'rules.dart';
 
-class Klondike extends Rules {
+class Klondike extends SolitaireRules {
   @override
   int get numberOfTableauPiles => 7;
 
   @override
   int get numberOfFoundationPiles => 4;
+
+  @override
+  int get drawsPerTurn => 1;
 
   @override
   Layout getLayout(LayoutOptions options) {

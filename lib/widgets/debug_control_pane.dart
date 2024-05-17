@@ -66,8 +66,8 @@ class _DebugControlPaneState extends State<DebugControlPane> {
       IconButton(
         tooltip: 'Change preset colors',
         onPressed: !settings.get(Settings.useDynamicColors)
-            ? () => settings.set(Settings.presetColor,
-                GameTheme.colorPalette.sample(1).single.value)
+            ? () => settings.set(
+                Settings.presetColor, GameTheme.colorPalette.sample(1).single)
             : null,
         icon: Icon(MdiIcons.dice5),
       ),

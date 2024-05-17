@@ -20,7 +20,7 @@ class GameState extends ChangeNotifier {
 
   late List<PlayCardList> _tableauPile;
 
-  late Rules rules = Klondike();
+  late SolitaireRules rules = Klondike();
 
   late bool _isWinning;
 
@@ -206,6 +206,9 @@ class GameState extends ChangeNotifier {
 
       final cardsOnTable = pile(move.from);
 
+      print("cardsOnTable ${move.from} $cardsOnTable");
+      print("cardsInHand $cardsInHand");
+
       // Check and remove cards from source pile to hand
       cardsOnTable.removeRange(
           cardsOnTable.length - cardsInHand.length, cardsOnTable.length);
@@ -246,8 +249,12 @@ class GameState extends ChangeNotifier {
         final cardsInDrawPile = pile(const Draw());
 
         if (cardsInDrawPile.isEmpty) {
-          // Refresh draw pile
+          // Try to refresh draw pile
           final cardsInDiscardPile = pile(const Discard());
+
+          if (cardsInDiscardPile.isNotEmpty) {
+            return MoveNotDone("No cards to refresh", null, move.from);
+          }
 
           _reshuffleCount++;
 
@@ -259,9 +266,11 @@ class GameState extends ChangeNotifier {
             ),
           ));
         } else {
+          // Pick from draw pile
+          final cardsToPick = cardsInDrawPile.getLast(rules.drawsPerTurn);
           return MoveSuccess(_doMoveCards(
             Move(
-              [cardsInDrawPile.last.faceUp()],
+              [...cardsToPick.allFaceUp],
               const Draw(),
               const Discard(),
             ),
@@ -290,7 +299,7 @@ class GameState extends ChangeNotifier {
           cardsToPick = cardsInPile.getUntilLast(cardToMove);
         } else {
           if (cardsInPile.isEmpty) {
-            return MoveNotDone(null, move.from);
+            return MoveNotDone("No cards in pile", null, move.from);
           }
           cardsToPick = [cardsInPile.last];
         }
@@ -348,7 +357,7 @@ class GameState extends ChangeNotifier {
       }
     }
 
-    return MoveNotDone(card, from);
+    return MoveNotDone("Cannot move this card anywhere", card, from);
   }
 
   bool get canUndo => _currentMoveIndex > 0;

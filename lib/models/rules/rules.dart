@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import '../direction.dart';
 import '../pile.dart';
 
-abstract class Rules {
+abstract class SolitaireRules {
   int get numberOfTableauPiles;
 
   int get numberOfFoundationPiles;
+
+  int get drawsPerTurn;
 
   Layout getLayout(LayoutOptions options);
 

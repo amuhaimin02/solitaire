@@ -89,13 +89,14 @@ class MoveSuccess extends MoveResult {
 }
 
 class MoveNotDone extends MoveResult {
+  final String reason;
   final PlayCard? card;
   final Pile from;
 
-  const MoveNotDone(this.card, this.from);
+  const MoveNotDone(this.reason, this.card, this.from);
 
   @override
-  String toString() => "MoveNotDone()";
+  String toString() => "MoveNotDone($reason)";
 }
 
 class GameStart extends Action {
@@ -118,6 +119,12 @@ extension PlayCardListExtension on List<PlayCard> {
     final cardsToPick = getRange(startRange, endRange).toList();
     removeRange(startRange, endRange);
     return cardsToPick;
+  }
+
+  PlayCardList getLast([int amount = 1]) {
+    final startRange = max(length - amount, 0);
+    final endRange = length;
+    return getRange(startRange, endRange).toList();
   }
 
   PlayCardList getUntilLast(PlayCard card) {

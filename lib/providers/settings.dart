@@ -25,7 +25,11 @@ enum Settings<T> {
   ),
 
   useDynamicColors(defaultValue: true),
-  presetColor(defaultValue: 0);
+  presetColor<Color>(
+    defaultValue: Colors.transparent,
+    convertFrom: ColorSerializer.from,
+    convertTo: ColorSerializer.to,
+  );
 
   // ----------------------------------------
 
@@ -37,6 +41,9 @@ enum Settings<T> {
 
   final bool preload;
 
+  final T Function(String raw)? convertFrom;
+  final String Function(T value)? convertTo;
+
   Type get type => defaultValue.runtimeType;
 
   bool get isEnum => defaultValue is Enum;
@@ -46,6 +53,8 @@ enum Settings<T> {
     this.onChange,
     this.options,
     this.preload = false,
+    this.convertFrom,
+    this.convertTo,
   });
 
   void triggerOnChange(T newValue) {
@@ -97,12 +106,14 @@ class SettingsManager with ChangeNotifier {
         return (_prefs.getInt(key) ?? item.defaultValue) as T;
       case const (double):
         return (_prefs.getDouble(key) ?? item.defaultValue) as T;
+      case const (String):
+        return (_prefs.getString(key) ?? item.defaultValue) as T;
       default:
         final storedValue = _prefs.getString(key);
+        if (storedValue == null) {
+          return item.defaultValue;
+        }
         if (item.isEnum) {
-          if (storedValue == null) {
-            return item.defaultValue;
-          }
           final options = item.options ?? [];
           final newEnum = (options as List<Enum>)
               .firstWhereOrNull((e) => e.name == storedValue);
@@ -112,7 +123,12 @@ class SettingsManager with ChangeNotifier {
             return newEnum as T;
           }
         } else {
-          return '<none>' as T;
+          if (item.convertFrom != null) {
+            return item.convertFrom!(storedValue);
+          } else {
+            throw ArgumentError(
+                "Type ${item.type} is not a parsable type, please provide convertFrom function for conversion");
+          }
         }
     }
   }
@@ -143,6 +159,9 @@ class SettingsManager with ChangeNotifier {
       case const (double):
         _prefs.setDouble(key, (newValue ?? item.defaultValue) as double);
         return true;
+      case const (String):
+        _prefs.setString(key, (newValue ?? item.defaultValue) as String);
+        return true;
       default:
         if (item.isEnum) {
           final options = item.options ?? [];
@@ -150,6 +169,14 @@ class SettingsManager with ChangeNotifier {
               options.firstWhereOrNull((e) => e == newValue) as Enum;
           _prefs.setString(key, newEnum.name);
           return true;
+        } else {
+          if (item.convertTo != null) {
+            _prefs.setString(key, item.convertTo!(newValue));
+            return true;
+          } else {
+            throw ArgumentError(
+                "Type ${item.type} is not a parsable type, please provide convertTo function for conversion");
+          }
         }
     }
     return false;
@@ -174,5 +201,15 @@ class SettingsManager with ChangeNotifier {
   @protected
   void broadcast() {
     notifyListeners();
+  }
+}
+
+class ColorSerializer {
+  static Color from(String rawValue) {
+    return Color(int.parse(rawValue, radix: 16));
+  }
+
+  static String to(Color color) {
+    return (color).value.toRadixString(16);
   }
 }

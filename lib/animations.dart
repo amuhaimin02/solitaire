@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class DurationCurve {
   final Duration duration;
@@ -17,7 +17,7 @@ class DurationCurve {
 }
 
 const cardMoveAnimation =
-    DurationCurve(Duration(milliseconds: 300), Curves.fastOutSlowIn);
+    DurationCurve(Duration(milliseconds: 300), Easing.standardDecelerate);
 
 const cardDragAnimation =
     DurationCurve(Duration(milliseconds: 150), Curves.easeOutCirc);
@@ -26,7 +26,7 @@ const standardAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);
 
 const themeChangeAnimation =
-    DurationCurve(Duration(milliseconds: 500), Curves.easeOutQuad);
+    DurationCurve(Duration(milliseconds: 700), Easing.emphasizedDecelerate);
 
 const numberTickAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);

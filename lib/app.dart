@@ -23,7 +23,7 @@ class SolitaireApp extends StatelessWidget {
         ThemeData buildTheme(ColorScheme? colorScheme) {
           return ThemeData(
             useMaterial3: true,
-            textTheme: GoogleFonts.dosisTextTheme(),
+            textTheme: GoogleFonts.robotoSlabTextTheme(),
             colorScheme: colorScheme,
             splashFactory: InkRipple.splashFactory,
           );
@@ -44,9 +44,9 @@ class SolitaireApp extends StatelessWidget {
             } else {
               final presetColor = settings.get(Settings.presetColor);
               lightColorScheme = ColorScheme.fromSeed(
-                  brightness: Brightness.light, seedColor: Color(presetColor));
+                  brightness: Brightness.light, seedColor: presetColor);
               darkColorScheme = ColorScheme.fromSeed(
-                  brightness: Brightness.dark, seedColor: Color(presetColor));
+                  brightness: Brightness.dark, seedColor: presetColor);
             }
 
             return MaterialApp(

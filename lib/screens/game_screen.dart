@@ -22,7 +22,9 @@ class GameScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.primaryContainer,
       body: RippleBackground(
-        color: isWinning ? colorScheme.onPrimary : colorScheme.primaryContainer,
+        color: isWinning
+            ? colorScheme.surfaceContainerLowest
+            : colorScheme.primaryContainer,
         child: SafeArea(
           child: OrientationBuilder(
             builder: (context, orientation) {
@@ -58,7 +60,11 @@ class GameScreen extends StatelessWidget {
                                     child: TouchFocusable(
                                       active: !isPreparing,
                                       opacityWhenUnfocus: 1,
-                                      child: const GameTable(),
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                            maxWidth: 1000, maxHeight: 1000),
+                                        child: const GameTable(),
+                                      ),
                                     ),
                                   ),
                                   TouchFocusable(
@@ -99,7 +105,11 @@ class GameScreen extends StatelessWidget {
                                     child: TouchFocusable(
                                       active: !isPreparing,
                                       opacityWhenUnfocus: 1,
-                                      child: const GameTable(),
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                            maxWidth: 1000, maxHeight: 1000),
+                                        child: const GameTable(),
+                                      ),
                                     ),
                                   ),
                                   Padding(

@@ -27,7 +27,8 @@ class GameTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
-        final gameRules = context.select<GameState, Rules>((s) => s.rules);
+        final gameRules =
+            context.select<GameState, SolitaireRules>((s) => s.rules);
 
         const cardUnitSize = Size(2.5, 3.5);
 
@@ -132,7 +133,7 @@ class _CardWidget extends StatelessWidget {
     this.onTap,
   });
 
-  static const cardShowThreshold = 2;
+  static const cardShowThreshold = 3;
   static const minElevation = 2.0;
   static const maxElevation = 12.0;
 
