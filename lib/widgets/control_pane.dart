@@ -26,7 +26,9 @@ class ControlPane extends StatelessWidget {
       ),
       IconButton(
         tooltip: 'Hint',
-        onPressed: () {},
+        onPressed: () {
+          context.read<GameState>().highlightPossibleMoves();
+        },
         icon: const Icon(Icons.lightbulb, size: 24),
       ),
       TapHoldDetector(

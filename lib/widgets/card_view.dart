@@ -37,6 +37,9 @@ class CardView extends StatelessWidget {
     final showMoveHighlight = context.select<SettingsManager, bool>(
         (s) => s.get(Settings.showMoveHighlight));
 
+    final hintedCards =
+        context.select<GameState, PlayCardList?>((s) => s.hintedCards);
+
     final Color foregroundColor, backgroundColor, coverColor;
 
     switch (card.suit.color) {
@@ -49,18 +52,27 @@ class CardView extends StatelessWidget {
     }
     coverColor = colorScheme.primary;
 
+    Color? highlightColor;
+
+    if (hintedCards?.contains(card) == true) {
+      highlightColor = colorScheme.error;
+    } else if (showMoveHighlight &&
+        latestAction is Move &&
+        latestAction.from is! Draw &&
+        latestAction.to is! Draw &&
+        latestAction.cards.contains(card)) {
+      highlightColor = colorScheme.secondary;
+    }
+
     return SizedBox(
       width: layout.gridUnit.width,
       height: layout.gridUnit.height,
       child: Stack(
         children: [
-          if (showMoveHighlight)
-            CardHighlight(
-              highlight: latestAction is Move &&
-                  latestAction.from is! Draw &&
-                  latestAction.to is! Draw &&
-                  latestAction.cards.contains(card),
-            ),
+          CardHighlight(
+            highlight: highlightColor != null,
+            color: highlightColor ?? colorScheme.primary,
+          ),
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.all(layout.cardPadding),
@@ -207,21 +219,22 @@ class CardCover extends StatelessWidget {
 }
 
 class CardHighlight extends StatelessWidget {
-  const CardHighlight({super.key, required this.highlight});
+  const CardHighlight(
+      {super.key, required this.highlight, required this.color});
+
+  final Color color;
 
   final bool highlight;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return AnimatedScale(
       duration: cardMoveAnimation.duration,
       curve: highlight ? Curves.easeOutCirc : Curves.easeInCirc,
       scale: highlight ? 1 : 0.01,
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.secondary,
+          color: color,
           borderRadius: BorderRadius.circular(12),
         ),
       ),

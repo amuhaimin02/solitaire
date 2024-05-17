@@ -573,7 +573,7 @@ class _CardLayerState extends State<_CardLayer> {
             gameState.tryMove(MoveIntent(const Draw(), const Discard())));
         if (result is MoveSuccess) {
           if (result.move.to == const Discard() &&
-              context.read<SettingsManager>().get(Settings.showMoveHighlight)) {
+              context.read<SettingsManager>().get(Settings.autoMoveOnDraw)) {
             Future.delayed(
               cardMoveAnimation.duration,
               () {

@@ -42,6 +42,8 @@ class GameState extends ChangeNotifier {
 
   late bool _canAutoSolve;
 
+  PlayCardList? _hintedCards;
+
   final _stopWatch = Stopwatch();
 
   GameState() {
@@ -70,6 +72,8 @@ class GameState extends ChangeNotifier {
 
   bool get canAutoSolve => _canAutoSolve;
 
+  PlayCardList? get hintedCards => _hintedCards;
+
   Action? get latestAction {
     if (_isUndoing && _currentMoveIndex < _history.length - 1) {
       return _history[_currentMoveIndex + 1].action;
@@ -81,7 +85,7 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  late UserAction? _userAction;
+  UserAction? _userAction;
 
   UserAction? get userAction => _userAction;
 
@@ -230,6 +234,8 @@ class GameState extends ChangeNotifier {
       // Move all cards on hand to target pile
       pile(move.to).addAll(cardsInHand);
 
+      _hintedCards = null;
+
       _score = rules.determineScoreForMove(_score, move);
 
       _postCheckAfterPlacement();
@@ -245,7 +251,9 @@ class GameState extends ChangeNotifier {
     return move;
   }
 
-  MoveResult tryMove(MoveIntent move) {
+  MoveResult tryMove(MoveIntent move, {bool doMove = true}) {
+    final Move? targetMove;
+
     switch (move.from) {
       case Draw():
         if (move.to != const Discard()) {
@@ -265,23 +273,19 @@ class GameState extends ChangeNotifier {
 
           _reshuffleCount++;
 
-          return MoveSuccess(_doMoveCards(
-            Move(
-              cardsInDiscardPile.reversed.toList().allFaceDown,
-              const Discard(),
-              const Draw(),
-            ),
-          ));
+          targetMove = Move(
+            cardsInDiscardPile.reversed.toList().allFaceDown,
+            const Discard(),
+            const Draw(),
+          );
         } else {
           // Pick from draw pile
           final cardsToPick = cardsInDrawPile.getLast(rules.drawsPerTurn);
-          return MoveSuccess(_doMoveCards(
-            Move(
-              [...cardsToPick.allFaceUp],
-              const Draw(),
-              const Discard(),
-            ),
-          ));
+          targetMove = Move(
+            [...cardsToPick.allFaceUp],
+            const Draw(),
+            const Discard(),
+          );
         }
       case Discard() || Foundation() || Tableau():
         if (move.to == const Draw()) {
@@ -320,11 +324,17 @@ class GameState extends ChangeNotifier {
               'cannot place the card(s) $cardsToPick on ${move.to}', move);
         }
 
-        return MoveSuccess(_doMoveCards(Move(cardsToPick, move.from, move.to)));
+        targetMove = Move(cardsToPick, move.from, move.to);
     }
+
+    if (doMove) {
+      _doMoveCards(targetMove);
+    }
+
+    return MoveSuccess(targetMove);
   }
 
-  MoveResult tryQuickPlace(PlayCard card, Pile from) {
+  MoveResult tryQuickPlace(PlayCard card, Pile from, {bool doMove = true}) {
     final cardsInHand = switch (from) {
       Tableau() || Foundation() => [
           ...pile(from).getRange(pile(from).indexOf(card), pile(from).length)
@@ -349,7 +359,8 @@ class GameState extends ChangeNotifier {
     // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
       for (final i in foundationIndexes) {
-        final result = tryMove(MoveIntent(from, Foundation(i), card));
+        final result =
+            tryMove(MoveIntent(from, Foundation(i), card), doMove: doMove);
         if (result is MoveSuccess) {
           return result;
         }
@@ -358,7 +369,8 @@ class GameState extends ChangeNotifier {
 
     // Try placing on tableau next
     for (final i in tableauIndexes) {
-      final result = tryMove(MoveIntent(from, Tableau(i), card));
+      final result =
+          tryMove(MoveIntent(from, Tableau(i), card), doMove: doMove);
       if (result is MoveSuccess) {
         return result;
       }
@@ -395,6 +407,50 @@ class GameState extends ChangeNotifier {
     _postCheckAfterPlacement();
 
     notifyListeners();
+  }
+
+  Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {
+    for (final t in rules.allTableaus) {
+      for (final c in pile(t)) {
+        yield (c, t);
+      }
+    }
+    for (final f in rules.allFoundations) {
+      if (pile(f).isNotEmpty) {
+        yield (pile(f).last, f);
+      }
+    }
+
+    if (pile(const Discard()).isNotEmpty) {
+      yield (pile(const Discard()).last, const Discard());
+    }
+  }
+
+  void highlightPossibleMoves() {
+    if (_hintedCards != null) {
+      return;
+    }
+
+    final movableCards = <PlayCard>[];
+    for (final (card, from) in _getAllVisibleCards()) {
+      if (tryQuickPlace(card, from, doMove: false) is MoveSuccess) {
+        movableCards.add(card);
+      }
+    }
+    if (movableCards.isEmpty) {
+      final drawPile = pile(const Draw());
+      if (drawPile.isNotEmpty) {
+        movableCards.add(drawPile.last);
+      }
+    }
+
+    _hintedCards = movableCards;
+    notifyListeners();
+
+    Future.delayed(const Duration(seconds: 1), () {
+      _hintedCards = null;
+      notifyListeners();
+    });
   }
 
   void _updateHistory(Action recentAction) {
