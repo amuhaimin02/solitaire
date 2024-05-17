@@ -17,16 +17,16 @@ class DurationCurve {
 }
 
 const cardMoveAnimation =
-    DurationCurve(Duration(milliseconds: 300), Easing.standardDecelerate);
+    DurationCurve(Duration(milliseconds: 300), Easing.standard);
 
 const cardDragAnimation =
-    DurationCurve(Duration(milliseconds: 150), Curves.easeOutCirc);
+    DurationCurve(Duration(milliseconds: 100), Curves.easeOutCirc);
 
 const standardAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);
 
 const themeChangeAnimation =
-    DurationCurve(Duration(milliseconds: 700), Easing.emphasizedDecelerate);
+    DurationCurve(Duration(milliseconds: 500), Easing.standard);
 
 const numberTickAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);

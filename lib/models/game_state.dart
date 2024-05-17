@@ -9,6 +9,10 @@ import 'pile.dart';
 import 'rules/klondike.dart';
 import 'rules/rules.dart';
 
+enum GameStatus { ready, preparing, started, ended }
+
+enum UserAction { undoMultiple, redoMultiple }
+
 class GameState extends ChangeNotifier {
   late String _gameSeed;
 
@@ -22,9 +26,7 @@ class GameState extends ChangeNotifier {
 
   late SolitaireRules rules = Klondike();
 
-  late bool _isWinning;
-
-  late bool _isPreparing;
+  late GameStatus _status;
 
   late List<GameHistory> _history;
 
@@ -46,7 +48,7 @@ class GameState extends ChangeNotifier {
     startNewGame();
   }
 
-  bool get isWinning => _isWinning;
+  bool get isWinning => _status == GameStatus.ended;
 
   String get gameSeed => _gameSeed;
 
@@ -64,7 +66,7 @@ class GameState extends ChangeNotifier {
 
   bool get isUndoing => _isUndoing;
 
-  bool get isPreparing => _isPreparing;
+  bool get isPreparing => _status == GameStatus.preparing;
 
   bool get canAutoSolve => _canAutoSolve;
 
@@ -79,20 +81,30 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  late UserAction? _userAction;
+
+  UserAction? get userAction => _userAction;
+
+  set userAction(UserAction? action) {
+    _userAction = action;
+    notifyListeners();
+  }
+
   bool get isJustStarting => _history.length == 1;
 
   Future<void> startNewGame({bool keepSeed = false}) async {
     if (!keepSeed) {
       _gameSeed = CustomPRNG.generateSeed(length: 12);
     }
-
     _resetStates();
-    _isPreparing = true;
+    _status = GameStatus.ready;
+
     _stopWatch
       ..stop()
       ..reset();
 
     _setupPiles();
+    _status = GameStatus.preparing;
     notifyListeners();
 
     await Future.delayed(cardMoveAnimation.duration * 2);
@@ -102,7 +114,7 @@ class GameState extends ChangeNotifier {
 
     await Future.delayed(cardMoveAnimation.duration * 5);
 
-    _isPreparing = false;
+    _status = GameStatus.started;
     _stopWatch.start();
 
     notifyListeners();
@@ -157,7 +169,6 @@ class GameState extends ChangeNotifier {
   }
 
   void _resetStates() {
-    _isWinning = false;
     _history = [];
     _currentMoveIndex = 0;
     _reshuffleCount = 0;
@@ -200,14 +211,10 @@ class GameState extends ChangeNotifier {
   }
 
   Move _doMoveCards(Move move) {
-    print('moving $move');
     try {
       final cardsInHand = move.cards;
 
       final cardsOnTable = pile(move.from);
-
-      print("cardsOnTable ${move.from} $cardsOnTable");
-      print("cardsInHand $cardsInHand");
 
       // Check and remove cards from source pile to hand
       cardsOnTable.removeRange(
@@ -252,7 +259,7 @@ class GameState extends ChangeNotifier {
           // Try to refresh draw pile
           final cardsInDiscardPile = pile(const Discard());
 
-          if (cardsInDiscardPile.isNotEmpty) {
+          if (cardsInDiscardPile.isEmpty) {
             return MoveNotDone("No cards to refresh", null, move.from);
           }
 
@@ -420,8 +427,14 @@ class GameState extends ChangeNotifier {
   }
 
   void _postCheckAfterPlacement() {
-    _isWinning = rules.winConditions(pile);
-    _canAutoSolve = !_isWinning && rules.canAutoSolve(pile);
+    final isWinning = rules.winConditions(pile);
+    if (isWinning) {
+      _status = GameStatus.ended;
+      _stopWatch.stop();
+    } else {
+      _status = GameStatus.started;
+    }
+    _canAutoSolve = !isWinning && rules.canAutoSolve(pile);
   }
 }
 

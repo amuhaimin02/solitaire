@@ -21,26 +21,32 @@ class StatusPane extends StatelessWidget {
       ),
     );
 
-    return switch (orientation) {
-      Orientation.landscape => const Column(
-          children: [
-            ScoreLabel(),
-            SizedBox(height: 8),
-            TimeLabel(),
-            MoveLabel(),
-          ],
-        ),
-      Orientation.portrait => Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Expanded(child: Center(child: TimeLabel())),
-            divider,
-            const Expanded(child: Center(child: ScoreLabel())),
-            divider,
-            const Expanded(child: Center(child: MoveLabel())),
-          ],
-        ),
-    };
+    return DefaultTextStyle.merge(
+      style: Theme.of(context)
+          .textTheme
+          .titleLarge!
+          .copyWith(color: colorScheme.onPrimaryContainer),
+      child: switch (orientation) {
+        Orientation.landscape => const Column(
+            children: [
+              ScoreLabel(),
+              SizedBox(height: 8),
+              TimeLabel(),
+              MoveLabel(),
+            ],
+          ),
+        Orientation.portrait => Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(child: Center(child: TimeLabel())),
+              divider,
+              const Expanded(child: Center(child: ScoreLabel())),
+              divider,
+              const Expanded(child: Center(child: MoveLabel())),
+            ],
+          ),
+      },
+    );
   }
 }
 
@@ -50,7 +56,6 @@ class TimeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final color = Theme.of(context).colorScheme.onPrimaryContainer;
 
     return StreamBuilder<Null>(
       stream: Stream.periodic(const Duration(milliseconds: 200)),
@@ -58,7 +63,6 @@ class TimeLabel extends StatelessWidget {
         final playTime = context.read<GameState>().playTime;
         return Text(
           playTime.toMMSSString(),
-          style: textTheme.titleLarge!.copyWith(color: color),
         );
       },
     );
@@ -71,11 +75,14 @@ class ScoreLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final color = Theme.of(context).colorScheme.onPrimaryContainer;
     final score = context.select<GameState, int>((s) => s.score);
+    final textStyle =
+        score >= 10000 ? textTheme.displaySmall! : textTheme.displayMedium!;
     return Text(
       '$score',
-      style: textTheme.displayMedium!.copyWith(color: color),
+      style:
+          textStyle.copyWith(color: DefaultTextStyle.of(context).style.color),
+      textAlign: TextAlign.center,
     );
   }
 }
@@ -85,19 +92,14 @@ class MoveLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final color = Theme.of(context).colorScheme.onPrimaryContainer;
-
     final moves = context.select<GameState, int>((s) => s.moves);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '$moves',
-          style: textTheme.titleLarge!.copyWith(color: color),
-        ),
+        Text('$moves'),
         const SizedBox(width: 8),
-        Icon(MdiIcons.cards, color: color, size: 18),
+        Icon(MdiIcons.cards,
+            size: 18, color: DefaultTextStyle.of(context).style.color),
       ],
     );
   }

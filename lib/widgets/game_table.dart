@@ -250,8 +250,6 @@ class _CardLayerState extends State<_CardLayer> {
   PlayCardList? _touchingCards;
   Pile? _touchingCardPile;
 
-  bool _isAutoSolving = false;
-
   Offset? _lastTouchPoint;
 
   Timer? _touchDragTimer, _shakeCardTimer;
@@ -361,27 +359,9 @@ class _CardLayerState extends State<_CardLayer> {
       onPointerCancel: (_) => onPointerCancel(),
       child: Stack(
         clipBehavior: Clip.none,
-        children: [
-          ...sortCardWidgets([
-            for (final item in widget.layout.items)
-              ..._buildPile(context, item),
-          ]),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Shrinkable(
-              show: gameState.canAutoSolve,
-              child: FloatingActionButton.extended(
-                backgroundColor: colorScheme.tertiary,
-                foregroundColor: colorScheme.onTertiary,
-                onPressed: _isAutoSolving ? null : () => _doAutoSolve(context),
-                icon: const Icon(Icons.auto_fix_high),
-                label: _isAutoSolving
-                    ? const Text('Auto solving...')
-                    : const Text('Auto solve'),
-              ),
-            ),
-          ),
-        ],
+        children: sortCardWidgets([
+          for (final item in widget.layout.items) ..._buildPile(context, item),
+        ]),
       ),
     );
   }
@@ -617,37 +597,6 @@ class _CardLayerState extends State<_CardLayer> {
     }
   }
 
-  void _doAutoSolve(BuildContext context) async {
-    final gameState = context.read<GameState>();
-
-    try {
-      bool handled;
-
-      setState(() {
-        _isAutoSolving = true;
-      });
-      do {
-        handled = false;
-        for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
-          final result = _feedbackMoveResult(gameState.tryMove(move));
-          if (result is MoveSuccess) {
-            handled = true;
-            if (gameState.isWinning) {
-              print('Auto solve done');
-              return;
-            }
-            await Future.delayed(cardMoveAnimation.duration * 0.5);
-            break;
-          }
-        }
-      } while (handled);
-    } finally {
-      setState(() {
-        _isAutoSolving = false;
-      });
-    }
-  }
-
   MoveResult _feedbackMoveResult(MoveResult result) {
     switch (result) {
       case MoveSuccess():
@@ -695,6 +644,7 @@ class _OverlayLayer extends StatelessWidget {
     final gameLayout = context.watch<GameLayout>();
     final gridUnit = gameLayout.gridUnit;
     final gameState = context.watch<GameState>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
@@ -714,8 +664,107 @@ class _OverlayLayer extends StatelessWidget {
                   Rect.fromLTWH(item.region.left, item.region.top, 1, 1)),
               child: _CountIndicator(count: gameState.pile(item.kind).length),
             ),
+        Center(
+          child: _UserActionIndicator(userAction: gameState.userAction),
+        ),
+        const Align(
+          alignment: Alignment.bottomCenter,
+          child: _AutoSolveButton(),
+        )
       ],
     );
+  }
+}
+
+class _UserActionIndicator extends StatelessWidget {
+  const _UserActionIndicator({super.key, this.userAction});
+
+  final UserAction? userAction;
+
+  static const userActionIcon = {
+    UserAction.undoMultiple: Icons.fast_rewind,
+    UserAction.redoMultiple: Icons.fast_forward,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return AnimatedSwitcher(
+      duration: cardMoveAnimation.duration,
+      child: userAction != null
+          ? Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                color: colorScheme.onSecondaryFixed,
+              ),
+              child: Icon(userActionIcon[userAction],
+                  size: 72, color: colorScheme.secondaryFixed),
+            )
+          : null,
+    );
+  }
+}
+
+class _AutoSolveButton extends StatefulWidget {
+  const _AutoSolveButton({super.key});
+
+  @override
+  State<_AutoSolveButton> createState() => _AutoSolveButtonState();
+}
+
+class _AutoSolveButtonState extends State<_AutoSolveButton> {
+  bool _isAutoSolving = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final canAutoSolve = context.select<GameState, bool>((s) => s.canAutoSolve);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Shrinkable(
+      show: canAutoSolve,
+      child: FloatingActionButton.extended(
+        backgroundColor: colorScheme.secondary,
+        foregroundColor: colorScheme.onSecondary,
+        onPressed: _isAutoSolving ? null : () => _doAutoSolve(context),
+        icon: const Icon(Icons.auto_fix_high),
+        label: _isAutoSolving
+            ? const Text('Auto solving...')
+            : const Text('Auto solve'),
+      ),
+    );
+  }
+
+  void _doAutoSolve(BuildContext context) async {
+    final gameState = context.read<GameState>();
+
+    try {
+      bool handled;
+
+      setState(() {
+        _isAutoSolving = true;
+      });
+      do {
+        handled = false;
+        for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
+          final result = gameState.tryMove(move);
+          if (result is MoveSuccess) {
+            HapticFeedback.mediumImpact();
+            handled = true;
+            if (gameState.isWinning) {
+              print('Auto solve done');
+              return;
+            }
+            await Future.delayed(cardMoveAnimation.duration * 0.5);
+            break;
+          }
+        }
+      } while (handled);
+    } finally {
+      setState(() {
+        _isAutoSolving = false;
+      });
+    }
   }
 }
 

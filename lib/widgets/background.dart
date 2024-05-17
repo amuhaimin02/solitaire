@@ -90,7 +90,6 @@ class _RippleBackgroundState extends State<RippleBackground>
   }
 
   Widget _buildChild(BuildContext context) {
-    // if (_controller.status == AnimationStatus.forward) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final parentSize = constraints.biggest;
@@ -109,18 +108,20 @@ class _RippleBackgroundState extends State<RippleBackground>
 
             return Stack(
               children: [
-                Positioned.fill(child: Container(color: oldColor)),
+                Positioned.fill(
+                  child: Material(color: oldColor),
+                ),
                 OverflowBox(
                   maxWidth: double.infinity,
                   maxHeight: double.infinity,
                   child: Transform.translate(
                     offset: _rippleOffset - parentSize.center(Offset.zero),
-                    child: Container(
+                    child: SizedBox(
                       width: _animation.value * circleRadius * 2,
                       height: _animation.value * circleRadius * 2,
-                      decoration: BoxDecoration(
+                      child: Material(
                         color: newColor,
-                        shape: BoxShape.circle,
+                        shape: const CircleBorder(),
                       ),
                     ),
                   ),
@@ -132,11 +133,5 @@ class _RippleBackgroundState extends State<RippleBackground>
         );
       },
     );
-    // } else {
-    //   return Container(
-    //     color: _color,
-    //     child: widget.child,
-    //   );
-    // }
   }
 }

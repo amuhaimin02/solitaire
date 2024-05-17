@@ -77,12 +77,12 @@ class SettingsManager with ChangeNotifier {
 
   Future<void> _preload() async {
     _prefs = await SharedPreferences.getInstance();
+    _cache = {};
     for (final item in Settings.values) {
       if (item.preload) {
         item.triggerOnChange(get(item));
       }
     }
-    _cache = {};
   }
 
   T get<T>(Settings<T> item) {
