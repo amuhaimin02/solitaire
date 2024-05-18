@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart' hide Action;
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import '../animations.dart';
 import '../utils/iterators.dart';
@@ -9,7 +11,7 @@ import 'pile.dart';
 import 'rules/klondike.dart';
 import 'rules/rules.dart';
 
-enum GameStatus { ready, preparing, started, ended }
+enum GameStatus { ready, preparing, started, autoSolving, ended }
 
 enum UserAction { undoMultiple, redoMultiple }
 
@@ -44,6 +46,8 @@ class GameState extends ChangeNotifier {
 
   PlayCardList? _hintedCards;
 
+  AutoMoveLevel _autoMoveLevel = AutoMoveLevel.off;
+
   final _stopWatch = Stopwatch();
 
   GameState() {
@@ -51,6 +55,12 @@ class GameState extends ChangeNotifier {
   }
 
   bool get isWinning => _status == GameStatus.ended;
+
+  AutoMoveLevel get autoMoveLevel => _autoMoveLevel;
+
+  set autoMoveLevel(AutoMoveLevel value) {
+    _autoMoveLevel = value;
+  }
 
   String get gameSeed => _gameSeed;
 
@@ -67,6 +77,8 @@ class GameState extends ChangeNotifier {
   int get undoCount => _undoCount;
 
   bool get isUndoing => _isUndoing;
+
+  GameStatus get status => _status;
 
   bool get isPreparing => _status == GameStatus.preparing;
 
@@ -111,17 +123,21 @@ class GameState extends ChangeNotifier {
     _status = GameStatus.preparing;
     notifyListeners();
 
-    await Future.delayed(cardMoveAnimation.duration * 2);
+    await Future.delayed(cardMoveAnimation.duration * timeDilation * 2);
     _distributeCards();
     _updateHistory(GameStart());
     notifyListeners();
 
-    await Future.delayed(cardMoveAnimation.duration * 5);
+    await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
 
     _status = GameStatus.started;
     _stopWatch.start();
 
     notifyListeners();
+
+    if (_autoMoveLevel != AutoMoveLevel.off) {
+      _doAutoMove();
+    }
   }
 
   Future<void> testCustomLayout() async {
@@ -243,6 +259,10 @@ class GameState extends ChangeNotifier {
       _updateHistory(move);
 
       _isUndoing = false;
+
+      if (_autoMoveLevel != AutoMoveLevel.off) {
+        _doAutoMove();
+      }
     } catch (e) {
       rethrow;
     } finally {
@@ -446,11 +466,56 @@ class GameState extends ChangeNotifier {
 
     _hintedCards = movableCards;
     notifyListeners();
+  }
 
-    Future.delayed(const Duration(seconds: 1), () {
-      _hintedCards = null;
-      notifyListeners();
-    });
+  void _doAutoMove() async {
+    final autoMoveDelay = cardMoveAnimation.duration * 0.8;
+
+    bool handled;
+
+    do {
+      await Future.delayed(autoMoveDelay * timeDilation);
+      handled = false;
+      for (final move in rules.autoMoveStrategy(_autoMoveLevel, pile)) {
+        final result = tryMove(move);
+        if (result is MoveSuccess) {
+          if (isWinning) {
+            return;
+          }
+          break;
+        }
+      }
+    } while (handled);
+  }
+
+  void startAutoSolve() async {
+    final autoSolveMoveDelay = cardMoveAnimation.duration * 0.5;
+
+    if (_status == GameStatus.autoSolving) {
+      return;
+    }
+
+    _status = GameStatus.autoSolving;
+    notifyListeners();
+
+    bool handled;
+
+    do {
+      handled = false;
+      for (final move in rules.autoSolveStrategy(pile)) {
+        final result = tryMove(move);
+        if (result is MoveSuccess) {
+          HapticFeedback.mediumImpact();
+          handled = true;
+          if (isWinning) {
+            print('Auto solve done');
+            return;
+          }
+          await Future.delayed(autoSolveMoveDelay * timeDilation);
+          break;
+        }
+      }
+    } while (handled);
   }
 
   void _updateHistory(Action recentAction) {
@@ -487,8 +552,6 @@ class GameState extends ChangeNotifier {
     if (isWinning) {
       _status = GameStatus.ended;
       _stopWatch.stop();
-    } else {
-      _status = GameStatus.started;
     }
     _canAutoSolve = !isWinning && rules.canAutoSolve(pile);
   }

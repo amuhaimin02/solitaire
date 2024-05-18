@@ -6,9 +6,6 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/card.dart';
 import '../models/game_layout.dart';
-import '../models/game_state.dart';
-import '../models/pile.dart';
-import '../providers/settings.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
 
@@ -18,6 +15,7 @@ class CardView extends StatelessWidget {
     required this.card,
     this.elevation,
     this.hideFace = false,
+    this.highlightColor,
   });
 
   final PlayCard card;
@@ -26,19 +24,13 @@ class CardView extends StatelessWidget {
 
   final bool hideFace;
 
+  final Color? highlightColor;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final layout = context.watch<GameLayout>();
-    final latestAction =
-        context.select<GameState, Action?>((s) => s.latestAction);
-
-    final showMoveHighlight = context.select<SettingsManager, bool>(
-        (s) => s.get(Settings.showMoveHighlight));
-
-    final hintedCards =
-        context.select<GameState, PlayCardList?>((s) => s.hintedCards);
 
     final Color foregroundColor, backgroundColor, coverColor;
 
@@ -51,18 +43,6 @@ class CardView extends StatelessWidget {
         backgroundColor = colorScheme.surfaceContainerLowest;
     }
     coverColor = colorScheme.primary;
-
-    Color? highlightColor;
-
-    if (hintedCards?.contains(card) == true) {
-      highlightColor = colorScheme.error;
-    } else if (showMoveHighlight &&
-        latestAction is Move &&
-        latestAction.from is! Draw &&
-        latestAction.to is! Draw &&
-        latestAction.cards.contains(card)) {
-      highlightColor = colorScheme.secondary;
-    }
 
     return SizedBox(
       width: layout.gridUnit.width,

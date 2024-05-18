@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Action;
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -155,6 +156,7 @@ class _CardWidget extends StatelessWidget {
     final cardsInPile = getPile(layout.kind);
     final cardPileLength = cardsInPile.length;
     final cardIndex = cardsInPile.indexOf(card);
+    final colorScheme = Theme.of(context).colorScheme;
 
     final double elevation;
     final bool hideFace;
@@ -176,6 +178,27 @@ class _CardWidget extends StatelessWidget {
           cardIndex < cardPileLength - cardLimit - cardShowThreshold;
     }
 
+    final latestAction =
+        context.select<GameState, Action?>((s) => s.latestAction);
+
+    final showMoveHighlight = context.select<SettingsManager, bool>(
+        (s) => s.get(Settings.showMoveHighlight));
+
+    final hintedCards =
+        context.select<GameState, PlayCardList?>((s) => s.hintedCards);
+
+    Color? highlightColor;
+
+    if (hintedCards?.contains(card) == true) {
+      highlightColor = colorScheme.error;
+    } else if (showMoveHighlight &&
+        latestAction is Move &&
+        latestAction.from is! Draw &&
+        latestAction.to is! Draw &&
+        latestAction.cards.contains(card)) {
+      highlightColor = colorScheme.secondary;
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => onTouch?.call(),
@@ -188,6 +211,7 @@ class _CardWidget extends StatelessWidget {
           card: card,
           elevation: elevation,
           hideFace: hideFace,
+          highlightColor: highlightColor,
         ),
       ),
     );
@@ -267,7 +291,7 @@ class _CardLayerState extends State<_CardLayer> {
       });
       // However, wait for animation to finish before we remove references to touched cards list.
       // Using a timer to it is possible to cancel is a touch event comes again when waiting for the above.
-      _touchDragTimer = Timer(cardMoveAnimation.duration, () {
+      _touchDragTimer = Timer(cardMoveAnimation.duration * timeDilation, () {
         if (mounted) {
           setState(() {
             _touchingCards = null;
@@ -292,13 +316,12 @@ class _CardLayerState extends State<_CardLayer> {
         if (_touchingCards != null &&
             _touchingCardPile != null &&
             _touchingCardPile != dropRegion.kind) {
-          final result = gameState.tryMove(
-            MoveIntent(
-                _touchingCardPile!, dropRegion.kind, _touchingCards!.first),
+          _feedbackMoveResult(
+            gameState.tryMove(
+              MoveIntent(
+                  _touchingCardPile!, dropRegion.kind, _touchingCards!.first),
+            ),
           );
-          if (result is MoveSuccess) {
-            _feedbackMoveResult(result);
-          }
         } else {
           // Register as a normal tap (typically when user taps a tableau region not covered by cards)
           _onPileTap(context, dropRegion.kind);
@@ -569,23 +592,8 @@ class _CardLayerState extends State<_CardLayer> {
 
     switch (pile) {
       case Draw():
-        final result = _feedbackMoveResult(
+        _feedbackMoveResult(
             gameState.tryMove(MoveIntent(const Draw(), const Discard())));
-        if (result is MoveSuccess) {
-          if (result.move.to == const Discard() &&
-              context.read<SettingsManager>().get(Settings.autoMoveOnDraw)) {
-            Future.delayed(
-              cardMoveAnimation.duration,
-              () {
-                final autoMoveResult = gameState.tryQuickPlace(
-                    gameState.pile(const Discard()).last, const Discard());
-                if (autoMoveResult is MoveSuccess) {
-                  _feedbackMoveResult(autoMoveResult);
-                }
-              },
-            );
-          }
-        }
 
       case Discard() || Foundation():
         if (gameState.pile(pile).isNotEmpty) {
@@ -597,7 +605,10 @@ class _CardLayerState extends State<_CardLayer> {
     }
   }
 
-  MoveResult _feedbackMoveResult(MoveResult result) {
+  MoveResult _feedbackMoveResult(
+    MoveResult result, {
+    bool shakeOnError = true,
+  }) {
     switch (result) {
       case MoveSuccess():
         switch (result.move.to) {
@@ -609,9 +620,13 @@ class _CardLayerState extends State<_CardLayer> {
             HapticFeedback.heavyImpact();
         }
       case MoveNotDone():
-        _shakeCard(result.card);
+        if (shakeOnError) {
+          _shakeCard(result.card);
+        }
       case MoveForbidden():
-        _shakeCard(result.move.card);
+        if (shakeOnError) {
+          _shakeCard(result.move.card);
+        }
     }
     return result;
   }
@@ -624,7 +639,7 @@ class _CardLayerState extends State<_CardLayer> {
       _shakingCard = card;
     });
     _shakeCardTimer?.cancel();
-    _shakeCardTimer = Timer(cardMoveAnimation.duration, () {
+    _shakeCardTimer = Timer(cardMoveAnimation.duration * timeDilation, () {
       if (mounted) {
         setState(() {
           _shakingCard = null;
@@ -696,7 +711,7 @@ class _UserActionIndicator extends StatelessWidget {
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(32),
-                color: colorScheme.onSecondaryFixed,
+                color: colorScheme.onSecondaryFixed.withOpacity(0.5),
               ),
               child: Icon(userActionIcon[userAction],
                   size: 72, color: colorScheme.secondaryFixed),
@@ -714,57 +729,24 @@ class _AutoSolveButton extends StatefulWidget {
 }
 
 class _AutoSolveButtonState extends State<_AutoSolveButton> {
-  bool _isAutoSolving = false;
-
   @override
   Widget build(BuildContext context) {
     final canAutoSolve = context.select<GameState, bool>((s) => s.canAutoSolve);
+    final status = context.select<GameState, GameStatus>((s) => s.status);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Shrinkable(
-      show: canAutoSolve,
+      show: canAutoSolve && status != GameStatus.autoSolving,
       child: FloatingActionButton.extended(
         backgroundColor: colorScheme.secondary,
         foregroundColor: colorScheme.onSecondary,
-        onPressed: _isAutoSolving ? null : () => _doAutoSolve(context),
+        onPressed: () {
+          context.read<GameState>().startAutoSolve();
+        },
         icon: const Icon(Icons.auto_fix_high),
-        label: _isAutoSolving
-            ? const Text('Auto solving...')
-            : const Text('Auto solve'),
+        label: const Text('Auto solve'),
       ),
     );
-  }
-
-  void _doAutoSolve(BuildContext context) async {
-    final gameState = context.read<GameState>();
-
-    try {
-      bool handled;
-
-      setState(() {
-        _isAutoSolving = true;
-      });
-      do {
-        handled = false;
-        for (final move in gameState.rules.tryAutoSolve(gameState.pile)) {
-          final result = gameState.tryMove(move);
-          if (result is MoveSuccess) {
-            HapticFeedback.mediumImpact();
-            handled = true;
-            if (gameState.isWinning) {
-              print('Auto solve done');
-              return;
-            }
-            await Future.delayed(cardMoveAnimation.duration * 0.5);
-            break;
-          }
-        }
-      } while (handled);
-    } finally {
-      setState(() {
-        _isAutoSolving = false;
-      });
-    }
   }
 }
 

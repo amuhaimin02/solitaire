@@ -175,3 +175,5 @@ class PlayCardGenerator {
     }).flattened.toList();
   }
 }
+
+enum AutoMoveLevel { off, onDraw, full }

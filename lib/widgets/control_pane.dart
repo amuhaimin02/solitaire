@@ -92,7 +92,7 @@ class ControlPane extends StatelessWidget {
           ),
         Orientation.landscape => Wrap(
             direction: Axis.vertical,
-            spacing: 8,
+            spacing: 4,
             alignment: WrapAlignment.center,
             runAlignment: WrapAlignment.center,
             children: children,

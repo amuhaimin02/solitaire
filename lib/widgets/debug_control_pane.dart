@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
+import '../models/pile.dart';
 import '../providers/settings.dart';
 import '../utils/system_orientation.dart';
 
@@ -86,15 +87,17 @@ class _DebugControlPaneState extends State<DebugControlPane> {
         ),
       ),
       IconButton(
-        isSelected: settings.get(Settings.autoMoveOnDraw),
+        isSelected: settings.get(Settings.autoMoveLevel) != AutoMoveLevel.off,
         tooltip: 'Auto move on draw',
         onPressed: () {
-          context.read<SettingsManager>().toggle(Settings.autoMoveOnDraw);
+          context.read<SettingsManager>().toggle(Settings.autoMoveLevel);
         },
         icon: Icon(
-          settings.get(Settings.autoMoveOnDraw)
-              ? MdiIcons.handBackLeft
-              : MdiIcons.handBackLeftOff,
+          switch (settings.get(Settings.autoMoveLevel)) {
+            AutoMoveLevel.off => MdiIcons.handBackLeftOff,
+            AutoMoveLevel.onDraw => MdiIcons.handBackLeft,
+            AutoMoveLevel.full => MdiIcons.monitor,
+          },
           size: 24,
         ),
       ),
@@ -132,18 +135,18 @@ class _DebugControlPaneState extends State<DebugControlPane> {
       color: colorScheme.surface.withOpacity(0.2),
       child: Wrap(
         children: [
-          ...children,
-          // IconButton(
-          //   tooltip: 'Expand/contract debug buttons',
-          //   onPressed: () {
-          //     setState(() {
-          //       _showButtons = !_showButtons;
-          //     });
-          //   },
-          //   icon: _showButtons
-          //       ? const Icon(Icons.keyboard_double_arrow_left)
-          //       : const Icon(Icons.keyboard_double_arrow_right),
-          // ),
+          if (_showButtons) ...children,
+          IconButton(
+            tooltip: 'Expand/contract debug buttons',
+            onPressed: () {
+              setState(() {
+                _showButtons = !_showButtons;
+              });
+            },
+            icon: _showButtons
+                ? const Icon(Icons.keyboard_double_arrow_left)
+                : const Icon(Icons.keyboard_double_arrow_right),
+          ),
         ],
       ),
     );

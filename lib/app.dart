@@ -57,7 +57,14 @@ class SolitaireApp extends StatelessWidget {
               themeAnimationStyle: AnimationStyle.noAnimation,
               home: MultiProvider(
                 providers: [
-                  ChangeNotifierProvider(create: (_) => GameState()),
+                  ChangeNotifierProxyProvider<SettingsManager, GameState>(
+                    create: (_) => GameState(),
+                    update: (_, settings, state) {
+                      state!.autoMoveLevel =
+                          settings.get(Settings.autoMoveLevel);
+                      return state;
+                    },
+                  ),
                 ],
                 builder: (context, child) {
                   final isSettingsLoaded = context

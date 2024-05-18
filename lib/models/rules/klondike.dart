@@ -180,18 +180,36 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  Iterable<MoveIntent> tryAutoSolve(PileGetter pile) sync* {
+  Iterable<MoveIntent> autoMoveStrategy(
+      AutoMoveLevel level, PileGetter pile) sync* {
+    final discard = pile(const Discard());
+    if (discard.isNotEmpty) {
+      for (final t in allTableaus) {
+        for (final f in allFoundations) {
+          yield MoveIntent(const Discard(), f);
+          yield MoveIntent(const Discard(), t);
+        }
+      }
+    }
+    if (level == AutoMoveLevel.full) {
+      for (final t in allTableaus) {
+        for (final f in allFoundations) {
+          yield MoveIntent(t, f);
+        }
+      }
+    }
+  }
+
+  @override
+  Iterable<MoveIntent> autoSolveStrategy(PileGetter pile) sync* {
     // Try moving cards from tableau to foundation
     for (final t in allTableaus) {
       for (final f in allFoundations) {
-        final tableau = pile(t);
-        if (tableau.isNotEmpty) {
-          yield MoveIntent(t, f);
-        }
+        yield MoveIntent(t, f);
         final discard = pile(const Discard());
         if (discard.isNotEmpty) {
-          yield MoveIntent(const Discard(), t);
           yield MoveIntent(const Discard(), f);
+          yield MoveIntent(const Discard(), t);
         }
       }
     }
@@ -200,6 +218,6 @@ class Klondike extends SolitaireRules {
 
   @override
   int determineScoreForMove(int currentScore, Move move) {
-    return currentScore + 5;
+    return currentScore + Random().nextInt(10);
   }
 }

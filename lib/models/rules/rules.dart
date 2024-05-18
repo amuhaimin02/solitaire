@@ -26,7 +26,9 @@ abstract class SolitaireRules {
 
   bool canAutoSolve(PileGetter pile);
 
-  Iterable<MoveIntent> tryAutoSolve(PileGetter pile);
+  Iterable<MoveIntent> autoMoveStrategy(AutoMoveLevel level, PileGetter pile);
+
+  Iterable<MoveIntent> autoSolveStrategy(PileGetter pile);
 
   int determineScoreForMove(int currentScore, Move move);
 
