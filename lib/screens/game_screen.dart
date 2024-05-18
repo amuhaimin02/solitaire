@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
 import '../models/game_state.dart';
+import '../models/pile.dart';
+import '../models/rules/rules.dart';
 import '../providers/settings.dart';
 import '../widgets/background.dart';
 import '../widgets/control_pane.dart';
 import '../widgets/debug_control_pane.dart';
 import '../widgets/debug_hud.dart';
 import '../widgets/game_table.dart';
+import '../widgets/shrinkable.dart';
 import '../widgets/status_pane.dart';
 import '../widgets/touch_focusable.dart';
 
@@ -82,7 +86,7 @@ class _GameScreenState extends State<GameScreen> {
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
-                                        child: const GameTable(),
+                                        child: const _PlayArea(),
                                       ),
                                     ),
                                   ),
@@ -127,10 +131,7 @@ class _GameScreenState extends State<GameScreen> {
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
-                                        child: const Hero(
-                                          tag: 'playtable',
-                                          child: GameTable(),
-                                        ),
+                                        child: const _PlayArea(),
                                       ),
                                     ),
                                   ),
@@ -180,6 +181,180 @@ class _GameScreenState extends State<GameScreen> {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PlayArea extends StatelessWidget {
+  const _PlayArea({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final gameState = context.watch<GameState>();
+
+    return OrientationBuilder(builder: (context, orientation) {
+      final options = LayoutOptions(
+        orientation: orientation,
+        mirror: false,
+      );
+
+      final cards = gameState.cardsOnTable;
+
+      PlayCardList? lastMovedCards, highlightedCards;
+
+      final showMoveHighlight = context.select<SettingsManager, bool>(
+          (s) => s.get(Settings.showMoveHighlight));
+
+      if (showMoveHighlight) {
+        final lastAction = gameState.latestAction;
+        if (lastAction is Move) {
+          if (lastAction.from is! Draw && lastAction is! Draw) {
+            lastMovedCards = (gameState.latestAction as Move).cards;
+          }
+        }
+        highlightedCards = gameState.hintedCards;
+      }
+
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          GameTable(
+            cards: cards,
+            layout: gameState.rules.getLayout(options),
+            highlightedCards: highlightedCards,
+            lastMovedCards: lastMovedCards,
+            animatedDistribute: gameState.status == GameStatus.preparing,
+            onCardTap: (card, pile) {
+              print('tapping card $card on $pile');
+              final gameState = context.read<GameState>();
+
+              switch (pile) {
+                case Tableau():
+                  final result =
+                      _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
+                  return result is MoveSuccess;
+                case _:
+                  return false;
+              }
+            },
+            onPileTap: (pile) {
+              print('tapping pile $pile');
+              final gameState = context.read<GameState>();
+
+              switch (pile) {
+                case Draw():
+                  _feedbackMoveResult(gameState
+                      .tryMove(MoveIntent(const Draw(), const Discard())));
+                  return true;
+
+                case Discard() || Foundation():
+                  if (cards(pile).isNotEmpty) {
+                    final cardToMove = cards(pile).last;
+                    final result = _feedbackMoveResult(
+                        gameState.tryQuickPlace(cardToMove, pile));
+                    return result is MoveSuccess;
+                  }
+                case _:
+              }
+              return false;
+            },
+            onCardDrop: (card, from, to) {
+              print('dropping card $card from $from to $to');
+              final gameState = context.read<GameState>();
+
+              final result = _feedbackMoveResult(
+                gameState.tryMove(
+                  MoveIntent(from, to, card),
+                ),
+              );
+              return result is MoveSuccess;
+            },
+          ),
+          const Positioned.fill(
+            child: _UserActionIndicator(),
+          ),
+          const Positioned.fill(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: _AutoSolveButton(),
+            ),
+          )
+        ],
+      );
+    });
+  }
+
+  MoveResult _feedbackMoveResult(MoveResult result) {
+    if (result is MoveSuccess) {
+      switch (result.move.to) {
+        case Discard():
+          HapticFeedback.lightImpact();
+        case Tableau():
+          HapticFeedback.mediumImpact();
+        case Draw() || Foundation():
+          HapticFeedback.heavyImpact();
+      }
+    }
+    return result;
+  }
+}
+
+class _UserActionIndicator extends StatelessWidget {
+  const _UserActionIndicator({super.key});
+
+  static const userActionIcon = {
+    UserAction.undoMultiple: Icons.fast_rewind,
+    UserAction.redoMultiple: Icons.fast_forward,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final userAction =
+        context.select<GameState, UserAction?>((s) => s.userAction);
+
+    return AnimatedSwitcher(
+      duration: cardMoveAnimation.duration,
+      child: userAction != null
+          ? Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                color: colorScheme.onSecondaryFixed.withOpacity(0.5),
+              ),
+              child: Icon(userActionIcon[userAction],
+                  size: 72, color: colorScheme.secondaryFixed),
+            )
+          : null,
+    );
+  }
+}
+
+class _AutoSolveButton extends StatefulWidget {
+  const _AutoSolveButton({super.key});
+
+  @override
+  State<_AutoSolveButton> createState() => _AutoSolveButtonState();
+}
+
+class _AutoSolveButtonState extends State<_AutoSolveButton> {
+  @override
+  Widget build(BuildContext context) {
+    final canAutoSolve = context.select<GameState, bool>((s) => s.canAutoSolve);
+    final status = context.select<GameState, GameStatus>((s) => s.status);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Shrinkable(
+      show: canAutoSolve && status != GameStatus.autoSolving,
+      child: FloatingActionButton.extended(
+        backgroundColor: colorScheme.secondary,
+        foregroundColor: colorScheme.onSecondary,
+        onPressed: () {
+          context.read<GameState>().startAutoSolve();
+        },
+        icon: const Icon(Icons.auto_fix_high),
+        label: const Text('Auto solve'),
       ),
     );
   }

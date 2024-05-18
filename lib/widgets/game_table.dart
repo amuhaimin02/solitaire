@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../animations.dart';
@@ -15,6 +14,7 @@ import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
 import '../providers/settings.dart';
+import '../utils/debug.dart';
 import 'card_marker.dart';
 import 'card_view.dart';
 import 'shakeable.dart';
@@ -22,60 +22,83 @@ import 'shrinkable.dart';
 import 'ticking_number.dart';
 
 class GameTable extends StatelessWidget {
-  const GameTable({super.key, this.interactive = true});
+  const GameTable({
+    super.key,
+    required this.layout,
+    required this.cards,
+    this.interactive = true,
+    this.onCardTap,
+    this.onCardDrop,
+    this.onPileTap,
+    this.highlightedCards,
+    this.lastMovedCards,
+    this.animatedDistribute = false,
+  });
+
+  final Layout layout;
+
+  final bool Function(PlayCard card, Pile pile)? onCardTap;
+
+  final bool Function(Pile pile)? onPileTap;
+  final bool Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
   final bool interactive;
 
+  final PlayCards cards;
+
+  final PlayCardList? highlightedCards;
+
+  final PlayCardList? lastMovedCards;
+
+  final bool animatedDistribute;
+
   @override
   Widget build(BuildContext context) {
+    const cardUnitSize = Size(2.5, 3.5);
+
     return IgnorePointer(
       ignoring: !interactive,
-      child: OrientationBuilder(
-        builder: (context, orientation) {
-          final gameRules =
-              context.select<GameState, SolitaireRules>((s) => s.rules);
-          final status = context.select<GameState, GameStatus>((s) => s.status);
+      child: AspectRatio(
+        aspectRatio: (layout.gridSize.width * cardUnitSize.width) /
+            (layout.gridSize.height * cardUnitSize.height),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final gridUnit = Size(
+              constraints.minWidth / layout.gridSize.width,
+              constraints.minHeight / layout.gridSize.height,
+            );
 
-          const cardUnitSize = Size(2.5, 3.5);
-
-          final options = LayoutOptions(
-            orientation: orientation,
-            mirror: false,
-          );
-
-          final tableLayout = gameRules.getLayout(options);
-
-          return AspectRatio(
-            aspectRatio: (tableLayout.gridSize.width * cardUnitSize.width) /
-                (tableLayout.gridSize.height * cardUnitSize.height),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final gridUnit = Size(
-                  constraints.minWidth / tableLayout.gridSize.width,
-                  constraints.minHeight / tableLayout.gridSize.height,
-                );
-
-                return ProxyProvider0<GameLayout>(
-                  update: (context, obj) => GameLayout(
-                    gridUnit: gridUnit,
-                    cardPadding: gridUnit.shortestSide * 0.06,
-                    maxStackGap: const Offset(0.3, 0.3),
-                    orientation: orientation,
+            return ProxyProvider0<GameLayout>(
+              update: (context, obj) => GameLayout(
+                gridUnit: gridUnit,
+                cardPadding: gridUnit.shortestSide * 0.06,
+                maxStackGap: const Offset(0.3, 0.3),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _MarkerLayer(layout: layout),
+                  _CardLayer(
+                    layout: layout,
+                    cards: cards,
+                    onCardTap: onCardTap,
+                    onPileTap: onPileTap,
+                    onCardDrop: onCardDrop,
+                    highlightedCards: highlightedCards,
+                    lastMovedCards: lastMovedCards,
+                    animatedDistribute: animatedDistribute,
                   ),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _MarkerLayer(layout: tableLayout),
-                      _CardLayer(layout: tableLayout),
-                      _OverlayLayer(layout: tableLayout),
-                      // Text(status.toString()),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        },
+                  if (interactive)
+                    _OverlayLayer(
+                      layout: layout,
+                      cards: cards,
+                    ),
+                  // Text(status.toString()),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -92,7 +115,6 @@ class _CountIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final layout = context.watch<GameLayout>();
-    final isPreparing = context.select<GameState, bool>((s) => s.isPreparing);
 
     final size = layout.gridUnit.shortestSide;
 
@@ -101,7 +123,7 @@ class _CountIndicator extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Shrinkable(
-          show: !isPreparing && count > 0,
+          show: count > 0,
           alignment: Alignment.bottomCenter,
           child: Container(
             width: size * 0.45,
@@ -136,9 +158,10 @@ class _CardWidget extends StatelessWidget {
     required this.isMoving,
     required this.card,
     required this.layout,
-    required this.getPile,
+    required this.cardsInPile,
     this.onTouch,
     this.onTap,
+    this.highlightColor,
   });
 
   static const cardShowThreshold = 3;
@@ -153,17 +176,17 @@ class _CardWidget extends StatelessWidget {
 
   final LayoutItem layout;
 
-  final PileGetter getPile;
+  final PlayCardList cardsInPile;
 
   final VoidCallback? onTouch;
   final VoidCallback? onTap;
 
+  final Color? highlightColor;
+
   @override
   Widget build(BuildContext context) {
-    final cardsInPile = getPile(layout.kind);
     final cardPileLength = cardsInPile.length;
     final cardIndex = cardsInPile.indexOf(card);
-    final colorScheme = Theme.of(context).colorScheme;
 
     final double elevation;
     final bool hideFace;
@@ -183,27 +206,6 @@ class _CardWidget extends StatelessWidget {
       }
       hideFace = cardLimit != null &&
           cardIndex < cardPileLength - cardLimit - cardShowThreshold;
-    }
-
-    final latestAction =
-        context.select<GameState, Action?>((s) => s.latestAction);
-
-    final showMoveHighlight = context.select<SettingsManager, bool>(
-        (s) => s.get(Settings.showMoveHighlight));
-
-    final hintedCards =
-        context.select<GameState, PlayCardList?>((s) => s.hintedCards);
-
-    Color? highlightColor;
-
-    if (hintedCards?.contains(card) == true) {
-      highlightColor = colorScheme.error;
-    } else if (showMoveHighlight &&
-        latestAction is Move &&
-        latestAction.from is! Draw &&
-        latestAction.to is! Draw &&
-        latestAction.cards.contains(card)) {
-      highlightColor = colorScheme.secondary;
     }
 
     return GestureDetector(
@@ -268,9 +270,30 @@ class _MarkerLayer extends StatelessWidget {
 }
 
 class _CardLayer extends StatefulWidget {
-  const _CardLayer({super.key, required this.layout});
+  const _CardLayer({
+    super.key,
+    required this.cards,
+    required this.layout,
+    this.onCardTap,
+    this.onCardDrop,
+    this.onPileTap,
+    this.highlightedCards,
+    this.lastMovedCards,
+    this.animatedDistribute = false,
+  });
+
+  final PlayCards cards;
+  final bool Function(PlayCard card, Pile pile)? onCardTap;
+  final bool Function(Pile pile)? onPileTap;
+  final bool Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+
+  final PlayCardList? highlightedCards;
+
+  final PlayCardList? lastMovedCards;
 
   final Layout layout;
+
+  final bool animatedDistribute;
 
   @override
   State<_CardLayer> createState() => _CardLayerState();
@@ -287,7 +310,6 @@ class _CardLayerState extends State<_CardLayer> {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameState>();
     final gameLayout = context.watch<GameLayout>();
 
     void onPointerCancel() {
@@ -321,12 +343,11 @@ class _CardLayerState extends State<_CardLayer> {
         if (_touchingCards != null &&
             _touchingCardPile != null &&
             _touchingCardPile != dropRegion.kind) {
-          _feedbackMoveResult(
-            gameState.tryMove(
-              MoveIntent(
-                  _touchingCardPile!, dropRegion.kind, _touchingCards!.first),
-            ),
-          );
+          final handled = widget.onCardDrop?.call(
+              _touchingCards!.first, _touchingCardPile!, dropRegion.kind);
+          if (handled == false) {
+            _shakeCard(_touchingCards!.first);
+          }
         } else {
           // Register as a normal tap (typically when user taps a tableau region not covered by cards)
           _onPileTap(context, dropRegion.kind);
@@ -351,12 +372,8 @@ class _CardLayerState extends State<_CardLayer> {
 
       // TODO: Using card as keys to determine widget owner
       // Move recently moved cards on top of render stack
-      final recentAction = gameState.latestAction;
-      final recentlyMovedCards =
-          recentAction is Move ? recentAction.cards : null;
-
-      for (final widget in cardWidgets) {
-        final key = widget.key;
+      for (final w in cardWidgets) {
+        final key = w.key;
         if (key is! ValueKey<PlayCard>) {
           throw ArgumentError(
               'Card widgets should have a ValueKey containing a PlayCard instance');
@@ -364,11 +381,11 @@ class _CardLayerState extends State<_CardLayer> {
         final card = key.value;
 
         if (_touchingCards?.contains(card) == true) {
-          touchedWidgets.add(widget);
-        } else if (recentlyMovedCards?.contains(card) == true) {
-          recentlyMovedWidgets.add(widget);
+          touchedWidgets.add(w);
+        } else if (widget.lastMovedCards?.contains(card) == true) {
+          recentlyMovedWidgets.add(w);
         } else {
-          remainingWidgets.add(widget);
+          remainingWidgets.add(w);
         }
       }
 
@@ -397,7 +414,7 @@ class _CardLayerState extends State<_CardLayer> {
 
   List<Widget> _buildPile(BuildContext context, LayoutItem item) {
     final layout = context.watch<GameLayout>();
-    final gameState = context.watch<GameState>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
@@ -471,23 +488,32 @@ class _CardLayerState extends State<_CardLayer> {
       );
     }
 
-    PlayCardList cards = gameState.pile(item.kind);
+    PlayCardList cards = [];
+
+    cards = widget.cards(item.kind);
 
     DurationCurve computeAnimation(int cardIndex) {
-      if (gameState.status == GameStatus.initiializing) {
-        return const DurationCurve(Duration(milliseconds: 1), Curves.linear);
-      }
-
       if (_lastTouchPoint != null) {
         return cardDragAnimation;
-      } else if (item.kind is Tableau && gameState.isPreparing) {
+      } else if (widget.animatedDistribute && item.kind is Tableau) {
         final tableau = item.kind as Tableau;
         final delayFactor = cardMoveAnimation.duration * 0.3;
+        // return cardMoveAnimation.timeScaled(10);
+
         return cardMoveAnimation
             .delayed(delayFactor * (tableau.index + cardIndex));
       } else {
         return cardMoveAnimation;
       }
+    }
+
+    Color? highlightCardColor(PlayCard card) {
+      if (widget.highlightedCards?.contains(card) == true) {
+        return colorScheme.error;
+      } else if (widget.lastMovedCards?.contains(card) == true) {
+        return colorScheme.secondary;
+      }
+      return null;
     }
 
     switch (item.stackDirection) {
@@ -508,7 +534,8 @@ class _CardLayerState extends State<_CardLayer> {
                   onTouch: () => _onCardTouch(context, card, item.kind),
                   card: card,
                   layout: item,
-                  getPile: gameState.pile,
+                  cardsInPile: widget.cards(item.kind),
+                  highlightColor: highlightCardColor(card),
                 ),
               ),
         ];
@@ -544,7 +571,8 @@ class _CardLayerState extends State<_CardLayer> {
                 onTap: () => _onCardTap(context, card, item.kind),
                 card: card,
                 layout: item,
-                getPile: gameState.pile,
+                cardsInPile: widget.cards(item.kind),
+                highlightColor: highlightCardColor(card),
               ),
             ),
         ];
@@ -556,15 +584,13 @@ class _CardLayerState extends State<_CardLayer> {
   }
 
   void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {
-    final gameState = context.read<GameState>();
-
     _touchingCardPile = originPile;
 
     if (originPile is Tableau) {
-      _touchingCards = gameState.pile(originPile).getUntilLast(card);
+      _touchingCards = widget.cards(originPile).getUntilLast(card);
     } else if (originPile is Discard) {
       // Always pick top most card regardless of visibility
-      final topmostCard = gameState.pile(originPile).lastOrNull;
+      final topmostCard = widget.cards(originPile).lastOrNull;
       _touchingCards = [topmostCard!];
     } else {
       _touchingCards = [card];
@@ -572,65 +598,14 @@ class _CardLayerState extends State<_CardLayer> {
   }
 
   void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
-    print('card tap! $card at $pile');
-
-    final gameState = context.read<GameState>();
-
-    switch (pile) {
-      case Tableau():
-        _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
-        return;
-      case _:
-      // noop
+    final handled = widget.onCardTap?.call(card, pile);
+    if (handled == false) {
+      _shakeCard(card);
     }
-
-    // _onPileTap(context, pile);
   }
 
   void _onPileTap(BuildContext context, Pile pile) {
-    print('pile tap! $pile');
-
-    final gameState = context.read<GameState>();
-
-    switch (pile) {
-      case Draw():
-        _feedbackMoveResult(
-            gameState.tryMove(MoveIntent(const Draw(), const Discard())));
-
-      case Discard() || Foundation():
-        if (gameState.pile(pile).isNotEmpty) {
-          final cardToMove = gameState.pile(pile).last;
-          _feedbackMoveResult(gameState.tryQuickPlace(cardToMove, pile));
-        }
-      case _:
-      // noop
-    }
-  }
-
-  MoveResult _feedbackMoveResult(
-    MoveResult result, {
-    bool shakeOnError = true,
-  }) {
-    switch (result) {
-      case MoveSuccess():
-        switch (result.move.to) {
-          case Discard():
-            HapticFeedback.lightImpact();
-          case Tableau():
-            HapticFeedback.mediumImpact();
-          case Draw() || Foundation():
-            HapticFeedback.heavyImpact();
-        }
-      case MoveNotDone():
-        if (shakeOnError) {
-          _shakeCard(result.card);
-        }
-      case MoveForbidden():
-        if (shakeOnError) {
-          _shakeCard(result.move.card);
-        }
-    }
-    return result;
+    widget.onPileTap?.call(pile);
   }
 
   void _shakeCard(PlayCard? card) {
@@ -652,16 +627,16 @@ class _CardLayerState extends State<_CardLayer> {
 }
 
 class _OverlayLayer extends StatelessWidget {
-  const _OverlayLayer({super.key, required this.layout});
+  const _OverlayLayer({super.key, required this.layout, this.cards});
 
   final Layout layout;
+
+  final PlayCards? cards;
 
   @override
   Widget build(BuildContext context) {
     final gameLayout = context.watch<GameLayout>();
     final gridUnit = gameLayout.gridUnit;
-    final gameState = context.watch<GameState>();
-    final colorScheme = Theme.of(context).colorScheme;
 
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
@@ -679,80 +654,13 @@ class _OverlayLayer extends StatelessWidget {
             Positioned.fromRect(
               rect: measure(
                   Rect.fromLTWH(item.region.left, item.region.top, 1, 1)),
-              child: _CountIndicator(count: gameState.pile(item.kind).length),
+              child: _CountIndicator(count: cards!(item.kind).length),
             ),
-        Center(
-          child: _UserActionIndicator(userAction: gameState.userAction),
-        ),
-        const Align(
-          alignment: Alignment.bottomCenter,
-          child: _AutoSolveButton(),
-        )
       ],
     );
   }
 }
 
-class _UserActionIndicator extends StatelessWidget {
-  const _UserActionIndicator({super.key, this.userAction});
-
-  final UserAction? userAction;
-
-  static const userActionIcon = {
-    UserAction.undoMultiple: Icons.fast_rewind,
-    UserAction.redoMultiple: Icons.fast_forward,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return AnimatedSwitcher(
-      duration: cardMoveAnimation.duration,
-      child: userAction != null
-          ? Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
-                color: colorScheme.onSecondaryFixed.withOpacity(0.5),
-              ),
-              child: Icon(userActionIcon[userAction],
-                  size: 72, color: colorScheme.secondaryFixed),
-            )
-          : null,
-    );
-  }
-}
-
-class _AutoSolveButton extends StatefulWidget {
-  const _AutoSolveButton({super.key});
-
-  @override
-  State<_AutoSolveButton> createState() => _AutoSolveButtonState();
-}
-
-class _AutoSolveButtonState extends State<_AutoSolveButton> {
-  @override
-  Widget build(BuildContext context) {
-    final canAutoSolve = context.select<GameState, bool>((s) => s.canAutoSolve);
-    final status = context.select<GameState, GameStatus>((s) => s.status);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Shrinkable(
-      show: canAutoSolve && status != GameStatus.autoSolving,
-      child: FloatingActionButton.extended(
-        backgroundColor: colorScheme.secondary,
-        foregroundColor: colorScheme.onSecondary,
-        onPressed: () {
-          context.read<GameState>().startAutoSolve();
-        },
-        icon: const Icon(Icons.auto_fix_high),
-        label: const Text('Auto solve'),
-      ),
-    );
-  }
-}
-
-//
 // class _CardDragOverlay extends StatefulWidget {
 //   const _CardDragOverlay({
 //     super.key,

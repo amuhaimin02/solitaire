@@ -1,5 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
+import '../models/card.dart';
+import '../models/pile.dart';
+import '../models/rules/klondike.dart';
+import '../models/rules/rules.dart';
 import '../widgets/game_table.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -9,6 +15,13 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final rules = Klondike();
+
+    final cards = PlayCards.fromRules(rules);
+    cards(const Draw()).addAll(rules.prepareDrawPile(Random()).allFaceDown);
+
+    rules.setup(cards);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: GestureDetector(
@@ -26,8 +39,17 @@ class HomeScreen extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints:
                       const BoxConstraints(maxWidth: 400, maxHeight: 400),
-                  child: const Center(
-                    child: GameTable(interactive: false),
+                  child: Center(
+                    child: GameTable(
+                      interactive: false,
+                      layout: rules.getLayout(
+                        LayoutOptions(
+                          orientation: Orientation.portrait,
+                          mirror: false,
+                        ),
+                      ),
+                      cards: cards,
+                    ),
                   ),
                 ),
               ),

@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 
+import '../utils/lists.dart';
 import 'card.dart';
+import 'rules/rules.dart';
 
 sealed class Pile {
   const Pile();
@@ -13,18 +15,36 @@ class Draw extends Pile {
 
   @override
   String toString() => "Draw";
+
+  @override
+  bool operator ==(Object other) => other is Draw;
+
+  @override
+  int get hashCode => 0;
 }
 
 class Discard extends Pile {
   const Discard();
   @override
   String toString() => "Discard";
+
+  @override
+  bool operator ==(Object other) => other is Discard;
+
+  @override
+  int get hashCode => 0;
 }
 
 class Foundation extends Pile {
   final int index;
 
   const Foundation(this.index);
+
+  @override
+  bool operator ==(Object other) => other is Foundation && other.index == index;
+
+  @override
+  int get hashCode => Object.hash(index, null);
 
   @override
   String toString() => "Foundation($index)";
@@ -34,6 +54,12 @@ class Tableau extends Pile {
   final int index;
 
   const Tableau(this.index);
+
+  @override
+  bool operator ==(Object other) => other is Tableau && other.index == index;
+
+  @override
+  int get hashCode => Object.hash(index, null);
 
   @override
   String toString() => "Tableau($index)";
@@ -103,8 +129,6 @@ class GameStart extends Action {
   @override
   String toString() => 'GameStart';
 }
-
-typedef PileGetter = PlayCardList Function(Pile pile);
 
 typedef PlayCardList = List<PlayCard>;
 
@@ -177,3 +201,25 @@ class PlayCardGenerator {
 }
 
 enum AutoMoveLevel { off, onDraw, full }
+
+class PlayCards {
+  final Map<Pile, PlayCardList> _cards;
+
+  const PlayCards(this._cards);
+
+  factory PlayCards.fromRules(SolitaireRules rules) {
+    return PlayCards({
+      for (final pile in rules.getLayout().items) pile.kind: [],
+    });
+  }
+
+  PlayCardList call(Pile pile) {
+    return _cards[pile] ?? [];
+  }
+
+  PlayCards copy() {
+    return PlayCards({
+      for (final pile in _cards.keys) pile: _cards[pile]!.copy(),
+    });
+  }
+}

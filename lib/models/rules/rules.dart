@@ -12,23 +12,23 @@ abstract class SolitaireRules {
 
   int get drawsPerTurn;
 
-  Layout getLayout(LayoutOptions options);
+  Layout getLayout([LayoutOptions? options]);
 
   PlayCardList prepareDrawPile(Random random);
 
-  void setup(PileGetter pile);
+  void setup(PlayCards cards);
 
-  bool winConditions(PileGetter pile);
+  bool winConditions(PlayCards cards);
 
   bool canPick(PlayCardList cards, Pile from);
 
-  bool canPlace(PlayCardList cards, Pile target, PileGetter pile);
+  bool canPlace(PlayCardList cards, Pile target, PlayCardList cardsOnTable);
 
-  bool canAutoSolve(PileGetter pile);
+  bool canAutoSolve(PlayCards cards);
 
-  Iterable<MoveIntent> autoMoveStrategy(AutoMoveLevel level, PileGetter pile);
+  Iterable<MoveIntent> autoMoveStrategy(AutoMoveLevel level, PlayCards cards);
 
-  Iterable<MoveIntent> autoSolveStrategy(PileGetter pile);
+  Iterable<MoveIntent> autoSolveStrategy(PlayCards cards);
 
   int determineScoreForMove(int currentScore, Move move);
 

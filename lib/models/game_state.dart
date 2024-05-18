@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 
 import '../animations.dart';
 import '../utils/iterators.dart';
-import '../utils/lists.dart';
 import '../utils/prng.dart';
 import 'card.dart';
 import 'pile.dart';
@@ -26,14 +25,6 @@ enum UserAction { undoMultiple, redoMultiple }
 class GameState extends ChangeNotifier {
   late String _gameSeed;
 
-  late PlayCardList _drawPile;
-
-  late List<PlayCardList> _foundationPile;
-
-  late PlayCardList _discardPile;
-
-  late List<PlayCardList> _tableauPile;
-
   late SolitaireRules rules = Klondike();
 
   late GameStatus _status;
@@ -53,6 +44,8 @@ class GameState extends ChangeNotifier {
   late bool _canAutoSolve;
 
   PlayCardList? _hintedCards;
+
+  late PlayCards _cards;
 
   AutoMoveLevel _autoMoveLevel = AutoMoveLevel.off;
 
@@ -165,40 +158,35 @@ class GameState extends ChangeNotifier {
 
     _updateHistory(GameStart());
 
-    _drawPile = [
-      const PlayCard(Suit.club, Value.four).faceDown(),
-      const PlayCard(Suit.heart, Value.four).faceDown(),
-      const PlayCard(Suit.spade, Value.four).faceDown(),
-      const PlayCard(Suit.heart, Value.five).faceDown(),
-      const PlayCard(Suit.club, Value.five).faceDown(),
-      const PlayCard(Suit.club, Value.six).faceDown(),
-      const PlayCard(Suit.club, Value.two).faceDown(),
-    ];
-    _discardPile = [];
-    _foundationPile = [
-      [const PlayCard(Suit.heart, Value.ace)],
-      [const PlayCard(Suit.spade, Value.ace)],
-      [const PlayCard(Suit.diamond, Value.ace)],
-      [const PlayCard(Suit.club, Value.ace)]
-    ];
-    _tableauPile = [
-      [
-        const PlayCard(Suit.heart, Value.three),
-        const PlayCard(Suit.heart, Value.two),
+    _cards = PlayCards({
+      const Draw(): [
+        const PlayCard(Suit.club, Value.four).faceDown(),
+        const PlayCard(Suit.heart, Value.four).faceDown(),
+        const PlayCard(Suit.spade, Value.four).faceDown(),
+        const PlayCard(Suit.heart, Value.five).faceDown(),
+        const PlayCard(Suit.club, Value.five).faceDown(),
+        const PlayCard(Suit.club, Value.six).faceDown(),
+        const PlayCard(Suit.club, Value.two).faceDown(),
       ],
-      [
+      const Discard(): [],
+      const Foundation(0): [const PlayCard(Suit.heart, Value.ace)],
+      const Foundation(1): [const PlayCard(Suit.diamond, Value.ace)],
+      const Foundation(2): [const PlayCard(Suit.club, Value.ace)],
+      const Foundation(3): [const PlayCard(Suit.spade, Value.ace)],
+      const Tableau(0): [
+        const PlayCard(Suit.heart, Value.three),
+        const PlayCard(Suit.heart, Value.two)
+      ],
+      const Tableau(1): [
         const PlayCard(Suit.spade, Value.three),
         const PlayCard(Suit.spade, Value.two),
       ],
-      [
+      const Tableau(2): [
         const PlayCard(Suit.diamond, Value.three),
         const PlayCard(Suit.diamond, Value.two),
       ],
-      [const PlayCard(Suit.club, Value.three)],
-      [],
-      [],
-      []
-    ];
+      const Tableau(3): [const PlayCard(Suit.club, Value.three)],
+    });
 
     notifyListeners();
   }
@@ -220,41 +208,37 @@ class GameState extends ChangeNotifier {
 
   void _setupPiles() {
     // Clear up tables, and set up new draw pile
-    _drawPile = rules.prepareDrawPile(CustomPRNG.create(_gameSeed)).allFaceDown;
-    _foundationPile = List.generate(Suit.values.length, (index) => []);
-    _discardPile = [];
-    _tableauPile = List.generate(rules.numberOfTableauPiles, (index) => []);
+    _cards = PlayCards({
+      const Draw():
+          rules.prepareDrawPile(CustomPRNG.create(_gameSeed)).allFaceDown,
+      const Discard(): [],
+      for (int i = 0; i < rules.numberOfFoundationPiles; i++) Foundation(i): [],
+      for (int i = 0; i < rules.numberOfTableauPiles; i++) Tableau(i): [],
+    });
   }
 
   void _distributeCards() {
-    rules.setup(pile);
+    rules.setup(_cards);
   }
 
   void testDistributeToOtherPiles() {
     for (int i = 0; i < rules.numberOfFoundationPiles; i++) {
       for (int j = 0; i < j; j++) {
-        pile(Foundation(i)).add(pile(const Draw()).removeLast().faceUp());
+        _cards(Foundation(i)).add(_cards(const Draw()).removeLast().faceUp());
       }
     }
     for (int i = 0; i < 7; i++) {
-      pile(const Discard()).add(pile(const Draw()).removeLast().faceUp());
+      _cards(const Discard()).add(_cards(const Draw()).removeLast().faceUp());
     }
   }
 
-  PlayCardList pile(Pile pile) {
-    return switch (pile) {
-      Draw() => _drawPile,
-      Discard() => _discardPile,
-      Foundation(index: var index) => _foundationPile[index],
-      Tableau(index: var index) => _tableauPile[index],
-    };
-  }
+  PlayCards get cardsOnTable => _cards;
 
   Move _doMoveCards(Move move) {
     try {
       final cardsInHand = move.cards;
 
-      final cardsOnTable = pile(move.from);
+      final cardsOnTable = _cards(move.from);
 
       // Check and remove cards from source pile to hand
       cardsOnTable.removeRange(
@@ -268,7 +252,7 @@ class GameState extends ChangeNotifier {
       }
 
       // Move all cards on hand to target pile
-      pile(move.to).addAll(cardsInHand);
+      _cards(move.to).addAll(cardsInHand);
 
       _hintedCards = null;
 
@@ -280,7 +264,8 @@ class GameState extends ChangeNotifier {
 
       _isUndoing = false;
 
-      if (_autoMoveLevel != AutoMoveLevel.off) {
+      if (_status != GameStatus.autoSolving &&
+          _autoMoveLevel != AutoMoveLevel.off) {
         _doAutoMove();
       }
     } catch (e) {
@@ -301,11 +286,11 @@ class GameState extends ChangeNotifier {
               'cannot move cards from draw pile to pile other than discard',
               move);
         }
-        final cardsInDrawPile = pile(const Draw());
+        final cardsInDrawPile = _cards(const Draw());
 
         if (cardsInDrawPile.isEmpty) {
           // Try to refresh draw pile
-          final cardsInDiscardPile = pile(const Discard());
+          final cardsInDiscardPile = _cards(const Discard());
 
           if (cardsInDiscardPile.isEmpty) {
             return MoveNotDone("No cards to refresh", null, move.from);
@@ -335,7 +320,7 @@ class GameState extends ChangeNotifier {
           return MoveForbidden('cannot move cards back to its pile', move);
         }
         final cardToMove = move.card;
-        final cardsInPile = pile(move.from);
+        final cardsInPile = _cards(move.from);
 
         final PlayCardList cardsToPick;
 
@@ -359,7 +344,7 @@ class GameState extends ChangeNotifier {
           return MoveForbidden(
               'cannot pick the card(s) $cardsToPick from ${move.from}', move);
         }
-        if (!rules.canPlace(cardsToPick, move.to, pile)) {
+        if (!rules.canPlace(cardsToPick, move.to, _cards(move.to))) {
           return MoveForbidden(
               'cannot place the card(s) $cardsToPick on ${move.to}', move);
         }
@@ -377,7 +362,8 @@ class GameState extends ChangeNotifier {
   MoveResult tryQuickPlace(PlayCard card, Pile from, {bool doMove = true}) {
     final cardsInHand = switch (from) {
       Tableau() || Foundation() => [
-          ...pile(from).getRange(pile(from).indexOf(card), pile(from).length)
+          ..._cards(from)
+              .getRange(_cards(from).indexOf(card), _cards(from).length)
         ],
       Draw() || Discard() => [card],
     };
@@ -451,18 +437,18 @@ class GameState extends ChangeNotifier {
 
   Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {
     for (final t in rules.allTableaus) {
-      for (final c in pile(t)) {
+      for (final c in _cards(t)) {
         yield (c, t);
       }
     }
     for (final f in rules.allFoundations) {
-      if (pile(f).isNotEmpty) {
-        yield (pile(f).last, f);
+      if (_cards(f).isNotEmpty) {
+        yield (_cards(f).last, f);
       }
     }
 
-    if (pile(const Discard()).isNotEmpty) {
-      yield (pile(const Discard()).last, const Discard());
+    if (_cards(const Discard()).isNotEmpty) {
+      yield (_cards(const Discard()).last, const Discard());
     }
   }
 
@@ -478,7 +464,7 @@ class GameState extends ChangeNotifier {
       }
     }
     if (movableCards.isEmpty) {
-      final drawPile = pile(const Draw());
+      final drawPile = _cards(const Draw());
       if (drawPile.isNotEmpty) {
         movableCards.add(drawPile.last);
       }
@@ -503,7 +489,7 @@ class GameState extends ChangeNotifier {
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
-      for (final move in rules.autoMoveStrategy(_autoMoveLevel, pile)) {
+      for (final move in rules.autoMoveStrategy(_autoMoveLevel, _cards)) {
         final result = tryMove(move);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
@@ -528,7 +514,7 @@ class GameState extends ChangeNotifier {
 
     do {
       handled = false;
-      for (final move in rules.autoSolveStrategy(pile)) {
+      for (final move in rules.autoSolveStrategy(_cards)) {
         final result = tryMove(move);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
@@ -550,10 +536,7 @@ class GameState extends ChangeNotifier {
     }
 
     final newHistory = GameHistory(
-      _drawPile.copy(),
-      _discardPile.copy(),
-      _tableauPile.copy(),
-      _foundationPile.copy(),
+      _cards.copy(),
       recentAction,
     );
 
@@ -563,34 +546,25 @@ class GameState extends ChangeNotifier {
   void _restoreFromHistory(int historyIndex) {
     final history = _history[historyIndex];
 
-    _drawPile = history.drawPile.copy();
-    _discardPile = history.discardPile.copy();
-    _tableauPile = history.tableauPile.copy();
-    _foundationPile = history.foundationPile.copy();
+    _cards = history.cards.copy();
   }
 
   void _postCheckAfterPlacement() {
-    final isWinning = rules.winConditions(pile);
+    final isWinning = rules.winConditions(_cards);
     if (isWinning) {
       _status = GameStatus.ended;
       _stopWatch.stop();
     }
-    _canAutoSolve = !isWinning && rules.canAutoSolve(pile);
+    _canAutoSolve = !isWinning && rules.canAutoSolve(_cards);
   }
 }
 
 class GameHistory {
   GameHistory(
-    this.drawPile,
-    this.discardPile,
-    this.tableauPile,
-    this.foundationPile,
+    this.cards,
     this.action,
   );
 
-  final PlayCardList drawPile;
-  final PlayCardList discardPile;
-  final List<PlayCardList> tableauPile;
-  final List<PlayCardList> foundationPile;
+  final PlayCards cards;
   final Action action;
 }

@@ -16,6 +16,15 @@ class DurationCurve {
           curve: curve),
     );
   }
+
+  DurationCurve timeScaled(double slowFactor) {
+    return DurationCurve(duration * slowFactor, curve);
+  }
+
+  @override
+  String toString() {
+    return "DurationCurve($duration, $curve)";
+  }
 }
 
 const cardMoveAnimation =

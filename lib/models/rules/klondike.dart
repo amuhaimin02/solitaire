@@ -18,9 +18,9 @@ class Klondike extends SolitaireRules {
   int get drawsPerTurn => 1;
 
   @override
-  Layout getLayout(LayoutOptions options) {
-    switch (options.orientation) {
-      case Orientation.portrait:
+  Layout getLayout([LayoutOptions? options]) {
+    switch (options?.orientation) {
+      case Orientation.portrait || null:
         return Layout(
           gridSize: const Size(7, 6),
           items: [
@@ -86,21 +86,21 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  void setup(PileGetter pile) {
+  void setup(PlayCards cards) {
     for (final t in allTableaus.cast<Tableau>()) {
-      final tableau = pile(t);
-      final cards = pile(const Draw()).pickLast(t.index + 1);
-      cards.last = cards.last.faceUp();
+      final tableau = cards(t);
+      final c = cards(const Draw()).pickLast(t.index + 1);
+      c.last = c.last.faceUp();
 
-      tableau.addAll(cards);
+      tableau.addAll(c);
     }
   }
 
   @override
-  bool winConditions(PileGetter pile) {
-    return pile(const Draw()).isEmpty &&
-        pile(const Discard()).isEmpty &&
-        allTableaus.every((t) => pile(t).isEmpty);
+  bool winConditions(PlayCards cards) {
+    return cards(const Draw()).isEmpty &&
+        cards(const Discard()).isEmpty &&
+        allTableaus.every((t) => cards(t).isEmpty);
     // Easiest way to check is to ensure all cards are already in foundation pile
     // return Iterable.generate(numberOfFoundationPiles,
     //         (f) => state.pile(Foundation(f)).length).sum ==
@@ -124,9 +124,7 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  bool canPlace(PlayCardList cards, Pile target, PileGetter pile) {
-    final cardsInPile = pile(target);
-
+  bool canPlace(PlayCardList cards, Pile target, PlayCardList cardsOnTable) {
     switch (target) {
       case Foundation():
         // Cannot move more than one cards all at once to foundation pile
@@ -136,11 +134,11 @@ class Klondike extends SolitaireRules {
 
         final card = cards.single;
 
-        if (cardsInPile.isEmpty) {
+        if (cardsOnTable.isEmpty) {
           return card.value == Value.ace;
         }
 
-        final topmostCard = cardsInPile.last;
+        final topmostCard = cardsOnTable.last;
 
         // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
         return card.isFacingUp &&
@@ -149,11 +147,11 @@ class Klondike extends SolitaireRules {
 
       case Tableau():
         // If column is empty, only King or card group starting with King can be placed
-        if (cardsInPile.isEmpty) {
+        if (cardsOnTable.isEmpty) {
           return cards.first.value == Value.king;
         }
 
-        final topmostCard = cardsInPile.last;
+        final topmostCard = cardsOnTable.last;
 
         // Card on top of each other should follow ranks in decreasing order,
         // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
@@ -169,9 +167,9 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  bool canAutoSolve(PileGetter pile) {
+  bool canAutoSolve(PlayCards cards) {
     for (final t in allTableaus) {
-      final tableau = pile(t);
+      final tableau = cards(t);
       if (tableau.isNotEmpty && !tableau.isAllFacingUp) {
         return false;
       }
@@ -181,8 +179,8 @@ class Klondike extends SolitaireRules {
 
   @override
   Iterable<MoveIntent> autoMoveStrategy(
-      AutoMoveLevel level, PileGetter pile) sync* {
-    final discard = pile(const Discard());
+      AutoMoveLevel level, PlayCards cards) sync* {
+    final discard = cards(const Discard());
     if (discard.isNotEmpty) {
       for (final t in allTableaus) {
         for (final f in allFoundations) {
@@ -201,12 +199,12 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  Iterable<MoveIntent> autoSolveStrategy(PileGetter pile) sync* {
+  Iterable<MoveIntent> autoSolveStrategy(PlayCards cards) sync* {
     // Try moving cards from tableau to foundation
     for (final t in allTableaus) {
       for (final f in allFoundations) {
         yield MoveIntent(t, f);
-        final discard = pile(const Discard());
+        final discard = cards(const Discard());
         if (discard.isNotEmpty) {
           yield MoveIntent(const Discard(), f);
           yield MoveIntent(const Discard(), t);
