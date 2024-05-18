@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 
+import '../animations.dart';
 import '../models/game_state.dart';
 import '../providers/settings.dart';
 import '../widgets/background.dart';
@@ -11,8 +13,25 @@ import '../widgets/game_table.dart';
 import '../widgets/status_pane.dart';
 import '../widgets/touch_focusable.dart';
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
+
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero * timeDilation, () {
+      final gameState = context.read<GameState>();
+      if (gameState.status == GameStatus.initiializing ||
+          gameState.status == GameStatus.ended) {
+        gameState.startNewGame();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +127,10 @@ class GameScreen extends StatelessWidget {
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
-                                        child: const GameTable(),
+                                        child: const Hero(
+                                          tag: 'playtable',
+                                          child: GameTable(),
+                                        ),
                                       ),
                                     ),
                                   ),

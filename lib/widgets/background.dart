@@ -44,7 +44,7 @@ class _RippleBackgroundState extends State<RippleBackground>
 
   late Color _color;
 
-  late Offset _rippleOffset = Offset.zero;
+  Offset? _rippleOffset;
 
   @override
   void initState() {
@@ -62,6 +62,7 @@ class _RippleBackgroundState extends State<RippleBackground>
         CurveTween(curve: themeChangeAnimation.curve).animate(_controller);
 
     _color = widget.color;
+    _rippleOffset = Offset(0, 0);
   }
 
   @override
@@ -74,6 +75,9 @@ class _RippleBackgroundState extends State<RippleBackground>
   void didUpdateWidget(covariant RippleBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.color != oldWidget.color) {
+      if (_rippleOffset == null) {
+        _rippleOffset = Offset(0, 0);
+      }
       _controller.forward(from: 0.0);
     }
   }
@@ -93,7 +97,7 @@ class _RippleBackgroundState extends State<RippleBackground>
     return LayoutBuilder(
       builder: (context, constraints) {
         final parentSize = constraints.biggest;
-        final rippleCenter = _rippleOffset;
+        final rippleCenter = _rippleOffset!;
 
         final circleRadius = findDistanceToFarthestRectCorner(
           Offset.zero & parentSize,
@@ -115,7 +119,7 @@ class _RippleBackgroundState extends State<RippleBackground>
                   maxWidth: double.infinity,
                   maxHeight: double.infinity,
                   child: Transform.translate(
-                    offset: _rippleOffset - parentSize.center(Offset.zero),
+                    offset: rippleCenter - parentSize.center(Offset.zero),
                     child: SizedBox(
                       width: _animation.value * circleRadius * 2,
                       height: _animation.value * circleRadius * 2,

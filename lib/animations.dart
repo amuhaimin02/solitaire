@@ -6,6 +6,8 @@ class DurationCurve {
 
   const DurationCurve(this.duration, this.curve);
 
+  static const zero = DurationCurve(Duration.zero, Curves.linear);
+
   DurationCurve delayed(Duration delay) {
     final totalDuration = duration + delay;
     return DurationCurve(

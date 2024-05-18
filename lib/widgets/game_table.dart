@@ -22,54 +22,61 @@ import 'shrinkable.dart';
 import 'ticking_number.dart';
 
 class GameTable extends StatelessWidget {
-  const GameTable({super.key});
+  const GameTable({super.key, this.interactive = true});
+
+  final bool interactive;
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        final gameRules =
-            context.select<GameState, SolitaireRules>((s) => s.rules);
+    return IgnorePointer(
+      ignoring: !interactive,
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          final gameRules =
+              context.select<GameState, SolitaireRules>((s) => s.rules);
+          final status = context.select<GameState, GameStatus>((s) => s.status);
 
-        const cardUnitSize = Size(2.5, 3.5);
+          const cardUnitSize = Size(2.5, 3.5);
 
-        final options = LayoutOptions(
-          orientation: orientation,
-          mirror: false,
-        );
+          final options = LayoutOptions(
+            orientation: orientation,
+            mirror: false,
+          );
 
-        final tableLayout = gameRules.getLayout(options);
+          final tableLayout = gameRules.getLayout(options);
 
-        return AspectRatio(
-          aspectRatio: (tableLayout.gridSize.width * cardUnitSize.width) /
-              (tableLayout.gridSize.height * cardUnitSize.height),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final gridUnit = Size(
-                constraints.minWidth / tableLayout.gridSize.width,
-                constraints.minHeight / tableLayout.gridSize.height,
-              );
+          return AspectRatio(
+            aspectRatio: (tableLayout.gridSize.width * cardUnitSize.width) /
+                (tableLayout.gridSize.height * cardUnitSize.height),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final gridUnit = Size(
+                  constraints.minWidth / tableLayout.gridSize.width,
+                  constraints.minHeight / tableLayout.gridSize.height,
+                );
 
-              return ProxyProvider0<GameLayout>(
-                update: (context, obj) => GameLayout(
-                  gridUnit: gridUnit,
-                  cardPadding: gridUnit.shortestSide * 0.06,
-                  maxStackGap: const Offset(0.3, 0.3),
-                  orientation: orientation,
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    _MarkerLayer(layout: tableLayout),
-                    _CardLayer(layout: tableLayout),
-                    _OverlayLayer(layout: tableLayout),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
+                return ProxyProvider0<GameLayout>(
+                  update: (context, obj) => GameLayout(
+                    gridUnit: gridUnit,
+                    cardPadding: gridUnit.shortestSide * 0.06,
+                    maxStackGap: const Offset(0.3, 0.3),
+                    orientation: orientation,
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _MarkerLayer(layout: tableLayout),
+                      _CardLayer(layout: tableLayout),
+                      _OverlayLayer(layout: tableLayout),
+                      // Text(status.toString()),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -280,7 +287,6 @@ class _CardLayerState extends State<_CardLayer> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final gameState = context.watch<GameState>();
     final gameLayout = context.watch<GameLayout>();
 
@@ -303,7 +309,6 @@ class _CardLayerState extends State<_CardLayer> {
 
     void onPointerDown(PointerDownEvent event) {
       _touchDragTimer?.cancel();
-      setState(() {});
     }
 
     void onPointerUp(PointerUpEvent event) {
@@ -340,10 +345,6 @@ class _CardLayerState extends State<_CardLayer> {
     }
 
     List<Widget> sortCardWidgets(Iterable<Widget> cardWidgets) {
-      if (_shakingCard != null) {
-        return cardWidgets.toList();
-      }
-
       final recentlyMovedWidgets = <Widget>[];
       final touchedWidgets = <Widget>[];
       final remainingWidgets = <Widget>[];
@@ -382,9 +383,14 @@ class _CardLayerState extends State<_CardLayer> {
       onPointerCancel: (_) => onPointerCancel(),
       child: Stack(
         clipBehavior: Clip.none,
-        children: sortCardWidgets([
-          for (final item in widget.layout.items) ..._buildPile(context, item),
-        ]),
+        children: [
+          ...sortCardWidgets(
+            [
+              for (final item in widget.layout.items)
+                ..._buildPile(context, item),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -468,6 +474,10 @@ class _CardLayerState extends State<_CardLayer> {
     PlayCardList cards = gameState.pile(item.kind);
 
     DurationCurve computeAnimation(int cardIndex) {
+      if (gameState.status == GameStatus.initiializing) {
+        return const DurationCurve(Duration(milliseconds: 1), Curves.linear);
+      }
+
       if (_lastTouchPoint != null) {
         return cardDragAnimation;
       } else if (item.kind is Tableau && gameState.isPreparing) {
@@ -504,14 +514,6 @@ class _CardLayerState extends State<_CardLayer> {
         ];
 
       default:
-        Rect markerLocation;
-        if (item.shiftStackOnPlace) {
-          markerLocation =
-              Rect.fromLTWH(region.right - 1, region.bottom - 1, 1, 1);
-        } else {
-          markerLocation = Rect.fromLTWH(region.left, region.top, 1, 1);
-        }
-
         Offset stackAnchor;
         if (item.stackDirection == Direction.left) {
           stackAnchor = Offset(region.width - 1, 0);

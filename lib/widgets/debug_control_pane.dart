@@ -25,6 +25,7 @@ class _DebugControlPaneState extends State<DebugControlPane> {
     final settings = context.watch<SettingsManager>();
 
     final children = [
+      const BackButton(),
       IconButton(
         tooltip: 'Toggle theme mode',
         onPressed: () {
