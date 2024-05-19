@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../card.dart';
 import '../direction.dart';
 import '../pile.dart';
+import '../score_tracker.dart';
 import 'rules.dart';
 
 class Klondike extends SolitaireRules {
@@ -180,20 +181,9 @@ class Klondike extends SolitaireRules {
   @override
   Iterable<MoveIntent> autoMoveStrategy(
       AutoMoveLevel level, PlayCards cards) sync* {
-    final discard = cards(const Discard());
-    if (discard.isNotEmpty) {
-      for (final t in allTableaus) {
-        for (final f in allFoundations) {
-          yield MoveIntent(const Discard(), f);
-          yield MoveIntent(const Discard(), t);
-        }
-      }
-    }
-    if (level == AutoMoveLevel.full) {
-      for (final t in allTableaus) {
-        for (final f in allFoundations) {
-          yield MoveIntent(t, f);
-        }
+    for (final t in allTableaus) {
+      for (final f in allFoundations) {
+        yield MoveIntent(t, f);
       }
     }
   }
@@ -215,7 +205,13 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  int determineScoreForMove(int currentScore, Move move) {
-    return currentScore + Random().nextInt(10);
+  void afterEachMove(Move move, PlayCards cards, ScoreTracker score) {
+    for (final t in allTableaus) {
+      final tableau = cards(t);
+      if (tableau.isNotEmpty && tableau.last.isFacingDown) {
+        tableau.last = tableau.last.faceUp();
+      }
+    }
+    score.add(Random().nextInt(10));
   }
 }

@@ -33,10 +33,10 @@ class GameTable extends StatelessWidget {
 
   final Layout layout;
 
-  final bool Function(PlayCard card, Pile pile)? onCardTap;
+  final PlayCardList? Function(PlayCard card, Pile pile)? onCardTap;
 
-  final bool Function(Pile pile)? onPileTap;
-  final bool Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+  final PlayCardList? Function(Pile pile)? onPileTap;
+  final PlayCardList? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
   final bool interactive;
 
@@ -286,9 +286,9 @@ class _CardLayer extends StatefulWidget {
 
   final Size cardSize;
 
-  final bool Function(PlayCard card, Pile pile)? onCardTap;
-  final bool Function(Pile pile)? onPileTap;
-  final bool Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+  final PlayCardList? Function(PlayCard card, Pile pile)? onCardTap;
+  final PlayCardList? Function(Pile pile)? onPileTap;
+  final PlayCardList? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
   final PlayCardList? highlightedCards;
 
@@ -303,7 +303,7 @@ class _CardLayer extends StatefulWidget {
 }
 
 class _CardLayerState extends State<_CardLayer> {
-  PlayCard? _shakingCard;
+  PlayCardList? _shakingCards;
   PlayCardList? _touchingCards;
   Pile? _touchingCardPile;
 
@@ -344,11 +344,8 @@ class _CardLayerState extends State<_CardLayer> {
         if (_touchingCards != null &&
             _touchingCardPile != null &&
             _touchingCardPile != dropRegion.kind) {
-          final handled = widget.onCardDrop?.call(
-              _touchingCards!.first, _touchingCardPile!, dropRegion.kind);
-          if (handled == false) {
-            _shakeCard(_touchingCards!.first);
-          }
+          _onCardDrop(context, _touchingCards!.first, _touchingCardPile!,
+              dropRegion.kind);
         } else {
           // Register as a normal tap (typically when user taps a tableau region not covered by cards)
           _onPileTap(context, dropRegion.kind);
@@ -529,7 +526,7 @@ class _CardLayerState extends State<_CardLayer> {
                     card, Rect.fromLTWH(region.left, region.top, 1, 1)),
                 child: _CardWidget(
                   cardSize: widget.cardSize,
-                  shake: _shakingCard == card,
+                  shake: _shakingCards?.contains(card) == true,
                   isMoving: _lastTouchPoint != null &&
                       _touchingCards?.contains(card) == true,
                   onTouch: () => _onCardTouch(context, card, item.kind),
@@ -566,7 +563,7 @@ class _CardLayerState extends State<_CardLayer> {
               ),
               child: _CardWidget(
                 cardSize: widget.cardSize,
-                shake: _shakingCard == card,
+                shake: _shakingCards?.contains(card) == true,
                 isMoving: _lastTouchPoint != null &&
                     _touchingCards?.contains(card) == true,
                 onTouch: () => _onCardTouch(context, card, item.kind),
@@ -600,9 +597,16 @@ class _CardLayerState extends State<_CardLayer> {
   }
 
   void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
-    final handled = widget.onCardTap?.call(card, pile);
-    if (handled == false) {
-      _shakeCard(card);
+    final feedback = widget.onCardTap?.call(card, pile);
+    if (feedback != null) {
+      _shakeCard(feedback);
+    }
+  }
+
+  void _onCardDrop(BuildContext context, PlayCard card, Pile from, Pile to) {
+    final feedback = widget.onCardDrop?.call(card, from, to);
+    if (feedback != null) {
+      _shakeCard(feedback);
     }
   }
 
@@ -610,18 +614,18 @@ class _CardLayerState extends State<_CardLayer> {
     widget.onPileTap?.call(pile);
   }
 
-  void _shakeCard(PlayCard? card) {
-    if (card == null) {
+  void _shakeCard(PlayCardList? cards) {
+    if (cards == null) {
       return;
     }
     setState(() {
-      _shakingCard = card;
+      _shakingCards = cards;
     });
     _shakeCardTimer?.cancel();
     _shakeCardTimer = Timer(cardMoveAnimation.duration * timeDilation, () {
       if (mounted) {
         setState(() {
-          _shakingCard = null;
+          _shakingCards = null;
         });
       }
     });

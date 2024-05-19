@@ -148,7 +148,6 @@ class _DebugControlPaneState extends State<DebugControlPane> {
       color: colorScheme.surface.withOpacity(0.2),
       child: Wrap(
         children: [
-          if (_showButtons) ...children,
           IconButton(
             tooltip: 'Expand/contract debug buttons',
             onPressed: () {
@@ -160,6 +159,7 @@ class _DebugControlPaneState extends State<DebugControlPane> {
                 ? const Icon(Icons.keyboard_double_arrow_left)
                 : const Icon(Icons.keyboard_double_arrow_right),
           ),
+          if (_showButtons) ...children,
         ],
       ),
     );

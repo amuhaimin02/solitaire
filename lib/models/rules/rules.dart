@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../direction.dart';
 import '../pile.dart';
+import '../score_tracker.dart';
 
 abstract class SolitaireRules {
   int get numberOfTableauPiles;
@@ -30,7 +31,7 @@ abstract class SolitaireRules {
 
   Iterable<MoveIntent> autoSolveStrategy(PlayCards cards);
 
-  int determineScoreForMove(int currentScore, Move move);
+  void afterEachMove(Move move, PlayCards cards, ScoreTracker score);
 
   Iterable<Pile> get allTableaus {
     return Iterable.generate(numberOfTableauPiles, (i) => Tableau(i));

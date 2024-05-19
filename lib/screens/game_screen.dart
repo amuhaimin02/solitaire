@@ -92,6 +92,10 @@ class _GameScreenState extends State<GameScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+                                  const Align(
+                                    alignment: Alignment.topCenter,
+                                    child: BackButton(),
+                                  ),
                                   Flexible(
                                     child: TouchFocusable(
                                       active: !isPreparing,
@@ -128,6 +132,10 @@ class _GameScreenState extends State<GameScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: BackButton(),
+                                  ),
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 32),
                                     child: TouchFocusable(
@@ -186,7 +194,7 @@ class _GameScreenState extends State<GameScreen> {
                       const Align(
                         alignment: Alignment.bottomLeft,
                         child: DebugControlPane(),
-                      )
+                      ),
                     ],
                   );
                 },
@@ -245,9 +253,9 @@ class _PlayArea extends StatelessWidget {
                 case Tableau():
                   final result =
                       _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
-                  return result is MoveSuccess;
+                  return result is MoveSuccess ? null : [card];
                 case _:
-                  return false;
+                  return [card];
               }
             },
             onPileTap: (pile) {
@@ -258,18 +266,18 @@ class _PlayArea extends StatelessWidget {
                 case Draw():
                   _feedbackMoveResult(gameState
                       .tryMove(MoveIntent(const Draw(), const Discard())));
-                  return true;
+                  return null;
 
                 case Discard() || Foundation():
                   if (cards(pile).isNotEmpty) {
                     final cardToMove = cards(pile).last;
                     final result = _feedbackMoveResult(
                         gameState.tryQuickPlace(cardToMove, pile));
-                    return result is MoveSuccess;
+                    return result is MoveSuccess ? null : null;
                   }
                 case _:
               }
-              return false;
+              return null;
             },
             onCardDrop: (card, from, to) {
               print('dropping card $card from $from to $to');
@@ -280,7 +288,7 @@ class _PlayArea extends StatelessWidget {
                   MoveIntent(from, to, card),
                 ),
               );
-              return result is MoveSuccess;
+              return result is MoveSuccess ? null : [card];
             },
           ),
           const Positioned.fill(

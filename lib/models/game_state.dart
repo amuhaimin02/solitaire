@@ -9,6 +9,7 @@ import 'card.dart';
 import 'pile.dart';
 import 'rules/klondike.dart';
 import 'rules/rules.dart';
+import 'score_tracker.dart';
 
 enum GameStatus {
   initiializing,
@@ -35,7 +36,7 @@ class GameState extends ChangeNotifier {
 
   late int _reshuffleCount;
 
-  late int _score;
+  late ScoreTracker _score;
 
   late int _undoCount;
 
@@ -74,7 +75,7 @@ class GameState extends ChangeNotifier {
 
   Duration get playTime => _stopWatch.elapsed;
 
-  int get score => _score;
+  int get score => _score.value;
 
   int get reshuffleCount => _reshuffleCount;
 
@@ -200,7 +201,7 @@ class GameState extends ChangeNotifier {
     _currentMoveIndex = 0;
     _reshuffleCount = 0;
     _undoCount = 0;
-    _score = 0;
+    _score = ScoreTracker();
     _isUndoing = false;
     _canAutoSolve = false;
     _gameSeed = CustomPRNG.generateSeed(length: 12);
@@ -244,19 +245,12 @@ class GameState extends ChangeNotifier {
       cardsOnTable.removeRange(
           cardsOnTable.length - cardsInHand.length, cardsOnTable.length);
 
-      // For cards other than draw pile, flip the outermost card to make it facing up
-      if (move.from != const Draw() &&
-          cardsOnTable.isNotEmpty &&
-          cardsOnTable.last.isFacingDown) {
-        cardsOnTable.last = cardsOnTable.last.faceUp();
-      }
-
       // Move all cards on hand to target pile
       _cards(move.to).addAll(cardsInHand);
 
       _hintedCards = null;
 
-      _score = rules.determineScoreForMove(_score, move);
+      rules.afterEachMove(move, _cards, _score);
 
       _postCheckAfterPlacement();
 
