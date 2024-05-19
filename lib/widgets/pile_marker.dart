@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 
-import '../models/game_layout.dart';
 import '../models/pile.dart';
+import 'solitaire_theme.dart';
 
 class PileMarker extends StatelessWidget {
-  const PileMarker({super.key, required this.pile});
+  const PileMarker({super.key, required this.pile, required this.size});
 
   final Pile pile;
 
+  final Size size;
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final layout = context.watch<GameLayout>();
+    final theme = SolitaireTheme.of(context);
 
     final icon = switch (pile) {
       Draw() => MdiIcons.refresh,
@@ -24,16 +23,16 @@ class PileMarker extends StatelessWidget {
     };
 
     return Container(
-      padding: EdgeInsets.all(layout.cardPadding),
+      padding: EdgeInsets.all(size.shortestSide * theme.cardPadding),
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.onSurface.withOpacity(0.1),
+          color: theme.pileMarkerColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           icon,
-          size: layout.gridUnit.width * 0.5,
-          color: colorScheme.onSurface.withOpacity(0.3),
+          size: size.shortestSide * 0.5,
+          color: theme.pileMarkerColor.withOpacity(0.3),
         ),
       ),
     );

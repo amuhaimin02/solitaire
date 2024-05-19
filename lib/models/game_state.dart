@@ -279,6 +279,19 @@ class GameState extends ChangeNotifier {
   MoveResult tryMove(MoveIntent move, {bool doMove = true}) {
     final Move? targetMove;
 
+    Move refreshDrawPile() {
+      // Try to refresh draw pile
+      final cardsInDiscardPile = _cards(const Discard());
+
+      _reshuffleCount++;
+
+      return Move(
+        cardsInDiscardPile.reversed.toList().allFaceDown,
+        const Discard(),
+        const Draw(),
+      );
+    }
+
     switch (move.from) {
       case Draw():
         if (move.to != const Discard()) {
@@ -296,13 +309,7 @@ class GameState extends ChangeNotifier {
             return MoveNotDone("No cards to refresh", null, move.from);
           }
 
-          _reshuffleCount++;
-
-          targetMove = Move(
-            cardsInDiscardPile.reversed.toList().allFaceDown,
-            const Discard(),
-            const Draw(),
-          );
+          targetMove = refreshDrawPile();
         } else {
           // Pick from draw pile
           final cardsToPick = cardsInDrawPile.getLast(rules.drawsPerTurn);
@@ -313,43 +320,49 @@ class GameState extends ChangeNotifier {
           );
         }
       case Discard() || Foundation() || Tableau():
-        if (move.to == const Draw()) {
-          return MoveForbidden('cannot move cards back to draw pile', move);
-        }
         if (move.from == move.to) {
           return MoveForbidden('cannot move cards back to its pile', move);
         }
-        final cardToMove = move.card;
-        final cardsInPile = _cards(move.from);
 
-        final PlayCardList cardsToPick;
-
-        if (move.from is! Tableau &&
-            move.card != null &&
-            cardsInPile.isNotEmpty &&
-            move.card != cardsInPile.last) {
-          return MoveForbidden('can only move card on top of pile', move);
-        }
-
-        if (cardToMove != null) {
-          cardsToPick = cardsInPile.getUntilLast(cardToMove);
-        } else {
-          if (cardsInPile.isEmpty) {
-            return MoveNotDone("No cards in pile", null, move.from);
+        if (move.to == const Draw()) {
+          if (_cards(const Draw()).isEmpty) {
+            targetMove = refreshDrawPile();
+          } else {
+            return MoveForbidden('cannot move cards back to draw pile', move);
           }
-          cardsToPick = [cardsInPile.last];
-        }
+        } else {
+          final cardToMove = move.card;
+          final cardsInPile = _cards(move.from);
 
-        if (!rules.canPick(cardsToPick, move.from)) {
-          return MoveForbidden(
-              'cannot pick the card(s) $cardsToPick from ${move.from}', move);
-        }
-        if (!rules.canPlace(cardsToPick, move.to, _cards(move.to))) {
-          return MoveForbidden(
-              'cannot place the card(s) $cardsToPick on ${move.to}', move);
-        }
+          final PlayCardList cardsToPick;
 
-        targetMove = Move(cardsToPick, move.from, move.to);
+          if (move.from is! Tableau &&
+              move.card != null &&
+              cardsInPile.isNotEmpty &&
+              move.card != cardsInPile.last) {
+            return MoveForbidden('can only move card on top of pile', move);
+          }
+
+          if (cardToMove != null) {
+            cardsToPick = cardsInPile.getUntilLast(cardToMove);
+          } else {
+            if (cardsInPile.isEmpty) {
+              return MoveNotDone("No cards in pile", null, move.from);
+            }
+            cardsToPick = [cardsInPile.last];
+          }
+
+          if (!rules.canPick(cardsToPick, move.from)) {
+            return MoveForbidden(
+                'cannot pick the card(s) $cardsToPick from ${move.from}', move);
+          }
+          if (!rules.canPlace(cardsToPick, move.to, _cards(move.to))) {
+            return MoveForbidden(
+                'cannot place the card(s) $cardsToPick on ${move.to}', move);
+          }
+
+          targetMove = Move(cardsToPick, move.from, move.to);
+        }
     }
 
     if (doMove) {

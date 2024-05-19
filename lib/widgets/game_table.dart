@@ -4,21 +4,17 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
-import 'package:provider/provider.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
 import '../models/direction.dart';
-import '../models/game_layout.dart';
-import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
-import '../providers/settings.dart';
-import '../utils/debug.dart';
-import 'card_marker.dart';
 import 'card_view.dart';
+import 'pile_marker.dart';
 import 'shakeable.dart';
 import 'shrinkable.dart';
+import 'solitaire_theme.dart';
 import 'ticking_number.dart';
 
 class GameTable extends StatelessWidget {
@@ -54,48 +50,46 @@ class GameTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cardUnitSize = Size(2.5, 3.5);
+    final theme = SolitaireTheme.of(context);
 
     return IgnorePointer(
       ignoring: !interactive,
       child: AspectRatio(
-        aspectRatio: (layout.gridSize.width * cardUnitSize.width) /
-            (layout.gridSize.height * cardUnitSize.height),
+        aspectRatio: (layout.gridSize.width * theme.cardUnitSize.width) /
+            (layout.gridSize.height * theme.cardUnitSize.height),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final gridUnit = Size(
+            final cardSize = Size(
               constraints.minWidth / layout.gridSize.width,
               constraints.minHeight / layout.gridSize.height,
             );
 
-            return ProxyProvider0<GameLayout>(
-              update: (context, obj) => GameLayout(
-                gridUnit: gridUnit,
-                cardPadding: gridUnit.shortestSide * 0.06,
-                maxStackGap: const Offset(0.3, 0.3),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  _MarkerLayer(layout: layout),
-                  _CardLayer(
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _MarkerLayer(
+                  layout: layout,
+                  cardSize: cardSize,
+                ),
+                _CardLayer(
+                  layout: layout,
+                  cards: cards,
+                  cardSize: cardSize,
+                  onCardTap: onCardTap,
+                  onPileTap: onPileTap,
+                  onCardDrop: onCardDrop,
+                  highlightedCards: highlightedCards,
+                  lastMovedCards: lastMovedCards,
+                  animatedDistribute: animatedDistribute,
+                ),
+                if (interactive)
+                  _OverlayLayer(
                     layout: layout,
                     cards: cards,
-                    onCardTap: onCardTap,
-                    onPileTap: onPileTap,
-                    onCardDrop: onCardDrop,
-                    highlightedCards: highlightedCards,
-                    lastMovedCards: lastMovedCards,
-                    animatedDistribute: animatedDistribute,
+                    cardSize: cardSize,
                   ),
-                  if (interactive)
-                    _OverlayLayer(
-                      layout: layout,
-                      cards: cards,
-                    ),
-                  // Text(status.toString()),
-                ],
-              ),
+                // Text(status.toString()),
+              ],
             );
           },
         ),
@@ -108,16 +102,15 @@ class _CountIndicator extends StatelessWidget {
   const _CountIndicator({
     super.key,
     required this.count,
+    required this.cardSize,
   });
 
   final int count;
 
+  final Size cardSize;
+
   @override
   Widget build(BuildContext context) {
-    final layout = context.watch<GameLayout>();
-
-    final size = layout.gridUnit.shortestSide;
-
     return FractionalTranslation(
       translation: const Offset(0, -1),
       child: Align(
@@ -126,9 +119,9 @@ class _CountIndicator extends StatelessWidget {
           show: count > 0,
           alignment: Alignment.bottomCenter,
           child: Container(
-            width: size * 0.45,
-            height: size * 0.45,
-            margin: EdgeInsets.all(layout.cardPadding),
+            width: cardSize.shortestSide * 0.45,
+            height: cardSize.shortestSide * 0.45,
+            // margin: EdgeInsets.all(layout.cardPadding),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.7),
               shape: BoxShape.circle,
@@ -141,7 +134,7 @@ class _CountIndicator extends StatelessWidget {
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
-                fontSize: size * 0.25,
+                fontSize: cardSize.shortestSide * 0.25,
                 height: 1,
               ),
             ),
@@ -154,6 +147,7 @@ class _CountIndicator extends StatelessWidget {
 
 class _CardWidget extends StatelessWidget {
   const _CardWidget({
+    required this.cardSize,
     required this.shake,
     required this.isMoving,
     required this.card,
@@ -182,6 +176,8 @@ class _CardWidget extends StatelessWidget {
   final VoidCallback? onTap;
 
   final Color? highlightColor;
+
+  final Size cardSize;
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +214,7 @@ class _CardWidget extends StatelessWidget {
         shake: shake,
         child: CardView(
           card: card,
+          size: cardSize,
           elevation: elevation,
           hideFace: hideFace,
           highlightColor: highlightColor,
@@ -228,21 +225,20 @@ class _CardWidget extends StatelessWidget {
 }
 
 class _MarkerLayer extends StatelessWidget {
-  const _MarkerLayer({super.key, required this.layout});
+  const _MarkerLayer({super.key, required this.layout, required this.cardSize});
 
   final Layout layout;
 
+  final Size cardSize;
+
   @override
   Widget build(BuildContext context) {
-    final gameLayout = context.watch<GameLayout>();
-    final gridUnit = gameLayout.gridUnit;
-
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
-        gridRect.left * gridUnit.width,
-        gridRect.top * gridUnit.height,
-        gridRect.width * gridUnit.width,
-        gridRect.height * gridUnit.height,
+        gridRect.left * cardSize.width,
+        gridRect.top * cardSize.height,
+        gridRect.width * cardSize.width,
+        gridRect.height * cardSize.height,
       );
     }
 
@@ -262,7 +258,10 @@ class _MarkerLayer extends StatelessWidget {
                 1,
               ),
             ),
-            child: PileMarker(pile: item.kind),
+            child: PileMarker(
+              pile: item.kind,
+              size: cardSize,
+            ),
           ),
       ],
     );
@@ -273,6 +272,7 @@ class _CardLayer extends StatefulWidget {
   const _CardLayer({
     super.key,
     required this.cards,
+    required this.cardSize,
     required this.layout,
     this.onCardTap,
     this.onCardDrop,
@@ -283,6 +283,9 @@ class _CardLayer extends StatefulWidget {
   });
 
   final PlayCards cards;
+
+  final Size cardSize;
+
   final bool Function(PlayCard card, Pile pile)? onCardTap;
   final bool Function(Pile pile)? onPileTap;
   final bool Function(PlayCard card, Pile from, Pile to)? onCardDrop;
@@ -310,8 +313,6 @@ class _CardLayerState extends State<_CardLayer> {
 
   @override
   Widget build(BuildContext context) {
-    final gameLayout = context.watch<GameLayout>();
-
     void onPointerCancel() {
       // Reset touch point, indicating that cards are no longer held
       setState(() {
@@ -334,7 +335,7 @@ class _CardLayerState extends State<_CardLayer> {
     }
 
     void onPointerUp(PointerUpEvent event) {
-      final point = _convertToGrid(event.localPosition, gameLayout.gridUnit);
+      final point = _convertToGrid(event.localPosition, widget.cardSize);
 
       final dropRegion = widget.layout.items
           .firstWhereOrNull((item) => item.region.contains(point));
@@ -413,19 +414,18 @@ class _CardLayerState extends State<_CardLayer> {
   }
 
   List<Widget> _buildPile(BuildContext context, LayoutItem item) {
-    final layout = context.watch<GameLayout>();
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = SolitaireTheme.of(context);
+
+    final gridUnit = widget.cardSize;
 
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
-        gridRect.left * layout.gridUnit.width,
-        gridRect.top * layout.gridUnit.height,
-        gridRect.width * layout.gridUnit.width,
-        gridRect.height * layout.gridUnit.height,
+        gridRect.left * gridUnit.width,
+        gridRect.top * gridUnit.height,
+        gridRect.width * gridUnit.width,
+        gridRect.height * gridUnit.height,
       );
     }
-
-    final gridUnit = layout.gridUnit;
 
     final region = item.region;
 
@@ -438,7 +438,7 @@ class _CardLayerState extends State<_CardLayer> {
         return newRect.translate(
           -(gridUnit.width * 0.5),
           -(gridUnit.height * 0.75 -
-              index * (gridUnit.height * layout.maxStackGap.dy * 0.9)),
+              index * (gridUnit.height * theme.cardStackGap.dy * 0.9)),
         );
       } else {
         return measure(originalPosition);
@@ -482,9 +482,9 @@ class _CardLayerState extends State<_CardLayer> {
 
       return Offset(
         computeOffset(
-            offset, direction.dx, layout.maxStackGap.dx, region.width),
+            offset, direction.dx, theme.cardStackGap.dx, region.width),
         computeOffset(
-            offset, direction.dy, layout.maxStackGap.dy, region.height),
+            offset, direction.dy, theme.cardStackGap.dy, region.height),
       );
     }
 
@@ -509,9 +509,9 @@ class _CardLayerState extends State<_CardLayer> {
 
     Color? highlightCardColor(PlayCard card) {
       if (widget.highlightedCards?.contains(card) == true) {
-        return colorScheme.error;
+        return theme.hintHighlightColor;
       } else if (widget.lastMovedCards?.contains(card) == true) {
-        return colorScheme.secondary;
+        return theme.lastMoveHighlightColor;
       }
       return null;
     }
@@ -528,6 +528,7 @@ class _CardLayerState extends State<_CardLayer> {
                 rect: computePosition(
                     card, Rect.fromLTWH(region.left, region.top, 1, 1)),
                 child: _CardWidget(
+                  cardSize: widget.cardSize,
                   shake: _shakingCard == card,
                   isMoving: _lastTouchPoint != null &&
                       _touchingCards?.contains(card) == true,
@@ -564,6 +565,7 @@ class _CardLayerState extends State<_CardLayer> {
                         i, cards.length, item.stackDirection)),
               ),
               child: _CardWidget(
+                cardSize: widget.cardSize,
                 shake: _shakingCard == card,
                 isMoving: _lastTouchPoint != null &&
                     _touchingCards?.contains(card) == true,
@@ -627,18 +629,20 @@ class _CardLayerState extends State<_CardLayer> {
 }
 
 class _OverlayLayer extends StatelessWidget {
-  const _OverlayLayer({super.key, required this.layout, this.cards});
+  const _OverlayLayer(
+      {super.key, required this.layout, this.cards, required this.cardSize});
 
   final Layout layout;
 
   final PlayCards? cards;
 
+  final Size cardSize;
+
   @override
   Widget build(BuildContext context) {
-    final gameLayout = context.watch<GameLayout>();
-    final gridUnit = gameLayout.gridUnit;
-
     Rect measure(Rect gridRect) {
+      final gridUnit = cardSize;
+
       return Rect.fromLTWH(
         gridRect.left * gridUnit.width,
         gridRect.top * gridUnit.height,
@@ -654,7 +658,10 @@ class _OverlayLayer extends StatelessWidget {
             Positioned.fromRect(
               rect: measure(
                   Rect.fromLTWH(item.region.left, item.region.top, 1, 1)),
-              child: _CountIndicator(count: cards!(item.kind).length),
+              child: _CountIndicator(
+                count: cards!(item.kind).length,
+                cardSize: cardSize,
+              ),
             ),
       ],
     );

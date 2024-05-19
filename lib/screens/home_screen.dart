@@ -7,6 +7,7 @@ import '../models/pile.dart';
 import '../models/rules/klondike.dart';
 import '../models/rules/rules.dart';
 import '../widgets/game_table.dart';
+import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -56,8 +57,8 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'Touch to continue',
-                style: textTheme.bodyLarge!
-                    .copyWith(color: colorScheme.onPrimaryContainer),
+                style: textTheme.bodyLarge!.copyWith(
+                    color: SolitaireTheme.of(context).foregroundColor),
                 textAlign: TextAlign.center,
               ),
             ],

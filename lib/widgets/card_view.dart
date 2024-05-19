@@ -5,14 +5,15 @@ import 'package:provider/provider.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
-import '../models/game_layout.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
+import 'solitaire_theme.dart';
 
 class CardView extends StatelessWidget {
   const CardView({
     super.key,
     required this.card,
+    required this.size,
     this.elevation,
     this.hideFace = false,
     this.highlightColor,
@@ -26,36 +27,36 @@ class CardView extends StatelessWidget {
 
   final Color? highlightColor;
 
+  final Size size;
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final layout = context.watch<GameLayout>();
+    final theme = SolitaireTheme.of(context);
 
     final Color foregroundColor, backgroundColor, coverColor;
 
     switch (card.suit.color) {
       case SuitColor.black:
-        foregroundColor = colorScheme.onSurface;
-        backgroundColor = colorScheme.surfaceContainerLowest;
+        foregroundColor = theme.cardLabelPlainColor;
+        backgroundColor = theme.cardFaceColor;
       case SuitColor.red:
-        foregroundColor = colorScheme.primary;
-        backgroundColor = colorScheme.surfaceContainerLowest;
+        foregroundColor = theme.cardLabelAccentColor;
+        backgroundColor = theme.cardFaceColor;
     }
-    coverColor = colorScheme.primary;
+    coverColor = theme.cardCoverColor;
 
     return SizedBox(
-      width: layout.gridUnit.width,
-      height: layout.gridUnit.height,
+      width: size.width,
+      height: size.height,
       child: Stack(
         children: [
           CardHighlight(
             highlight: highlightColor != null,
-            color: highlightColor ?? colorScheme.primary,
+            color: highlightColor ?? theme.foregroundColor,
           ),
           Positioned.fill(
             child: Padding(
-              padding: EdgeInsets.all(layout.cardPadding),
+              padding: EdgeInsets.all(size.shortestSide * theme.cardPadding),
               child: Flippable(
                 duration: cardMoveAnimation.duration,
                 curve: cardMoveAnimation.curve,
@@ -65,6 +66,7 @@ class CardView extends StatelessWidget {
                   elevation: elevation ?? 2,
                   child: CardFace(
                     card: card,
+                    size: size,
                     foregroundColor: foregroundColor,
                     backgroundColor: backgroundColor,
                   ),
@@ -74,6 +76,7 @@ class CardView extends StatelessWidget {
                   elevation: elevation ?? 2,
                   child: CardCover(
                     color: coverColor,
+                    size: size,
                   ),
                 ),
               ),
@@ -89,6 +92,7 @@ class CardFace extends StatelessWidget {
   const CardFace({
     super.key,
     required this.card,
+    required this.size,
     required this.foregroundColor,
     required this.backgroundColor,
   });
@@ -96,6 +100,8 @@ class CardFace extends StatelessWidget {
   final PlayCard card;
   final Color foregroundColor;
   final Color backgroundColor;
+
+  final Size size;
 
   static final suitIcons = {
     Suit.diamond: MdiIcons.cardsDiamond,
@@ -106,11 +112,9 @@ class CardFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layout = context.watch<GameLayout>();
-
-    final spacingFactor = layout.gridUnit.width * 0.05;
-    final labelSizingFactor = layout.gridUnit.width * 0.32;
-    final iconSizingFactor = layout.gridUnit.width * 0.25;
+    final spacingFactor = size.shortestSide * 0.05;
+    final labelSizingFactor = size.shortestSide * 0.32;
+    final iconSizingFactor = size.shortestSide * 0.25;
 
     final iconSvgPath = 'assets/${card.suit.name}.svg';
 
@@ -153,8 +157,8 @@ class CardFace extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: -(layout.gridUnit.height * 0.0),
-            left: -(layout.gridUnit.width * 0.15),
+            bottom: -(size.height * 0.0),
+            left: -(size.width * 0.15),
             child: Icon(
               suitIcons[card.suit],
               size: iconSizingFactor * 3,
@@ -177,20 +181,20 @@ class CardFace extends StatelessWidget {
 }
 
 class CardCover extends StatelessWidget {
-  const CardCover({super.key, required this.color});
+  const CardCover({super.key, required this.color, required this.size});
 
   final Color color;
 
+  final Size size;
+
   @override
   Widget build(BuildContext context) {
-    final layout = context.watch<GameLayout>();
-
     return Container(
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          width: layout.gridUnit.width * 0.1,
+          width: size.shortestSide * 0.1,
           color: color.darken(0.15),
         ),
       ),

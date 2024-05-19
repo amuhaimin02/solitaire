@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
 import '../utils/types.dart';
+import 'solitaire_theme.dart';
 
 class StatusPane extends StatelessWidget {
   const StatusPane({super.key, required this.orientation});
@@ -12,12 +13,12 @@ class StatusPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = SolitaireTheme.of(context);
 
     final divider = SizedBox(
       height: 24,
       child: VerticalDivider(
-        color: colorScheme.onPrimaryContainer.withOpacity(0.3),
+        color: theme.foregroundColor.withOpacity(0.3),
       ),
     );
 
@@ -25,7 +26,7 @@ class StatusPane extends StatelessWidget {
       style: Theme.of(context)
           .textTheme
           .titleLarge!
-          .copyWith(color: colorScheme.onPrimaryContainer),
+          .copyWith(color: theme.foregroundColor),
       child: switch (orientation) {
         Orientation.landscape => const Column(
             children: [

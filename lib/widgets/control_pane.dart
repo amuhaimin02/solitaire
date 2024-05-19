@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/game_state.dart';
 import '../models/game_theme.dart';
+import 'solitaire_theme.dart';
 import 'tap_hold_detector.dart';
 
 class ControlPane extends StatelessWidget {
@@ -14,8 +15,6 @@ class ControlPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final children = [
       IconButton(
         tooltip: 'Start new game',
@@ -82,7 +81,7 @@ class ControlPane extends StatelessWidget {
     return IconButtonTheme(
       data: IconButtonThemeData(
         style: IconButton.styleFrom(
-          foregroundColor: colorScheme.onPrimaryContainer,
+          foregroundColor: SolitaireTheme.of(context).foregroundColor,
         ),
       ),
       child: switch (orientation) {

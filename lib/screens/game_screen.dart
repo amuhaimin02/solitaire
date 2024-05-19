@@ -14,6 +14,7 @@ import '../widgets/debug_control_pane.dart';
 import '../widgets/debug_hud.dart';
 import '../widgets/game_table.dart';
 import '../widgets/shrinkable.dart';
+import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
 import '../widgets/touch_focusable.dart';
 
@@ -39,15 +40,13 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = SolitaireTheme.of(context);
     final isWinning = context.select<GameState, bool>((s) => s.isWinning);
 
     return Scaffold(
-      backgroundColor: colorScheme.primaryContainer,
+      backgroundColor: theme.backgroundColor,
       body: RippleBackground(
-        color: isWinning
-            ? colorScheme.surfaceContainerLowest
-            : colorScheme.primaryContainer,
+        color: isWinning ? theme.winningBackgroundColor : theme.backgroundColor,
         child: SafeArea(
           child: OrientationBuilder(
             builder: (context, orientation) {
@@ -63,7 +62,7 @@ class _GameScreenState extends State<GameScreen> {
                     width: 48,
                     child: Divider(
                       height: 24,
-                      color: colorScheme.onPrimaryContainer.withOpacity(0.3),
+                      color: theme.foregroundColor.withOpacity(0.3),
                     ),
                   );
 
@@ -213,8 +212,9 @@ class _PlayArea extends StatelessWidget {
             lastMovedCards = (gameState.latestAction as Move).cards;
           }
         }
-        highlightedCards = gameState.hintedCards;
       }
+
+      highlightedCards = gameState.hintedCards;
 
       return Stack(
         alignment: Alignment.center,

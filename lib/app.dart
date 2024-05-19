@@ -13,6 +13,7 @@ import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/loading_screen.dart';
 import 'widgets/background.dart';
+import 'widgets/solitaire_theme.dart';
 
 class SolitaireApp extends StatelessWidget {
   const SolitaireApp({super.key});
@@ -46,18 +47,42 @@ class SolitaireApp extends StatelessWidget {
           ],
           builder: (context, child) {
             final settings = context.watch<SettingsManager>();
-            ColorScheme? lightColorScheme, darkColorScheme;
 
-            if (settings.get(Settings.useDynamicColors)) {
-              lightColorScheme = lightDynamic;
-              darkColorScheme = darkDynamic;
-            } else {
-              final presetColor = settings.get(Settings.presetColor);
-              lightColorScheme = ColorScheme.fromSeed(
-                  brightness: Brightness.light, seedColor: presetColor);
-              darkColorScheme = ColorScheme.fromSeed(
-                  brightness: Brightness.dark, seedColor: presetColor);
+            ThemeMode themeMode = settings.get(Settings.themeMode);
+            final useDynamicColors = settings.get(Settings.useDynamicColors);
+            final presetColor = settings.get(Settings.presetColor);
+            ColorScheme colorScheme;
+
+            if (themeMode == ThemeMode.system) {
+              final brightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              themeMode = brightness == Brightness.light
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
             }
+
+            if (themeMode == ThemeMode.light) {
+              if (useDynamicColors && lightDynamic != null) {
+                colorScheme = lightDynamic;
+              } else {
+                colorScheme = ColorScheme.fromSeed(
+                    brightness: Brightness.light, seedColor: presetColor);
+              }
+            } else {
+              if (useDynamicColors && darkDynamic != null) {
+                colorScheme = darkDynamic;
+              } else {
+                colorScheme = ColorScheme.fromSeed(
+                    brightness: Brightness.dark, seedColor: presetColor);
+              }
+            }
+
+            final themeData = SolitaireThemeData.fromColorScheme(
+              colorScheme: colorScheme,
+              cardUnitSize: const Size(2.5, 3.5),
+              cardPadding: 0.05,
+              cardStackGap: const Offset(0.3, 0.3),
+            );
 
             return MultiProvider(
               providers: [
@@ -69,25 +94,26 @@ class SolitaireApp extends StatelessWidget {
                   },
                 ),
               ],
-              child: MaterialApp(
-                title: 'Solitaire',
-                theme: buildTheme(lightColorScheme),
-                darkTheme: buildTheme(darkColorScheme),
-                themeMode: settings.get(Settings.themeMode),
-                themeAnimationStyle: AnimationStyle.noAnimation,
-                initialRoute: '/home',
-                routes: {
-                  '/home': (context) => const HomeScreen(),
-                  '/game': (context) => const GameScreen(),
-                },
-                builder: (context, currentScreen) {
-                  final isSettingsLoaded = context
-                      .select<SettingsManager, bool>((s) => s.isPreloaded);
+              child: SolitaireTheme(
+                data: themeData,
+                child: MaterialApp(
+                  title: 'Solitaire',
+                  theme: buildTheme(colorScheme),
+                  themeAnimationStyle: AnimationStyle.noAnimation,
+                  initialRoute: '/home',
+                  routes: {
+                    '/home': (context) => const HomeScreen(),
+                    '/game': (context) => const GameScreen(),
+                  },
+                  builder: (context, currentScreen) {
+                    final isSettingsLoaded = context
+                        .select<SettingsManager, bool>((s) => s.isPreloaded);
 
-                  return isSettingsLoaded && currentScreen != null
-                      ? currentScreen
-                      : const LoadingScreen();
-                },
+                    return isSettingsLoaded && currentScreen != null
+                        ? currentScreen
+                        : const LoadingScreen();
+                  },
+                ),
               ),
             );
           },
@@ -116,7 +142,7 @@ class FadeOutInTransitionBuilder extends PageTransitionsBuilder {
     return FadeTransition(
       opacity: animation.drive(fadeOutCurve),
       child: RippleBackground(
-        color: colorScheme.primaryContainer,
+        color: SolitaireTheme.of(context).backgroundColor,
         child: FadeTransition(
           opacity: secondaryAnimation
               .drive(Tween(begin: 1.0, end: 0.0).chain(fadeInCurve)),
