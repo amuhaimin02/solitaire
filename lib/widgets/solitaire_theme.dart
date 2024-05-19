@@ -43,6 +43,7 @@ class _InheritedTheme extends InheritedWidget {
 class SolitaireThemeData {
   const SolitaireThemeData({
     required this.backgroundColor,
+    this.backgroundSecondaryColor,
     required this.foregroundColor,
     required this.winningBackgroundColor,
     required this.cardFaceColor,
@@ -58,6 +59,9 @@ class SolitaireThemeData {
   });
 
   final Color backgroundColor;
+
+  final Color? backgroundSecondaryColor;
+
   final Color foregroundColor;
   final Color winningBackgroundColor;
 
@@ -84,6 +88,7 @@ class SolitaireThemeData {
   }) {
     return SolitaireThemeData(
       backgroundColor: colorScheme.primaryContainer,
+      backgroundSecondaryColor: colorScheme.tertiaryContainer,
       foregroundColor: colorScheme.onPrimaryContainer,
       winningBackgroundColor: colorScheme.surface,
       cardFaceColor: colorScheme.surfaceContainerLowest,
@@ -97,5 +102,19 @@ class SolitaireThemeData {
       cardPadding: cardPadding,
       cardStackGap: cardStackGap,
     );
+  }
+
+  BoxDecoration generateBackgroundDecoration() {
+    if (backgroundSecondaryColor != null) {
+      return BoxDecoration(
+        gradient: LinearGradient(
+          colors: [backgroundSecondaryColor!, backgroundColor],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+      );
+    } else {
+      return BoxDecoration(color: backgroundColor);
+    }
   }
 }

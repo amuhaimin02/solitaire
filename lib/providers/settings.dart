@@ -29,6 +29,11 @@ enum Settings<T> {
   ),
 
   useDynamicColors(defaultValue: true),
+
+  useStandardColors(defaultValue: false),
+
+  useGradientBackground(defaultValue: false),
+
   presetColor<Color>(
     defaultValue: Colors.transparent,
     convertFrom: ColorSerializer.from,

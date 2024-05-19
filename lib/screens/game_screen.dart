@@ -8,7 +8,7 @@ import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
 import '../providers/settings.dart';
-import '../widgets/background.dart';
+import '../widgets/ripple_background.dart';
 import '../widgets/control_pane.dart';
 import '../widgets/debug_control_pane.dart';
 import '../widgets/debug_hud.dart';
@@ -42,11 +42,25 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
     final isWinning = context.select<GameState, bool>((s) => s.isWinning);
+    final useGradientBackground = context.select<SettingsManager, bool>(
+        (s) => s.get(Settings.useGradientBackground));
+
+    final BoxDecoration backgroundDecoration;
+    if (isWinning) {
+      backgroundDecoration = BoxDecoration(color: theme.winningBackgroundColor);
+    } else {
+      if (useGradientBackground) {
+        backgroundDecoration =
+            SolitaireTheme.of(context).generateBackgroundDecoration();
+      } else {
+        backgroundDecoration = BoxDecoration(color: theme.backgroundColor);
+      }
+    }
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
       body: RippleBackground(
-        color: isWinning ? theme.winningBackgroundColor : theme.backgroundColor,
+        decoration: backgroundDecoration,
         child: SafeArea(
           child: OrientationBuilder(
             builder: (context, orientation) {
@@ -208,9 +222,7 @@ class _PlayArea extends StatelessWidget {
       if (showMoveHighlight) {
         final lastAction = gameState.latestAction;
         if (lastAction is Move) {
-          if (lastAction.from is! Draw && lastAction is! Draw) {
-            lastMovedCards = (gameState.latestAction as Move).cards;
-          }
+          lastMovedCards = (gameState.latestAction as Move).cards;
         }
       }
 

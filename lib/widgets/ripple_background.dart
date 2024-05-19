@@ -3,32 +3,14 @@ import 'package:flutter/material.dart';
 import '../animations.dart';
 import '../utils/math.dart';
 
-class SimpleBackground extends StatelessWidget {
-  const SimpleBackground({super.key, required this.color, required this.child});
-
-  final Color color;
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: themeChangeAnimation.duration,
-      curve: themeChangeAnimation.curve,
-      color: color,
-      child: child,
-    );
-  }
-}
-
 class RippleBackground extends StatefulWidget {
   const RippleBackground({
     super.key,
     required this.child,
-    required this.color,
+    required this.decoration,
   });
 
-  final Color color;
+  final BoxDecoration decoration;
 
   final Widget child;
 
@@ -42,7 +24,7 @@ class _RippleBackgroundState extends State<RippleBackground>
 
   late Animation<double> _animation;
 
-  late Color _color;
+  late BoxDecoration _lastDecoration;
 
   Offset? _rippleOffset;
 
@@ -54,15 +36,14 @@ class _RippleBackgroundState extends State<RippleBackground>
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          _color = widget.color;
+          _lastDecoration = widget.decoration;
         });
       }
     });
     _animation =
         CurveTween(curve: themeChangeAnimation.curve).animate(_controller);
 
-    _color = widget.color;
-    _rippleOffset = Offset(0, 0);
+    _lastDecoration = widget.decoration;
   }
 
   @override
@@ -74,10 +55,7 @@ class _RippleBackgroundState extends State<RippleBackground>
   @override
   void didUpdateWidget(covariant RippleBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.color != oldWidget.color) {
-      if (_rippleOffset == null) {
-        _rippleOffset = Offset(0, 0);
-      }
+    if (widget.decoration != oldWidget.decoration) {
       _controller.forward(from: 0.0);
     }
   }
@@ -97,37 +75,25 @@ class _RippleBackgroundState extends State<RippleBackground>
     return LayoutBuilder(
       builder: (context, constraints) {
         final parentSize = constraints.biggest;
-        final rippleCenter = _rippleOffset!;
-
-        final circleRadius = findDistanceToFarthestRectCorner(
-          Offset.zero & parentSize,
-          rippleCenter,
-        );
+        final rippleCenter =
+            _rippleOffset ?? constraints.biggest.center(Offset.zero);
 
         return AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final oldColor = _color;
-            final newColor = widget.color;
+            final oldDecoration = _lastDecoration;
+            final newDecoration = widget.decoration;
 
             return Stack(
               children: [
                 Positioned.fill(
-                  child: Material(color: oldColor),
+                  child: DecoratedBox(decoration: oldDecoration),
                 ),
-                OverflowBox(
-                  maxWidth: double.infinity,
-                  maxHeight: double.infinity,
-                  child: Transform.translate(
-                    offset: rippleCenter - parentSize.center(Offset.zero),
-                    child: SizedBox(
-                      width: _animation.value * circleRadius * 2,
-                      height: _animation.value * circleRadius * 2,
-                      child: Material(
-                        color: newColor,
-                        shape: const CircleBorder(),
-                      ),
-                    ),
+                Positioned.fill(
+                  child: ClipOval(
+                    clipper:
+                        _AnimatedCircleClipper(_animation.value, rippleCenter),
+                    child: DecoratedBox(decoration: newDecoration),
                   ),
                 ),
                 widget.child,
@@ -137,5 +103,32 @@ class _RippleBackgroundState extends State<RippleBackground>
         );
       },
     );
+  }
+}
+
+class _AnimatedCircleClipper extends CustomClipper<Rect> {
+  const _AnimatedCircleClipper(this.animationValue, this.center);
+
+  final double animationValue;
+  final Offset center;
+
+  @override
+  Rect getClip(Size size) {
+    final circleRadius =
+        findDistanceToFarthestRectCorner(Offset.zero & size, center) *
+            animationValue;
+
+    return Rect.fromLTWH(
+      center.dx - circleRadius,
+      center.dy - circleRadius,
+      circleRadius * 2,
+      circleRadius * 2,
+    );
+  }
+
+  @override
+  bool shouldReclip(covariant _AnimatedCircleClipper oldClipper) {
+    return animationValue != oldClipper.animationValue ||
+        center != oldClipper.center;
   }
 }

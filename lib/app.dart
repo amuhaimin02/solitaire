@@ -12,7 +12,7 @@ import 'providers/settings.dart';
 import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/loading_screen.dart';
-import 'widgets/background.dart';
+import 'widgets/ripple_background.dart';
 import 'widgets/solitaire_theme.dart';
 
 class SolitaireApp extends StatelessWidget {
@@ -27,17 +27,18 @@ class SolitaireApp extends StatelessWidget {
       builder: (lightDynamic, darkDynamic) {
         ThemeData buildTheme(ColorScheme? colorScheme) {
           return ThemeData(
-              useMaterial3: true,
-              textTheme: GoogleFonts.robotoSlabTextTheme(),
-              colorScheme: colorScheme,
-              splashFactory: InkRipple.splashFactory,
-              pageTransitionsTheme: const PageTransitionsTheme(
-                builders: {
-                  TargetPlatform.android: FadeOutInTransitionBuilder(),
-                  TargetPlatform.iOS: FadeOutInTransitionBuilder(),
-                  TargetPlatform.macOS: FadeOutInTransitionBuilder(),
-                },
-              ));
+            useMaterial3: true,
+            textTheme: GoogleFonts.robotoSlabTextTheme(),
+            colorScheme: colorScheme,
+            splashFactory: InkRipple.splashFactory,
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: FadeOutInTransitionBuilder(),
+                TargetPlatform.iOS: FadeOutInTransitionBuilder(),
+                TargetPlatform.macOS: FadeOutInTransitionBuilder(),
+              },
+            ),
+          );
         }
 
         return MultiProvider(
@@ -54,9 +55,9 @@ class SolitaireApp extends StatelessWidget {
             ColorScheme colorScheme;
 
             if (themeMode == ThemeMode.system) {
-              final brightness =
+              final systemThemeMode =
                   WidgetsBinding.instance.platformDispatcher.platformBrightness;
-              themeMode = brightness == Brightness.light
+              themeMode = systemThemeMode == Brightness.light
                   ? ThemeMode.light
                   : ThemeMode.dark;
             }
@@ -77,12 +78,32 @@ class SolitaireApp extends StatelessWidget {
               }
             }
 
-            final themeData = SolitaireThemeData.fromColorScheme(
-              colorScheme: colorScheme,
-              cardUnitSize: const Size(2.5, 3.5),
-              cardPadding: 0.05,
-              cardStackGap: const Offset(0.3, 0.3),
-            );
+            final SolitaireThemeData themeData;
+            if (settings.get(Settings.useStandardColors)) {
+              themeData = SolitaireThemeData(
+                backgroundColor: Colors.green.shade800,
+                backgroundSecondaryColor: Colors.green.shade900,
+                foregroundColor: Colors.white,
+                winningBackgroundColor: Colors.green.shade500,
+                cardCoverColor: Colors.blueGrey,
+                cardFaceColor: Colors.white,
+                cardLabelPlainColor: Colors.grey.shade800,
+                cardLabelAccentColor: Colors.red,
+                pileMarkerColor: Colors.white,
+                hintHighlightColor: Colors.yellow,
+                lastMoveHighlightColor: Colors.orangeAccent,
+                cardUnitSize: const Size(2.5, 3.5),
+                cardPadding: 0.06,
+                cardStackGap: const Offset(0.3, 0.3),
+              );
+            } else {
+              themeData = SolitaireThemeData.fromColorScheme(
+                colorScheme: colorScheme,
+                cardUnitSize: const Size(2.5, 3.5),
+                cardPadding: 0.06,
+                cardStackGap: const Offset(0.3, 0.3),
+              );
+            }
 
             return MultiProvider(
               providers: [
@@ -142,7 +163,7 @@ class FadeOutInTransitionBuilder extends PageTransitionsBuilder {
     return FadeTransition(
       opacity: animation.drive(fadeOutCurve),
       child: RippleBackground(
-        color: SolitaireTheme.of(context).backgroundColor,
+        decoration: SolitaireTheme.of(context).generateBackgroundDecoration(),
         child: FadeTransition(
           opacity: secondaryAnimation
               .drive(Tween(begin: 1.0, end: 0.0).chain(fadeInCurve)),

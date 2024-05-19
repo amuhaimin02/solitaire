@@ -74,6 +74,18 @@ class _DebugControlPaneState extends State<DebugControlPane> {
         icon: Icon(MdiIcons.dice5),
       ),
       IconButton(
+        tooltip: 'Use standard colors',
+        isSelected: settings.get(Settings.useStandardColors),
+        onPressed: () => settings.toggle(Settings.useStandardColors),
+        icon: Icon(MdiIcons.invertColors),
+      ),
+      IconButton(
+        tooltip: 'Use gradient background',
+        isSelected: settings.get(Settings.useGradientBackground),
+        onPressed: () => settings.toggle(Settings.useGradientBackground),
+        icon: Icon(MdiIcons.gradientHorizontal),
+      ),
+      IconButton(
         tooltip: 'Toggle device orientation',
         onPressed: () {
           context.read<SettingsManager>().toggle(Settings.screenOrientation);
