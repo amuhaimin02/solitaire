@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
-import '../models/rules/rules.dart';
 import '../providers/settings.dart';
 import '../widgets/ripple_background.dart';
 import '../widgets/control_pane.dart';
@@ -42,64 +41,53 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
     final isWinning = context.select<GameState, bool>((s) => s.isWinning);
-    final useGradientBackground = context.select<SettingsManager, bool>(
-        (s) => s.get(Settings.useGradientBackground));
-
-    final BoxDecoration backgroundDecoration;
-    if (isWinning) {
-      backgroundDecoration = BoxDecoration(color: theme.winningBackgroundColor);
-    } else {
-      if (useGradientBackground) {
-        backgroundDecoration =
-            SolitaireTheme.of(context).generateBackgroundDecoration();
-      } else {
-        backgroundDecoration = BoxDecoration(color: theme.backgroundColor);
-      }
-    }
 
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+      ),
+      extendBodyBehindAppBar: true,
       body: RippleBackground(
-        decoration: backgroundDecoration,
-        child: SafeArea(
-          child: OrientationBuilder(
-            builder: (context, orientation) {
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  final isMobile = constraints.biggest.shortestSide < 600;
+        decoration: isWinning
+            ? BoxDecoration(color: theme.winningBackgroundColor)
+            : theme.generateBackgroundDecoration(),
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.biggest.shortestSide < 600;
 
-                  final outerMargin = isMobile
-                      ? const EdgeInsets.all(8)
-                      : const EdgeInsets.all(40);
+                final playAreaMargin = isMobile
+                    ? const EdgeInsets.all(8)
+                    : const EdgeInsets.all(40);
 
-                  final divider = SizedBox(
-                    width: 48,
-                    child: Divider(
-                      height: 24,
-                      color: theme.foregroundColor.withOpacity(0.3),
-                    ),
-                  );
+                final divider = SizedBox(
+                  width: 48,
+                  child: Divider(
+                    height: 24,
+                    color: theme.foregroundColor.withOpacity(0.3),
+                  ),
+                );
 
-                  final isPreparing =
-                      context.select<GameState, bool>((s) => s.isPreparing);
+                final isPreparing =
+                    context.select<GameState, bool>((s) => s.isPreparing);
 
-                  return Stack(
-                    children: [
-                      Positioned.fill(
-                        child: switch (orientation) {
-                          Orientation.landscape => Padding(
-                              padding: outerMargin,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Align(
-                                    alignment: Alignment.topCenter,
-                                    child: BackButton(),
-                                  ),
-                                  Flexible(
-                                    child: TouchFocusable(
-                                      active: !isPreparing,
-                                      opacityWhenUnfocus: 1,
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: switch (orientation) {
+                        Orientation.landscape => Padding(
+                            padding: const EdgeInsets.only(
+                                left: 56), // Make room for the
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: TouchFocusable(
+                                    active: !isPreparing,
+                                    opacityWhenUnfocus: 1,
+                                    child: Padding(
+                                      padding: playAreaMargin,
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
@@ -107,48 +95,48 @@ class _GameScreenState extends State<GameScreen> {
                                       ),
                                     ),
                                   ),
-                                  TouchFocusable(
+                                ),
+                                TouchFocusable(
+                                  active: !isPreparing,
+                                  opacityWhenUnfocus: 0,
+                                  child: Container(
+                                    width: 120,
+                                    margin:
+                                        const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        StatusPane(orientation: orientation),
+                                        divider,
+                                        ControlPane(orientation: orientation),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Orientation.portrait => Padding(
+                            padding: const EdgeInsets.only(
+                                top: 56), // Make room for the back button
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 32),
+                                  child: TouchFocusable(
                                     active: !isPreparing,
                                     opacityWhenUnfocus: 0,
-                                    child: Container(
-                                      width: 120,
-                                      margin: const EdgeInsets.only(left: 32),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          StatusPane(orientation: orientation),
-                                          divider,
-                                          ControlPane(orientation: orientation),
-                                        ],
-                                      ),
-                                    ),
+                                    child: StatusPane(orientation: orientation),
                                   ),
-                                ],
-                              ),
-                            ),
-                          Orientation.portrait => Padding(
-                              padding: outerMargin,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: BackButton(),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 32),
-                                    child: TouchFocusable(
-                                      active: !isPreparing,
-                                      opacityWhenUnfocus: 0,
-                                      child:
-                                          StatusPane(orientation: orientation),
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: TouchFocusable(
-                                      active: !isPreparing,
-                                      opacityWhenUnfocus: 1,
+                                ),
+                                Flexible(
+                                  child: TouchFocusable(
+                                    active: !isPreparing,
+                                    opacityWhenUnfocus: 1,
+                                    child: Padding(
+                                      padding: playAreaMargin,
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
@@ -156,51 +144,51 @@ class _GameScreenState extends State<GameScreen> {
                                       ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 32),
-                                    child: TouchFocusable(
-                                      active: !isPreparing,
-                                      opacityWhenUnfocus: 0,
-                                      child:
-                                          ControlPane(orientation: orientation),
-                                    ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 32),
+                                  child: TouchFocusable(
+                                    active: !isPreparing,
+                                    opacityWhenUnfocus: 0,
+                                    child:
+                                        ControlPane(orientation: orientation),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                        },
-                      ),
-                      if (context
-                          .watch<SettingsManager>()
-                          .get(Settings.showDebugPanel))
-                        switch (orientation) {
-                          Orientation.landscape => const Align(
-                              alignment: Alignment.centerRight,
-                              child: SizedBox(
-                                width: 200,
-                                height: double.infinity,
-                                child: DebugHUD(),
-                              ),
+                          ),
+                      },
+                    ),
+                    if (context
+                        .watch<SettingsManager>()
+                        .get(Settings.showDebugPanel))
+                      switch (orientation) {
+                        Orientation.landscape => const Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              width: 200,
+                              height: double.infinity,
+                              child: DebugHUD(),
                             ),
-                          Orientation.portrait => const Align(
-                              alignment: Alignment.bottomCenter,
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 250,
-                                child: DebugHUD(),
-                              ),
+                          ),
+                        Orientation.portrait => const Align(
+                            alignment: Alignment.bottomCenter,
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 250,
+                              child: DebugHUD(),
                             ),
-                        },
-                      const Align(
-                        alignment: Alignment.bottomLeft,
-                        child: DebugControlPane(),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
+                          ),
+                      },
+                    const Align(
+                      alignment: Alignment.bottomLeft,
+                      child: DebugControlPane(),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -215,11 +203,6 @@ class _PlayArea extends StatelessWidget {
     final gameState = context.watch<GameState>();
 
     return OrientationBuilder(builder: (context, orientation) {
-      final options = LayoutOptions(
-        orientation: orientation,
-        mirror: false,
-      );
-
       final cards = gameState.cardsOnTable;
 
       PlayCardList? lastMovedCards, highlightedCards;
@@ -241,10 +224,11 @@ class _PlayArea extends StatelessWidget {
         children: [
           GameTable(
             cards: cards,
-            layout: gameState.rules.getLayout(options),
+            rules: gameState.rules,
+            orientation: orientation,
             highlightedCards: highlightedCards,
             lastMovedCards: lastMovedCards,
-            animatedDistribute: gameState.status == GameStatus.preparing,
+            animateDistribute: gameState.status == GameStatus.preparing,
             onCardTap: (card, pile) {
               print('tapping card $card on $pile');
               final gameState = context.read<GameState>();

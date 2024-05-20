@@ -53,6 +53,7 @@ class CardView extends StatelessWidget {
           CardHighlight(
             highlight: highlightColor != null,
             color: highlightColor ?? theme.foregroundColor,
+            size: size,
           ),
           Positioned.fill(
             child: Padding(
@@ -62,7 +63,8 @@ class CardView extends StatelessWidget {
                 curve: cardMoveAnimation.curve,
                 flipped: hideFace || card.flipped,
                 front: Material(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(
+                      size.shortestSide * theme.cardCornerRadius),
                   elevation: elevation ?? 2,
                   child: CardFace(
                     card: card,
@@ -115,13 +117,15 @@ class CardFace extends StatelessWidget {
     final spacingFactor = size.shortestSide * 0.05;
     final labelSizingFactor = size.shortestSide * 0.32;
     final iconSizingFactor = size.shortestSide * 0.25;
+    final theme = SolitaireTheme.of(context);
 
     final iconSvgPath = 'assets/${card.suit.name}.svg';
 
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius:
+            BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
       ),
       child: Stack(
         children: [
@@ -189,10 +193,12 @@ class CardCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = SolitaireTheme.of(context);
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius:
+            BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
         border: Border.all(
           width: size.shortestSide * 0.1,
           color: color.darken(0.15),
@@ -204,14 +210,20 @@ class CardCover extends StatelessWidget {
 
 class CardHighlight extends StatelessWidget {
   const CardHighlight(
-      {super.key, required this.highlight, required this.color});
+      {super.key,
+      required this.highlight,
+      required this.color,
+      required this.size});
 
   final Color color;
 
   final bool highlight;
 
+  final Size size;
+
   @override
   Widget build(BuildContext context) {
+    final theme = SolitaireTheme.of(context);
     return AnimatedScale(
       duration: cardMoveAnimation.duration,
       curve: highlight ? Curves.easeOutCirc : Curves.easeInCirc,
@@ -219,7 +231,8 @@ class CardHighlight extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(
+              size.shortestSide * (theme.cardCornerRadius + theme.cardPadding)),
         ),
       ),
     );

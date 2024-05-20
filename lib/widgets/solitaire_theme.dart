@@ -56,6 +56,7 @@ class SolitaireThemeData {
     required this.cardUnitSize,
     required this.cardPadding,
     required this.cardStackGap,
+    required this.cardCornerRadius,
   });
 
   final Color backgroundColor;
@@ -80,15 +81,20 @@ class SolitaireThemeData {
 
   final Offset cardStackGap;
 
+  final double cardCornerRadius;
+
   factory SolitaireThemeData.fromColorScheme({
     required ColorScheme colorScheme,
     required Size cardUnitSize,
     required double cardPadding,
     required Offset cardStackGap,
+    required double cardCornerRadius,
+    bool useGradientBackground = false,
   }) {
     return SolitaireThemeData(
       backgroundColor: colorScheme.primaryContainer,
-      backgroundSecondaryColor: colorScheme.tertiaryContainer,
+      backgroundSecondaryColor:
+          useGradientBackground ? colorScheme.tertiaryContainer : null,
       foregroundColor: colorScheme.onPrimaryContainer,
       winningBackgroundColor: colorScheme.surface,
       cardFaceColor: colorScheme.surfaceContainerLowest,
@@ -101,6 +107,7 @@ class SolitaireThemeData {
       cardUnitSize: cardUnitSize,
       cardPadding: cardPadding,
       cardStackGap: cardStackGap,
+      cardCornerRadius: cardCornerRadius,
     );
   }
 

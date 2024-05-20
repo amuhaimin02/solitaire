@@ -9,75 +9,82 @@ import '../score_tracker.dart';
 import 'rules.dart';
 
 class Klondike extends SolitaireRules {
-  @override
-  int get numberOfTableauPiles => 7;
+  static const numberOfTableauPiles = 7;
 
-  @override
-  int get numberOfFoundationPiles => 4;
+  static const numberOfFoundationPiles = 4;
 
   @override
   int get drawsPerTurn => 1;
 
   @override
-  Layout getLayout([LayoutOptions? options]) {
+  List<Pile> get piles {
+    return [
+      for (int i = 0; i < numberOfFoundationPiles; i++) Foundation(i),
+      for (int i = 0; i < numberOfTableauPiles; i++) Tableau(i),
+      const Discard(),
+      const Draw(),
+    ];
+  }
+
+  @override
+  Layout getLayout(List<Pile> piles, [LayoutOptions? options]) {
     switch (options?.orientation) {
       case Orientation.portrait || null:
         return Layout(
           gridSize: const Size(7, 6),
           items: [
-            for (int i = 0; i < numberOfTableauPiles; i++)
-              LayoutItem(
-                kind: Tableau(i),
-                region: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-                stackDirection: Direction.down,
-              ),
-            LayoutItem(
-              kind: const Discard(),
-              region: const Rect.fromLTWH(4, 0, 2, 1),
-              stackDirection: Direction.left,
-              shiftStackOnPlace: true,
-              numberOfCardsToShow: 3,
-            ),
-            for (int i = 0; i < numberOfFoundationPiles; i++)
-              LayoutItem(
-                kind: Foundation(i),
-                region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              ),
-            LayoutItem(
-              kind: const Draw(),
-              region: const Rect.fromLTWH(6, 0, 1, 1),
-              showCountIndicator: true,
-            ),
+            for (final pile in piles)
+              switch (pile) {
+                Draw() => LayoutItem(
+                    kind: const Draw(),
+                    region: const Rect.fromLTWH(6, 0, 1, 1),
+                    showCountIndicator: true,
+                  ),
+                Discard() => LayoutItem(
+                    kind: const Discard(),
+                    region: const Rect.fromLTWH(4, 0, 2, 1),
+                    stackDirection: Direction.left,
+                    shiftStackOnPlace: true,
+                    numberOfCardsToShow: 3,
+                  ),
+                Foundation(:final index) => LayoutItem(
+                    kind: Foundation(index),
+                    region: Rect.fromLTWH(index.toDouble(), 0, 1, 1),
+                  ),
+                Tableau(:final index) => LayoutItem(
+                    kind: Tableau(index),
+                    region: Rect.fromLTWH(index.toDouble(), 1.3, 1, 4.7),
+                    stackDirection: Direction.down,
+                  ),
+              }
           ],
         );
       case Orientation.landscape:
-        return Layout(
-          gridSize: const Size(10, 4),
-          items: [
-            for (int i = 0; i < numberOfTableauPiles; i++)
-              LayoutItem(
-                kind: Tableau(i),
-                region: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
-                stackDirection: Direction.down,
-              ),
-            for (int i = 0; i < numberOfFoundationPiles; i++)
-              LayoutItem(
-                kind: Foundation(i),
-                region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
-              ),
-            LayoutItem(
-              kind: const Discard(),
-              region: const Rect.fromLTWH(9, 0.5, 1, 2),
-              stackDirection: Direction.down,
-              numberOfCardsToShow: 3,
-            ),
-            LayoutItem(
-              kind: const Draw(),
-              region: const Rect.fromLTWH(9, 2.5, 1, 1),
-              showCountIndicator: true,
-            ),
-          ],
-        );
+        return Layout(gridSize: const Size(10, 4), items: [
+          for (final pile in piles)
+            switch (pile) {
+              Draw() => LayoutItem(
+                  kind: const Draw(),
+                  region: const Rect.fromLTWH(9, 2.5, 1, 1),
+                  showCountIndicator: true,
+                ),
+              Discard() => LayoutItem(
+                  kind: const Discard(),
+                  region: const Rect.fromLTWH(9, 0.5, 1, 2),
+                  stackDirection: Direction.down,
+                  numberOfCardsToShow: 3,
+                ),
+              Foundation(:final index) => LayoutItem(
+                  kind: Foundation(index),
+                  region: Rect.fromLTWH(0, index.toDouble(), 1, 1),
+                ),
+              Tableau(:final index) => LayoutItem(
+                  kind: Tableau(index),
+                  region: Rect.fromLTWH(index.toDouble() + 1.5, 0, 1, 4),
+                  stackDirection: Direction.down,
+                ),
+            }
+        ]);
     }
   }
 
@@ -181,6 +188,9 @@ class Klondike extends SolitaireRules {
   @override
   Iterable<MoveIntent> autoMoveStrategy(
       AutoMoveLevel level, PlayCards cards) sync* {
+    for (final f in allFoundations) {
+      yield MoveIntent(const Discard(), f);
+    }
     for (final t in allTableaus) {
       for (final f in allFoundations) {
         yield MoveIntent(t, f);

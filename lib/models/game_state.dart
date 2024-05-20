@@ -209,13 +209,9 @@ class GameState extends ChangeNotifier {
 
   void _setupPiles() {
     // Clear up tables, and set up new draw pile
-    _cards = PlayCards({
-      const Draw():
-          rules.prepareDrawPile(CustomPRNG.create(_gameSeed)).allFaceDown,
-      const Discard(): [],
-      for (int i = 0; i < rules.numberOfFoundationPiles; i++) Foundation(i): [],
-      for (int i = 0; i < rules.numberOfTableauPiles; i++) Tableau(i): [],
-    });
+    _cards = PlayCards.fromRules(rules);
+    _cards(const Draw()).addAll(
+        rules.prepareDrawPile(CustomPRNG.create(_gameSeed)).allFaceDown);
   }
 
   void _distributeCards() {
@@ -223,7 +219,7 @@ class GameState extends ChangeNotifier {
   }
 
   void testDistributeToOtherPiles() {
-    for (int i = 0; i < rules.numberOfFoundationPiles; i++) {
+    for (int i = 0; i < 4; i++) {
       for (int j = 0; i < j; j++) {
         _cards(Foundation(i)).add(_cards(const Draw()).removeLast().faceUp());
       }
@@ -376,13 +372,13 @@ class GameState extends ChangeNotifier {
     };
 
     final foundationIndexes = RollingIndexIterator(
-      count: rules.numberOfFoundationPiles,
+      count: 4,
       start: 0,
       direction: 1,
     );
 
     final tableauIndexes = RollingIndexIterator(
-      count: rules.numberOfTableauPiles,
+      count: 7,
       start: from is Tableau ? from.index : 0,
       direction: 1,
       startInclusive: from is! Tableau,

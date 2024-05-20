@@ -85,9 +85,12 @@ class ControlPane extends StatelessWidget {
         ),
       ),
       child: switch (orientation) {
-        Orientation.portrait => Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: children,
+        Orientation.portrait => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: children,
+            ),
           ),
         Orientation.landscape => Wrap(
             direction: Axis.vertical,

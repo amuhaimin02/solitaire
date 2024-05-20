@@ -2,13 +2,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
 
-import '../models/card.dart';
+import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/klondike.dart';
-import '../models/rules/rules.dart';
 import '../widgets/game_table.dart';
 import '../widgets/pager.dart';
+import '../widgets/ripple_background.dart';
 import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -17,31 +18,54 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: OrientationBuilder(
-            builder: (context, orientation) {
+      body: RippleBackground(
+        decoration: SolitaireTheme.of(context).generateBackgroundDecoration(),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final orientation = constraints.maxWidth > 800
+                  ? Orientation.landscape
+                  : Orientation.portrait;
+
               switch (orientation) {
                 case Orientation.landscape:
-                  return const Row(
+                  return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(child: _GameSelection()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 64),
-                        child: _GameOptions(),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            const Spacer(),
+                            const _GameTitleAndOptions(),
+                            Expanded(
+                              flex: 6,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: _GameSelection(orientation: orientation),
+                              ),
+                            ),
+                            const Spacer(),
+                          ],
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 48),
+                        child: _GameMenu(),
                       ),
                     ],
                   );
                 case Orientation.portrait:
-                  return const Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(child: _GameSelection()),
-                      _GameOptions(),
+                      const Spacer(),
+                      const _GameTitleAndOptions(),
+                      Expanded(
+                          flex: 6,
+                          child: _GameSelection(orientation: orientation)),
+                      const _GameMenu(),
+                      const Spacer(),
                     ],
                   );
               }
@@ -53,71 +77,148 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _GameSelection extends StatelessWidget {
-  const _GameSelection({super.key});
+class _GameTitleAndOptions extends StatelessWidget {
+  const _GameTitleAndOptions({super.key});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final rules = Klondike();
-    final cards = PlayCards.fromRules(rules);
-    cards(const Draw()).addAll(rules.prepareDrawPile(Random()).allFaceDown);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    rules.setup(cards);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('Klondike',
-            style: textTheme.displayMedium!
-                .copyWith(color: SolitaireTheme.of(context).foregroundColor)),
-        const SizedBox(height: 32),
-        Flexible(
-          child: Pager(
-            builder: (context) {
-              return ConstrainedBox(
-                constraints:
-                    const BoxConstraints(maxWidth: 400, maxHeight: 400),
-                child: Center(
-                  child: GameTable(
-                    interactive: false,
-                    layout: rules.getLayout(
-                      LayoutOptions(
-                        orientation: Orientation.portrait,
-                        mirror: false,
-                      ),
-                    ),
-                    cards: cards,
-                  ),
-                ),
-              );
-            },
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        children: [
+          Text(
+            'Klondike',
+            style: textTheme.displayMedium!.copyWith(
+                color: colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w200),
+            textAlign: TextAlign.center,
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colorScheme.onSurface,
+              padding: const EdgeInsets.only(
+                  left: 16, right: 8), // Restore visual balance
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            iconAlignment: IconAlignment.end,
+            label: const Text('1 draw, standard scoring'),
+            icon: const Icon(Icons.arrow_drop_down),
+            onPressed: () {},
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _GameOptions extends StatelessWidget {
-  const _GameOptions({super.key});
+class _GameSelection extends StatelessWidget {
+  const _GameSelection({super.key, required this.orientation});
+
+  final Orientation orientation;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final rules = Klondike();
+    final cards = PlayCards.fromRules(rules);
+    cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
+
+    rules.setup(cards);
+
+    return IconTheme(
+      data: IconThemeData(color: colorScheme.primary),
+      child: Pager(
+        builder: (context) {
+          return GameTable(
+            interactive: false,
+            animateMovement: false,
+            rules: rules,
+            orientation: orientation,
+            cards: cards,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _GameMenu extends StatelessWidget {
+  const _GameMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FloatingActionButton.extended(
-          backgroundColor: colorScheme.onPrimaryContainer,
-          foregroundColor: colorScheme.primaryContainer,
+        FilledButton.icon(
           onPressed: () {
             Navigator.pushNamed(context, '/game');
           },
-          label: const Text('Play game'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(0, 56),
+          ),
+          label: const Text('Continue last game'),
           icon: Icon(MdiIcons.cardsPlaying),
         ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () {
+            final gameState = context.read<GameState>();
+            gameState.startNewGame();
+            Navigator.pushNamed(context, '/game');
+          },
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 56),
+          ),
+          label: const Text('New game'),
+          icon: Icon(MdiIcons.cardsPlaying),
+        ),
+        const SizedBox(height: 24),
+        IconButtonTheme(
+          data: IconButtonThemeData(
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.onPrimaryContainer,
+            ),
+          ),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 24,
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/stats');
+                },
+                icon: const Icon(Icons.leaderboard),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/theme');
+                },
+                icon: const Icon(Icons.imagesearch_roller),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/settings');
+                },
+                icon: const Icon(Icons.settings),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/about');
+                },
+                icon: const Icon(Icons.info),
+              ),
+            ],
+          ),
+        )
       ],
     );
   }

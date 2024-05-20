@@ -7,13 +7,11 @@ import '../pile.dart';
 import '../score_tracker.dart';
 
 abstract class SolitaireRules {
-  int get numberOfTableauPiles;
-
-  int get numberOfFoundationPiles;
-
   int get drawsPerTurn;
 
-  Layout getLayout([LayoutOptions? options]);
+  List<Pile> get piles;
+
+  Layout getLayout(List<Pile> piles, [LayoutOptions? options]);
 
   PlayCardList prepareDrawPile(Random random);
 
@@ -34,11 +32,11 @@ abstract class SolitaireRules {
   void afterEachMove(Move move, PlayCards cards, ScoreTracker score);
 
   Iterable<Pile> get allTableaus {
-    return Iterable.generate(numberOfTableauPiles, (i) => Tableau(i));
+    return piles.whereType<Tableau>();
   }
 
   Iterable<Pile> get allFoundations {
-    return Iterable.generate(numberOfFoundationPiles, (i) => Foundation(i));
+    return piles.whereType<Foundation>();
   }
 }
 

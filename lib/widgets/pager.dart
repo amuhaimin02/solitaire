@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Pager extends StatelessWidget {
@@ -12,12 +11,14 @@ class Pager extends StatelessWidget {
       children: [
         Positioned.fill(
           child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Icon(Icons.chevron_left),
               ),
-              Expanded(child: builder(context)),
+              Flexible(child: builder(context)),
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Icon(Icons.chevron_right),
@@ -25,22 +26,23 @@ class Pager extends StatelessWidget {
             ],
           ),
         ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: () {},
-                child: SizedBox.expand(),
+        Positioned.fill(
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {},
+                  child: SizedBox.expand(),
+                ),
               ),
-            ),
-            Expanded(
-              child: InkWell(
-                onTap: () {},
-                child: SizedBox.expand(),
+              Expanded(
+                child: InkWell(
+                  onTap: () {},
+                  child: SizedBox.expand(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

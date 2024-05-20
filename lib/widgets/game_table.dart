@@ -20,18 +20,20 @@ import 'ticking_number.dart';
 class GameTable extends StatelessWidget {
   const GameTable({
     super.key,
-    required this.layout,
+    required this.rules,
     required this.cards,
+    required this.orientation,
     this.interactive = true,
     this.onCardTap,
     this.onCardDrop,
     this.onPileTap,
     this.highlightedCards,
     this.lastMovedCards,
-    this.animatedDistribute = false,
+    this.animateDistribute = false,
+    this.animateMovement = true,
   });
 
-  final Layout layout;
+  final SolitaireRules rules;
 
   final PlayCardList? Function(PlayCard card, Pile pile)? onCardTap;
 
@@ -40,17 +42,26 @@ class GameTable extends StatelessWidget {
 
   final bool interactive;
 
+  final Orientation orientation;
+
   final PlayCards cards;
 
   final PlayCardList? highlightedCards;
 
   final PlayCardList? lastMovedCards;
 
-  final bool animatedDistribute;
+  final bool animateDistribute;
+
+  final bool animateMovement;
 
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
+
+    final layout = rules.getLayout(
+      rules.piles,
+      LayoutOptions(orientation: orientation, mirror: false),
+    );
 
     return IgnorePointer(
       ignoring: !interactive,
@@ -80,7 +91,8 @@ class GameTable extends StatelessWidget {
                   onCardDrop: onCardDrop,
                   highlightedCards: highlightedCards,
                   lastMovedCards: lastMovedCards,
-                  animatedDistribute: animatedDistribute,
+                  animateDistribute: animateDistribute,
+                  animateMovement: animateMovement,
                 ),
                 if (interactive)
                   _OverlayLayer(
@@ -279,7 +291,8 @@ class _CardLayer extends StatefulWidget {
     this.onPileTap,
     this.highlightedCards,
     this.lastMovedCards,
-    this.animatedDistribute = false,
+    required this.animateDistribute,
+    required this.animateMovement,
   });
 
   final PlayCards cards;
@@ -296,7 +309,9 @@ class _CardLayer extends StatefulWidget {
 
   final Layout layout;
 
-  final bool animatedDistribute;
+  final bool animateDistribute;
+
+  final bool animateMovement;
 
   @override
   State<_CardLayer> createState() => _CardLayerState();
@@ -490,9 +505,11 @@ class _CardLayerState extends State<_CardLayer> {
     cards = widget.cards(item.kind);
 
     DurationCurve computeAnimation(int cardIndex) {
-      if (_lastTouchPoint != null) {
+      if (!widget.animateMovement) {
+        return DurationCurve.zero;
+      } else if (_lastTouchPoint != null) {
         return cardDragAnimation;
-      } else if (widget.animatedDistribute && item.kind is Tableau) {
+      } else if (widget.animateDistribute && item.kind is Tableau) {
         final tableau = item.kind as Tableau;
         final delayFactor = cardMoveAnimation.duration * 0.3;
         // return cardMoveAnimation.timeScaled(10);

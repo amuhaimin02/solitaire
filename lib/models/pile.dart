@@ -209,7 +209,7 @@ class PlayCards {
 
   factory PlayCards.fromRules(SolitaireRules rules) {
     return PlayCards({
-      for (final pile in rules.getLayout().items) pile.kind: [],
+      for (final pile in rules.piles) pile: [],
     });
   }
 

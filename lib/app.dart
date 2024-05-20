@@ -9,9 +9,13 @@ import 'animations.dart';
 import 'models/game_state.dart';
 import 'models/game_theme.dart';
 import 'providers/settings.dart';
+import 'screens/about_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/loading_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/statistics_screen.dart';
+import 'screens/theme_screen.dart';
 import 'widgets/ripple_background.dart';
 import 'widgets/solitaire_theme.dart';
 
@@ -28,9 +32,13 @@ class SolitaireApp extends StatelessWidget {
         ThemeData buildTheme(ColorScheme? colorScheme) {
           return ThemeData(
             useMaterial3: true,
-            textTheme: GoogleFonts.robotoSlabTextTheme(),
+            textTheme: GoogleFonts.manropeTextTheme(),
             colorScheme: colorScheme,
             splashFactory: InkRipple.splashFactory,
+            scaffoldBackgroundColor: Colors.transparent,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.transparent,
+            ),
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
                 TargetPlatform.android: FadeOutInTransitionBuilder(),
@@ -95,6 +103,7 @@ class SolitaireApp extends StatelessWidget {
                 cardUnitSize: const Size(2.5, 3.5),
                 cardPadding: 0.06,
                 cardStackGap: const Offset(0.3, 0.3),
+                cardCornerRadius: 0.1,
               );
             } else {
               themeData = SolitaireThemeData.fromColorScheme(
@@ -102,6 +111,9 @@ class SolitaireApp extends StatelessWidget {
                 cardUnitSize: const Size(2.5, 3.5),
                 cardPadding: 0.06,
                 cardStackGap: const Offset(0.3, 0.3),
+                cardCornerRadius: 0.1,
+                useGradientBackground:
+                    settings.get(Settings.useGradientBackground),
               );
             }
 
@@ -125,14 +137,10 @@ class SolitaireApp extends StatelessWidget {
                   routes: {
                     '/home': (context) => const HomeScreen(),
                     '/game': (context) => const GameScreen(),
-                  },
-                  builder: (context, currentScreen) {
-                    final isSettingsLoaded = context
-                        .select<SettingsManager, bool>((s) => s.isPreloaded);
-
-                    return isSettingsLoaded && currentScreen != null
-                        ? currentScreen
-                        : const LoadingScreen();
+                    '/theme': (context) => const ThemeScreen(),
+                    '/settings': (context) => const SettingsScreen(),
+                    '/stats': (context) => const StatisticsScreen(),
+                    '/about': (context) => const AboutScreen(),
                   },
                 ),
               ),
