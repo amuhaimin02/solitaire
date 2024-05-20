@@ -57,6 +57,7 @@ class SolitaireThemeData {
     required this.cardPadding,
     required this.cardStackGap,
     required this.cardCornerRadius,
+    this.isHighContrast = false,
   });
 
   final Color backgroundColor;
@@ -83,6 +84,8 @@ class SolitaireThemeData {
 
   final double cardCornerRadius;
 
+  final bool isHighContrast;
+
   factory SolitaireThemeData.fromColorScheme({
     required ColorScheme colorScheme,
     required Size cardUnitSize,
@@ -90,26 +93,25 @@ class SolitaireThemeData {
     required Offset cardStackGap,
     required double cardCornerRadius,
     bool useGradientBackground = false,
-    bool useStrongContrastBackground = false,
+    bool useColoredBackground = false,
   }) {
     Color getCardFaceColor() {
-      if (useStrongContrastBackground) {
-        return colorScheme.brightness == Brightness.dark
-            ? colorScheme.surfaceContainerHigh
-            : colorScheme.surfaceContainerLowest;
-      } else {
+      if (useColoredBackground) {
         return colorScheme.surfaceContainerLowest;
+      } else {
+        return colorScheme.brightness == Brightness.dark
+            ? colorScheme.surfaceContainer
+            : colorScheme.surfaceContainerLowest;
       }
     }
 
     return SolitaireThemeData(
-      backgroundColor: useStrongContrastBackground
-          ? colorScheme.surface
-          : colorScheme.primaryContainer,
-      backgroundSecondaryColor:
-          useGradientBackground && !useStrongContrastBackground
-              ? colorScheme.tertiaryContainer
-              : null,
+      backgroundColor: useColoredBackground
+          ? colorScheme.primaryContainer
+          : colorScheme.surface,
+      backgroundSecondaryColor: useGradientBackground && useColoredBackground
+          ? colorScheme.tertiaryContainer
+          : null,
       foregroundColor: colorScheme.onPrimaryContainer,
       winningBackgroundColor: colorScheme.surface,
       cardFaceColor: getCardFaceColor(),
@@ -123,6 +125,7 @@ class SolitaireThemeData {
       cardPadding: cardPadding,
       cardStackGap: cardStackGap,
       cardCornerRadius: cardCornerRadius,
+      isHighContrast: !useColoredBackground,
     );
   }
 
@@ -150,14 +153,22 @@ class SolitaireAdjustedTheme extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final theme = SolitaireTheme.of(context);
+
+    final ColorScheme newColorScheme;
+    if (theme.isHighContrast) {
+      newColorScheme = colorScheme;
+    } else {
+      newColorScheme = colorScheme.copyWith(
+        surfaceContainerHighest: colorScheme.primaryContainer,
+        secondaryContainer: colorScheme.secondary,
+        onSecondaryContainer: colorScheme.onSecondary,
+      );
+    }
 
     return Theme(
       data: ThemeData.from(
-        colorScheme: colorScheme.copyWith(
-          surfaceContainerHighest: colorScheme.primaryContainer,
-          secondaryContainer: colorScheme.secondary,
-          onSecondaryContainer: colorScheme.onSecondary,
-        ),
+        colorScheme: newColorScheme,
         textTheme: textTheme,
       ),
       child: child,

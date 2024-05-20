@@ -16,23 +16,27 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        scrolledUnderElevation: 0,
       ),
       body: SolitaireAdjustedTheme(
         child: Center(
           child: SizedBox(
             width: 600,
             child: FadingEdgeListView(
+              verticalPadding: 32,
               children: [
                 ListTile(
                   title: const Text('Screen orientation'),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: SegmentedButton<SystemOrientation>(
+                      showSelectedIcon: false,
                       segments: const [
                         ButtonSegment(
-                            value: SystemOrientation.auto,
-                            label: Text('Auto'),
-                            icon: Icon(Icons.screen_rotation)),
+                          value: SystemOrientation.auto,
+                          label: Text('Auto'),
+                          icon: Icon(Icons.screen_rotation),
+                        ),
                         ButtonSegment(
                           value: SystemOrientation.portrait,
                           label: Text('Portrait'),

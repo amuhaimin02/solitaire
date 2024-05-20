@@ -40,7 +40,7 @@ enum Settings<T> {
     convertTo: ColorSerializer.to,
   ),
 
-  strongContrastBackground(defaultValue: false);
+  coloredBackground(defaultValue: false);
 
   // ----------------------------------------
 

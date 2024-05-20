@@ -26,9 +26,15 @@ class PileMarker extends StatelessWidget {
       padding: EdgeInsets.all(size.shortestSide * theme.cardPadding),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.pileMarkerColor.withOpacity(0.1),
+          color: theme.isHighContrast
+              ? null
+              : theme.pileMarkerColor.withOpacity(0.1),
           borderRadius:
               BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
+          border: theme.isHighContrast
+              ? Border.all(
+                  color: theme.pileMarkerColor.withOpacity(0.15), width: 2)
+              : null,
         ),
         child: Icon(
           icon,

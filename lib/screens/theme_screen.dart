@@ -25,6 +25,7 @@ class ThemeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Themes'),
+        scrolledUnderElevation: 0,
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -91,17 +92,20 @@ class ThemeScreen extends StatelessWidget {
     final settings = context.watch<SettingsManager>();
     return SolitaireAdjustedTheme(
       child: FadingEdgeListView(
+        verticalPadding: 32,
         children: [
           ListTile(
             title: const Text('Theme mode'),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 8),
               child: SegmentedButton<ThemeMode>(
+                showSelectedIcon: false,
                 segments: const [
                   ButtonSegment(
-                      value: ThemeMode.system,
-                      label: Text('System'),
-                      icon: Icon(Icons.brightness_6)),
+                    value: ThemeMode.system,
+                    label: Text('System'),
+                    icon: Icon(Icons.brightness_6),
+                  ),
                   ButtonSegment(
                     value: ThemeMode.light,
                     label: Text('Light'),
@@ -130,12 +134,11 @@ class ThemeScreen extends StatelessWidget {
             },
           ),
           SwitchListTile(
-            title: const Text('Contrast background'),
-            subtitle:
-                const Text('Use strong contrast version of the background'),
-            value: settings.get(Settings.strongContrastBackground),
+            title: const Text('Colored background'),
+            subtitle: const Text('Use colored version of the background'),
+            value: settings.get(Settings.coloredBackground),
             onChanged: (value) {
-              settings.toggle(Settings.strongContrastBackground);
+              settings.toggle(Settings.coloredBackground);
             },
           ),
           SwitchListTile(

@@ -114,8 +114,7 @@ class SolitaireApp extends StatelessWidget {
                 cardCornerRadius: 0.1,
                 useGradientBackground:
                     settings.get(Settings.useGradientBackground),
-                useStrongContrastBackground:
-                    settings.get(Settings.strongContrastBackground),
+                useColoredBackground: settings.get(Settings.coloredBackground),
               );
             }
 

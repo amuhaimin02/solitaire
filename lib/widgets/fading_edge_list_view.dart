@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class FadingEdgeListView extends StatelessWidget {
   const FadingEdgeListView(
-      {super.key, required this.children, this.verticalPadding = 48});
+      {super.key, required this.children, required this.verticalPadding});
 
   final List<Widget> children;
   final double verticalPadding;
@@ -24,10 +24,10 @@ class FadingEdgeListView extends StatelessWidget {
             1,
           ],
           colors: const [
-            Colors.black,
+            Colors.transparent,
             Colors.white,
             Colors.white,
-            Colors.black
+            Colors.transparent
           ],
         ).createShader(rect);
       },
