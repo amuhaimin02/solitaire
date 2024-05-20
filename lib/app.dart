@@ -32,9 +32,9 @@ class SolitaireApp extends StatelessWidget {
         ThemeData buildTheme(ColorScheme? colorScheme) {
           return ThemeData(
             useMaterial3: true,
-            textTheme: GoogleFonts.manropeTextTheme(),
+            textTheme: GoogleFonts.interTextTheme(),
             colorScheme: colorScheme,
-            splashFactory: InkRipple.splashFactory,
+            splashColor: Colors.transparent,
             scaffoldBackgroundColor: Colors.transparent,
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.transparent,
@@ -114,6 +114,8 @@ class SolitaireApp extends StatelessWidget {
                 cardCornerRadius: 0.1,
                 useGradientBackground:
                     settings.get(Settings.useGradientBackground),
+                useStrongContrastBackground:
+                    settings.get(Settings.strongContrastBackground),
               );
             }
 

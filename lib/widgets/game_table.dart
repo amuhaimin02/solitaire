@@ -22,7 +22,7 @@ class GameTable extends StatelessWidget {
     super.key,
     required this.rules,
     required this.cards,
-    required this.orientation,
+    this.orientation = Orientation.portrait,
     this.interactive = true,
     this.onCardTap,
     this.onCardDrop,

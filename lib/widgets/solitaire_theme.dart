@@ -90,14 +90,29 @@ class SolitaireThemeData {
     required Offset cardStackGap,
     required double cardCornerRadius,
     bool useGradientBackground = false,
+    bool useStrongContrastBackground = false,
   }) {
+    Color getCardFaceColor() {
+      if (useStrongContrastBackground) {
+        return colorScheme.brightness == Brightness.dark
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surfaceContainerLowest;
+      } else {
+        return colorScheme.surfaceContainerLowest;
+      }
+    }
+
     return SolitaireThemeData(
-      backgroundColor: colorScheme.primaryContainer,
+      backgroundColor: useStrongContrastBackground
+          ? colorScheme.surface
+          : colorScheme.primaryContainer,
       backgroundSecondaryColor:
-          useGradientBackground ? colorScheme.tertiaryContainer : null,
+          useGradientBackground && !useStrongContrastBackground
+              ? colorScheme.tertiaryContainer
+              : null,
       foregroundColor: colorScheme.onPrimaryContainer,
       winningBackgroundColor: colorScheme.surface,
-      cardFaceColor: colorScheme.surfaceContainerLowest,
+      cardFaceColor: getCardFaceColor(),
       cardLabelPlainColor: colorScheme.onSurface,
       cardLabelAccentColor: colorScheme.primary,
       cardCoverColor: colorScheme.primary,
@@ -123,5 +138,29 @@ class SolitaireThemeData {
     } else {
       return BoxDecoration(color: backgroundColor);
     }
+  }
+}
+
+class SolitaireAdjustedTheme extends StatelessWidget {
+  const SolitaireAdjustedTheme({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Theme(
+      data: ThemeData.from(
+        colorScheme: colorScheme.copyWith(
+          surfaceContainerHighest: colorScheme.primaryContainer,
+          secondaryContainer: colorScheme.secondary,
+          onSecondaryContainer: colorScheme.onSecondary,
+        ),
+        textTheme: textTheme,
+      ),
+      child: child,
+    );
   }
 }

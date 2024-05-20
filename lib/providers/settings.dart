@@ -38,7 +38,9 @@ enum Settings<T> {
     defaultValue: Colors.transparent,
     convertFrom: ColorSerializer.from,
     convertTo: ColorSerializer.to,
-  );
+  ),
+
+  strongContrastBackground(defaultValue: false);
 
   // ----------------------------------------
 

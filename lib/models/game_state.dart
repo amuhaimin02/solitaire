@@ -231,7 +231,7 @@ class GameState extends ChangeNotifier {
 
   PlayCards get cardsOnTable => _cards;
 
-  Move _doMoveCards(Move move) {
+  Move _doMoveCards(Move move, {bool doAutoMove = true}) {
     try {
       final cardsInHand = move.cards;
 
@@ -254,7 +254,8 @@ class GameState extends ChangeNotifier {
 
       _isUndoing = false;
 
-      if (_status != GameStatus.autoSolving &&
+      if (doAutoMove &&
+          _status != GameStatus.autoSolving &&
           _autoMoveLevel != AutoMoveLevel.off) {
         _doAutoMove();
       }
@@ -266,7 +267,8 @@ class GameState extends ChangeNotifier {
     return move;
   }
 
-  MoveResult tryMove(MoveIntent move, {bool doMove = true}) {
+  MoveResult tryMove(MoveIntent move,
+      {bool doMove = true, bool doAutoMove = true}) {
     final Move? targetMove;
 
     Move refreshDrawPile() {
@@ -356,7 +358,7 @@ class GameState extends ChangeNotifier {
     }
 
     if (doMove) {
-      _doMoveCards(targetMove);
+      _doMoveCards(targetMove, doAutoMove: doAutoMove);
     }
 
     return MoveSuccess(targetMove);
@@ -485,15 +487,14 @@ class GameState extends ChangeNotifier {
   }
 
   void _doAutoMove() async {
-    final autoMoveDelay = cardMoveAnimation.duration * 0.8;
-
     bool handled;
 
+    _stopWatch.stop();
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       for (final move in rules.autoMoveStrategy(_autoMoveLevel, _cards)) {
-        final result = tryMove(move);
+        final result = tryMove(move, doAutoMove: false);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
           handled = true;
@@ -501,11 +502,13 @@ class GameState extends ChangeNotifier {
         }
       }
     } while (handled && !isWinning);
+
+    if (!isWinning) {
+      _stopWatch.start();
+    }
   }
 
   void startAutoSolve() async {
-    final autoSolveMoveDelay = cardMoveAnimation.duration * 0.5;
-
     if (_status == GameStatus.autoSolving) {
       return;
     }
@@ -515,18 +518,23 @@ class GameState extends ChangeNotifier {
 
     bool handled;
 
+    _stopWatch.stop();
     do {
       handled = false;
       for (final move in rules.autoSolveStrategy(_cards)) {
-        final result = tryMove(move);
+        final result = tryMove(move, doAutoMove: false);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
           handled = true;
-          await Future.delayed(autoSolveMoveDelay * timeDilation);
+          await Future.delayed(autoMoveDelay * timeDilation);
           break;
         }
       }
     } while (handled && !isWinning);
+
+    if (!isWinning) {
+      _stopWatch.start();
+    }
   }
 
   void _updateHistory(Action recentAction) {

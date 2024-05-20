@@ -41,3 +41,5 @@ const themeChangeAnimation =
 
 const numberTickAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);
+
+final autoMoveDelay = cardMoveAnimation.duration * 0.7;

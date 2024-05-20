@@ -102,11 +102,23 @@ class _GameTitle extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Text(
-      'Klondike',
-      style: textTheme.displayMedium!.copyWith(
-          color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w200),
-      textAlign: TextAlign.center,
+    return ShaderMask(
+      shaderCallback: (rect) {
+        return LinearGradient(
+          colors: [
+            colorScheme.onTertiaryContainer,
+            colorScheme.onPrimaryContainer
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ).createShader(rect);
+      },
+      child: Text(
+        'Klondike',
+        style: textTheme.displayMedium!.copyWith(
+            color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w300),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
