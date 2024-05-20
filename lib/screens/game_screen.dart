@@ -77,8 +77,11 @@ class _GameScreenState extends State<GameScreen> {
                     Positioned.fill(
                       child: switch (orientation) {
                         Orientation.landscape => Padding(
-                            padding: const EdgeInsets.only(
-                                left: 56), // Make room for the
+                            padding: EdgeInsets.only(
+                                left: 56 +
+                                    MediaQuery.of(context)
+                                        .viewPadding
+                                        .left), // Make room for the back button
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

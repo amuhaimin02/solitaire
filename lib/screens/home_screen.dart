@@ -36,12 +36,13 @@ class HomeScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             const Spacer(),
-                            const _GameTitleAndOptions(),
+                            const _GameTitle(),
                             Expanded(
                               flex: 6,
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: _GameSelection(orientation: orientation),
+                                child: _GameTypeSelection(
+                                    orientation: orientation),
                               ),
                             ),
                             const Spacer(),
@@ -50,7 +51,14 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 48),
-                        child: _GameMenu(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _GameVariantSelection(),
+                            SizedBox(height: 32),
+                            _GameMenu(),
+                          ],
+                        ),
                       ),
                     ],
                   );
@@ -60,10 +68,19 @@ class HomeScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Spacer(),
-                      const _GameTitleAndOptions(),
+                      const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Column(
+                          children: [
+                            _GameTitle(),
+                            SizedBox(height: 16),
+                            _GameVariantSelection()
+                          ],
+                        ),
+                      ),
                       Expanded(
                           flex: 6,
-                          child: _GameSelection(orientation: orientation)),
+                          child: _GameTypeSelection(orientation: orientation)),
                       const _GameMenu(),
                       const Spacer(),
                     ],
@@ -77,48 +94,25 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _GameTitleAndOptions extends StatelessWidget {
-  const _GameTitleAndOptions({super.key});
+class _GameTitle extends StatelessWidget {
+  const _GameTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        children: [
-          Text(
-            'Klondike',
-            style: textTheme.displayMedium!.copyWith(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w200),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: colorScheme.onSurface,
-              padding: const EdgeInsets.only(
-                  left: 16, right: 8), // Restore visual balance
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            iconAlignment: IconAlignment.end,
-            label: const Text('1 draw, standard scoring'),
-            icon: const Icon(Icons.arrow_drop_down),
-            onPressed: () {},
-          ),
-        ],
-      ),
+    return Text(
+      'Klondike',
+      style: textTheme.displayMedium!.copyWith(
+          color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w200),
+      textAlign: TextAlign.center,
     );
   }
 }
 
-class _GameSelection extends StatelessWidget {
-  const _GameSelection({super.key, required this.orientation});
+class _GameTypeSelection extends StatelessWidget {
+  const _GameTypeSelection({super.key, required this.orientation});
 
   final Orientation orientation;
 
@@ -145,6 +139,30 @@ class _GameSelection extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _GameVariantSelection extends StatelessWidget {
+  const _GameVariantSelection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: colorScheme.onSurface,
+        padding:
+            const EdgeInsets.only(left: 16, right: 8), // Restore visual balance
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      iconAlignment: IconAlignment.end,
+      label: const Text('1 draw, standard scoring'),
+      icon: const Icon(Icons.arrow_drop_down),
+      onPressed: () {},
     );
   }
 }
