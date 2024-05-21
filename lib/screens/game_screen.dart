@@ -50,7 +50,7 @@ class _GameScreenState extends State<GameScreen> {
       body: RippleBackground(
         decoration: isWinning
             ? BoxDecoration(color: theme.winningBackgroundColor)
-            : theme.generateBackgroundDecoration(),
+            : BoxDecoration(color: theme.backgroundColor),
         child: OrientationBuilder(
           builder: (context, orientation) {
             return LayoutBuilder(
@@ -215,7 +215,7 @@ class _PlayArea extends StatelessWidget {
 
       if (showMoveHighlight) {
         final lastAction = gameState.latestAction;
-        if (lastAction is Move) {
+        if (lastAction is Move && lastAction.from is! Draw) {
           lastMovedCards = (gameState.latestAction as Move).cards;
         }
       }

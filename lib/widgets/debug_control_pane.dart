@@ -1,13 +1,9 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
-import '../models/game_theme.dart';
-import '../models/pile.dart';
 import '../providers/settings.dart';
-import '../utils/system_orientation.dart';
 
 class DebugControlPane extends StatefulWidget {
   const DebugControlPane({super.key});

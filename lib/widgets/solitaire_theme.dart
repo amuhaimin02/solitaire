@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
 
+const themeColorPalette = [
+  Colors.red,
+  Colors.pink,
+  Colors.purple,
+  Colors.deepPurple,
+  Colors.indigo,
+  Colors.blue,
+  Colors.lightBlue,
+  Colors.cyan,
+  Colors.teal,
+  Colors.green,
+  Colors.lightGreen,
+  Colors.lime,
+  Colors.yellow,
+  Colors.amber,
+  Colors.orange,
+  Colors.deepOrange,
+];
+
 class SolitaireTheme extends StatelessWidget {
   const SolitaireTheme({super.key, required this.child, required this.data});
 
@@ -43,34 +62,37 @@ class _InheritedTheme extends InheritedWidget {
 class SolitaireThemeData {
   const SolitaireThemeData({
     required this.backgroundColor,
-    this.backgroundSecondaryColor,
     required this.foregroundColor,
     required this.winningBackgroundColor,
-    required this.cardFaceColor,
+    required this.cardFacePlainColor,
+    required this.cardFaceAccentColor,
     required this.cardLabelPlainColor,
     required this.cardLabelAccentColor,
     required this.cardCoverColor,
+    required this.cardCoverBorderColor,
     required this.pileMarkerColor,
     required this.hintHighlightColor,
     required this.lastMoveHighlightColor,
     required this.cardUnitSize,
     required this.cardPadding,
+    required this.cardCoverBorderPadding,
     required this.cardStackGap,
     required this.cardCornerRadius,
-    this.isHighContrast = false,
   });
 
   final Color backgroundColor;
 
-  final Color? backgroundSecondaryColor;
-
   final Color foregroundColor;
   final Color winningBackgroundColor;
 
-  final Color cardFaceColor;
+  final Color cardFacePlainColor;
+
+  final Color cardFaceAccentColor;
   final Color cardLabelPlainColor;
   final Color cardLabelAccentColor;
   final Color cardCoverColor;
+
+  final Color cardCoverBorderColor;
   final Color pileMarkerColor;
 
   final Color hintHighlightColor;
@@ -80,98 +102,56 @@ class SolitaireThemeData {
 
   final double cardPadding;
 
+  final double cardCoverBorderPadding;
+
   final Offset cardStackGap;
 
   final double cardCornerRadius;
-
-  final bool isHighContrast;
 
   factory SolitaireThemeData.fromColorScheme({
     required ColorScheme colorScheme,
     required Size cardUnitSize,
     required double cardPadding,
+    required double cardCoverBorderPadding,
     required Offset cardStackGap,
     required double cardCornerRadius,
-    bool useGradientBackground = false,
-    bool useColoredBackground = false,
+    bool amoledDarkTheme = false,
   }) {
-    Color getCardFaceColor() {
-      if (useColoredBackground) {
-        return colorScheme.surfaceContainerLowest;
-      } else {
-        return colorScheme.brightness == Brightness.dark
-            ? colorScheme.surfaceContainer
-            : colorScheme.surfaceContainerLowest;
-      }
+    final Color cardFacePlainColor, cardFaceAccentColor;
+    final Color cardLabelPlainColor, cardLabelAccentColor;
+    final Color backgroundColor;
+
+    cardLabelPlainColor = colorScheme.onSurface;
+    cardLabelAccentColor = colorScheme.primary;
+
+    if (amoledDarkTheme && colorScheme.brightness == Brightness.dark) {
+      backgroundColor = Colors.black;
+      cardFacePlainColor = colorScheme.surfaceContainer;
+      cardFaceAccentColor = colorScheme.surfaceContainer;
+    } else {
+      backgroundColor = colorScheme.surfaceContainer;
+      cardFacePlainColor = colorScheme.surfaceContainerLowest;
+      cardFaceAccentColor = colorScheme.surfaceContainerLowest;
     }
 
     return SolitaireThemeData(
-      backgroundColor: useColoredBackground
-          ? colorScheme.primaryContainer
-          : colorScheme.surface,
-      backgroundSecondaryColor: useGradientBackground && useColoredBackground
-          ? colorScheme.tertiaryContainer
-          : null,
+      backgroundColor: backgroundColor,
       foregroundColor: colorScheme.onPrimaryContainer,
       winningBackgroundColor: colorScheme.surface,
-      cardFaceColor: getCardFaceColor(),
-      cardLabelPlainColor: colorScheme.onSurface,
-      cardLabelAccentColor: colorScheme.primary,
+      cardFacePlainColor: cardFacePlainColor,
+      cardFaceAccentColor: cardFaceAccentColor,
+      cardLabelPlainColor: cardLabelPlainColor,
+      cardLabelAccentColor: cardLabelAccentColor,
       cardCoverColor: colorScheme.primary,
+      cardCoverBorderColor: colorScheme.onPrimaryFixed.withOpacity(0.2),
       pileMarkerColor: colorScheme.onSurface,
       hintHighlightColor: colorScheme.error,
       lastMoveHighlightColor: colorScheme.secondary,
       cardUnitSize: cardUnitSize,
       cardPadding: cardPadding,
+      cardCoverBorderPadding: cardCoverBorderPadding,
       cardStackGap: cardStackGap,
       cardCornerRadius: cardCornerRadius,
-      isHighContrast: !useColoredBackground,
-    );
-  }
-
-  BoxDecoration generateBackgroundDecoration() {
-    if (backgroundSecondaryColor != null) {
-      return BoxDecoration(
-        gradient: LinearGradient(
-          colors: [backgroundSecondaryColor!, backgroundColor],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-      );
-    } else {
-      return BoxDecoration(color: backgroundColor);
-    }
-  }
-}
-
-class SolitaireAdjustedTheme extends StatelessWidget {
-  const SolitaireAdjustedTheme({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final theme = SolitaireTheme.of(context);
-
-    final ColorScheme newColorScheme;
-    if (theme.isHighContrast) {
-      newColorScheme = colorScheme;
-    } else {
-      newColorScheme = colorScheme.copyWith(
-        surfaceContainerHighest: colorScheme.primaryContainer,
-        secondaryContainer: colorScheme.secondary,
-        onSecondaryContainer: colorScheme.onSecondary,
-      );
-    }
-
-    return Theme(
-      data: ThemeData.from(
-        colorScheme: newColorScheme,
-        textTheme: textTheme,
-      ),
-      child: child,
     );
   }
 }

@@ -1,19 +1,18 @@
 import 'package:flutter/services.dart';
 
-enum SystemOrientation { auto, landscape, portrait }
+enum ScreenOrientation { auto, landscape, portrait }
 
-class SystemOrientationManager {
-  static void change(SystemOrientation orientation) {
-    print('Changing orientation to $orientation');
+class ScreenOrientationManager {
+  static void change(ScreenOrientation orientation) {
     switch (orientation) {
-      case SystemOrientation.auto:
+      case ScreenOrientation.auto:
         SystemChrome.setPreferredOrientations([]);
-      case SystemOrientation.landscape:
+      case ScreenOrientation.landscape:
         SystemChrome.setPreferredOrientations([
           DeviceOrientation.landscapeLeft,
           DeviceOrientation.landscapeRight
         ]);
-      case SystemOrientation.portrait:
+      case ScreenOrientation.portrait:
         SystemChrome.setPreferredOrientations(
             [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
     }

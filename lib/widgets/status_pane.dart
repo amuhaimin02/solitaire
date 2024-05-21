@@ -15,18 +15,8 @@ class StatusPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
 
-    final divider = SizedBox(
-      height: 24,
-      child: VerticalDivider(
-        color: theme.foregroundColor.withOpacity(0.3),
-      ),
-    );
-
     return DefaultTextStyle.merge(
-      style: Theme.of(context)
-          .textTheme
-          .titleLarge!
-          .copyWith(color: theme.foregroundColor),
+      style: Theme.of(context).textTheme.titleLarge,
       child: switch (orientation) {
         Orientation.landscape => const Column(
             children: [
@@ -36,14 +26,20 @@ class StatusPane extends StatelessWidget {
               MoveLabel(),
             ],
           ),
-        Orientation.portrait => Row(
+        Orientation.portrait => const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(child: Center(child: TimeLabel())),
-              divider,
-              const Expanded(child: Center(child: ScoreLabel())),
-              divider,
-              const Expanded(child: Center(child: MoveLabel())),
+              Expanded(child: Center(child: TimeLabel())),
+              SizedBox(
+                height: 24,
+                child: VerticalDivider(),
+              ),
+              Expanded(child: Center(child: ScoreLabel())),
+              SizedBox(
+                height: 24,
+                child: VerticalDivider(),
+              ),
+              Expanded(child: Center(child: MoveLabel())),
             ],
           ),
       },
@@ -81,8 +77,7 @@ class ScoreLabel extends StatelessWidget {
         score >= 10000 ? textTheme.displaySmall! : textTheme.displayMedium!;
     return Text(
       '$score',
-      style:
-          textStyle.copyWith(color: DefaultTextStyle.of(context).style.color),
+      style: textStyle,
       textAlign: TextAlign.center,
     );
   }

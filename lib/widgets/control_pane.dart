@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../animations.dart';
 import '../models/game_state.dart';
-import '../models/game_theme.dart';
 import 'solitaire_theme.dart';
 import 'tap_hold_detector.dart';
 
@@ -78,28 +76,21 @@ class ControlPane extends StatelessWidget {
       ),
     ];
 
-    return IconButtonTheme(
-      data: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          foregroundColor: SolitaireTheme.of(context).foregroundColor,
-        ),
-      ),
-      child: switch (orientation) {
-        Orientation.portrait => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: children,
-            ),
-          ),
-        Orientation.landscape => Wrap(
-            direction: Axis.vertical,
-            spacing: 4,
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
+    return switch (orientation) {
+      Orientation.portrait => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: children,
           ),
-      },
-    );
+        ),
+      Orientation.landscape => Wrap(
+          direction: Axis.vertical,
+          spacing: 4,
+          alignment: WrapAlignment.center,
+          runAlignment: WrapAlignment.center,
+          children: children,
+        ),
+    };
   }
 }

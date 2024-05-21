@@ -18,65 +18,63 @@ class SettingsScreen extends StatelessWidget {
         title: const Text('Settings'),
         scrolledUnderElevation: 0,
       ),
-      body: SolitaireAdjustedTheme(
-        child: Center(
-          child: SizedBox(
-            width: 600,
-            child: FadingEdgeListView(
-              verticalPadding: 32,
-              children: [
-                ListTile(
-                  title: const Text('Screen orientation'),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: SegmentedButton<SystemOrientation>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment(
-                          value: SystemOrientation.auto,
-                          label: Text('Auto'),
-                          icon: Icon(Icons.screen_rotation),
-                        ),
-                        ButtonSegment(
-                          value: SystemOrientation.portrait,
-                          label: Text('Portrait'),
-                          icon: Icon(Icons.stay_current_portrait),
-                        ),
-                        ButtonSegment(
-                          value: SystemOrientation.landscape,
-                          label: Text('Landscape'),
-                          icon: Icon(Icons.stay_current_landscape),
-                        ),
-                      ],
-                      selected: {settings.get(Settings.screenOrientation)},
-                      onSelectionChanged: (value) {
-                        settings.set(Settings.screenOrientation, value.single);
-                      },
-                    ),
+      body: Center(
+        child: SizedBox(
+          width: 600,
+          child: FadingEdgeListView(
+            verticalPadding: 32,
+            children: [
+              ListTile(
+                title: const Text('Screen orientation'),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: SegmentedButton<ScreenOrientation>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: ScreenOrientation.auto,
+                        label: Text('Auto'),
+                        icon: Icon(Icons.screen_rotation),
+                      ),
+                      ButtonSegment(
+                        value: ScreenOrientation.portrait,
+                        label: Text('Portrait'),
+                        icon: Icon(Icons.stay_current_portrait),
+                      ),
+                      ButtonSegment(
+                        value: ScreenOrientation.landscape,
+                        label: Text('Landscape'),
+                        icon: Icon(Icons.stay_current_landscape),
+                      ),
+                    ],
+                    selected: {settings.get(Settings.screenOrientation)},
+                    onSelectionChanged: (value) {
+                      settings.set(Settings.screenOrientation, value.single);
+                    },
                   ),
                 ),
-                SwitchListTile(
-                  title: const Text('Auto move'),
-                  subtitle: const Text(
-                      'Cards will be moved to foundations whenever possible'),
-                  value:
-                      settings.get(Settings.autoMoveLevel) != AutoMoveLevel.off,
-                  onChanged: (value) {
-                    settings.set(Settings.autoMoveLevel,
-                        value ? AutoMoveLevel.full : AutoMoveLevel.off);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Highlight last moves'),
-                  subtitle: const Text(
-                      'Recently moved cards will be indicated with a border'),
-                  value: settings.get(Settings.showMoveHighlight),
-                  onChanged: (value) {
-                    settings.toggle(Settings.showMoveHighlight);
-                  },
-                ),
-              ],
-            ),
+              ),
+              SwitchListTile(
+                title: const Text('Auto move'),
+                subtitle: const Text(
+                    'Cards will be moved to foundations whenever possible'),
+                value:
+                    settings.get(Settings.autoMoveLevel) != AutoMoveLevel.off,
+                onChanged: (value) {
+                  settings.set(Settings.autoMoveLevel,
+                      value ? AutoMoveLevel.full : AutoMoveLevel.off);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Highlight last moves'),
+                subtitle: const Text(
+                    'Recently moved cards will be indicated with a border'),
+                value: settings.get(Settings.showMoveHighlight),
+                onChanged: (value) {
+                  settings.toggle(Settings.showMoveHighlight);
+                },
+              ),
+            ],
           ),
         ),
       ),

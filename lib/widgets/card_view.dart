@@ -33,18 +33,6 @@ class CardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
 
-    final Color foregroundColor, backgroundColor, coverColor;
-
-    switch (card.suit.color) {
-      case SuitColor.black:
-        foregroundColor = theme.cardLabelPlainColor;
-        backgroundColor = theme.cardFaceColor;
-      case SuitColor.red:
-        foregroundColor = theme.cardLabelAccentColor;
-        backgroundColor = theme.cardFaceColor;
-    }
-    coverColor = theme.cardCoverColor;
-
     return SizedBox(
       width: size.width,
       height: size.height,
@@ -66,20 +54,13 @@ class CardView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(
                       size.shortestSide * theme.cardCornerRadius),
                   elevation: elevation ?? 2,
-                  child: CardFace(
-                    card: card,
-                    size: size,
-                    foregroundColor: foregroundColor,
-                    backgroundColor: backgroundColor,
-                  ),
+                  child: CardFace(card: card, size: size),
                 ),
                 back: Material(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(
+                      size.shortestSide * theme.cardCornerRadius),
                   elevation: elevation ?? 2,
-                  child: CardCover(
-                    color: coverColor,
-                    size: size,
-                  ),
+                  child: CardCover(size: size),
                 ),
               ),
             ),
@@ -95,13 +76,9 @@ class CardFace extends StatelessWidget {
     super.key,
     required this.card,
     required this.size,
-    required this.foregroundColor,
-    required this.backgroundColor,
   });
 
   final PlayCard card;
-  final Color foregroundColor;
-  final Color backgroundColor;
 
   final Size size;
 
@@ -120,6 +97,16 @@ class CardFace extends StatelessWidget {
     final theme = SolitaireTheme.of(context);
 
     final iconSvgPath = 'assets/${card.suit.name}.svg';
+
+    final Color backgroundColor, foregroundColor;
+    switch (card.suit.color) {
+      case SuitColor.black:
+        backgroundColor = theme.cardFacePlainColor;
+        foregroundColor = theme.cardLabelPlainColor;
+      case SuitColor.red:
+        backgroundColor = theme.cardFaceAccentColor;
+        foregroundColor = theme.cardLabelAccentColor;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -166,7 +153,7 @@ class CardFace extends StatelessWidget {
             child: Icon(
               suitIcons[card.suit],
               size: iconSizingFactor * 3,
-              color: foregroundColor.withOpacity(0.36),
+              color: foregroundColor.withOpacity(0.6),
             ),
             // child: SvgPicture.asset(
             //   iconSvgPath,
@@ -185,23 +172,30 @@ class CardFace extends StatelessWidget {
 }
 
 class CardCover extends StatelessWidget {
-  const CardCover({super.key, required this.color, required this.size});
-
-  final Color color;
+  const CardCover({super.key, required this.size});
 
   final Size size;
 
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
+    final borderPadding = size.shortestSide * theme.cardCoverBorderPadding;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: color,
+        color: theme.cardCoverColor,
         borderRadius:
             BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
-        border: Border.all(
-          width: size.shortestSide * 0.1,
-          color: color.darken(0.15),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
+          border: Border.all(
+            color: colorScheme.shadow.withOpacity(0.1),
+            width: borderPadding,
+          ),
         ),
       ),
     );

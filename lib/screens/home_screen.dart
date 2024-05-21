@@ -9,8 +9,6 @@ import '../models/pile.dart';
 import '../models/rules/klondike.dart';
 import '../widgets/game_table.dart';
 import '../widgets/pager.dart';
-import '../widgets/ripple_background.dart';
-import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,76 +16,73 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: RippleBackground(
-        decoration: SolitaireTheme.of(context).generateBackgroundDecoration(),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final orientation = constraints.maxWidth > 800
-                  ? Orientation.landscape
-                  : Orientation.portrait;
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final orientation = constraints.maxWidth > 800
+                ? Orientation.landscape
+                : Orientation.portrait;
 
-              switch (orientation) {
-                case Orientation.landscape:
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            const Spacer(),
-                            const _GameTitle(),
-                            Expanded(
-                              flex: 6,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: _GameTypeSelection(
-                                    orientation: orientation),
-                              ),
+            switch (orientation) {
+              case Orientation.landscape:
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Spacer(),
+                          const _GameTitle(),
+                          Expanded(
+                            flex: 6,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child:
+                                  _GameTypeSelection(orientation: orientation),
                             ),
-                            const Spacer(),
-                          ],
-                        ),
+                          ),
+                          const Spacer(),
+                        ],
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 48),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _GameVariantSelection(),
-                            SizedBox(height: 32),
-                            _GameMenu(),
-                          ],
-                        ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 48),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _GameVariantSelection(),
+                          SizedBox(height: 32),
+                          _GameMenu(),
+                        ],
                       ),
-                    ],
-                  );
-                case Orientation.portrait:
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Spacer(),
-                      const Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Column(
-                          children: [
-                            _GameTitle(),
-                            SizedBox(height: 16),
-                            _GameVariantSelection()
-                          ],
-                        ),
+                    ),
+                  ],
+                );
+              case Orientation.portrait:
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(),
+                    const Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          _GameTitle(),
+                          SizedBox(height: 16),
+                          _GameVariantSelection()
+                        ],
                       ),
-                      Expanded(
-                          flex: 6,
-                          child: _GameTypeSelection(orientation: orientation)),
-                      const _GameMenu(),
-                      const Spacer(),
-                    ],
-                  );
-              }
-            },
-          ),
+                    ),
+                    Expanded(
+                        flex: 6,
+                        child: _GameTypeSelection(orientation: orientation)),
+                    const _GameMenu(),
+                    const Spacer(),
+                  ],
+                );
+            }
+          },
         ),
       ),
     );
@@ -138,19 +133,16 @@ class _GameTypeSelection extends StatelessWidget {
 
     rules.setup(cards);
 
-    return IconTheme(
-      data: IconThemeData(color: colorScheme.primary),
-      child: Pager(
-        builder: (context) {
-          return GameTable(
-            interactive: false,
-            animateMovement: false,
-            rules: rules,
-            orientation: orientation,
-            cards: cards,
-          );
-        },
-      ),
+    return Pager(
+      builder: (context) {
+        return GameTable(
+          interactive: false,
+          animateMovement: false,
+          rules: rules,
+          orientation: orientation,
+          cards: cards,
+        );
+      },
     );
   }
 }
@@ -160,16 +152,10 @@ class _GameVariantSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
-        foregroundColor: colorScheme.onSurface,
         padding:
             const EdgeInsets.only(left: 16, right: 8), // Restore visual balance
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
       ),
       iconAlignment: IconAlignment.end,
       label: const Text('1 draw, standard scoring'),
@@ -188,18 +174,7 @@ class _GameMenu extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FilledButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(context, '/game');
-          },
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(0, 56),
-          ),
-          label: const Text('Continue last game'),
-          icon: Icon(MdiIcons.cardsPlaying),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
+        FilledButton.tonalIcon(
           onPressed: () {
             final gameState = context.read<GameState>();
             gameState.startNewGame();
@@ -211,43 +186,47 @@ class _GameMenu extends StatelessWidget {
           label: const Text('New game'),
           icon: Icon(MdiIcons.cardsPlaying),
         ),
+        const SizedBox(height: 8),
+        FilledButton.icon(
+          onPressed: () {
+            Navigator.pushNamed(context, '/game');
+          },
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(0, 56),
+          ),
+          label: const Text('Continue last game'),
+          icon: Icon(MdiIcons.cardsPlaying),
+        ),
         const SizedBox(height: 24),
-        IconButtonTheme(
-          data: IconButtonThemeData(
-            style: IconButton.styleFrom(
-              foregroundColor: colorScheme.onPrimaryContainer,
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 24,
+          children: [
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/stats');
+              },
+              icon: const Icon(Icons.leaderboard),
             ),
-          ),
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 24,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/stats');
-                },
-                icon: const Icon(Icons.leaderboard),
-              ),
-              IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/theme');
-                },
-                icon: const Icon(Icons.imagesearch_roller),
-              ),
-              IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/settings');
-                },
-                icon: const Icon(Icons.settings),
-              ),
-              IconButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/about');
-                },
-                icon: const Icon(Icons.info),
-              ),
-            ],
-          ),
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/theme');
+              },
+              icon: const Icon(Icons.imagesearch_roller),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/settings');
+              },
+              icon: const Icon(Icons.settings),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/about');
+              },
+              icon: const Icon(Icons.info),
+            ),
+          ],
         )
       ],
     );

@@ -22,24 +22,20 @@ class PileMarker extends StatelessWidget {
       Tableau() => MdiIcons.close,
     };
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: EdgeInsets.all(size.shortestSide * theme.cardPadding),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.isHighContrast
-              ? null
-              : theme.pileMarkerColor.withOpacity(0.1),
+          color: colorScheme.surfaceTint.withOpacity(0.07),
           borderRadius:
               BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
-          border: theme.isHighContrast
-              ? Border.all(
-                  color: theme.pileMarkerColor.withOpacity(0.15), width: 2)
-              : null,
         ),
         child: Icon(
           icon,
           size: size.shortestSide * 0.5,
-          color: theme.pileMarkerColor.withOpacity(0.3),
+          color: colorScheme.surfaceTint.withOpacity(0.2),
         ),
       ),
     );

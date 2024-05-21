@@ -17,10 +17,10 @@ enum Settings<T> {
   showMoveHighlight(defaultValue: false),
 
   screenOrientation(
-    defaultValue: SystemOrientation.auto,
-    options: SystemOrientation.values,
+    defaultValue: ScreenOrientation.auto,
+    options: ScreenOrientation.values,
     preload: true,
-    onChange: SystemOrientationManager.change,
+    onChange: ScreenOrientationManager.change,
   ),
 
   themeMode(
@@ -28,11 +28,7 @@ enum Settings<T> {
     options: ThemeMode.values,
   ),
 
-  useDynamicColors(defaultValue: true),
-
   useStandardColors(defaultValue: false),
-
-  useGradientBackground(defaultValue: false),
 
   presetColor<Color>(
     defaultValue: Colors.transparent,
@@ -40,7 +36,7 @@ enum Settings<T> {
     convertTo: ColorSerializer.to,
   ),
 
-  coloredBackground(defaultValue: false);
+  amoledDarkTheme(defaultValue: false);
 
   // ----------------------------------------
 
