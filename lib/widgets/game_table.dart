@@ -66,8 +66,8 @@ class GameTable extends StatelessWidget {
     return IgnorePointer(
       ignoring: !interactive,
       child: AspectRatio(
-        aspectRatio: (layout.gridSize.width * theme.cardUnitSize.width) /
-            (layout.gridSize.height * theme.cardUnitSize.height),
+        aspectRatio: (layout.gridSize.width * theme.cardStyle.unitSize.width) /
+            (layout.gridSize.height * theme.cardStyle.unitSize.height),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final cardSize = Size(
@@ -201,7 +201,7 @@ class _CardWidget extends StatelessWidget {
 
     if (layout.stackDirection == Direction.none) {
       elevation = cardIndex == cardPileLength - 1
-          ? (cardIndex / 2).clamp(minElevation, maxElevation).toDouble()
+          ? (cardIndex / 2 + 1).clamp(minElevation, maxElevation).toDouble()
           : 0;
       hideFace = cardPileLength > cardShowThreshold &&
           cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
@@ -450,7 +450,7 @@ class _CardLayerState extends State<_CardLayer> {
         return newRect.translate(
           -(gridUnit.width * 0.5),
           -(gridUnit.height * 0.75 -
-              index * (gridUnit.height * theme.cardStackGap.dy * 0.9)),
+              index * (gridUnit.height * theme.cardStyle.stackGap.dy * 0.9)),
         );
       } else {
         return measure(originalPosition);
@@ -494,9 +494,9 @@ class _CardLayerState extends State<_CardLayer> {
 
       return Offset(
         computeOffset(
-            offset, direction.dx, theme.cardStackGap.dx, region.width),
+            offset, direction.dx, theme.cardStyle.stackGap.dx, region.width),
         computeOffset(
-            offset, direction.dy, theme.cardStackGap.dy, region.height),
+            offset, direction.dy, theme.cardStyle.stackGap.dy, region.height),
       );
     }
 

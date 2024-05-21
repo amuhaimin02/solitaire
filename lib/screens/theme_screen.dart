@@ -165,7 +165,7 @@ class ThemeScreen extends StatelessWidget {
         ),
         SwitchListTile(
           title: const Text('AMOLED dark background'),
-          selected: settings.get(Settings.themeMode) != ThemeMode.light,
+          subtitle: const Text('Usew pitch black background when on dark mode'),
           value: settings.get(Settings.amoledDarkTheme),
           onChanged: settings.get(Settings.themeMode) != ThemeMode.light
               ? (value) {
@@ -174,10 +174,11 @@ class ThemeScreen extends StatelessWidget {
               : null,
         ),
         SwitchListTile(
-          title: const Text('Use standard colors'),
-          value: settings.get(Settings.useStandardColors),
+          title: const Text('Standard card colors'),
+          subtitle: const Text('Use standard red-black card face colors'),
+          value: settings.get(Settings.useStandardCardColors),
           onChanged: (value) {
-            settings.toggle(Settings.useStandardColors);
+            settings.toggle(Settings.useStandardCardColors);
           },
         ),
       ],

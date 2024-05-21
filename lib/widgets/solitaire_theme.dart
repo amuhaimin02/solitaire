@@ -64,20 +64,10 @@ class SolitaireThemeData {
     required this.backgroundColor,
     required this.foregroundColor,
     required this.winningBackgroundColor,
-    required this.cardFacePlainColor,
-    required this.cardFaceAccentColor,
-    required this.cardLabelPlainColor,
-    required this.cardLabelAccentColor,
-    required this.cardCoverColor,
-    required this.cardCoverBorderColor,
     required this.pileMarkerColor,
     required this.hintHighlightColor,
     required this.lastMoveHighlightColor,
-    required this.cardUnitSize,
-    required this.cardPadding,
-    required this.cardCoverBorderPadding,
-    required this.cardStackGap,
-    required this.cardCornerRadius,
+    required this.cardStyle,
   });
 
   final Color backgroundColor;
@@ -85,73 +75,96 @@ class SolitaireThemeData {
   final Color foregroundColor;
   final Color winningBackgroundColor;
 
-  final Color cardFacePlainColor;
-
-  final Color cardFaceAccentColor;
-  final Color cardLabelPlainColor;
-  final Color cardLabelAccentColor;
-  final Color cardCoverColor;
-
-  final Color cardCoverBorderColor;
   final Color pileMarkerColor;
 
   final Color hintHighlightColor;
 
   final Color lastMoveHighlightColor;
-  final Size cardUnitSize;
 
-  final double cardPadding;
-
-  final double cardCoverBorderPadding;
-
-  final Offset cardStackGap;
-
-  final double cardCornerRadius;
+  final SolitaireCardStyle cardStyle;
 
   factory SolitaireThemeData.fromColorScheme({
     required ColorScheme colorScheme,
-    required Size cardUnitSize,
-    required double cardPadding,
-    required double cardCoverBorderPadding,
-    required Offset cardStackGap,
-    required double cardCornerRadius,
+    required SolitaireCardStyle cardStyle,
     bool amoledDarkTheme = false,
   }) {
-    final Color cardFacePlainColor, cardFaceAccentColor;
-    final Color cardLabelPlainColor, cardLabelAccentColor;
     final Color backgroundColor;
-
-    cardLabelPlainColor = colorScheme.onSurface;
-    cardLabelAccentColor = colorScheme.primary;
 
     if (amoledDarkTheme && colorScheme.brightness == Brightness.dark) {
       backgroundColor = Colors.black;
-      cardFacePlainColor = colorScheme.surfaceContainer;
-      cardFaceAccentColor = colorScheme.surfaceContainer;
     } else {
       backgroundColor = colorScheme.surfaceContainer;
-      cardFacePlainColor = colorScheme.surfaceContainerLowest;
-      cardFaceAccentColor = colorScheme.surfaceContainerLowest;
     }
 
     return SolitaireThemeData(
       backgroundColor: backgroundColor,
       foregroundColor: colorScheme.onPrimaryContainer,
       winningBackgroundColor: colorScheme.surface,
-      cardFacePlainColor: cardFacePlainColor,
-      cardFaceAccentColor: cardFaceAccentColor,
-      cardLabelPlainColor: cardLabelPlainColor,
-      cardLabelAccentColor: cardLabelAccentColor,
-      cardCoverColor: colorScheme.primary,
-      cardCoverBorderColor: colorScheme.onPrimaryFixed.withOpacity(0.2),
       pileMarkerColor: colorScheme.onSurface,
       hintHighlightColor: colorScheme.error,
       lastMoveHighlightColor: colorScheme.secondary,
-      cardUnitSize: cardUnitSize,
-      cardPadding: cardPadding,
-      cardCoverBorderPadding: cardCoverBorderPadding,
-      cardStackGap: cardStackGap,
-      cardCornerRadius: cardCornerRadius,
+      cardStyle: cardStyle,
+    );
+  }
+}
+
+class SolitaireCardStyle {
+  final Color facePlainColor;
+
+  final Color faceAccentColor;
+  final Color labelPlainColor;
+  final Color labelAccentColor;
+  final Color coverColor;
+  final Size unitSize;
+
+  final double margin;
+
+  final double coverBorderPadding;
+
+  final Offset stackGap;
+
+  final double cornerRadius;
+
+  SolitaireCardStyle({
+    required this.facePlainColor,
+    required this.faceAccentColor,
+    required this.labelPlainColor,
+    required this.labelAccentColor,
+    required this.coverColor,
+    required this.unitSize,
+    required this.margin,
+    required this.coverBorderPadding,
+    required this.stackGap,
+    required this.cornerRadius,
+  });
+
+  factory SolitaireCardStyle.fromColorScheme(ColorScheme colorScheme,
+      {bool amoledDarkTheme = false}) {
+    final Color cardFacePlainColor, cardFaceAccentColor;
+    final Color cardLabelPlainColor, cardLabelAccentColor;
+
+    cardLabelPlainColor = colorScheme.onSurface;
+    cardLabelAccentColor = colorScheme.primary;
+
+    if (amoledDarkTheme && colorScheme.brightness == Brightness.dark) {
+      cardFacePlainColor = colorScheme.surfaceContainer;
+      cardFaceAccentColor = colorScheme.surfaceContainer;
+    } else {
+      cardFacePlainColor = colorScheme.surfaceContainerLowest;
+      cardFaceAccentColor = colorScheme.surfaceContainerLowest;
+    }
+
+    return SolitaireCardStyle(
+      facePlainColor: cardFacePlainColor,
+      faceAccentColor: cardFaceAccentColor,
+      labelPlainColor: cardLabelPlainColor,
+      labelAccentColor: cardLabelAccentColor,
+      coverColor: colorScheme.primary,
+      unitSize: const Size(2.5, 3.5),
+      margin: 0.06,
+      coverBorderPadding: 0.02,
+      stackGap: const Offset(0.3, 0.3),
+      cornerRadius: 0.1,
     );
   }
 }

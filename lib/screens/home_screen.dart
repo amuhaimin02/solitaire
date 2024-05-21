@@ -100,18 +100,17 @@ class _GameTitle extends StatelessWidget {
     return ShaderMask(
       shaderCallback: (rect) {
         return LinearGradient(
-          colors: [
-            colorScheme.onTertiaryContainer,
-            colorScheme.onPrimaryContainer
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          colors: [colorScheme.primary, colorScheme.tertiary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ).createShader(rect);
       },
       child: Text(
         'Klondike',
         style: textTheme.displayMedium!.copyWith(
-            color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w300),
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -125,8 +124,6 @@ class _GameTypeSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final rules = Klondike();
     final cards = PlayCards.fromRules(rules);
     cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);

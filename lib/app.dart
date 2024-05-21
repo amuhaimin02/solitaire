@@ -76,38 +76,33 @@ class SolitaireApp extends StatelessWidget {
               : themeColorPalette.first,
         );
 
-        final SolitaireThemeData themeData;
-        if (settings.get(Settings.useStandardColors)) {
-          themeData = SolitaireThemeData(
-            backgroundColor: Colors.green.shade800,
-            foregroundColor: Colors.white,
-            winningBackgroundColor: Colors.green.shade500,
-            cardCoverColor: Colors.blueGrey,
-            cardCoverBorderColor: Colors.blueGrey.shade800,
-            cardFacePlainColor: Colors.white,
-            cardFaceAccentColor: Colors.white,
-            cardLabelPlainColor: Colors.grey.shade800,
-            cardLabelAccentColor: Colors.red,
-            pileMarkerColor: Colors.white,
-            hintHighlightColor: Colors.yellow,
-            lastMoveHighlightColor: Colors.orangeAccent,
-            cardUnitSize: const Size(2.5, 3.5),
-            cardPadding: 0.06,
-            cardCoverBorderPadding: 0.1,
-            cardStackGap: const Offset(0.3, 0.3),
-            cardCornerRadius: 0.1,
+        final SolitaireCardStyle cardStyle;
+
+        if (settings.get(Settings.useStandardCardColors)) {
+          cardStyle = SolitaireCardStyle(
+            facePlainColor: Colors.white,
+            faceAccentColor: Colors.white,
+            labelPlainColor: Colors.grey.shade800,
+            labelAccentColor: Colors.red,
+            coverColor: colorScheme.primary,
+            unitSize: const Size(2.5, 3.5),
+            margin: 0.06,
+            coverBorderPadding: 0.02,
+            stackGap: const Offset(0.3, 0.3),
+            cornerRadius: 0.1,
           );
         } else {
-          themeData = SolitaireThemeData.fromColorScheme(
-            colorScheme: colorScheme,
-            cardUnitSize: const Size(2.5, 3.5),
-            cardPadding: 0.06,
-            cardCoverBorderPadding: 0.1,
-            cardStackGap: const Offset(0.3, 0.3),
-            cardCornerRadius: 0.1,
+          cardStyle = SolitaireCardStyle.fromColorScheme(
+            colorScheme,
             amoledDarkTheme: amoledDarkTheme,
           );
         }
+
+        final themeData = SolitaireThemeData.fromColorScheme(
+          colorScheme: colorScheme,
+          cardStyle: cardStyle,
+          amoledDarkTheme: amoledDarkTheme,
+        );
 
         return MultiProvider(
           providers: [

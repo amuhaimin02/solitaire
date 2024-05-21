@@ -7,6 +7,7 @@ import '../animations.dart';
 import '../models/card.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
+import 'soft_shadow.dart';
 import 'solitaire_theme.dart';
 
 class CardView extends StatelessWidget {
@@ -45,21 +46,26 @@ class CardView extends StatelessWidget {
           ),
           Positioned.fill(
             child: Padding(
-              padding: EdgeInsets.all(size.shortestSide * theme.cardPadding),
+              padding:
+                  EdgeInsets.all(size.shortestSide * theme.cardStyle.margin),
               child: Flippable(
                 duration: cardMoveAnimation.duration,
                 curve: cardMoveAnimation.curve,
                 flipped: hideFace || card.flipped,
-                front: Material(
-                  borderRadius: BorderRadius.circular(
-                      size.shortestSide * theme.cardCornerRadius),
-                  elevation: elevation ?? 2,
+                front: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                        size.shortestSide * theme.cardStyle.cornerRadius),
+                    boxShadow: [SoftShadow(elevation ?? 2)],
+                  ),
                   child: CardFace(card: card, size: size),
                 ),
-                back: Material(
-                  borderRadius: BorderRadius.circular(
-                      size.shortestSide * theme.cardCornerRadius),
-                  elevation: elevation ?? 2,
+                back: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                        size.shortestSide * theme.cardStyle.cornerRadius),
+                    boxShadow: [SoftShadow(elevation ?? 2)],
+                  ),
                   child: CardCover(size: size),
                 ),
               ),
@@ -101,18 +107,18 @@ class CardFace extends StatelessWidget {
     final Color backgroundColor, foregroundColor;
     switch (card.suit.color) {
       case SuitColor.black:
-        backgroundColor = theme.cardFacePlainColor;
-        foregroundColor = theme.cardLabelPlainColor;
+        backgroundColor = theme.cardStyle.facePlainColor;
+        foregroundColor = theme.cardStyle.labelPlainColor;
       case SuitColor.red:
-        backgroundColor = theme.cardFaceAccentColor;
-        foregroundColor = theme.cardLabelAccentColor;
+        backgroundColor = theme.cardStyle.faceAccentColor;
+        foregroundColor = theme.cardStyle.labelAccentColor;
     }
 
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius:
-            BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
+        borderRadius: BorderRadius.circular(
+            size.shortestSide * theme.cardStyle.cornerRadius),
       ),
       child: Stack(
         children: [
@@ -153,7 +159,7 @@ class CardFace extends StatelessWidget {
             child: Icon(
               suitIcons[card.suit],
               size: iconSizingFactor * 3,
-              color: foregroundColor.withOpacity(0.6),
+              color: foregroundColor.withOpacity(0.4),
             ),
             // child: SvgPicture.asset(
             //   iconSvgPath,
@@ -179,25 +185,31 @@ class CardCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
-    final borderPadding = size.shortestSide * theme.cardCoverBorderPadding;
+    final borderPadding =
+        size.shortestSide * theme.cardStyle.coverBorderPadding;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardCoverColor,
-        borderRadius:
-            BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
-          border: Border.all(
-            color: colorScheme.shadow.withOpacity(0.1),
-            width: borderPadding,
-          ),
+        // color: theme.cardStyle.coverColor,
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.tertiary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(
+            size.shortestSide * theme.cardStyle.cornerRadius),
       ),
+      // child: Container(
+      //   decoration: BoxDecoration(
+      //     borderRadius: BorderRadius.circular(
+      //         size.shortestSide * theme.cardStyle.cornerRadius),
+      //     border: Border.all(
+      //       color: colorScheme.shadow.withOpacity(0.1),
+      //       width: borderPadding,
+      //     ),
+      //   ),
+      // ),
     );
   }
 }
@@ -225,8 +237,8 @@ class CardHighlight extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(
-              size.shortestSide * (theme.cardCornerRadius + theme.cardPadding)),
+          borderRadius: BorderRadius.circular(size.shortestSide *
+              (theme.cardStyle.cornerRadius + theme.cardStyle.margin)),
         ),
       ),
     );

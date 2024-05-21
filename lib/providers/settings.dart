@@ -28,7 +28,7 @@ enum Settings<T> {
     options: ThemeMode.values,
   ),
 
-  useStandardColors(defaultValue: false),
+  useStandardCardColors(defaultValue: false),
 
   presetColor<Color>(
     defaultValue: Colors.transparent,

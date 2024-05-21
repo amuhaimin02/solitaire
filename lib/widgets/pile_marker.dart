@@ -25,12 +25,12 @@ class PileMarker extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.all(size.shortestSide * theme.cardPadding),
+      padding: EdgeInsets.all(size.shortestSide * theme.cardStyle.margin),
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.surfaceTint.withOpacity(0.07),
-          borderRadius:
-              BorderRadius.circular(size.shortestSide * theme.cardCornerRadius),
+          borderRadius: BorderRadius.circular(
+              size.shortestSide * theme.cardStyle.cornerRadius),
         ),
         child: Icon(
           icon,

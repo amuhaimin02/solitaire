@@ -14,9 +14,13 @@ class StatusPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return DefaultTextStyle.merge(
-      style: Theme.of(context).textTheme.titleLarge,
+      style: Theme.of(context)
+          .textTheme
+          .titleLarge!
+          .copyWith(color: colorScheme.primary),
       child: switch (orientation) {
         Orientation.landscape => const Column(
             children: [
@@ -72,12 +76,13 @@ class ScoreLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final score = context.select<GameState, int>((s) => s.score);
     final textStyle =
         score >= 10000 ? textTheme.displaySmall! : textTheme.displayMedium!;
     return Text(
       '$score',
-      style: textStyle,
+      style: textStyle.copyWith(color: colorScheme.primary),
       textAlign: TextAlign.center,
     );
   }
