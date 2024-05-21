@@ -172,7 +172,7 @@ class _CardWidget extends StatelessWidget {
 
   static const cardShowThreshold = 3;
   static const minElevation = 2.0;
-  static const maxElevation = 12.0;
+  static const hoverElevation = 32.0;
 
   final bool shake;
 
@@ -200,9 +200,11 @@ class _CardWidget extends StatelessWidget {
     final bool hideFace;
 
     if (layout.stackDirection == Direction.none) {
-      elevation = cardIndex == cardPileLength - 1
-          ? (cardIndex / 2 + 1).clamp(minElevation, maxElevation).toDouble()
-          : 0;
+      // elevation = cardIndex == cardPileLength - 1
+      //     ? (cardIndex + 1).clamp(minElevation, maxElevation).toDouble()
+      //     : 0;
+      elevation =
+          cardIndex > cardPileLength - 1 - cardShowThreshold ? minElevation : 0;
       hideFace = cardPileLength > cardShowThreshold &&
           cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
     } else {
@@ -227,7 +229,7 @@ class _CardWidget extends StatelessWidget {
         child: CardView(
           card: card,
           size: cardSize,
-          elevation: elevation,
+          elevation: isMoving ? hoverElevation : elevation,
           hideFace: hideFace,
           highlightColor: highlightColor,
         ),

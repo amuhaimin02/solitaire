@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
-import '../utils/colors.dart';
 import 'flippable.dart';
 import 'soft_shadow.dart';
 import 'solitaire_theme.dart';
@@ -33,11 +31,19 @@ class CardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final outerDecoration = BoxDecoration(
+      borderRadius: BorderRadius.circular(
+          size.shortestSide * theme.cardStyle.cornerRadius),
+      boxShadow: [SoftShadow(elevation ?? 2)],
+    );
 
     return SizedBox(
       width: size.width,
       height: size.height,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           CardHighlight(
             highlight: highlightColor != null,
@@ -53,19 +59,11 @@ class CardView extends StatelessWidget {
                 curve: cardMoveAnimation.curve,
                 flipped: hideFace || card.flipped,
                 front: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                        size.shortestSide * theme.cardStyle.cornerRadius),
-                    boxShadow: [SoftShadow(elevation ?? 2)],
-                  ),
+                  decoration: outerDecoration,
                   child: CardFace(card: card, size: size),
                 ),
                 back: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                        size.shortestSide * theme.cardStyle.cornerRadius),
-                    boxShadow: [SoftShadow(elevation ?? 2)],
-                  ),
+                  decoration: outerDecoration,
                   child: CardCover(size: size),
                 ),
               ),
@@ -191,12 +189,12 @@ class CardCover extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        // color: theme.cardStyle.coverColor,
-        gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.tertiary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: theme.cardStyle.coverColor,
+        // gradient: LinearGradient(
+        //   colors: [colorScheme.primary, colorScheme.secondary],
+        //   begin: Alignment.topLeft,
+        //   end: Alignment.bottomRight,
+        // ),
         borderRadius: BorderRadius.circular(
             size.shortestSide * theme.cardStyle.cornerRadius),
       ),

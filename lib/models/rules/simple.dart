@@ -10,6 +10,9 @@ import 'rules.dart';
 
 class SimpleSolitaire extends SolitaireRules {
   @override
+  String get name => "Simple";
+
+  @override
   List<Pile> get piles => [
         const Draw(),
         const Discard(),

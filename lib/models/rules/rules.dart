@@ -7,6 +7,8 @@ import '../pile.dart';
 import '../score_tracker.dart';
 
 abstract class SolitaireRules {
+  String get name;
+
   int get drawsPerTurn;
 
   List<Pile> get piles;

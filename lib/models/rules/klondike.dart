@@ -9,6 +9,9 @@ import '../score_tracker.dart';
 import 'rules.dart';
 
 class Klondike extends SolitaireRules {
+  @override
+  String get name => "Simple";
+
   static const numberOfTableauPiles = 7;
 
   static const numberOfFoundationPiles = 4;

@@ -99,10 +99,10 @@ class SolitaireThemeData {
     return SolitaireThemeData(
       backgroundColor: backgroundColor,
       foregroundColor: colorScheme.onPrimaryContainer,
-      winningBackgroundColor: colorScheme.surface,
+      winningBackgroundColor: colorScheme.primaryContainer,
       pileMarkerColor: colorScheme.onSurface,
       hintHighlightColor: colorScheme.error,
-      lastMoveHighlightColor: colorScheme.secondary,
+      lastMoveHighlightColor: colorScheme.tertiary,
       cardStyle: cardStyle,
     );
   }

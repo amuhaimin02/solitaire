@@ -28,14 +28,14 @@ class PileMarker extends StatelessWidget {
       padding: EdgeInsets.all(size.shortestSide * theme.cardStyle.margin),
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surfaceTint.withOpacity(0.07),
+          color: colorScheme.tertiary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(
               size.shortestSide * theme.cardStyle.cornerRadius),
         ),
         child: Icon(
           icon,
           size: size.shortestSide * 0.5,
-          color: colorScheme.surfaceTint.withOpacity(0.2),
+          color: colorScheme.tertiary.withOpacity(0.2),
         ),
       ),
     );

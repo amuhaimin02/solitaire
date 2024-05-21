@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
                           Expanded(
                             flex: 6,
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(16.0),
                               child:
                                   _GameTypeSelection(orientation: orientation),
                             ),
@@ -125,14 +125,16 @@ class _GameTypeSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rules = Klondike();
-    final cards = PlayCards.fromRules(rules);
-    cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
-
-    rules.setup(cards);
 
     return Pager(
-      builder: (context) {
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        final cards = PlayCards.fromRules(rules);
+        cards(const Draw())
+            .addAll(rules.prepareDrawPile(Random(index)).allFaceDown);
+        rules.setup(cards);
         return GameTable(
+          key: ValueKey(index),
           interactive: false,
           animateMovement: false,
           rules: rules,
@@ -167,7 +169,7 @@ class _GameMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final gameState = context.watch<GameState>();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -184,15 +186,18 @@ class _GameMenu extends StatelessWidget {
           icon: Icon(MdiIcons.cardsPlaying),
         ),
         const SizedBox(height: 8),
-        FilledButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(context, '/game');
-          },
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(0, 56),
+        Visibility(
+          visible: gameState.status == GameStatus.started,
+          child: FilledButton.icon(
+            onPressed: () {
+              Navigator.pushNamed(context, '/game');
+            },
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 56),
+            ),
+            label: const Text('Continue last game'),
+            icon: Icon(MdiIcons.cardsPlaying),
           ),
-          label: const Text('Continue last game'),
-          icon: Icon(MdiIcons.cardsPlaying),
         ),
         const SizedBox(height: 24),
         Wrap(
