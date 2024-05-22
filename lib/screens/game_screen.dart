@@ -213,6 +213,12 @@ class _PlayArea extends StatelessWidget {
       final showMoveHighlight = context.select<SettingsManager, bool>(
           (s) => s.get(Settings.showMoveHighlight));
 
+      final showAutoSolveButton = context.select<SettingsManager, bool>(
+          (s) => s.get(Settings.showAutoSolveButton));
+
+      final oneTapMove = context
+          .select<SettingsManager, bool>((s) => s.get(Settings.oneTapMove));
+
       if (showMoveHighlight) {
         final lastAction = gameState.latestAction;
         if (lastAction is Move && lastAction.from is! Draw) {
@@ -238,12 +244,15 @@ class _PlayArea extends StatelessWidget {
 
               switch (pile) {
                 case Tableau():
-                  final result =
-                      _feedbackMoveResult(gameState.tryQuickPlace(card, pile));
-                  return result is MoveSuccess ? null : [card];
+                  if (oneTapMove) {
+                    final result = _feedbackMoveResult(
+                        gameState.tryQuickPlace(card, pile));
+                    return result is MoveSuccess ? null : [card];
+                  }
                 case _:
                   return [card];
               }
+              return null;
             },
             onPileTap: (pile) {
               print('tapping pile $pile');
@@ -256,7 +265,7 @@ class _PlayArea extends StatelessWidget {
                   return null;
 
                 case Discard() || Foundation():
-                  if (cards(pile).isNotEmpty) {
+                  if (oneTapMove && cards(pile).isNotEmpty) {
                     final cardToMove = cards(pile).last;
                     final result = _feedbackMoveResult(
                         gameState.tryQuickPlace(cardToMove, pile));
@@ -281,12 +290,13 @@ class _PlayArea extends StatelessWidget {
           const Positioned.fill(
             child: _UserActionIndicator(),
           ),
-          const Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: _AutoSolveButton(),
-            ),
-          )
+          if (showAutoSolveButton)
+            const Positioned.fill(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: _AutoSolveButton(),
+              ),
+            )
         ],
       );
     });

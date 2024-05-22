@@ -8,6 +8,7 @@ import '../models/rules/simple.dart';
 import '../providers/settings.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/game_table.dart';
+import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 
 class ThemeScreen extends StatelessWidget {
@@ -91,9 +92,12 @@ class ThemeScreen extends StatelessWidget {
     final settings = context.watch<SettingsManager>();
     final colorScheme = Theme.of(context).colorScheme;
 
+    final randomizeColor = settings.get(Settings.randomizeThemeColor);
+
     return FadingEdgeListView(
       verticalPadding: 32,
       children: [
+        const SectionTitle('Base theme', first: true),
         ListTile(
           title: const Text('Theme mode'),
           subtitle: Padding(
@@ -133,36 +137,59 @@ class ThemeScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Wrap(
-                  alignment: WrapAlignment.start,
+                child: Column(
                   children: [
-                    for (final color in themeColorPalette)
-                      // ColorButton(
-                      //   size: 40,
-                      //   color: color,
-                      //   isSelected: settings.get(Settings.presetColor).value ==
-                      //       color.value,
-                      //   onTap: () {
-                      //     settings.set(Settings.presetColor, color);
-                      //   },
-                      // ),
-                      IconButton(
-                        onPressed: () {
-                          settings.set(Settings.presetColor, color);
-                        },
-                        isSelected: settings.get(Settings.presetColor).value ==
-                            color.value,
-                        iconSize: 32,
-                        icon: const Icon(Icons.circle_outlined),
-                        selectedIcon: const Icon(Icons.circle),
-                        color: color,
-                      ),
+                    CheckboxListTile(
+                      title: const Text('Randomize color'),
+                      secondary: const Icon(Icons.shuffle),
+                      subtitle: const Text(
+                          'Colors will change when starting a new game'),
+                      value: randomizeColor,
+                      onChanged: (value) {
+                        if (value == true) {
+                          settings.set(Settings.randomizeThemeColor, true);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      alignment: WrapAlignment.start,
+                      children: [
+                        for (final color in themeColorPalette)
+                          // ColorButton(
+                          //   size: 40,
+                          //   color: color,
+                          //   isSelected: settings.get(Settings.presetColor).value ==
+                          //       color.value,
+                          //   onTap: () {
+                          //     settings.set(Settings.presetColor, color);
+                          //   },
+                          // ),
+                          IconButton(
+                            onPressed: () {
+                              if (randomizeColor) {
+                                settings.set(
+                                    Settings.randomizeThemeColor, false);
+                              }
+                              settings.set(Settings.themeColor, color);
+                            },
+                            isSelected: !randomizeColor &&
+                                settings.get(Settings.themeColor).value ==
+                                    color.value,
+                            iconSize: 32,
+                            icon: const Icon(Icons.circle_outlined),
+                            selectedIcon: const Icon(Icons.circle),
+                            color: color,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
           ),
         ),
+        const SectionTitle('Background'),
         SwitchListTile(
           title: const Text('AMOLED dark background'),
           subtitle: const Text('Usew pitch black background when on dark mode'),
@@ -173,6 +200,7 @@ class ThemeScreen extends StatelessWidget {
                 }
               : null,
         ),
+        const SectionTitle('Cards'),
         SwitchListTile(
           title: const Text('Standard card colors'),
           subtitle: const Text('Use standard red-black card face colors'),

@@ -16,6 +16,18 @@ enum Settings<T> {
 
   showMoveHighlight(defaultValue: false),
 
+  showMovesDuringPlay(defaultValue: true),
+
+  showTimeDuringPlay(defaultValue: true),
+
+  showScoreDuringPlay(defaultValue: true),
+
+  showAutoSolveButton(defaultValue: true),
+
+  oneTapMove(defaultValue: true),
+
+  randomizeThemeColor(defaultValue: true),
+
   screenOrientation(
     defaultValue: ScreenOrientation.auto,
     options: ScreenOrientation.values,
@@ -30,7 +42,7 @@ enum Settings<T> {
 
   useStandardCardColors(defaultValue: false),
 
-  presetColor<Color>(
+  themeColor<Color>(
     defaultValue: Colors.transparent,
     convertFrom: ColorSerializer.from,
     convertTo: ColorSerializer.to,

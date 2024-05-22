@@ -8,4 +8,16 @@ extension WidgetListExtension on List<Widget> {
       return this;
     }
   }
+
+  List<Widget> separatedBy(Widget separator) {
+    if (length <= 1) {
+      return this;
+    }
+    return [
+      for (final (index, child) in indexed) ...[
+        child,
+        if (index < length - 1) separator
+      ]
+    ];
+  }
 }

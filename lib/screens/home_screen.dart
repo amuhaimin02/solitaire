@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -7,8 +8,10 @@ import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/klondike.dart';
+import '../providers/settings.dart';
 import '../widgets/game_table.dart';
 import '../widgets/pager.dart';
+import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -175,6 +178,12 @@ class _GameMenu extends StatelessWidget {
       children: [
         FilledButton.tonalIcon(
           onPressed: () {
+            if (context
+                .read<SettingsManager>()
+                .get(Settings.randomizeThemeColor)) {
+              _changeThemeRandomColor(context);
+            }
+
             final gameState = context.read<GameState>();
             gameState.startNewGame();
             Navigator.pushNamed(context, '/game');
@@ -232,5 +241,11 @@ class _GameMenu extends StatelessWidget {
         )
       ],
     );
+  }
+
+  void _changeThemeRandomColor(BuildContext context) {
+    context
+        .read<SettingsManager>()
+        .set(Settings.themeColor, themeColorPalette.sample(1).single);
   }
 }

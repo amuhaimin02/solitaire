@@ -3,7 +3,9 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
+import '../providers/settings.dart';
 import '../utils/types.dart';
+import '../utils/widgets.dart';
 import 'solitaire_theme.dart';
 
 class StatusPane extends StatelessWidget {
@@ -16,35 +18,34 @@ class StatusPane extends StatelessWidget {
     final theme = SolitaireTheme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
+    final settings = context.watch<SettingsManager>();
+    final showMoves = settings.get(Settings.showMovesDuringPlay);
+    final showTime = settings.get(Settings.showTimeDuringPlay);
+    final showScore = settings.get(Settings.showScoreDuringPlay);
+
     return DefaultTextStyle.merge(
       style: Theme.of(context)
           .textTheme
           .titleLarge!
           .copyWith(color: colorScheme.primary),
       child: switch (orientation) {
-        Orientation.landscape => const Column(
+        Orientation.landscape => Column(
             children: [
-              ScoreLabel(),
-              SizedBox(height: 8),
-              TimeLabel(),
-              MoveLabel(),
+              if (showScore) const ScoreLabel(),
+              if (showTime) const TimeLabel(),
+              if (showMoves) const MoveLabel(),
             ],
           ),
-        Orientation.portrait => const Row(
+        Orientation.portrait => Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Center(child: TimeLabel())),
-              SizedBox(
-                height: 24,
-                child: VerticalDivider(),
-              ),
-              Expanded(child: Center(child: ScoreLabel())),
-              SizedBox(
-                height: 24,
-                child: VerticalDivider(),
-              ),
-              Expanded(child: Center(child: MoveLabel())),
-            ],
+              if (showTime) const Expanded(child: Center(child: TimeLabel())),
+              if (showScore) const Expanded(child: Center(child: ScoreLabel())),
+              if (showMoves) const Expanded(child: Center(child: MoveLabel())),
+            ].separatedBy(const SizedBox(
+              height: 24,
+              child: VerticalDivider(),
+            )),
           ),
       },
     );

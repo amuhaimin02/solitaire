@@ -4,6 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../animations.dart';
 import '../models/card.dart';
+import '../utils/colors.dart';
 import 'flippable.dart';
 import 'soft_shadow.dart';
 import 'solitaire_theme.dart';
@@ -70,6 +71,37 @@ class CardView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CardHighlight extends StatelessWidget {
+  const CardHighlight(
+      {super.key,
+      required this.highlight,
+      required this.color,
+      required this.size});
+
+  final Color color;
+
+  final bool highlight;
+
+  final Size size;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = SolitaireTheme.of(context);
+    return AnimatedScale(
+      duration: cardMoveAnimation.duration,
+      curve: highlight ? Curves.easeOutCirc : Curves.easeInCirc,
+      scale: highlight ? 1 : 0.01,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(size.shortestSide *
+              (theme.cardStyle.cornerRadius + theme.cardStyle.margin)),
+        ),
       ),
     );
   }
@@ -157,7 +189,7 @@ class CardFace extends StatelessWidget {
             child: Icon(
               suitIcons[card.suit],
               size: iconSizingFactor * 3,
-              color: foregroundColor.withOpacity(0.4),
+              color: foregroundColor.withOpacity(0.3),
             ),
             // child: SvgPicture.asset(
             //   iconSvgPath,
@@ -188,16 +220,15 @@ class CardCover extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      decoration: BoxDecoration(
-        color: theme.cardStyle.coverColor,
-        // gradient: LinearGradient(
-        //   colors: [colorScheme.primary, colorScheme.secondary],
-        //   begin: Alignment.topLeft,
-        //   end: Alignment.bottomRight,
-        // ),
-        borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardStyle.cornerRadius),
-      ),
+      // decoration: BoxDecoration(
+      //   // gradient: LinearGradient(
+      //   //   colors: [colorScheme.primary, colorScheme.secondary],
+      //   //   begin: Alignment.topLeft,
+      //   //   end: Alignment.bottomRight,
+      //   // ),
+      //   borderRadius: BorderRadius.circular(
+      //       size.shortestSide * theme.cardStyle.cornerRadius),
+      // ),
       // child: Container(
       //   decoration: BoxDecoration(
       //     borderRadius: BorderRadius.circular(
@@ -208,37 +239,72 @@ class CardCover extends StatelessWidget {
       //     ),
       //   ),
       // ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(
+            size.shortestSide * theme.cardStyle.cornerRadius),
+        child: CustomPaint(
+          painter: FourTriangleCardCover(
+            color: colorScheme.primary,
+            secondaryColor:
+                Color.lerp(colorScheme.primary, colorScheme.onPrimary, 0.25)!,
+          ),
+        ),
+      ),
     );
   }
 }
 
-class CardHighlight extends StatelessWidget {
-  const CardHighlight(
-      {super.key,
-      required this.highlight,
-      required this.color,
-      required this.size});
-
+class FourTriangleCardCover extends CustomPainter {
   final Color color;
+  final Color secondaryColor;
 
-  final bool highlight;
-
-  final Size size;
+  FourTriangleCardCover(
+      {super.repaint, required this.color, required this.secondaryColor});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
-    return AnimatedScale(
-      duration: cardMoveAnimation.duration,
-      curve: highlight ? Curves.easeOutCirc : Curves.easeInCirc,
-      scale: highlight ? 1 : 0.01,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(size.shortestSide *
-              (theme.cardStyle.cornerRadius + theme.cardStyle.margin)),
-        ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final drawArea = Offset.zero & size;
+    final paint = Paint();
+
+    paint.color = color;
+    canvas.drawRect(drawArea, paint);
+
+    final center = drawArea.center;
+    final topLeft = drawArea.topLeft;
+    final bottomLeft = drawArea.bottomLeft;
+    final topRight = drawArea.topRight;
+    final bottomRight = drawArea.bottomRight;
+
+    paint.color = Color.lerp(color, secondaryColor, 0.33)!;
+    canvas.drawPath(
+        Path()
+          ..moveTo(center.dx, center.dy)
+          ..lineTo(topRight.dx, topRight.dy)
+          ..lineTo(bottomRight.dx, bottomRight.dy)
+          ..close(),
+        paint);
+
+    paint.color = Color.lerp(color, secondaryColor, 0.66)!;
+    canvas.drawPath(
+        Path()
+          ..moveTo(center.dx, center.dy)
+          ..lineTo(topLeft.dx, topLeft.dy)
+          ..lineTo(bottomLeft.dx, bottomLeft.dy)
+          ..close(),
+        paint);
+
+    paint.color = Color.lerp(color, secondaryColor, 1)!;
+    canvas.drawPath(
+        Path()
+          ..moveTo(center.dx, center.dy)
+          ..lineTo(bottomLeft.dx, bottomLeft.dy)
+          ..lineTo(bottomRight.dx, bottomRight.dy)
+          ..close(),
+        paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant FourTriangleCardCover oldDelegate) {
+    return color != oldDelegate.color;
   }
 }

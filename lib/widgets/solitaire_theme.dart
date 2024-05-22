@@ -142,13 +142,14 @@ class SolitaireCardStyle {
       {bool amoledDarkTheme = false}) {
     final Color cardFacePlainColor, cardFaceAccentColor;
     final Color cardLabelPlainColor, cardLabelAccentColor;
+    final isDarkMode = colorScheme.brightness == Brightness.dark;
 
     cardLabelPlainColor = colorScheme.onSurface;
     cardLabelAccentColor = colorScheme.primary;
 
-    if (amoledDarkTheme && colorScheme.brightness == Brightness.dark) {
+    if (amoledDarkTheme && isDarkMode) {
       cardFacePlainColor = colorScheme.surfaceContainer;
-      cardFaceAccentColor = colorScheme.surfaceContainer;
+      cardFaceAccentColor = colorScheme.onPrimary;
     } else {
       cardFacePlainColor = colorScheme.surfaceContainerLowest;
       cardFaceAccentColor = colorScheme.surfaceContainerLowest;

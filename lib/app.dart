@@ -50,7 +50,7 @@ class SolitaireApp extends StatelessWidget {
         final settings = context.watch<SettingsManager>();
 
         ThemeMode themeMode = settings.get(Settings.themeMode);
-        final presetColor = settings.get(Settings.presetColor);
+        final presetColor = settings.get(Settings.themeColor);
         final amoledDarkTheme = settings.get(Settings.amoledDarkTheme);
 
         ColorScheme colorScheme;
