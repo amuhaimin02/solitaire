@@ -2,15 +2,11 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/pile.dart';
 import '../utils/lists.dart';
 import '../utils/system_orientation.dart';
 
 enum Settings<T> {
-  autoMoveLevel(
-    defaultValue: AutoMoveLevel.off,
-    options: AutoMoveLevel.values,
-  ),
+  autoPremove(defaultValue: true),
 
   showDebugPanel(defaultValue: false),
 

@@ -17,50 +17,54 @@ class CustomizeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
+    final viewPadding = MediaQuery.of(context).viewPadding;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Customize'),
         scrolledUnderElevation: 0,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final orientation = constraints.maxWidth > 800
-              ? Orientation.landscape
-              : Orientation.portrait;
+      body: Padding(
+        padding:
+            EdgeInsets.only(left: viewPadding.left, right: viewPadding.right),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final orientation = constraints.maxWidth > 800
+                ? Orientation.landscape
+                : Orientation.portrait;
 
-          return switch (orientation) {
-            Orientation.landscape => Row(
-                children: [
-                  Expanded(
-                    child: _buildTablePreview(context),
-                  ),
-                  SizedBox(
-                    width: 480,
-                    child: _buildSettingsList(context),
-                  ),
-                ],
-              ),
-            Orientation.portrait => Center(
-                child: SizedBox(
-                  width: 600,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: _buildTablePreview(context),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: _buildSettingsList(context),
-                      ),
-                    ],
+            return switch (orientation) {
+              Orientation.landscape => Row(
+                  children: [
+                    Expanded(
+                      child: _buildTablePreview(context),
+                    ),
+                    SizedBox(
+                      width: 480,
+                      child: _buildSettingsList(context),
+                    ),
+                  ],
+                ),
+              Orientation.portrait => Center(
+                  child: SizedBox(
+                    width: 600,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: _buildTablePreview(context),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: _buildSettingsList(context),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-          };
-        },
+            };
+          },
+        ),
       ),
     );
   }

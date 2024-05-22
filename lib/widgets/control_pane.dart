@@ -1,8 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
+import '../providers/settings.dart';
 import 'solitaire_theme.dart';
 import 'tap_hold_detector.dart';
 
@@ -17,6 +19,13 @@ class ControlPane extends StatelessWidget {
       IconButton(
         tooltip: 'Start new game',
         onPressed: () {
+          if (context
+              .read<SettingsManager>()
+              .get(Settings.randomizeThemeColor)) {
+            context
+                .read<SettingsManager>()
+                .set(Settings.themeColor, themeColorPalette.sample(1).single);
+          }
           context.read<GameState>().startNewGame();
         },
         icon: const Icon(Icons.restart_alt, size: 24),

@@ -107,15 +107,13 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
               SwitchListTile(
-                title: const Text('Auto move'),
+                title: const Text('Auto pre-move'),
                 secondary: Icon(MdiIcons.transferRight),
                 subtitle: const Text(
-                    'Cards will be moved to winning position when possible'),
-                value:
-                    settings.get(Settings.autoMoveLevel) != AutoMoveLevel.off,
+                    'Cards will be moved to winning position when possible after each move'),
+                value: settings.get(Settings.autoPremove),
                 onChanged: (value) {
-                  settings.set(Settings.autoMoveLevel,
-                      value ? AutoMoveLevel.full : AutoMoveLevel.off);
+                  settings.toggle(Settings.autoPremove);
                 },
               ),
               SwitchListTile(

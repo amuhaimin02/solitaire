@@ -9,6 +9,7 @@ import 'card.dart';
 import 'pile.dart';
 import 'rules/klondike.dart';
 import 'rules/rules.dart';
+import 'rules/simple.dart';
 import 'score_tracker.dart';
 
 enum GameStatus {
@@ -26,7 +27,7 @@ enum UserAction { undoMultiple, redoMultiple }
 class GameState extends ChangeNotifier {
   late String _gameSeed;
 
-  late SolitaireRules rules = Klondike();
+  late SolitaireRules rules = SimpleSolitaire();
 
   late GameStatus _status;
 
@@ -48,7 +49,7 @@ class GameState extends ChangeNotifier {
 
   late PlayCards _cards;
 
-  AutoMoveLevel _autoMoveLevel = AutoMoveLevel.off;
+  late bool canAutoPremove = false;
 
   final _stopWatch = Stopwatch();
 
@@ -60,12 +61,6 @@ class GameState extends ChangeNotifier {
   }
 
   bool get isWinning => _status == GameStatus.ended;
-
-  AutoMoveLevel get autoMoveLevel => _autoMoveLevel;
-
-  set autoMoveLevel(AutoMoveLevel value) {
-    _autoMoveLevel = value;
-  }
 
   String get gameSeed => _gameSeed;
 
@@ -148,7 +143,7 @@ class GameState extends ChangeNotifier {
 
     notifyListeners();
 
-    if (_autoMoveLevel != AutoMoveLevel.off) {
+    if (canAutoPremove) {
       _doPremove();
     }
   }
@@ -254,9 +249,7 @@ class GameState extends ChangeNotifier {
 
       _isUndoing = false;
 
-      if (doPremove &&
-          _status != GameStatus.autoSolving &&
-          _autoMoveLevel != AutoMoveLevel.off) {
+      if (doPremove && _status != GameStatus.autoSolving && canAutoPremove) {
         _doPremove();
       }
     } catch (e) {
@@ -495,9 +488,9 @@ class GameState extends ChangeNotifier {
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
-      for (final move in rules.autoMoveStrategy(_autoMoveLevel, _cards)) {
+      for (final move in rules.autoMoveStrategy(_cards)) {
         // The card was just recently move. Skip that
-        if (lastMove?.to == move.from) {
+        if (lastMove?.to == move.from && lastMove?.to is! Discard) {
           continue;
         }
 

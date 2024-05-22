@@ -200,8 +200,6 @@ class PlayCardGenerator {
   }
 }
 
-enum AutoMoveLevel { off, onDraw, full }
-
 class PlayCards {
   final Map<Pile, PlayCardList> _cards;
 

@@ -20,25 +20,27 @@ class _FastPageViewState extends State<FastPageView> {
   static const _left = Offset(-1, 0);
   static const _right = Offset(1, 0);
 
-  static const _swipeVelocityThreshold = 300;
+  static const _swipeVelocityThreshold = 200;
 
   bool _lockChange = false;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Icon(Icons.chevron_left),
-              ),
-              Flexible(
-                child: AnimatedSwitcher(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            iconSize: 40,
+            onPressed: () => _move(_left),
+          ),
+          Flexible(
+            child: Stack(
+              children: [
+                AnimatedSwitcher(
                   duration: standardAnimation.duration,
                   switchInCurve: Curves.easeInOut,
                   switchOutCurve: Curves.easeInOut,
@@ -64,46 +66,42 @@ class _FastPageViewState extends State<FastPageView> {
                   },
                   child: widget.itemBuilder(context, _currentIndex),
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Icon(Icons.chevron_right),
-              ),
-            ],
-          ),
-        ),
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onHorizontalDragEnd: (details) {
-              final velocity = details.primaryVelocity;
-              if (velocity != null &&
-                  velocity.abs() > _swipeVelocityThreshold) {
-                _move(Offset(velocity.sign, 0));
-              }
-            },
-            child: Row(
-              children: [
-                Expanded(
+                Positioned.fill(
                   child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _move(_left),
-                    child: const SizedBox.expand(),
-                  ),
-                ),
-                const Spacer(),
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _move(_right),
-                    child: const SizedBox.expand(),
+                    behavior: HitTestBehavior.translucent,
+                    onHorizontalDragEnd: (details) {
+                      final velocity = details.primaryVelocity;
+                      if (velocity != null &&
+                          velocity.abs() > _swipeVelocityThreshold) {
+                        _move(Offset(velocity.sign, 0));
+                      }
+                    },
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _move(_left),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _move(_right),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            iconSize: 40,
+            onPressed: () => _move(_right),
+          ),
+        ],
+      ),
     );
   }
 

@@ -15,7 +15,6 @@ import '../widgets/game_table.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
-import '../widgets/touch_focusable.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -41,6 +40,8 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
     final isWinning = context.select<GameState, bool>((s) => s.isWinning);
+
+    final viewPadding = MediaQuery.of(context).viewPadding;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,17 +76,15 @@ class _GameScreenState extends State<GameScreen> {
                       child: switch (orientation) {
                         Orientation.landscape => Padding(
                             padding: EdgeInsets.only(
-                                left: 56 +
-                                    MediaQuery.of(context)
-                                        .viewPadding
-                                        .left), // Make room for the back button
+                                left: viewPadding.left + 56,
+                                right: viewPadding
+                                    .right), // Make room for the back button
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Flexible(
-                                  child: TouchFocusable(
-                                    active: !isPreparing,
-                                    opacityWhenUnfocus: 1,
+                                  child: IgnorePointer(
+                                    ignoring: isPreparing,
                                     child: Padding(
                                       padding: playAreaMargin,
                                       child: ConstrainedBox(
@@ -96,9 +95,11 @@ class _GameScreenState extends State<GameScreen> {
                                     ),
                                   ),
                                 ),
-                                TouchFocusable(
-                                  active: !isPreparing,
-                                  opacityWhenUnfocus: 0,
+                                Visibility(
+                                  visible: !isPreparing,
+                                  maintainSize: true,
+                                  maintainAnimation: true,
+                                  maintainState: true,
                                   child: Container(
                                     width: 120,
                                     margin:
@@ -125,16 +126,17 @@ class _GameScreenState extends State<GameScreen> {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 32),
-                                  child: TouchFocusable(
-                                    active: !isPreparing,
-                                    opacityWhenUnfocus: 0,
+                                  child: Visibility(
+                                    visible: !isPreparing,
+                                    maintainSize: true,
+                                    maintainAnimation: true,
+                                    maintainState: true,
                                     child: StatusPane(orientation: orientation),
                                   ),
                                 ),
                                 Flexible(
-                                  child: TouchFocusable(
-                                    active: !isPreparing,
-                                    opacityWhenUnfocus: 1,
+                                  child: IgnorePointer(
+                                    ignoring: isPreparing,
                                     child: Padding(
                                       padding: playAreaMargin,
                                       child: ConstrainedBox(
@@ -147,9 +149,11 @@ class _GameScreenState extends State<GameScreen> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 32),
-                                  child: TouchFocusable(
-                                    active: !isPreparing,
-                                    opacityWhenUnfocus: 0,
+                                  child: Visibility(
+                                    visible: !isPreparing,
+                                    maintainSize: true,
+                                    maintainAnimation: true,
+                                    maintainState: true,
                                     child:
                                         ControlPane(orientation: orientation),
                                   ),

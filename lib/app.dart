@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'models/game_selection_state.dart';
 import 'models/game_state.dart';
 import 'providers/settings.dart';
 import 'screens/about_screen.dart';
@@ -91,7 +92,6 @@ class SolitaireApp extends StatelessWidget {
           useMaterial3: true,
           textTheme: GoogleFonts.manropeTextTheme(),
           colorScheme: colorScheme,
-          splashColor: Colors.transparent,
           scaffoldBackgroundColor: Colors.transparent,
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.transparent,
@@ -103,6 +103,7 @@ class SolitaireApp extends StatelessWidget {
               TargetPlatform.macOS: FadeOutInTransitionBuilder(),
             },
           ),
+          tooltipTheme: const TooltipThemeData(preferBelow: false),
         );
 
         return MultiProvider(
@@ -110,10 +111,11 @@ class SolitaireApp extends StatelessWidget {
             ChangeNotifierProxyProvider<SettingsManager, GameState>(
               create: (_) => GameState(),
               update: (_, settings, state) {
-                state!.autoMoveLevel = settings.get(Settings.autoMoveLevel);
+                state!.canAutoPremove = settings.get(Settings.autoPremove);
                 return state;
               },
             ),
+            ChangeNotifierProvider(create: (_) => GameSelectionState()),
           ],
           child: SolitaireTheme(
             data: solitaireThemeData,
@@ -125,7 +127,7 @@ class SolitaireApp extends StatelessWidget {
               routes: {
                 '/home': (context) => const HomeScreen(),
                 '/game': (context) => const GameScreen(),
-                '/theme': (context) => const CustomizeScreen(),
+                '/customize': (context) => const CustomizeScreen(),
                 '/settings': (context) => const SettingsScreen(),
                 '/stats': (context) => const StatisticsScreen(),
                 '/about': (context) => const AboutScreen(),

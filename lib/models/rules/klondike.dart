@@ -9,15 +9,18 @@ import '../score_tracker.dart';
 import 'rules.dart';
 
 class Klondike extends SolitaireRules {
+  Klondike([KlondikeVariant? super.variant = KlondikeVariant.defaultVariant]);
   @override
-  String get name => "Simple";
+  String get name => "Klondike";
 
   static const numberOfTableauPiles = 7;
 
   static const numberOfFoundationPiles = 4;
 
   @override
-  int get drawsPerTurn => 1;
+  int get drawsPerTurn {
+    return (variant as KlondikeVariant).numberOfDraws ?? 1;
+  }
 
   @override
   List<Pile> get piles {
@@ -189,8 +192,7 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  Iterable<MoveIntent> autoMoveStrategy(
-      AutoMoveLevel level, PlayCards cards) sync* {
+  Iterable<MoveIntent> autoMoveStrategy(PlayCards cards) sync* {
     for (final f in allFoundations) {
       yield MoveIntent(const Discard(), f);
     }
@@ -225,6 +227,49 @@ class Klondike extends SolitaireRules {
         tableau.last = tableau.last.faceUp();
       }
     }
-    score.add(Random().nextInt(10));
+
+    score.add((variant as KlondikeVariant).calculateScore(move, cards));
   }
+}
+
+class KlondikeVariant extends SolitaireVariant<Klondike> {
+  static const defaultVariant =
+      KlondikeVariant(numberOfDraws: 1, scoringType: KlondikeScoring.standard);
+  final int numberOfDraws;
+
+  final KlondikeScoring scoringType;
+
+  const KlondikeVariant({
+    required this.numberOfDraws,
+    required this.scoringType,
+  });
+
+  @override
+  String get name {
+    final numberOfDrawsString =
+        switch (numberOfDraws) { 1 => "1 draw", _ => "$numberOfDraws draws" };
+
+    return "${scoringType.fullName}, $numberOfDrawsString";
+  }
+
+  int calculateScore(Move move, PlayCards cards) {
+    switch (scoringType) {
+      case KlondikeScoring.standard:
+        return 1;
+      case KlondikeScoring.vegas:
+        return 5;
+      case KlondikeScoring.cumulativeVegas:
+        return 10;
+    }
+  }
+}
+
+enum KlondikeScoring {
+  standard("Standard"),
+  vegas("Vegas"),
+  cumulativeVegas("Cumulative Vegas");
+
+  final String fullName;
+
+  const KlondikeScoring(this.fullName);
 }

@@ -75,7 +75,7 @@ class SimpleSolitaire extends SolitaireRules {
   }
 
   @override
-  Iterable<MoveIntent> autoMoveStrategy(AutoMoveLevel level, PlayCards cards) {
+  Iterable<MoveIntent> autoMoveStrategy(PlayCards cards) {
     // TODO: implement autoMoveStrategy
     throw UnimplementedError();
   }

@@ -7,6 +7,12 @@ import '../pile.dart';
 import '../score_tracker.dart';
 
 abstract class SolitaireRules {
+  SolitaireRules([this.variant]);
+
+  final SolitaireVariant<SolitaireRules>? variant;
+
+  // --------------------------------------------
+
   String get name;
 
   int get drawsPerTurn;
@@ -27,7 +33,7 @@ abstract class SolitaireRules {
 
   bool canAutoSolve(PlayCards cards);
 
-  Iterable<MoveIntent> autoMoveStrategy(AutoMoveLevel level, PlayCards cards);
+  Iterable<MoveIntent> autoMoveStrategy(PlayCards cards);
 
   Iterable<MoveIntent> autoSolveStrategy(PlayCards cards);
 
@@ -40,6 +46,11 @@ abstract class SolitaireRules {
   Iterable<Pile> get allFoundations {
     return piles.whereType<Foundation>();
   }
+}
+
+abstract class SolitaireVariant<T extends SolitaireRules> {
+  const SolitaireVariant();
+  String get name;
 }
 
 class Layout {
