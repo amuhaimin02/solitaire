@@ -48,7 +48,7 @@ class CardView extends StatelessWidget {
         children: [
           CardHighlight(
             highlight: highlightColor != null,
-            color: highlightColor ?? theme.foregroundColor,
+            color: highlightColor ?? colorScheme.primary,
             size: size,
           ),
           Positioned.fill(

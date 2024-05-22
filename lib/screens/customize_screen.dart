@@ -11,11 +11,13 @@ import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 
-class ThemeScreen extends StatelessWidget {
-  const ThemeScreen({super.key});
+class CustomizeScreen extends StatelessWidget {
+  const CustomizeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = SolitaireTheme.of(context);
+
     final rules = SimpleSolitaire();
     final cards = PlayCards.fromRules(rules);
     cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
@@ -24,7 +26,7 @@ class ThemeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Themes'),
+        title: const Text('Customize'),
         scrolledUnderElevation: 0,
       ),
       body: LayoutBuilder(
@@ -39,14 +41,21 @@ class ThemeScreen extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Container(
-                        width: 400,
+                        decoration: BoxDecoration(
+                          color: theme.tableBackgroundColor,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
                         margin: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(24),
                         child: Center(
-                          child: GameTable(
-                            rules: rules,
-                            cards: cards,
-                            interactive: false,
-                            animateMovement: false,
+                          child: SizedBox(
+                            width: 400,
+                            child: GameTable(
+                              rules: rules,
+                              cards: cards,
+                              interactive: false,
+                              animateMovement: false,
+                            ),
                           ),
                         ),
                       ),
@@ -63,19 +72,27 @@ class ThemeScreen extends StatelessWidget {
                   width: 600,
                   child: Column(
                     children: [
-                      Container(
-                        width: 200,
-                        margin: const EdgeInsets.all(24),
-                        child: Center(
-                          child: GameTable(
-                            rules: rules,
-                            cards: cards,
-                            interactive: false,
-                            animateMovement: false,
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.tableBackgroundColor,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          margin: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(24),
+                          child: Center(
+                            child: GameTable(
+                              rules: rules,
+                              cards: cards,
+                              interactive: false,
+                              animateMovement: false,
+                            ),
                           ),
                         ),
                       ),
                       Expanded(
+                        flex: 3,
                         child: _buildSettingsList(context),
                       ),
                     ],
@@ -93,6 +110,8 @@ class ThemeScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final randomizeColor = settings.get(Settings.randomizeThemeColor);
+    final coloredBackground = settings.get(Settings.coloredBackground);
+    final amoledDarkTheme = settings.get(Settings.amoledDarkTheme);
 
     return FadingEdgeListView(
       verticalPadding: 32,
@@ -103,7 +122,6 @@ class ThemeScreen extends StatelessWidget {
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: SegmentedButton<ThemeMode>(
-              showSelectedIcon: false,
               segments: const [
                 ButtonSegment(
                   value: ThemeMode.system,
@@ -133,7 +151,7 @@ class ThemeScreen extends StatelessWidget {
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Material(
-              color: colorScheme.surfaceContainerHighest,
+              color: colorScheme.surfaceTint.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -193,12 +211,22 @@ class ThemeScreen extends StatelessWidget {
         SwitchListTile(
           title: const Text('AMOLED dark background'),
           subtitle: const Text('Usew pitch black background when on dark mode'),
-          value: settings.get(Settings.amoledDarkTheme),
-          onChanged: settings.get(Settings.themeMode) != ThemeMode.light
+          value: amoledDarkTheme,
+          onChanged: !coloredBackground &&
+                  settings.get(Settings.themeMode) != ThemeMode.light
               ? (value) {
                   settings.toggle(Settings.amoledDarkTheme);
                 }
               : null,
+        ),
+        SwitchListTile(
+          title: const Text('Colored background'),
+          subtitle:
+              const Text('Use strong colors of the theme for the background'),
+          value: coloredBackground,
+          onChanged: (value) {
+            settings.toggle(Settings.coloredBackground);
+          },
         ),
         const SectionTitle('Cards'),
         SwitchListTile(

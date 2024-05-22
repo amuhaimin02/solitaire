@@ -10,7 +10,7 @@ import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
-import 'screens/theme_screen.dart';
+import 'screens/customize_screen.dart';
 import 'widgets/ripple_background.dart';
 import 'widgets/solitaire_theme.dart';
 
@@ -22,26 +22,6 @@ class SolitaireApp extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
-    ThemeData buildTheme(ColorScheme? colorScheme) {
-      return ThemeData(
-        useMaterial3: true,
-        textTheme: GoogleFonts.manropeTextTheme(),
-        colorScheme: colorScheme,
-        splashColor: Colors.transparent,
-        scaffoldBackgroundColor: Colors.transparent,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-        ),
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: FadeOutInTransitionBuilder(),
-            TargetPlatform.iOS: FadeOutInTransitionBuilder(),
-            TargetPlatform.macOS: FadeOutInTransitionBuilder(),
-          },
-        ),
-      );
-    }
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsManager()),
@@ -50,8 +30,9 @@ class SolitaireApp extends StatelessWidget {
         final settings = context.watch<SettingsManager>();
 
         ThemeMode themeMode = settings.get(Settings.themeMode);
-        final presetColor = settings.get(Settings.themeColor);
+        final themeColor = settings.get(Settings.themeColor);
         final amoledDarkTheme = settings.get(Settings.amoledDarkTheme);
+        final coloredBackground = settings.get(Settings.coloredBackground);
 
         ColorScheme colorScheme;
 
@@ -71,8 +52,8 @@ class SolitaireApp extends StatelessWidget {
 
         colorScheme = ColorScheme.fromSeed(
           brightness: brightness,
-          seedColor: presetColor != Colors.transparent
-              ? presetColor
+          seedColor: themeColor != Colors.transparent
+              ? themeColor
               : themeColorPalette.first,
         );
 
@@ -95,13 +76,33 @@ class SolitaireApp extends StatelessWidget {
           cardStyle = SolitaireCardStyle.fromColorScheme(
             colorScheme,
             amoledDarkTheme: amoledDarkTheme,
+            coloredBackground: coloredBackground,
           );
         }
 
-        final themeData = SolitaireThemeData.fromColorScheme(
+        final solitaireThemeData = SolitaireThemeData.fromColorScheme(
           colorScheme: colorScheme,
           cardStyle: cardStyle,
           amoledDarkTheme: amoledDarkTheme,
+          coloredBackground: coloredBackground,
+        );
+
+        final themeData = ThemeData(
+          useMaterial3: true,
+          textTheme: GoogleFonts.manropeTextTheme(),
+          colorScheme: colorScheme,
+          splashColor: Colors.transparent,
+          scaffoldBackgroundColor: Colors.transparent,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.transparent,
+          ),
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: FadeOutInTransitionBuilder(),
+              TargetPlatform.iOS: FadeOutInTransitionBuilder(),
+              TargetPlatform.macOS: FadeOutInTransitionBuilder(),
+            },
+          ),
         );
 
         return MultiProvider(
@@ -115,16 +116,16 @@ class SolitaireApp extends StatelessWidget {
             ),
           ],
           child: SolitaireTheme(
-            data: themeData,
+            data: solitaireThemeData,
             child: MaterialApp(
               title: 'Solitaire',
-              theme: buildTheme(colorScheme),
+              theme: themeData,
               themeAnimationStyle: AnimationStyle.noAnimation,
               initialRoute: '/home',
               routes: {
                 '/home': (context) => const HomeScreen(),
                 '/game': (context) => const GameScreen(),
-                '/theme': (context) => const ThemeScreen(),
+                '/theme': (context) => const CustomizeScreen(),
                 '/settings': (context) => const SettingsScreen(),
                 '/stats': (context) => const StatisticsScreen(),
                 '/about': (context) => const AboutScreen(),
@@ -157,7 +158,7 @@ class FadeOutInTransitionBuilder extends PageTransitionsBuilder {
       opacity: animation.drive(fadeOutCurve),
       child: RippleBackground(
         decoration:
-            BoxDecoration(color: SolitaireTheme.of(context).backgroundColor),
+            BoxDecoration(color: SolitaireTheme.of(context).appBackgroundColor),
         child: FadeTransition(
           opacity: secondaryAnimation
               .drive(Tween(begin: 1.0, end: 0.0).chain(fadeInCurve)),

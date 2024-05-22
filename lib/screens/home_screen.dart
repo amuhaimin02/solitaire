@@ -103,7 +103,7 @@ class _GameTitle extends StatelessWidget {
     return ShaderMask(
       shaderCallback: (rect) {
         return LinearGradient(
-          colors: [colorScheme.primary, colorScheme.tertiary],
+          colors: [colorScheme.primary, colorScheme.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ).createShader(rect);
@@ -128,6 +128,7 @@ class _GameTypeSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rules = Klondike();
+    final theme = SolitaireTheme.of(context);
 
     return Pager(
       itemCount: 5,

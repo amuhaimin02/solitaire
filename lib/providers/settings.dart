@@ -40,6 +40,8 @@ enum Settings<T> {
     options: ThemeMode.values,
   ),
 
+  coloredBackground(defaultValue: false),
+
   useStandardCardColors(defaultValue: false),
 
   themeColor<Color>(

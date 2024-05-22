@@ -50,7 +50,7 @@ class _GameScreenState extends State<GameScreen> {
       body: RippleBackground(
         decoration: isWinning
             ? BoxDecoration(color: theme.winningBackgroundColor)
-            : BoxDecoration(color: theme.backgroundColor),
+            : BoxDecoration(color: theme.tableBackgroundColor),
         child: OrientationBuilder(
           builder: (context, orientation) {
             return LayoutBuilder(
@@ -61,12 +61,9 @@ class _GameScreenState extends State<GameScreen> {
                     ? const EdgeInsets.all(8)
                     : const EdgeInsets.all(40);
 
-                final divider = SizedBox(
+                const divider = SizedBox(
                   width: 48,
-                  child: Divider(
-                    height: 24,
-                    color: theme.foregroundColor.withOpacity(0.3),
-                  ),
+                  child: Divider(height: 24),
                 );
 
                 final isPreparing =

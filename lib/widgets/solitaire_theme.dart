@@ -61,8 +61,8 @@ class _InheritedTheme extends InheritedWidget {
 @immutable
 class SolitaireThemeData {
   const SolitaireThemeData({
-    required this.backgroundColor,
-    required this.foregroundColor,
+    required this.appBackgroundColor,
+    required this.tableBackgroundColor,
     required this.winningBackgroundColor,
     required this.pileMarkerColor,
     required this.hintHighlightColor,
@@ -70,9 +70,9 @@ class SolitaireThemeData {
     required this.cardStyle,
   });
 
-  final Color backgroundColor;
+  final Color appBackgroundColor;
+  final Color tableBackgroundColor;
 
-  final Color foregroundColor;
   final Color winningBackgroundColor;
 
   final Color pileMarkerColor;
@@ -87,19 +87,28 @@ class SolitaireThemeData {
     required ColorScheme colorScheme,
     required SolitaireCardStyle cardStyle,
     bool amoledDarkTheme = false,
+    bool coloredBackground = false,
   }) {
-    final Color backgroundColor;
+    final Color appBackgroundColor,
+        tableBackgroundColor,
+        winningBackgroundColor;
 
     if (amoledDarkTheme && colorScheme.brightness == Brightness.dark) {
-      backgroundColor = Colors.black;
+      appBackgroundColor = tableBackgroundColor = Colors.black;
+      winningBackgroundColor = colorScheme.surfaceContainer;
+    } else if (coloredBackground) {
+      appBackgroundColor = colorScheme.surfaceContainer;
+      tableBackgroundColor = colorScheme.primaryContainer;
+      winningBackgroundColor = colorScheme.surfaceContainer;
     } else {
-      backgroundColor = colorScheme.surfaceContainer;
+      appBackgroundColor = tableBackgroundColor = colorScheme.surfaceContainer;
+      winningBackgroundColor = colorScheme.primaryContainer;
     }
 
     return SolitaireThemeData(
-      backgroundColor: backgroundColor,
-      foregroundColor: colorScheme.onPrimaryContainer,
-      winningBackgroundColor: colorScheme.primaryContainer,
+      appBackgroundColor: appBackgroundColor,
+      tableBackgroundColor: tableBackgroundColor,
+      winningBackgroundColor: winningBackgroundColor,
       pileMarkerColor: colorScheme.onSurface,
       hintHighlightColor: colorScheme.error,
       lastMoveHighlightColor: colorScheme.tertiary,
@@ -138,13 +147,16 @@ class SolitaireCardStyle {
     required this.cornerRadius,
   });
 
-  factory SolitaireCardStyle.fromColorScheme(ColorScheme colorScheme,
-      {bool amoledDarkTheme = false}) {
+  factory SolitaireCardStyle.fromColorScheme(
+    ColorScheme colorScheme, {
+    bool amoledDarkTheme = false,
+    bool coloredBackground = false,
+  }) {
     final Color cardFacePlainColor, cardFaceAccentColor;
     final Color cardLabelPlainColor, cardLabelAccentColor;
     final isDarkMode = colorScheme.brightness == Brightness.dark;
 
-    if (amoledDarkTheme && isDarkMode) {
+    if (amoledDarkTheme && isDarkMode & !coloredBackground) {
       cardLabelPlainColor = colorScheme.onSurface;
       cardLabelAccentColor = colorScheme.onPrimaryContainer;
       cardFacePlainColor = colorScheme.surfaceContainer;

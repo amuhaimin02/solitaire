@@ -27,7 +27,7 @@ class StatusPane extends StatelessWidget {
       style: Theme.of(context)
           .textTheme
           .titleLarge!
-          .copyWith(color: colorScheme.primary),
+          .copyWith(color: colorScheme.onSurface),
       child: switch (orientation) {
         Orientation.landscape => Column(
             children: [
@@ -57,8 +57,6 @@ class TimeLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return StreamBuilder<Null>(
       stream: Stream.periodic(const Duration(milliseconds: 200)),
       builder: (context, snapshot) {
@@ -83,7 +81,7 @@ class ScoreLabel extends StatelessWidget {
         score >= 10000 ? textTheme.displaySmall! : textTheme.displayMedium!;
     return Text(
       '$score',
-      style: textStyle.copyWith(color: colorScheme.primary),
+      style: textStyle.copyWith(color: colorScheme.onSurface),
       textAlign: TextAlign.center,
     );
   }
