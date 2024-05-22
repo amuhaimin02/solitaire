@@ -34,11 +34,11 @@ class CardView extends StatelessWidget {
     final theme = SolitaireTheme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final outerDecoration = BoxDecoration(
-      borderRadius: BorderRadius.circular(
-          size.shortestSide * theme.cardStyle.cornerRadius),
-      boxShadow: [SoftShadow(elevation ?? 2)],
-    );
+    // final outerDecoration = BoxDecoration(
+    //   borderRadius: BorderRadius.circular(
+    //       size.shortestSide * theme.cardStyle.cornerRadius),
+    //   boxShadow: [SoftShadow(elevation ?? 2)],
+    // );
 
     return SizedBox(
       width: size.width,
@@ -59,12 +59,16 @@ class CardView extends StatelessWidget {
                 duration: cardMoveAnimation.duration,
                 curve: cardMoveAnimation.curve,
                 flipped: hideFace || card.flipped,
-                front: Container(
-                  decoration: outerDecoration,
+                front: Material(
+                  borderRadius: BorderRadius.circular(
+                      size.shortestSide * theme.cardStyle.cornerRadius),
+                  elevation: elevation ?? 2,
                   child: CardFace(card: card, size: size),
                 ),
-                back: Container(
-                  decoration: outerDecoration,
+                back: Material(
+                  borderRadius: BorderRadius.circular(
+                      size.shortestSide * theme.cardStyle.cornerRadius),
+                  elevation: elevation ?? 2,
                   child: CardCover(size: size),
                 ),
               ),

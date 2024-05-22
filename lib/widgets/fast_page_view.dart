@@ -2,24 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../animations.dart';
 
-class Pager extends StatefulWidget {
-  const Pager({super.key, required this.itemBuilder, required this.itemCount});
+class FastPageView extends StatefulWidget {
+  const FastPageView(
+      {super.key, required this.itemBuilder, required this.itemCount});
 
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
 
   @override
-  State<Pager> createState() => _PagerState();
+  State<FastPageView> createState() => _FastPageViewState();
 }
 
-class _PagerState extends State<Pager> {
+class _FastPageViewState extends State<FastPageView> {
   int _currentIndex = 0;
   Offset _direction = Offset.zero;
 
   static const _left = Offset(-1, 0);
   static const _right = Offset(1, 0);
 
-  static const _swipeVelocityThreshold = 500;
+  static const _swipeVelocityThreshold = 300;
 
   bool _lockChange = false;
 
@@ -39,16 +40,16 @@ class _PagerState extends State<Pager> {
               Flexible(
                 child: AnimatedSwitcher(
                   duration: standardAnimation.duration,
-                  switchInCurve: Easing.emphasizedDecelerate,
-                  switchOutCurve: Easing.emphasizedAccelerate,
+                  switchInCurve: Curves.easeInOut,
+                  switchOutCurve: Curves.easeInOut,
                   transitionBuilder: (child, animation) {
                     final isReversing =
                         animation.status == AnimationStatus.completed;
 
                     final slideTween = Tween(
                         begin: (isReversing
-                                ? const Offset(0.2, 0)
-                                : const Offset(-0.2, 0))
+                                ? const Offset(0.5, 0)
+                                : const Offset(-0.5, 0))
                             .scale(_direction.dx, _direction.dy),
                         end: Offset.zero);
 

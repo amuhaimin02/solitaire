@@ -149,7 +149,7 @@ class GameState extends ChangeNotifier {
     notifyListeners();
 
     if (_autoMoveLevel != AutoMoveLevel.off) {
-      _doAutoMove();
+      _doPremove();
     }
   }
 
@@ -231,7 +231,7 @@ class GameState extends ChangeNotifier {
 
   PlayCards get cardsOnTable => _cards;
 
-  Move _doMoveCards(Move move, {bool doAutoMove = true}) {
+  Move _doMoveCards(Move move, {bool doPremove = true}) {
     try {
       final cardsInHand = move.cards;
 
@@ -254,10 +254,10 @@ class GameState extends ChangeNotifier {
 
       _isUndoing = false;
 
-      if (doAutoMove &&
+      if (doPremove &&
           _status != GameStatus.autoSolving &&
           _autoMoveLevel != AutoMoveLevel.off) {
-        _doAutoMove();
+        _doPremove();
       }
     } catch (e) {
       rethrow;
@@ -268,7 +268,7 @@ class GameState extends ChangeNotifier {
   }
 
   MoveResult tryMove(MoveIntent move,
-      {bool doMove = true, bool doAutoMove = true}) {
+      {bool doMove = true, bool doPreMove = true}) {
     final Move? targetMove;
 
     Move refreshDrawPile() {
@@ -358,7 +358,7 @@ class GameState extends ChangeNotifier {
     }
 
     if (doMove) {
-      _doMoveCards(targetMove, doAutoMove: doAutoMove);
+      _doMoveCards(targetMove, doPremove: doPreMove);
     }
 
     return MoveSuccess(targetMove);
@@ -486,15 +486,22 @@ class GameState extends ChangeNotifier {
     });
   }
 
-  void _doAutoMove() async {
+  void _doPremove() async {
     bool handled;
+
+    final Move? lastMove = latestAction is Move ? (latestAction as Move) : null;
 
     _stopWatch.stop();
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       for (final move in rules.autoMoveStrategy(_autoMoveLevel, _cards)) {
-        final result = tryMove(move, doAutoMove: false);
+        // The card was just recently move. Skip that
+        if (lastMove?.to == move.from) {
+          continue;
+        }
+
+        final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
           handled = true;
@@ -522,7 +529,7 @@ class GameState extends ChangeNotifier {
     do {
       handled = false;
       for (final move in rules.autoSolveStrategy(_cards)) {
-        final result = tryMove(move, doAutoMove: false);
+        final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
           handled = true;

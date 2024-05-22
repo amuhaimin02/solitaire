@@ -10,7 +10,7 @@ import '../models/pile.dart';
 import '../models/rules/klondike.dart';
 import '../providers/settings.dart';
 import '../widgets/game_table.dart';
-import '../widgets/pager.dart';
+import '../widgets/fast_page_view.dart';
 import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -130,7 +130,7 @@ class _GameTypeSelection extends StatelessWidget {
     final rules = Klondike();
     final theme = SolitaireTheme.of(context);
 
-    return Pager(
+    return FastPageView(
       itemCount: 5,
       itemBuilder: (context, index) {
         final cards = PlayCards.fromRules(rules);
@@ -196,8 +196,8 @@ class _GameMenu extends StatelessWidget {
           icon: Icon(MdiIcons.cardsPlaying),
         ),
         const SizedBox(height: 8),
-        Visibility(
-          visible: gameState.status == GameStatus.started,
+        Opacity(
+          opacity: gameState.status == GameStatus.started ? 1 : 0,
           child: FilledButton.icon(
             onPressed: () {
               Navigator.pushNamed(context, '/game');

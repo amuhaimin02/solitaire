@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../animations.dart';
 import '../models/pile.dart';
 import '../models/rules/simple.dart';
 import '../providers/settings.dart';
@@ -17,12 +18,6 @@ class CustomizeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
-
-    final rules = SimpleSolitaire();
-    final cards = PlayCards.fromRules(rules);
-    cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
-
-    rules.setup(cards);
 
     return Scaffold(
       appBar: AppBar(
@@ -39,27 +34,7 @@ class CustomizeScreen extends StatelessWidget {
             Orientation.landscape => Row(
                 children: [
                   Expanded(
-                    child: Center(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: theme.tableBackgroundColor,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        margin: const EdgeInsets.all(24),
-                        padding: const EdgeInsets.all(24),
-                        child: Center(
-                          child: SizedBox(
-                            width: 400,
-                            child: GameTable(
-                              rules: rules,
-                              cards: cards,
-                              interactive: false,
-                              animateMovement: false,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: _buildTablePreview(context),
                   ),
                   SizedBox(
                     width: 480,
@@ -74,22 +49,7 @@ class CustomizeScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: theme.tableBackgroundColor,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          margin: const EdgeInsets.all(24),
-                          padding: const EdgeInsets.all(24),
-                          child: Center(
-                            child: GameTable(
-                              rules: rules,
-                              cards: cards,
-                              interactive: false,
-                              animateMovement: false,
-                            ),
-                          ),
-                        ),
+                        child: _buildTablePreview(context),
                       ),
                       Expanded(
                         flex: 3,
@@ -101,6 +61,38 @@ class CustomizeScreen extends StatelessWidget {
               ),
           };
         },
+      ),
+    );
+  }
+
+  Widget _buildTablePreview(BuildContext context) {
+    final theme = SolitaireTheme.of(context);
+
+    final rules = SimpleSolitaire();
+    final cards = PlayCards.fromRules(rules);
+    cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
+
+    rules.setup(cards);
+
+    return AnimatedContainer(
+      duration: themeChangeAnimation.duration,
+      curve: themeChangeAnimation.curve,
+      decoration: BoxDecoration(
+        color: theme.tableBackgroundColor,
+        borderRadius: BorderRadius.circular(32),
+      ),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
+          child: GameTable(
+            rules: rules,
+            cards: cards,
+            interactive: false,
+            animateMovement: false,
+          ),
+        ),
       ),
     );
   }
@@ -158,10 +150,10 @@ class CustomizeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     CheckboxListTile(
-                      title: const Text('Randomize color'),
+                      title: const Text('Random color'),
                       secondary: const Icon(Icons.shuffle),
                       subtitle: const Text(
-                          'Colors will change when starting a new game'),
+                          'Color changes every time new game starts'),
                       value: randomizeColor,
                       onChanged: (value) {
                         if (value == true) {
@@ -210,7 +202,7 @@ class CustomizeScreen extends StatelessWidget {
         const SectionTitle('Background'),
         SwitchListTile(
           title: const Text('AMOLED dark background'),
-          subtitle: const Text('Usew pitch black background when on dark mode'),
+          subtitle: const Text('Use pitch black background when on dark mode'),
           value: amoledDarkTheme,
           onChanged: !coloredBackground &&
                   settings.get(Settings.themeMode) != ThemeMode.light
@@ -220,9 +212,9 @@ class CustomizeScreen extends StatelessWidget {
               : null,
         ),
         SwitchListTile(
-          title: const Text('Colored background'),
-          subtitle:
-              const Text('Use strong colors of the theme for the background'),
+          title: const Text('Colored table background'),
+          subtitle: const Text(
+              'Use strong colors of the theme for the table background'),
           value: coloredBackground,
           onChanged: (value) {
             settings.toggle(Settings.coloredBackground);

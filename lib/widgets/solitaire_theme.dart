@@ -156,7 +156,7 @@ class SolitaireCardStyle {
     final Color cardLabelPlainColor, cardLabelAccentColor;
     final isDarkMode = colorScheme.brightness == Brightness.dark;
 
-    if (amoledDarkTheme && isDarkMode & !coloredBackground) {
+    if (amoledDarkTheme && isDarkMode) {
       cardLabelPlainColor = colorScheme.onSurface;
       cardLabelAccentColor = colorScheme.onPrimaryContainer;
       cardFacePlainColor = colorScheme.surfaceContainer;
