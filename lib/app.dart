@@ -88,9 +88,11 @@ class SolitaireApp extends StatelessWidget {
           coloredBackground: coloredBackground,
         );
 
+        final textTheme = GoogleFonts.manropeTextTheme();
+
         final themeData = ThemeData(
           useMaterial3: true,
-          textTheme: GoogleFonts.manropeTextTheme(),
+          textTheme: textTheme,
           colorScheme: colorScheme,
           scaffoldBackgroundColor: Colors.transparent,
           appBarTheme: const AppBarTheme(
@@ -105,6 +107,9 @@ class SolitaireApp extends StatelessWidget {
             },
           ),
           tooltipTheme: const TooltipThemeData(preferBelow: false),
+          chipTheme: ChipThemeData(
+            backgroundColor: solitaireThemeData.appBackgroundColor,
+          ),
         );
 
         return MultiProvider(

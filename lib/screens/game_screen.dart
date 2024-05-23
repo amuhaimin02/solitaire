@@ -8,6 +8,7 @@ import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/rules.dart';
 import '../providers/settings.dart';
+import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/ripple_background.dart';
 import '../widgets/control_pane.dart';
@@ -18,8 +19,15 @@ import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
+
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  bool _showedFinishDialog = false;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +56,13 @@ class GameScreen extends StatelessWidget {
         final isWinning = context.select<GameState, bool>((s) => s.isWinning);
 
         final viewPadding = MediaQuery.of(context).viewPadding;
+
+        if (isWinning && !_showedFinishDialog) {
+          _showedFinishDialog = true;
+          Future.delayed(standardAnimation.duration * timeDilation, () {
+            _showFinishDialog(context, rules);
+          });
+        }
 
         return Scaffold(
           appBar: AppBar(
@@ -144,7 +159,7 @@ class GameScreen extends StatelessWidget {
                                     ),
                                     Flexible(
                                       child: IgnorePointer(
-                                        ignoring: !isPreparing,
+                                        ignoring: isPreparing,
                                         child: Padding(
                                           padding: playAreaMargin,
                                           child: ConstrainedBox(
@@ -204,6 +219,26 @@ class GameScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _showFinishDialog(
+      BuildContext context, SolitaireRules rules) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: context.read<GameState>(),
+        child: const _FinishDialog(),
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    if (confirm == true) {
+      Navigator.popAndPushNamed(context, '/game', arguments: rules);
+    } else {
+      Navigator.pop(context);
+    }
   }
 }
 
@@ -382,6 +417,69 @@ class _AutoSolveButtonState extends State<_AutoSolveButton> {
         icon: const Icon(Icons.auto_fix_high),
         label: const Text('Auto solve'),
       ),
+    );
+  }
+}
+
+class _FinishDialog extends StatelessWidget {
+  const _FinishDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final gameState = context.watch<GameState>();
+
+    return AlertDialog(
+      title: const Text('You win!'),
+      // TODO: Workaround. As Google Fonts didn't inherit text colors from color scheme, had to do it manually here
+      titleTextStyle: textTheme.headlineSmall!
+          .copyWith(color: colorScheme.onPrimaryContainer),
+      contentTextStyle:
+          textTheme.bodyMedium!.copyWith(color: colorScheme.onSurfaceVariant),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text('Moves: ${gameState.moves}'),
+              const Spacer(),
+              Text('Time: ${gameState.playTime.toMMSSString()}'),
+            ],
+          ),
+          const Divider(),
+          const Text('Base score'),
+          Text(
+            '${gameState.score}',
+            style: textTheme.bodyLarge!
+                .copyWith(color: colorScheme.onSurfaceVariant),
+            textAlign: TextAlign.end,
+          ),
+          const Divider(),
+          const Text('Final score'),
+          Text(
+            '${gameState.score}',
+            style:
+                textTheme.headlineMedium!.copyWith(color: colorScheme.primary),
+            textAlign: TextAlign.end,
+          ),
+        ],
+      ),
+      actions: [
+        FilledButton.tonal(
+          onPressed: () {
+            Navigator.pop(context, false);
+          },
+          child: const Text('Quit'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+          child: const Text('Play again'),
+        ),
+      ],
     );
   }
 }

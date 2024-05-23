@@ -4,6 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../animations.dart';
 import '../models/card.dart';
+import '../utils/canvas.dart';
 import '../utils/colors.dart';
 import 'flippable.dart';
 import 'soft_shadow.dart';
@@ -33,12 +34,6 @@ class CardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-
-    // final outerDecoration = BoxDecoration(
-    //   borderRadius: BorderRadius.circular(
-    //       size.shortestSide * theme.cardStyle.cornerRadius),
-    //   boxShadow: [SoftShadow(elevation ?? 2)],
-    // );
 
     return SizedBox(
       width: size.width,
@@ -219,51 +214,31 @@ class CardCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
-    final borderPadding =
-        size.shortestSide * theme.cardStyle.coverBorderPadding;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      // decoration: BoxDecoration(
-      //   // gradient: LinearGradient(
-      //   //   colors: [colorScheme.primary, colorScheme.secondary],
-      //   //   begin: Alignment.topLeft,
-      //   //   end: Alignment.bottomRight,
-      //   // ),
-      //   borderRadius: BorderRadius.circular(
-      //       size.shortestSide * theme.cardStyle.cornerRadius),
-      // ),
-      // child: Container(
-      //   decoration: BoxDecoration(
-      //     borderRadius: BorderRadius.circular(
-      //         size.shortestSide * theme.cardStyle.cornerRadius),
-      //     border: Border.all(
-      //       color: colorScheme.shadow.withOpacity(0.1),
-      //       width: borderPadding,
-      //     ),
-      //   ),
-      // ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardStyle.cornerRadius),
-        child: CustomPaint(
-          painter: FourTriangleCardCover(
-            color: colorScheme.primary,
-            secondaryColor:
-                Color.lerp(colorScheme.primary, colorScheme.onPrimary, 0.25)!,
-          ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(
+          size.shortestSide * theme.cardStyle.cornerRadius),
+      child: CustomPaint(
+        painter: FourTrianglesCardCover(
+          color: colorScheme.primary,
+          secondaryColor:
+              Color.lerp(colorScheme.primary, colorScheme.onPrimary, 0.25)!,
         ),
       ),
     );
   }
 }
 
-class FourTriangleCardCover extends CustomPainter {
+class FourTrianglesCardCover extends CustomPainter {
   final Color color;
   final Color secondaryColor;
 
-  FourTriangleCardCover(
-      {super.repaint, required this.color, required this.secondaryColor});
+  FourTrianglesCardCover({
+    super.repaint,
+    required this.color,
+    required this.secondaryColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -280,35 +255,70 @@ class FourTriangleCardCover extends CustomPainter {
     final bottomRight = drawArea.bottomRight;
 
     paint.color = Color.lerp(color, secondaryColor, 0.33)!;
-    canvas.drawPath(
-        Path()
-          ..moveTo(center.dx, center.dy)
-          ..lineTo(topRight.dx, topRight.dy)
-          ..lineTo(bottomRight.dx, bottomRight.dy)
-          ..close(),
-        paint);
+    drawShape(canvas, [center, topRight, bottomRight], paint);
 
     paint.color = Color.lerp(color, secondaryColor, 0.66)!;
-    canvas.drawPath(
-        Path()
-          ..moveTo(center.dx, center.dy)
-          ..lineTo(topLeft.dx, topLeft.dy)
-          ..lineTo(bottomLeft.dx, bottomLeft.dy)
-          ..close(),
-        paint);
+    drawShape(canvas, [center, topLeft, bottomLeft], paint);
 
     paint.color = Color.lerp(color, secondaryColor, 1)!;
-    canvas.drawPath(
-        Path()
-          ..moveTo(center.dx, center.dy)
-          ..lineTo(bottomLeft.dx, bottomLeft.dy)
-          ..lineTo(bottomRight.dx, bottomRight.dy)
-          ..close(),
-        paint);
+    drawShape(canvas, [center, bottomLeft, bottomRight], paint);
   }
 
   @override
-  bool shouldRepaint(covariant FourTriangleCardCover oldDelegate) {
+  bool shouldRepaint(covariant FourTrianglesCardCover oldDelegate) {
+    return color != oldDelegate.color;
+  }
+}
+
+class FourBordersCardCover extends CustomPainter {
+  final Color color;
+  final Color secondaryColor;
+
+  final double borderSizeRatio;
+  FourBordersCardCover({
+    super.repaint,
+    required this.color,
+    required this.secondaryColor,
+    required this.borderSizeRatio,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final drawArea = Offset.zero & size;
+    final paint = Paint();
+
+    paint.color = color;
+    canvas.drawRect(drawArea, paint);
+
+    final center = drawArea.center;
+    final topLeft = drawArea.topLeft;
+    final bottomLeft = drawArea.bottomLeft;
+    final topRight = drawArea.topRight;
+    final bottomRight = drawArea.bottomRight;
+
+    final topLeftInner = Offset.lerp(topLeft, center, borderSizeRatio)!;
+    final bottomLeftInner = Offset.lerp(bottomLeft, center, borderSizeRatio)!;
+    final topRightInner = Offset.lerp(topRight, center, borderSizeRatio)!;
+    final bottomRightInner = Offset.lerp(bottomRight, center, borderSizeRatio)!;
+
+    paint.color = Color.lerp(color, secondaryColor, 0.25)!;
+    drawShape(canvas, [topLeft, topLeftInner, topRightInner, topRight], paint);
+
+    paint.color = Color.lerp(color, secondaryColor, 0.5)!;
+    drawShape(canvas, [topRight, topRightInner, bottomRightInner, bottomRight],
+        paint);
+
+    paint.color = Color.lerp(color, secondaryColor, 0.75)!;
+    drawShape(
+        canvas, [topLeft, topLeftInner, bottomLeftInner, bottomLeft], paint);
+
+    paint.color = Color.lerp(color, secondaryColor, 1)!;
+    drawShape(canvas,
+        [bottomLeft, bottomLeftInner, bottomRightInner, bottomRight], paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant FourBordersCardCover oldDelegate) {
     return color != oldDelegate.color;
   }
 }

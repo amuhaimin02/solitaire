@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final orientation = constraints.maxWidth > 600
+            final orientation = constraints.biggest.aspectRatio > 1.33
                 ? Orientation.landscape
                 : Orientation.portrait;
 
