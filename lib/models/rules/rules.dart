@@ -7,9 +7,16 @@ import '../pile.dart';
 import '../score_tracker.dart';
 
 abstract class SolitaireRules {
-  SolitaireRules([this.variant]);
+  const SolitaireRules([this._variant]);
 
-  final SolitaireVariant<SolitaireRules>? variant;
+  final SolitaireVariant<SolitaireRules>? _variant;
+
+  SolitaireVariant<SolitaireRules> get variant {
+    if (_variant == null) {
+      throw ArgumentError("$name does not have any variants set");
+    }
+    return _variant;
+  }
 
   // --------------------------------------------
 
@@ -50,7 +57,6 @@ abstract class SolitaireRules {
 
 abstract class SolitaireVariant<T extends SolitaireRules> {
   const SolitaireVariant();
-  String get name;
 }
 
 class Layout {

@@ -11,20 +11,14 @@ import '../models/game_state.dart';
 import '../models/pile.dart';
 import '../models/rules/klondike.dart';
 import '../providers/settings.dart';
+import '../utils/widgets.dart';
 import '../widgets/game_table.dart';
 import '../widgets/fast_page_view.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  bool _variantSelectionOpened = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
             final orientation = constraints.maxWidth > 800
                 ? Orientation.landscape
                 : Orientation.portrait;
+
+            final dropdownOpened =
+                context.watch<GameSelectionState>().dropdownOpened;
 
             switch (orientation) {
               case Orientation.landscape:
@@ -57,42 +54,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       width: 400,
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Align(
-                              alignment: Alignment.bottomCenter,
-                              child: _GameVariantDropdown(
-                                onTap: _toggleVariantDropdown,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 8,
-                            child: Column(
-                              children: [
-                                if (_variantSelectionOpened)
-                                  _GameVariantSelection(
-                                    onTapDone: _toggleVariantDropdown,
-                                  )
-                                else ...[
-                                  const Expanded(
-                                    flex: 4,
-                                    child: Center(
-                                      child: _GameMenu(),
-                                    ),
+                      child: AnimatedSwitcher(
+                        duration: standardAnimation.duration,
+                        child: (dropdownOpened)
+                            ? const _GameVariantSelection()
+                            : const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(32.0),
+                                    child: _GameVariantDropdown(),
                                   ),
-                                  const Spacer(),
+                                  _GameMenu(),
                                 ],
-                              ],
-                            ),
-                          ),
-                        ],
+                              ),
                       ),
                     ),
                   ],
@@ -102,47 +79,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      flex: 3,
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
-                          children: [
-                            const Expanded(
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: _GameTitle(),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _GameVariantDropdown(
-                              onTap: _toggleVariantDropdown,
-                            )
-                          ],
-                        ),
+                    const Expanded(
+                      flex: 2,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: _GameTitle(),
                       ),
                     ),
                     Expanded(
-                      flex: 7,
-                      child: Column(
-                        children: [
-                          if (_variantSelectionOpened) ...[
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 32),
-                              child: _GameVariantSelection(
-                                onTapDone: _toggleVariantDropdown,
+                      flex: 10,
+                      child: AnimatedSwitcher(
+                        duration: standardAnimation.duration,
+                        child: (dropdownOpened)
+                            ? const Align(
+                                alignment: Alignment.topCenter,
+                                child: _GameVariantSelection(),
+                              )
+                            : Column(
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 32),
+                                    child: _GameVariantDropdown(),
+                                  ),
+                                  Expanded(
+                                    child: _GameTypeSelection(
+                                        orientation: orientation),
+                                  ),
+                                  const _GameMenu(),
+                                  const SizedBox(height: 48),
+                                ],
                               ),
-                            ),
-                          ] else ...[
-                            Expanded(
-                              child:
-                                  _GameTypeSelection(orientation: orientation),
-                            ),
-                            const _GameMenu(),
-                            const SizedBox(height: 48),
-                          ],
-                        ],
                       ),
                     ),
                   ],
@@ -152,12 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  void _toggleVariantDropdown() {
-    setState(() {
-      _variantSelectionOpened = !_variantSelectionOpened;
-    });
   }
 }
 
@@ -179,7 +139,7 @@ class _GameTitle extends StatelessWidget {
         ).createShader(rect);
       },
       child: Text(
-        selection.rules.name,
+        selection.selectedRules.name,
         style: textTheme.displayMedium!.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.bold,
@@ -198,7 +158,7 @@ class _GameTypeSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selection = context.watch<GameSelectionState>();
-    final rules = selection.rules;
+    final rules = selection.selectedRules;
 
     return FastPageView(
       itemCount: 5,
@@ -221,18 +181,12 @@ class _GameTypeSelection extends StatelessWidget {
 }
 
 class _GameVariantDropdown extends StatelessWidget {
-  const _GameVariantDropdown({super.key, required this.onTap});
-
-  final VoidCallback onTap;
+  const _GameVariantDropdown({super.key});
 
   @override
   Widget build(BuildContext context) {
     final selection = context.watch<GameSelectionState>();
-    final variant = selection.variant;
-
-    if (variant == null) {
-      return const SizedBox();
-    }
+    final rules = selection.selectedRules;
 
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
@@ -240,81 +194,50 @@ class _GameVariantDropdown extends StatelessWidget {
             const EdgeInsets.only(left: 16, right: 8), // Restore visual balance
       ),
       iconAlignment: IconAlignment.end,
-      label: Text(variant.name),
+      label: Text(rules.variant!.toString()),
       icon: const Icon(Icons.arrow_drop_down),
-      onPressed: onTap,
+      onPressed: () {
+        context.read<GameSelectionState>().dropdownOpened = true;
+      },
     );
   }
 }
 
 class _GameVariantSelection extends StatelessWidget {
-  const _GameVariantSelection({super.key, required this.onTapDone});
-
-  final VoidCallback onTapDone;
+  const _GameVariantSelection({super.key});
 
   @override
   Widget build(BuildContext context) {
     final selection = context.watch<GameSelectionState>();
-    final variant = selection.variant as KlondikeVariant;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Column(
-      children: [
-        const SectionTitle('Number of draws'),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.center,
-          children: [
-            ChoiceChip(
-              label: const Text('1 draw'),
-              selected: variant.numberOfDraws == 1,
-              onSelected: (_) => _onVariantSelected(
-                  context,
-                  KlondikeVariant(
-                      numberOfDraws: 1, scoringType: variant.scoringType)),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Text(
+              'Select variant',
+              style: textTheme.titleLarge!
+                  .copyWith(color: colorScheme.onPrimaryContainer),
             ),
-            ChoiceChip(
-              label: const Text('3 draws'),
-              selected: variant.numberOfDraws == 3,
-              onSelected: (_) => _onVariantSelected(
-                  context,
-                  KlondikeVariant(
-                      numberOfDraws: 3, scoringType: variant.scoringType)),
-            ),
-          ],
-        ),
-        const SectionTitle('Scoring type'),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.center,
-          children: [
-            for (final scoringType in KlondikeScoring.values)
-              ChoiceChip(
-                label: Text(scoringType.fullName),
-                selected: variant.scoringType == scoringType,
-                onSelected: (_) => _onVariantSelected(
-                    context,
-                    KlondikeVariant(
-                        numberOfDraws: variant.numberOfDraws,
-                        scoringType: scoringType)),
-              ),
-          ],
-        ),
-        const SizedBox(height: 40),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(0, 56),
           ),
-          onPressed: onTapDone,
-          child: const Text('Done'),
-        ),
-      ],
+          ...[
+            for (final alternateRules in selection.alternativeVariants)
+              ChoiceChip(
+                label: Text(alternateRules.variant!.toString()),
+                selected: alternateRules == selection.selectedRules,
+                onSelected: (_) {
+                  selection.selectedRules = alternateRules;
+                  selection.dropdownOpened = false;
+                },
+              ),
+          ].separatedBy(const SizedBox(height: 8))
+        ],
+      ),
     );
-  }
-
-  void _onVariantSelected(BuildContext context, KlondikeVariant variant) {
-    context.read<GameSelectionState>().setVariant(variant);
   }
 }
 
@@ -340,7 +263,7 @@ class _GameMenu extends StatelessWidget {
             final selection = context.read<GameSelectionState>();
             final gameState = context.read<GameState>();
 
-            gameState.rules = selection.rules;
+            gameState.rules = selection.selectedRules;
             gameState.startNewGame();
             Navigator.pushNamed(context, '/game');
           },

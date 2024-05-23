@@ -9,7 +9,8 @@ import '../score_tracker.dart';
 import 'rules.dart';
 
 class Klondike extends SolitaireRules {
-  Klondike([KlondikeVariant? super.variant = KlondikeVariant.defaultVariant]);
+  const Klondike(KlondikeVariant super.variant);
+
   @override
   String get name => "Klondike";
 
@@ -19,7 +20,10 @@ class Klondike extends SolitaireRules {
 
   @override
   int get drawsPerTurn {
-    return (variant as KlondikeVariant).numberOfDraws ?? 1;
+    return switch ((variant as KlondikeVariant).draws) {
+      KlondikeDraws.oneDraw => 1,
+      KlondikeDraws.threeDraws => 3,
+    };
   }
 
   @override
@@ -233,27 +237,20 @@ class Klondike extends SolitaireRules {
 }
 
 class KlondikeVariant extends SolitaireVariant<Klondike> {
-  static const defaultVariant =
-      KlondikeVariant(numberOfDraws: 1, scoringType: KlondikeScoring.standard);
-  final int numberOfDraws;
+  final KlondikeDraws draws;
 
-  final KlondikeScoring scoringType;
+  final KlondikeScoring scoring;
 
   const KlondikeVariant({
-    required this.numberOfDraws,
-    required this.scoringType,
+    required this.draws,
+    required this.scoring,
   });
 
   @override
-  String get name {
-    final numberOfDrawsString =
-        switch (numberOfDraws) { 1 => "1 draw", _ => "$numberOfDraws draws" };
-
-    return "${scoringType.fullName}, $numberOfDrawsString";
-  }
+  String toString() => "${scoring.fullName}, ${draws.fullName}";
 
   int calculateScore(Move move, PlayCards cards) {
-    switch (scoringType) {
+    switch (scoring) {
       case KlondikeScoring.standard:
         return 1;
       case KlondikeScoring.vegas:
@@ -262,6 +259,15 @@ class KlondikeVariant extends SolitaireVariant<Klondike> {
         return 10;
     }
   }
+}
+
+enum KlondikeDraws {
+  oneDraw("1 draw"),
+  threeDraws("3 draws");
+
+  final String fullName;
+
+  const KlondikeDraws(this.fullName);
 }
 
 enum KlondikeScoring {
