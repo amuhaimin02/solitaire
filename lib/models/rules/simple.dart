@@ -70,47 +70,38 @@ class SimpleSolitaire extends SolitaireRules {
   }
 
   @override
-  void afterEachMove(Move move, PlayCards cards, ScoreTracker score) {
-    // TODO: implement afterEachMove
-  }
+  void afterEachMove(Move move, PlayCards cards, ScoreTracker score) {}
 
   @override
   Iterable<MoveIntent> autoMoveStrategy(PlayCards cards) {
-    // TODO: implement autoMoveStrategy
-    throw UnimplementedError();
+    return [];
   }
 
   @override
   Iterable<MoveIntent> autoSolveStrategy(PlayCards cards) {
-    // TODO: implement autoSolveStrategy
-    throw UnimplementedError();
+    return [];
   }
 
   @override
   bool canAutoSolve(PlayCards cards) {
-    // TODO: implement canAutoSolve
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canPick(PlayCardList cards, Pile from) {
-    // TODO: implement canPick
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canPlace(PlayCardList cards, Pile target, List<PlayCard> cardsOnTable) {
-    // TODO: implement canPlace
-    throw UnimplementedError();
+    return (target is Tableau && cards.length > 1) || cards.length == 1;
   }
 
   @override
-  // TODO: implement drawsPerTurn
-  int get drawsPerTurn => throw UnimplementedError();
+  int get drawsPerTurn => 1;
 
   @override
   bool winConditions(PlayCards cards) {
-    // TODO: implement winConditions
-    throw UnimplementedError();
+    return false;
   }
 }

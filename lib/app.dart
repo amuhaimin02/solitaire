@@ -96,6 +96,7 @@ class SolitaireApp extends StatelessWidget {
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.transparent,
           ),
+          splashFactory: InkSparkle.splashFactory,
           pageTransitionsTheme: const PageTransitionsTheme(
             builders: {
               TargetPlatform.android: FadeOutInTransitionBuilder(),
@@ -108,13 +109,6 @@ class SolitaireApp extends StatelessWidget {
 
         return MultiProvider(
           providers: [
-            ChangeNotifierProxyProvider<SettingsManager, GameState>(
-              create: (_) => GameState(),
-              update: (_, settings, state) {
-                state!.canAutoPremove = settings.get(Settings.autoPremove);
-                return state;
-              },
-            ),
             ChangeNotifierProvider(create: (_) => GameSelectionState()),
           ],
           child: SolitaireTheme(

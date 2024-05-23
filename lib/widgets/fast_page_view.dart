@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import '../animations.dart';
 
 class FastPageView extends StatefulWidget {
-  const FastPageView(
-      {super.key, required this.itemBuilder, required this.itemCount});
+  const FastPageView({
+    super.key,
+    required this.itemBuilder,
+    required this.itemCount,
+    this.onPageChanged,
+  });
 
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
+
+  final ValueChanged<int>? onPageChanged;
 
   @override
   State<FastPageView> createState() => _FastPageViewState();
@@ -30,41 +36,42 @@ class _FastPageViewState extends State<FastPageView> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
             iconSize: 40,
             onPressed: () => _move(_left),
           ),
-          Flexible(
+          Expanded(
             child: Stack(
               children: [
-                AnimatedSwitcher(
-                  duration: standardAnimation.duration,
-                  switchInCurve: Curves.easeInOut,
-                  switchOutCurve: Curves.easeInOut,
-                  transitionBuilder: (child, animation) {
-                    final isReversing =
-                        animation.status == AnimationStatus.completed;
+                Center(
+                  child: AnimatedSwitcher(
+                    duration: standardAnimation.duration,
+                    switchInCurve: Curves.easeInOut,
+                    switchOutCurve: Curves.easeInOut,
+                    transitionBuilder: (child, animation) {
+                      final isReversing =
+                          animation.status == AnimationStatus.reverse;
 
-                    final slideTween = Tween(
-                        begin: (isReversing
-                                ? const Offset(0.5, 0)
-                                : const Offset(-0.5, 0))
-                            .scale(_direction.dx, _direction.dy),
-                        end: Offset.zero);
+                      final slideTween = Tween(
+                          begin: (isReversing
+                                  ? const Offset(-0.5, 0)
+                                  : const Offset(0.5, 0))
+                              .scale(_direction.dx, _direction.dy),
+                          end: Offset.zero);
 
-                    return SlideTransition(
-                      position: slideTween.animate(animation),
-                      child: FadeTransition(
-                        opacity: CurveTween(curve: const Interval(0.5, 1))
-                            .animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: widget.itemBuilder(context, _currentIndex),
+                      return SlideTransition(
+                        position: slideTween.animate(animation),
+                        child: FadeTransition(
+                          opacity: CurveTween(curve: const Interval(0.5, 1))
+                              .animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: widget.itemBuilder(context, _currentIndex),
+                  ),
                 ),
                 Positioned.fill(
                   child: GestureDetector(
@@ -73,7 +80,7 @@ class _FastPageViewState extends State<FastPageView> {
                       final velocity = details.primaryVelocity;
                       if (velocity != null &&
                           velocity.abs() > _swipeVelocityThreshold) {
-                        _move(Offset(velocity.sign, 0));
+                        _move(Offset(-velocity.sign, 0));
                       }
                     },
                     child: Row(
@@ -113,6 +120,7 @@ class _FastPageViewState extends State<FastPageView> {
             _currentIndex--;
             _direction = _left;
           });
+          widget.onPageChanged?.call(_currentIndex);
         }
       } else if (direction == _right) {
         if (_currentIndex < widget.itemCount - 1) {
@@ -120,6 +128,7 @@ class _FastPageViewState extends State<FastPageView> {
             _currentIndex++;
             _direction = _right;
           });
+          widget.onPageChanged?.call(_currentIndex);
         }
       }
     });

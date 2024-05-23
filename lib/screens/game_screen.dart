@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import '../animations.dart';
 import '../models/game_state.dart';
 import '../models/pile.dart';
+import '../models/rules/rules.dart';
 import '../providers/settings.dart';
+import '../widgets/animated_visibility.dart';
 import '../widgets/ripple_background.dart';
 import '../widgets/control_pane.dart';
 import '../widgets/debug_control_pane.dart';
@@ -16,185 +18,191 @@ import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends StatelessWidget {
   const GameScreen({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
-}
-
-class _GameScreenState extends State<GameScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(Duration.zero * timeDilation, () {
-      final gameState = context.read<GameState>();
-      if (gameState.status == GameStatus.initiializing ||
-          gameState.status == GameStatus.ended) {
-        gameState.startNewGame();
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
-    final isWinning = context.select<GameState, bool>((s) => s.isWinning);
+    final args = ModalRoute.of(context)!.settings.arguments;
+    final SolitaireRules rules;
+    if (args is SolitaireRules) {
+      rules = args;
+    } else {
+      throw ArgumentError('Please pass a SolitaireRules as the argument');
+    }
 
-    final viewPadding = MediaQuery.of(context).viewPadding;
+    return ChangeNotifierProvider(
+      create: (context) {
+        final settings = context.read<SettingsManager>();
+        final state = GameState(
+          rules: rules,
+          canAutoPremove: settings.get(Settings.autoPremove),
+        );
+        Future.delayed(standardAnimation.duration * timeDilation, () {
+          state.startNewGame();
+        });
+        return state;
+      },
+      builder: (context, child) {
+        final theme = SolitaireTheme.of(context);
+        final isWinning = context.select<GameState, bool>((s) => s.isWinning);
 
-    return Scaffold(
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-      ),
-      extendBodyBehindAppBar: true,
-      body: RippleBackground(
-        decoration: isWinning
-            ? BoxDecoration(color: theme.winningBackgroundColor)
-            : BoxDecoration(color: theme.tableBackgroundColor),
-        child: OrientationBuilder(
-          builder: (context, orientation) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final isMobile = constraints.biggest.shortestSide < 600;
+        final viewPadding = MediaQuery.of(context).viewPadding;
 
-                final playAreaMargin = isMobile
-                    ? const EdgeInsets.all(8)
-                    : const EdgeInsets.all(40);
+        return Scaffold(
+          appBar: AppBar(
+            forceMaterialTransparency: true,
+          ),
+          extendBodyBehindAppBar: true,
+          body: RippleBackground(
+            decoration: isWinning
+                ? BoxDecoration(color: theme.winningBackgroundColor)
+                : BoxDecoration(color: theme.tableBackgroundColor),
+            child: OrientationBuilder(
+              builder: (context, orientation) {
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isMobile = constraints.biggest.shortestSide < 600;
 
-                const divider = SizedBox(
-                  width: 48,
-                  child: Divider(height: 24),
-                );
+                    final playAreaMargin = isMobile
+                        ? const EdgeInsets.all(8)
+                        : const EdgeInsets.all(40);
 
-                final isPreparing =
-                    context.select<GameState, bool>((s) => s.isPreparing);
+                    const divider = SizedBox(
+                      width: 48,
+                      child: Divider(height: 24),
+                    );
 
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: switch (orientation) {
-                        Orientation.landscape => Padding(
-                            padding: EdgeInsets.only(
-                                left: viewPadding.left + 56,
-                                right: viewPadding
-                                    .right), // Make room for the back button
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Flexible(
-                                  child: IgnorePointer(
-                                    ignoring: isPreparing,
-                                    child: Padding(
-                                      padding: playAreaMargin,
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                            maxWidth: 1000, maxHeight: 1000),
-                                        child: const _PlayArea(),
+                    final isPreparing =
+                        context.select<GameState, bool>((s) => s.isPreparing);
+
+                    return Stack(
+                      children: [
+                        Positioned.fill(
+                          child: switch (orientation) {
+                            Orientation.landscape => Padding(
+                                padding: EdgeInsets.only(
+                                    left: viewPadding.left + 56,
+                                    right: viewPadding
+                                        .right), // Make room for the back button
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Flexible(
+                                      child: IgnorePointer(
+                                        ignoring: isPreparing,
+                                        child: Padding(
+                                          padding: playAreaMargin,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                                maxWidth: 1000,
+                                                maxHeight: 1000),
+                                            child: const _PlayArea(),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: !isPreparing,
-                                  maintainSize: true,
-                                  maintainAnimation: true,
-                                  maintainState: true,
-                                  child: Container(
-                                    width: 120,
-                                    margin:
-                                        const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        StatusPane(orientation: orientation),
-                                        divider,
-                                        ControlPane(orientation: orientation),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        Orientation.portrait => Padding(
-                            padding: const EdgeInsets.only(
-                                top: 56), // Make room for the back button
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 32),
-                                  child: Visibility(
-                                    visible: !isPreparing,
-                                    maintainSize: true,
-                                    maintainAnimation: true,
-                                    maintainState: true,
-                                    child: StatusPane(orientation: orientation),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: IgnorePointer(
-                                    ignoring: isPreparing,
-                                    child: Padding(
-                                      padding: playAreaMargin,
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                            maxWidth: 1000, maxHeight: 1000),
-                                        child: const _PlayArea(),
+                                    AnimatedVisibility(
+                                      visible: !isPreparing,
+                                      child: Container(
+                                        width: 120,
+                                        margin: const EdgeInsets.fromLTRB(
+                                            8, 8, 8, 8),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            StatusPane(
+                                                orientation: orientation),
+                                            divider,
+                                            ControlPane(
+                                                orientation: orientation),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 32),
-                                  child: Visibility(
-                                    visible: !isPreparing,
-                                    maintainSize: true,
-                                    maintainAnimation: true,
-                                    maintainState: true,
-                                    child:
-                                        ControlPane(orientation: orientation),
-                                  ),
+                              ),
+                            Orientation.portrait => Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 56), // Make room for the back button
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 32),
+                                      child: Visibility(
+                                        visible: !isPreparing,
+                                        maintainSize: true,
+                                        maintainAnimation: true,
+                                        maintainState: true,
+                                        child: StatusPane(
+                                            orientation: orientation),
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: IgnorePointer(
+                                        ignoring: !isPreparing,
+                                        child: Padding(
+                                          padding: playAreaMargin,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                                maxWidth: 1000,
+                                                maxHeight: 1000),
+                                            child: const _PlayArea(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 32),
+                                      child: AnimatedVisibility(
+                                        visible: !isPreparing,
+                                        child: ControlPane(
+                                            orientation: orientation),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                      },
-                    ),
-                    if (context
-                        .watch<SettingsManager>()
-                        .get(Settings.showDebugPanel))
-                      switch (orientation) {
-                        Orientation.landscape => const Align(
-                            alignment: Alignment.centerRight,
-                            child: SizedBox(
-                              width: 200,
-                              height: double.infinity,
-                              child: DebugHUD(),
-                            ),
-                          ),
-                        Orientation.portrait => const Align(
-                            alignment: Alignment.bottomCenter,
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 250,
-                              child: DebugHUD(),
-                            ),
-                          ),
-                      },
-                    const Align(
-                      alignment: Alignment.bottomLeft,
-                      child: DebugControlPane(),
-                    ),
-                  ],
+                              ),
+                          },
+                        ),
+                        if (context
+                            .watch<SettingsManager>()
+                            .get(Settings.showDebugPanel))
+                          switch (orientation) {
+                            Orientation.landscape => const Align(
+                                alignment: Alignment.centerRight,
+                                child: SizedBox(
+                                  width: 200,
+                                  height: double.infinity,
+                                  child: DebugHUD(),
+                                ),
+                              ),
+                            Orientation.portrait => const Align(
+                                alignment: Alignment.bottomCenter,
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 250,
+                                  child: DebugHUD(),
+                                ),
+                              ),
+                          },
+                        const Align(
+                          alignment: Alignment.bottomLeft,
+                          child: DebugControlPane(),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

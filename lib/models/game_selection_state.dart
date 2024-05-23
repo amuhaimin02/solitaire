@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import 'rules/klondike.dart';
 import 'rules/rules.dart';
+import 'rules/simple.dart';
 
 class GameSelectionState with ChangeNotifier {
   static final allRules = [
@@ -11,6 +12,7 @@ class GameSelectionState with ChangeNotifier {
         Klondike(
           KlondikeVariant(draws: draws, scoring: scoring),
         ),
+    SimpleSolitaire(),
   ];
 
   late final rulesCollection = _groupSelection(allRules);

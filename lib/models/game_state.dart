@@ -13,7 +13,7 @@ import 'rules/simple.dart';
 import 'score_tracker.dart';
 
 enum GameStatus {
-  initiializing,
+  initializing,
   ready,
   preparing,
   started,
@@ -27,7 +27,7 @@ enum UserAction { undoMultiple, redoMultiple }
 class GameState extends ChangeNotifier {
   late String _gameSeed;
 
-  late SolitaireRules rules = SimpleSolitaire();
+  SolitaireRules rules;
 
   late GameStatus _status;
 
@@ -49,15 +49,14 @@ class GameState extends ChangeNotifier {
 
   late PlayCards _cards;
 
-  late bool canAutoPremove = false;
+  final bool canAutoPremove;
 
   final _stopWatch = Stopwatch();
 
-  GameState() {
+  GameState({required this.rules, this.canAutoPremove = false}) {
     _resetStates();
     _setupPiles();
-    _distributeCards();
-    _status = GameStatus.initiializing;
+    _status = GameStatus.initializing;
   }
 
   bool get isWinning => _status == GameStatus.ended;
@@ -81,7 +80,7 @@ class GameState extends ChangeNotifier {
   GameStatus get status => _status;
 
   bool get isPreparing => [
-        GameStatus.initiializing,
+        GameStatus.initializing,
         GameStatus.ready,
         GameStatus.preparing,
         GameStatus.restarting,
@@ -117,7 +116,7 @@ class GameState extends ChangeNotifier {
     if (!keepSeed) {
       _gameSeed = CustomPRNG.generateSeed(length: 12);
     }
-    if (_status == GameStatus.initiializing) {
+    if (_status == GameStatus.initializing) {
       _status = GameStatus.ready;
     } else {
       _status = GameStatus.restarting;

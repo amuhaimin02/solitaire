@@ -18,6 +18,8 @@ abstract class SolitaireRules {
     return _variant;
   }
 
+  bool get hasVariants => _variant != null;
+
   // --------------------------------------------
 
   String get name;

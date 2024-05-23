@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final orientation = constraints.maxWidth > 800
+            final orientation = constraints.maxWidth > 600
                 ? Orientation.landscape
                 : Orientation.portrait;
 
@@ -39,23 +39,27 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
+                      flex: 7,
                       child: Column(
                         children: [
                           const Spacer(),
-                          const _GameTitle(),
+                          const Padding(
+                            padding: EdgeInsets.all(32),
+                            child: _GameTitle(),
+                          ),
                           Expanded(
                             flex: 6,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
-                              child:
-                                  _GameTypeSelection(orientation: orientation),
+                              child: _GameSelection(orientation: orientation),
                             ),
                           ),
+                          const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      width: 400,
+                    Expanded(
+                      flex: 3,
                       child: AnimatedSwitcher(
                         duration: standardAnimation.duration,
                         child: (dropdownOpened)
@@ -63,15 +67,13 @@ class HomeScreen extends StatelessWidget {
                             : const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: _GameVariantDropdown(),
-                                  ),
+                                  _GameVariantDropdown(),
                                   _GameMenu(),
                                 ],
                               ),
                       ),
                     ),
+                    const SizedBox(width: 32)
                   ],
                 );
               case Orientation.portrait:
@@ -97,12 +99,9 @@ class HomeScreen extends StatelessWidget {
                               )
                             : Column(
                                 children: [
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 32),
-                                    child: _GameVariantDropdown(),
-                                  ),
+                                  const _GameVariantDropdown(),
                                   Expanded(
-                                    child: _GameTypeSelection(
+                                    child: _GameSelection(
                                         orientation: orientation),
                                   ),
                                   const _GameMenu(),
@@ -150,8 +149,8 @@ class _GameTitle extends StatelessWidget {
   }
 }
 
-class _GameTypeSelection extends StatelessWidget {
-  const _GameTypeSelection({super.key, required this.orientation});
+class _GameSelection extends StatelessWidget {
+  const _GameSelection({super.key, required this.orientation});
 
   final Orientation orientation;
 
@@ -160,22 +159,32 @@ class _GameTypeSelection extends StatelessWidget {
     final selection = context.watch<GameSelectionState>();
     final rules = selection.selectedRules;
 
-    return FastPageView(
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        final cards = PlayCards.fromRules(rules);
-        cards(const Draw())
-            .addAll(rules.prepareDrawPile(Random(index)).allFaceDown);
-        rules.setup(cards);
-        return GameTable(
-          key: ValueKey(index),
-          interactive: false,
-          animateMovement: false,
-          rules: rules,
-          orientation: orientation,
-          cards: cards,
-        );
-      },
+    final rulesCollection = selection.rulesCollection;
+    final gamesList = rulesCollection.keys.toList();
+
+    return SizedBox(
+      width: 800,
+      child: FastPageView(
+        itemCount: gamesList.length,
+        itemBuilder: (context, index) {
+          final cards =
+              PlayCards.fromRules(rulesCollection[gamesList[index]]!.first);
+          cards(const Draw())
+              .addAll(rules.prepareDrawPile(Random(index)).allFaceDown);
+          rules.setup(cards);
+          return GameTable(
+            key: ValueKey(index),
+            interactive: false,
+            animateMovement: false,
+            rules: rules,
+            orientation: orientation,
+            cards: cards,
+          );
+        },
+        onPageChanged: (index) {
+          selection.selectedRules = rulesCollection[gamesList[index]]!.first;
+        },
+      ),
     );
   }
 }
@@ -188,17 +197,30 @@ class _GameVariantDropdown extends StatelessWidget {
     final selection = context.watch<GameSelectionState>();
     final rules = selection.selectedRules;
 
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        padding:
-            const EdgeInsets.only(left: 16, right: 8), // Restore visual balance
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Visibility(
+        visible: rules.hasVariants,
+        maintainSize: true,
+        maintainAnimation: true,
+        maintainState: true,
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.only(
+                left: 16, right: 8), // Restore visual balance
+          ),
+          iconAlignment: IconAlignment.end,
+          label: rules.hasVariants
+              ? Text(rules.variant.toString())
+              : const Text("(no variant)"),
+          icon: const Icon(Icons.arrow_drop_down),
+          onPressed: rules.hasVariants
+              ? () {
+                  context.read<GameSelectionState>().dropdownOpened = true;
+                }
+              : null,
+        ),
       ),
-      iconAlignment: IconAlignment.end,
-      label: Text(rules.variant!.toString()),
-      icon: const Icon(Icons.arrow_drop_down),
-      onPressed: () {
-        context.read<GameSelectionState>().dropdownOpened = true;
-      },
     );
   }
 }
@@ -215,6 +237,7 @@ class _GameVariantSelection extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.all(32.0),
@@ -222,19 +245,21 @@ class _GameVariantSelection extends StatelessWidget {
               'Select variant',
               style: textTheme.titleLarge!
                   .copyWith(color: colorScheme.onPrimaryContainer),
+              textAlign: TextAlign.center,
             ),
           ),
           ...[
             for (final alternateRules in selection.alternativeVariants)
               ChoiceChip(
-                label: Text(alternateRules.variant!.toString()),
+                label: Text(alternateRules.variant.toString()),
                 selected: alternateRules == selection.selectedRules,
                 onSelected: (_) {
                   selection.selectedRules = alternateRules;
                   selection.dropdownOpened = false;
                 },
               ),
-          ].separatedBy(const SizedBox(height: 8))
+          ].separatedBy(const SizedBox(height: 8)),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -246,91 +271,92 @@ class _GameMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameState>();
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FilledButton.tonalIcon(
-          onPressed: () {
-            if (context
-                .read<SettingsManager>()
-                .get(Settings.randomizeThemeColor)) {
-              context
-                  .read<SettingsManager>()
-                  .set(Settings.themeColor, themeColorPalette.sample(1).single);
-            }
-
-            final selection = context.read<GameSelectionState>();
-            final gameState = context.read<GameState>();
-
-            gameState.rules = selection.selectedRules;
-            gameState.startNewGame();
-            Navigator.pushNamed(context, '/game');
-          },
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(0, 56),
-          ),
-          label: const Text('New game'),
-          icon: Icon(MdiIcons.cardsPlaying),
-        ),
-        const SizedBox(height: 8),
-        Visibility(
-          visible: gameState.status == GameStatus.started,
-          maintainSize: true,
-          maintainAnimation: true,
-          maintainState: true,
-          child: FilledButton.icon(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FilledButton.tonalIcon(
             onPressed: () {
-              Navigator.pushNamed(context, '/game');
+              if (context
+                  .read<SettingsManager>()
+                  .get(Settings.randomizeThemeColor)) {
+                context.read<SettingsManager>().set(
+                    Settings.themeColor, themeColorPalette.sample(1).single);
+              }
+
+              final selection = context.read<GameSelectionState>();
+              Navigator.pushNamed(context, '/game',
+                  arguments: selection.selectedRules);
             },
-            style: FilledButton.styleFrom(
+            style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, 56),
             ),
-            label: const Text('Continue last game'),
+            label: const Text('New game'),
             icon: Icon(MdiIcons.cardsPlaying),
           ),
-        ),
-        const SizedBox(height: 24),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 16,
-          children: [
-            IconButton(
-              onPressed: () {},
-              tooltip: "Help",
-              icon: const Icon(Icons.help),
-            ),
-            IconButton(
+          const SizedBox(height: 8),
+          Visibility(
+            visible: true,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: FilledButton.icon(
               onPressed: () {
-                Navigator.pushNamed(context, '/stats');
+                final selection = context.read<GameSelectionState>();
+                Navigator.pushNamed(context, '/game',
+                    arguments: selection.selectedRules);
               },
-              tooltip: "Statistics",
-              icon: const Icon(Icons.leaderboard),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 56),
+              ),
+              label: const Text('Continue last game'),
+              icon: Icon(MdiIcons.cardsPlaying),
             ),
-            IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/customize');
-              },
-              tooltip: "Customize",
-              icon: const Icon(Icons.imagesearch_roller),
-            ),
-            IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/settings');
-              },
-              tooltip: "Settings",
-              icon: const Icon(Icons.settings),
-            ),
-            IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/about');
-              },
-              tooltip: "About",
-              icon: const Icon(Icons.info),
-            ),
-          ],
-        )
-      ],
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              IconButton(
+                onPressed: () {},
+                tooltip: "Help",
+                icon: const Icon(Icons.help),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/stats');
+                },
+                tooltip: "Statistics",
+                icon: const Icon(Icons.leaderboard),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/customize');
+                },
+                tooltip: "Customize",
+                icon: const Icon(Icons.imagesearch_roller),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/settings');
+                },
+                tooltip: "Settings",
+                icon: const Icon(Icons.settings),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/about');
+                },
+                tooltip: "About",
+                icon: const Icon(Icons.info),
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 }
