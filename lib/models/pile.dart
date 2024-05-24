@@ -168,9 +168,9 @@ extension PlayCardListExtension on List<PlayCard> {
     for (final card in this) {
       // Ensure cards in hand follows their ranking order based on numbers (e.g. A < 2 < 3)
       if (lastRank != null) {
-        return card.value.rank == lastRank - 1;
+        return card.rank.value == lastRank - 1;
       }
-      lastRank = card.value.rank;
+      lastRank = card.rank.value;
     }
     return true;
   }
@@ -188,7 +188,7 @@ class PlayCardGenerator {
     return List.generate(numberOfDecks, (times) {
       final cards = <PlayCard>[];
       for (final suit in Suit.values) {
-        for (final value in Value.values) {
+        for (final value in Rank.values) {
           final card = PlayCard(suit, value, deck: times);
           if (criteria == null || criteria(card)) {
             cards.add(card);
@@ -205,9 +205,9 @@ class PlayCards {
 
   const PlayCards(this._cards);
 
-  factory PlayCards.fromRules(SolitaireRules rules) {
+  factory PlayCards.fromGame(SolitaireGame game) {
     return PlayCards({
-      for (final pile in rules.piles) pile: [],
+      for (final pile in game.piles) pile: [],
     });
   }
 

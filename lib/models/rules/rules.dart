@@ -6,12 +6,12 @@ import '../direction.dart';
 import '../pile.dart';
 import '../score_tracker.dart';
 
-abstract class SolitaireRules {
-  const SolitaireRules([this._variant]);
+abstract class SolitaireGame {
+  const SolitaireGame([this._variant]);
 
-  final SolitaireVariant<SolitaireRules>? _variant;
+  final SolitaireVariant<SolitaireGame>? _variant;
 
-  SolitaireVariant<SolitaireRules> get variant {
+  SolitaireVariant<SolitaireGame> get variant {
     if (_variant == null) {
       throw ArgumentError("$name does not have any variants set");
     }
@@ -23,6 +23,8 @@ abstract class SolitaireRules {
   // --------------------------------------------
 
   String get name;
+
+  String get tag;
 
   int get drawsPerTurn;
 
@@ -46,7 +48,7 @@ abstract class SolitaireRules {
 
   Iterable<MoveIntent> autoSolveStrategy(PlayCards cards);
 
-  void afterEachMove(Move move, PlayCards cards, ScoreTracker score);
+  PlayCards afterEachMove(Move move, PlayCards cards);
 
   Iterable<Pile> get allTableaus {
     return piles.whereType<Tableau>();
@@ -57,8 +59,12 @@ abstract class SolitaireRules {
   }
 }
 
-abstract class SolitaireVariant<T extends SolitaireRules> {
+abstract class SolitaireVariant<T extends SolitaireGame> {
   const SolitaireVariant();
+
+  String get name;
+
+  String get tag;
 }
 
 class Layout {

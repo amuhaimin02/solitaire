@@ -73,7 +73,7 @@ class CustomizeScreen extends StatelessWidget {
     final theme = SolitaireTheme.of(context);
 
     final rules = SimpleSolitaire();
-    final cards = PlayCards.fromRules(rules);
+    final cards = PlayCards.fromGame(rules);
     cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
 
     rules.setup(cards);

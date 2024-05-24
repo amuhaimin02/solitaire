@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../models/game_state.dart';
+import '../models/states/play_time.dart';
+import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import '../utils/types.dart';
 import '../utils/widgets.dart';
-import 'solitaire_theme.dart';
 
 class StatusPane extends StatelessWidget {
   const StatusPane({super.key, required this.orientation});
@@ -15,7 +16,6 @@ class StatusPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     final settings = context.watch<SettingsManager>();
@@ -52,31 +52,36 @@ class StatusPane extends StatelessWidget {
   }
 }
 
-class TimeLabel extends StatelessWidget {
+class TimeLabel extends ConsumerWidget {
   const TimeLabel({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<Null>(
       stream: Stream.periodic(const Duration(milliseconds: 200)),
       builder: (context, snapshot) {
-        final playTime = context.read<GameState>().playTime;
-        return Text(
-          playTime.toMMSSString(),
-        );
+        final playTime = ref.read(playTimeProvider);
+        switch (playTime) {
+          case PlayTimeRunning(:final elapsed) ||
+                PlayTimePaused(:final elapsed):
+            return Text(elapsed.toMMSSString());
+          default:
+            return const Text('--:--');
+        }
       },
     );
   }
 }
 
-class ScoreLabel extends StatelessWidget {
+class ScoreLabel extends ConsumerWidget {
   const ScoreLabel({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final score = context.select<GameState, int>((s) => s.score);
+    final score = ref.watch(scoreProvider);
+
     final textStyle =
         score >= 10000 ? textTheme.displaySmall! : textTheme.displayMedium!;
     return Text(
@@ -87,12 +92,13 @@ class ScoreLabel extends StatelessWidget {
   }
 }
 
-class MoveLabel extends StatelessWidget {
+class MoveLabel extends ConsumerWidget {
   const MoveLabel({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final moves = context.select<GameState, int>((s) => s.moves);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final moves = ref.watch(movesProvider);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

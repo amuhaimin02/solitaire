@@ -17,16 +17,16 @@ class GameSelectionState with ChangeNotifier {
 
   late final rulesCollection = _groupSelection(allRules);
 
-  Map<String, List<SolitaireRules>> _groupSelection(
-      List<SolitaireRules> rulesList) {
+  Map<String, List<SolitaireGame>> _groupSelection(
+      List<SolitaireGame> rulesList) {
     return groupBy(rulesList, (rules) => rules.name);
   }
 
-  late SolitaireRules _selectedRules = allRules.first;
+  late SolitaireGame _selectedRules = allRules.first;
 
-  SolitaireRules get selectedRules => _selectedRules;
+  SolitaireGame get selectedRules => _selectedRules;
 
-  set selectedRules(SolitaireRules newRules) {
+  set selectedRules(SolitaireGame newRules) {
     _selectedRules = newRules;
     notifyListeners();
   }
@@ -40,7 +40,7 @@ class GameSelectionState with ChangeNotifier {
     notifyListeners();
   }
 
-  List<SolitaireRules> get alternativeVariants {
+  List<SolitaireGame> get alternativeVariants {
     return rulesCollection[_selectedRules.name] ?? [];
   }
 }

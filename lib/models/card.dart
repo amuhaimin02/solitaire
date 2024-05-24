@@ -16,7 +16,7 @@ enum SuitColor {
   black;
 }
 
-enum Value {
+enum Rank {
   ace('A', 1),
   two('2', 2),
   three('3', 3),
@@ -32,29 +32,29 @@ enum Value {
   king('K', 13);
 
   final String symbol;
-  final int rank;
+  final int value;
 
-  const Value(this.symbol, this.rank);
+  const Rank(this.symbol, this.value);
 }
 
 class PlayCard {
-  static final numberOfCardsInDeck = Suit.values.length * Value.values.length;
+  static final numberOfCardsInDeck = Suit.values.length * Rank.values.length;
 
   final Suit suit;
-  final Value value;
+  final Rank rank;
 
   final bool flipped;
 
   final int deck;
 
-  const PlayCard(this.suit, this.value, {this.deck = 1, this.flipped = false});
+  const PlayCard(this.suit, this.rank, {this.deck = 1, this.flipped = false});
 
   @override
   String toString() {
     if (flipped) {
-      return '[${value.symbol}${suit.symbol}]';
+      return '[${rank.symbol}${suit.symbol}]';
     } else {
-      return '(${value.symbol}${suit.symbol})';
+      return '(${rank.symbol}${suit.symbol})';
     }
   }
 
@@ -62,12 +62,12 @@ class PlayCard {
   bool operator ==(Object other) {
     return other is PlayCard &&
         suit == other.suit &&
-        value == other.value &&
+        rank == other.rank &&
         deck == other.deck;
   }
 
   @override
-  int get hashCode => Object.hash(suit, value, deck);
+  int get hashCode => Object.hash(suit, rank, deck);
 
   bool get isFacingUp => flipped == false;
 
@@ -75,12 +75,12 @@ class PlayCard {
 
   PlayCard faceDown() {
     if (flipped == true) return this;
-    return PlayCard(suit, value, deck: deck, flipped: true);
+    return PlayCard(suit, rank, deck: deck, flipped: true);
   }
 
   PlayCard faceUp() {
     if (flipped == false) return this;
-    return PlayCard(suit, value, deck: deck, flipped: false);
+    return PlayCard(suit, rank, deck: deck, flipped: false);
   }
 
   bool isSameSuitWith(PlayCard other) {
@@ -88,7 +88,7 @@ class PlayCard {
   }
 
   bool isSameSuitAndRank(PlayCard other) {
-    return suit == other.suit && value == other.value;
+    return suit == other.suit && rank == other.rank;
   }
 
   bool isSameColor(PlayCard other) {
@@ -96,10 +96,10 @@ class PlayCard {
   }
 
   bool isOneRankOver(PlayCard other) {
-    return value.rank == other.value.rank + 1;
+    return rank.value == other.rank.value + 1;
   }
 
   bool isOneRankUnder(PlayCard other) {
-    return value.rank == other.value.rank - 1;
+    return rank.value == other.rank.value - 1;
   }
 }

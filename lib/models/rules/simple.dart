@@ -1,3 +1,4 @@
+import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
 
 import '../card.dart';
@@ -8,9 +9,12 @@ import 'dart:math';
 
 import 'rules.dart';
 
-class SimpleSolitaire extends SolitaireRules {
+class SimpleSolitaire extends SolitaireGame {
   @override
   String get name => "Simple";
+
+  @override
+  String get tag => name.toParamCase();
 
   @override
   List<Pile> get piles => [
@@ -70,7 +74,9 @@ class SimpleSolitaire extends SolitaireRules {
   }
 
   @override
-  void afterEachMove(Move move, PlayCards cards, ScoreTracker score) {}
+  PlayCards afterEachMove(Move move, PlayCards cards) {
+    return cards;
+  }
 
   @override
   Iterable<MoveIntent> autoMoveStrategy(PlayCards cards) {

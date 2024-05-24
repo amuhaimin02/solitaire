@@ -1,20 +1,25 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 import '../models/game_state.dart';
+import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import 'solitaire_theme.dart';
 import 'tap_hold_detector.dart';
 
-class ControlPane extends StatelessWidget {
+class ControlPane extends ConsumerWidget {
   const ControlPane({super.key, required this.orientation});
 
   final Orientation orientation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final moves = ref.watch(moveHistoryProvider.notifier);
+    ref.watch(movesProvider);
+
     final children = [
       IconButton(
         tooltip: 'Start new game',
@@ -26,14 +31,15 @@ class ControlPane extends StatelessWidget {
                 .read<SettingsManager>()
                 .set(Settings.themeColor, themeColorPalette.sample(1).single);
           }
-          context.read<GameState>().startNewGame();
+          final game = ref.read(currentGameProvider);
+          ref.read(gameControllerProvider.notifier).startNew(game.rules);
         },
         icon: const Icon(Icons.restart_alt, size: 24),
       ),
       IconButton(
         tooltip: 'Hint',
         onPressed: () {
-          context.read<GameState>().highlightPossibleMoves();
+          ref.read(gameControllerProvider.notifier).highlightHints();
         },
         icon: const Icon(Icons.lightbulb, size: 24),
       ),
@@ -41,22 +47,22 @@ class ControlPane extends StatelessWidget {
         interval: const Duration(milliseconds: 100),
         delayBeforeHold: const Duration(milliseconds: 500),
         onTap: () {
-          context.read<GameState>().undoMove();
+          ref.read(moveHistoryProvider.notifier).undo();
         },
         onHold: (duration) {
           if (duration == Duration.zero) {
             HapticFeedback.heavyImpact();
-            context.read<GameState>().userAction = UserAction.undoMultiple;
+            // context.read<GameState>().userAction = UserAction.undoMultiple;
           }
 
-          context.read<GameState>().undoMove();
+          ref.read(moveHistoryProvider.notifier).undo();
         },
         onRelease: () {
-          context.read<GameState>().userAction = null;
+          // context.read<GameState>().userAction = null;
         },
         child: IconButton(
           tooltip: 'Undo',
-          onPressed: context.watch<GameState>().canUndo ? () {} : null,
+          onPressed: moves.canUndo ? () {} : null,
           icon: const Icon(Icons.undo, size: 24),
         ),
       ),
@@ -64,22 +70,22 @@ class ControlPane extends StatelessWidget {
         interval: const Duration(milliseconds: 100),
         delayBeforeHold: const Duration(milliseconds: 500),
         onTap: () {
-          context.read<GameState>().redoMove();
+          ref.read(moveHistoryProvider.notifier).redo();
         },
         onHold: (duration) {
           if (duration == Duration.zero) {
             HapticFeedback.heavyImpact();
-            context.read<GameState>().userAction = UserAction.redoMultiple;
+            // context.read<GameState>().userAction = UserAction.redoMultiple;
           }
 
-          context.read<GameState>().redoMove();
+          ref.read(moveHistoryProvider.notifier).redo();
         },
         onRelease: () {
-          context.read<GameState>().userAction = null;
+          // context.read<GameState>().userAction = null;
         },
         child: IconButton(
           tooltip: 'Redo',
-          onPressed: context.watch<GameState>().canRedo ? () {} : null,
+          onPressed: moves.canRedo ? () {} : null,
           icon: const Icon(Icons.redo, size: 24),
         ),
       ),

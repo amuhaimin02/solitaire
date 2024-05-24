@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
 
 import '../card.dart';
@@ -8,11 +9,14 @@ import '../pile.dart';
 import '../score_tracker.dart';
 import 'rules.dart';
 
-class Klondike extends SolitaireRules {
+class Klondike extends SolitaireGame {
   const Klondike(KlondikeVariant super.variant);
 
   @override
   String get name => "Klondike";
+
+  @override
+  String get tag => name.toParamCase();
 
   static const numberOfTableauPiles = 7;
 
@@ -153,7 +157,7 @@ class Klondike extends SolitaireRules {
         final card = cards.single;
 
         if (cardsOnTable.isEmpty) {
-          return card.value == Value.ace;
+          return card.rank == Rank.ace;
         }
 
         final topmostCard = cardsOnTable.last;
@@ -166,7 +170,7 @@ class Klondike extends SolitaireRules {
       case Tableau():
         // If column is empty, only King or card group starting with King can be placed
         if (cardsOnTable.isEmpty) {
-          return cards.first.value == Value.king;
+          return cards.first.rank == Rank.king;
         }
 
         final topmostCard = cardsOnTable.last;
@@ -224,7 +228,7 @@ class Klondike extends SolitaireRules {
   }
 
   @override
-  void afterEachMove(Move move, PlayCards cards, ScoreTracker score) {
+  PlayCards afterEachMove(Move move, PlayCards cards) {
     for (final t in allTableaus) {
       final tableau = cards(t);
       if (tableau.isNotEmpty && tableau.last.isFacingDown) {
@@ -232,7 +236,7 @@ class Klondike extends SolitaireRules {
       }
     }
 
-    score.add((variant as KlondikeVariant).calculateScore(move, cards));
+    return cards;
   }
 }
 
@@ -247,7 +251,10 @@ class KlondikeVariant extends SolitaireVariant<Klondike> {
   });
 
   @override
-  String toString() => "${scoring.fullName}, ${draws.fullName}";
+  String get name => "${scoring.fullName}, ${draws.fullName}";
+
+  @override
+  String get tag => "${scoring.name.toParamCase()}:${draws.name.toParamCase()}";
 
   int calculateScore(Move move, PlayCards cards) {
     switch (scoring) {

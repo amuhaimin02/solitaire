@@ -33,7 +33,7 @@ class GameTable extends StatelessWidget {
     this.animateMovement = true,
   });
 
-  final SolitaireRules rules;
+  final SolitaireGame rules;
 
   final PlayCardList? Function(PlayCard card, Pile pile)? onCardTap;
 

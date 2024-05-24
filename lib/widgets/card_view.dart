@@ -161,7 +161,7 @@ class CardFace extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  card.value.symbol,
+                  card.rank.symbol,
                   style: GoogleFonts.dosis(
                     fontSize: labelSizingFactor,
                     color: foregroundColor,

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'models/game_selection_state.dart';
 import 'models/game_state.dart';
+import 'models/services/gameplay_storage.dart';
 import 'providers/settings.dart';
 import 'screens/about_screen.dart';
 import 'screens/game_screen.dart';
@@ -115,6 +116,7 @@ class SolitaireApp extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => GameSelectionState()),
+            Provider(create: (_) => GameplayStorage()),
           ],
           child: SolitaireTheme(
             data: solitaireThemeData,
