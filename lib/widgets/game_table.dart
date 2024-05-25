@@ -11,6 +11,8 @@ import '../models/card_list.dart';
 import '../models/direction.dart';
 import '../models/game/solitaire.dart';
 import '../models/pile.dart';
+import '../models/play_table.dart';
+import '../models/table_layout.dart';
 import 'card_view.dart';
 import 'pile_marker.dart';
 import 'shakeable.dart';
@@ -22,7 +24,7 @@ class GameTable extends StatelessWidget {
   const GameTable({
     super.key,
     required this.rules,
-    required this.cards,
+    required this.table,
     this.orientation = Orientation.portrait,
     this.interactive = true,
     this.onCardTap,
@@ -36,20 +38,20 @@ class GameTable extends StatelessWidget {
 
   final SolitaireGame rules;
 
-  final PlayCardList? Function(PlayCard card, Pile pile)? onCardTap;
+  final List<PlayCard>? Function(PlayCard card, Pile pile)? onCardTap;
 
-  final PlayCardList? Function(Pile pile)? onPileTap;
-  final PlayCardList? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+  final List<PlayCard>? Function(Pile pile)? onPileTap;
+  final List<PlayCard>? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
   final bool interactive;
 
   final Orientation orientation;
 
-  final PlayCards cards;
+  final PlayTable table;
 
-  final PlayCardList? highlightedCards;
+  final List<PlayCard>? highlightedCards;
 
-  final PlayCardList? lastMovedCards;
+  final List<PlayCard>? lastMovedCards;
 
   final bool animateDistribute;
 
@@ -61,7 +63,7 @@ class GameTable extends StatelessWidget {
 
     final layout = rules.getLayout(
       rules.piles,
-      LayoutOptions(orientation: orientation, mirror: false),
+      TableLayoutOptions(orientation: orientation, mirror: false),
     );
 
     return IgnorePointer(
@@ -85,7 +87,7 @@ class GameTable extends StatelessWidget {
                 ),
                 _CardLayer(
                   layout: layout,
-                  cards: cards,
+                  table: table,
                   cardSize: cardSize,
                   onCardTap: onCardTap,
                   onPileTap: onPileTap,
@@ -98,7 +100,7 @@ class GameTable extends StatelessWidget {
                 if (interactive)
                   _OverlayLayer(
                     layout: layout,
-                    cards: cards,
+                    table: table,
                     cardSize: cardSize,
                   ),
                 // Text(status.toString()),
@@ -181,9 +183,9 @@ class _CardWidget extends StatelessWidget {
 
   final PlayCard card;
 
-  final LayoutItem layout;
+  final TableLayoutItem layout;
 
-  final PlayCardList cardsInPile;
+  final List<PlayCard> cardsInPile;
 
   final VoidCallback? onTouch;
   final VoidCallback? onTap;
@@ -242,7 +244,7 @@ class _CardWidget extends StatelessWidget {
 class _MarkerLayer extends StatelessWidget {
   const _MarkerLayer({super.key, required this.layout, required this.cardSize});
 
-  final Layout layout;
+  final TableLayout layout;
 
   final Size cardSize;
 
@@ -286,7 +288,7 @@ class _MarkerLayer extends StatelessWidget {
 class _CardLayer extends StatefulWidget {
   const _CardLayer({
     super.key,
-    required this.cards,
+    required this.table,
     required this.cardSize,
     required this.layout,
     this.onCardTap,
@@ -298,19 +300,19 @@ class _CardLayer extends StatefulWidget {
     required this.animateMovement,
   });
 
-  final PlayCards cards;
+  final PlayTable table;
 
   final Size cardSize;
 
-  final PlayCardList? Function(PlayCard card, Pile pile)? onCardTap;
-  final PlayCardList? Function(Pile pile)? onPileTap;
-  final PlayCardList? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+  final List<PlayCard>? Function(PlayCard card, Pile pile)? onCardTap;
+  final List<PlayCard>? Function(Pile pile)? onPileTap;
+  final List<PlayCard>? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
-  final PlayCardList? highlightedCards;
+  final List<PlayCard>? highlightedCards;
 
-  final PlayCardList? lastMovedCards;
+  final List<PlayCard>? lastMovedCards;
 
-  final Layout layout;
+  final TableLayout layout;
 
   final bool animateDistribute;
 
@@ -321,8 +323,8 @@ class _CardLayer extends StatefulWidget {
 }
 
 class _CardLayerState extends State<_CardLayer> {
-  PlayCardList? _shakingCards;
-  PlayCardList? _touchingCards;
+  List<PlayCard>? _shakingCards;
+  List<PlayCard>? _touchingCards;
   Pile? _touchingCardPile;
 
   Offset? _lastTouchPoint;
@@ -428,7 +430,7 @@ class _CardLayerState extends State<_CardLayer> {
     );
   }
 
-  List<Widget> _buildPile(BuildContext context, LayoutItem item) {
+  List<Widget> _buildPile(BuildContext context, TableLayoutItem item) {
     final theme = SolitaireTheme.of(context);
 
     final gridUnit = widget.cardSize;
@@ -503,9 +505,9 @@ class _CardLayerState extends State<_CardLayer> {
       );
     }
 
-    PlayCardList cards = [];
+    List<PlayCard> cards = [];
 
-    cards = widget.cards(item.kind);
+    cards = widget.table.get(item.kind);
 
     DurationCurve computeAnimation(int cardIndex) {
       if (!widget.animateMovement) {
@@ -552,7 +554,7 @@ class _CardLayerState extends State<_CardLayer> {
                   onTouch: () => _onCardTouch(context, card, item.kind),
                   card: card,
                   layout: item,
-                  cardsInPile: widget.cards(item.kind),
+                  cardsInPile: widget.table.get(item.kind),
                   highlightColor: highlightCardColor(card),
                 ),
               ),
@@ -590,7 +592,7 @@ class _CardLayerState extends State<_CardLayer> {
                 onTap: () => _onCardTap(context, card, item.kind),
                 card: card,
                 layout: item,
-                cardsInPile: widget.cards(item.kind),
+                cardsInPile: widget.table.get(item.kind),
                 highlightColor: highlightCardColor(card),
               ),
             ),
@@ -606,10 +608,10 @@ class _CardLayerState extends State<_CardLayer> {
     _touchingCardPile = originPile;
 
     if (originPile is Tableau) {
-      _touchingCards = widget.cards(originPile).getUntilLast(card);
+      _touchingCards = widget.table.get(originPile).getLastFromCard(card);
     } else if (originPile is Discard) {
       // Always pick top most card regardless of visibility
-      final topmostCard = widget.cards(originPile).lastOrNull;
+      final topmostCard = widget.table.get(originPile).lastOrNull;
       _touchingCards = [topmostCard!];
     } else {
       _touchingCards = [card];
@@ -634,7 +636,7 @@ class _CardLayerState extends State<_CardLayer> {
     widget.onPileTap?.call(pile);
   }
 
-  void _shakeCard(PlayCardList? cards) {
+  void _shakeCard(List<PlayCard>? cards) {
     if (cards == null) {
       return;
     }
@@ -654,11 +656,11 @@ class _CardLayerState extends State<_CardLayer> {
 
 class _OverlayLayer extends StatelessWidget {
   const _OverlayLayer(
-      {super.key, required this.layout, this.cards, required this.cardSize});
+      {super.key, required this.layout, this.table, required this.cardSize});
 
-  final Layout layout;
+  final TableLayout layout;
 
-  final PlayCards? cards;
+  final PlayTable? table;
 
   final Size cardSize;
 
@@ -683,7 +685,7 @@ class _OverlayLayer extends StatelessWidget {
               rect: measure(
                   Rect.fromLTWH(item.region.left, item.region.top, 1, 1)),
               child: _CountIndicator(
-                count: cards!(item.kind).length,
+                count: table!.get(item.kind).length,
                 cardSize: cardSize,
               ),
             ),
@@ -691,66 +693,3 @@ class _OverlayLayer extends StatelessWidget {
     );
   }
 }
-
-// class _CardDragOverlay extends StatefulWidget {
-//   const _CardDragOverlay({
-//     super.key,
-//     required this.draggedCards,
-//     required this.onStartDrag,
-//     required this.onStopDrag,
-//   });
-//
-//   final PlayCardList? draggedCards;
-//
-//   final PlayCardList? Function() onStartDrag;
-//
-//   final Function(PlayCardList? cards) onStopDrag;
-//
-//   @override
-//   State<_CardDragOverlay> createState() => _CardDragOverlayState();
-// }
-//
-// class _CardDragOverlayState extends State<_CardDragOverlay> {
-//   Offset? _touchPoint;
-//
-//   PlayCardList? _draggedCards;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final layout = context.watch<GameLayout>();
-//
-//     _draggedCards = widget.draggedCards;
-//
-//     return Listener(
-//       behavior: HitTestBehavior.translucent,
-//       onPointerMove: (event) {
-//         setState(() {
-//           _touchPoint = event.localPosition;
-//         });
-//       },
-//       onPointerUp: (_) {
-//         setState(() {
-//           _touchPoint = null;
-//         });
-//       },
-//       onPointerCancel: (_) {
-//         setState(() {
-//           _touchPoint = null;
-//         });
-//       },
-//       child: Stack(
-//         clipBehavior: Clip.none,
-//         children: [
-//           if (_touchPoint != null && _draggedCards != null)
-//             for (final (i, card) in _draggedCards!.indexed)
-//               Positioned.fromRect(
-//                 rect: (_touchPoint! & layout.gridUnit).shift(
-//                   Offset(0, i * layout.gridUnit.height * layout.maxStackGap.dy),
-//                 ),
-//                 child: CardView(card: card),
-//               )
-//         ],
-//       ),
-//     );
-//   }
-// }

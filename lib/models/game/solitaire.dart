@@ -1,11 +1,10 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
 import '../action.dart';
-import '../card_list.dart';
-import '../direction.dart';
+import '../card.dart';
 import '../pile.dart';
+import '../play_table.dart';
+import '../table_layout.dart';
 
 abstract class SolitaireGame {
   const SolitaireGame([this._variant]);
@@ -31,33 +30,25 @@ abstract class SolitaireGame {
 
   List<Pile> get piles;
 
-  Layout getLayout(List<Pile> piles, [LayoutOptions? options]);
+  TableLayout getLayout(List<Pile> piles, [TableLayoutOptions? options]);
 
-  PlayCardList prepareDrawPile(Random random);
+  List<PlayCard> prepareDrawPile(Random random);
 
-  void setup(PlayCards cards);
+  PlayTable setup(PlayTable table);
 
-  bool winConditions(PlayCards cards);
+  bool winConditions(PlayTable table);
 
-  bool canPick(PlayCardList cards, Pile from);
+  bool canPick(List<PlayCard> cards, Pile from);
 
-  bool canPlace(PlayCardList cards, Pile target, PlayCardList cardsOnTable);
+  bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile);
 
-  bool canAutoSolve(PlayCards cards);
+  bool canAutoSolve(PlayTable table);
 
-  Iterable<MoveIntent> autoMoveStrategy(PlayCards cards);
+  Iterable<MoveIntent> autoMoveStrategy(PlayTable table);
 
-  Iterable<MoveIntent> autoSolveStrategy(PlayCards cards);
+  Iterable<MoveIntent> autoSolveStrategy(PlayTable table);
 
-  (PlayCards card, int score) afterEachMove(Move move, PlayCards cards);
-
-  Iterable<Pile> get allTableaus {
-    return piles.whereType<Tableau>();
-  }
-
-  Iterable<Pile> get allFoundations {
-    return piles.whereType<Foundation>();
-  }
+  (PlayTable card, int score) afterEachMove(Move move, PlayTable table);
 }
 
 abstract class SolitaireVariant<T extends SolitaireGame> {
@@ -66,42 +57,4 @@ abstract class SolitaireVariant<T extends SolitaireGame> {
   String get name;
 
   String get tag;
-}
-
-class Layout {
-  final Size gridSize;
-  final List<LayoutItem> items;
-
-  Layout({
-    required this.gridSize,
-    required this.items,
-  });
-}
-
-class LayoutItem {
-  LayoutItem({
-    required this.kind,
-    required this.region,
-    this.stackDirection = Direction.none,
-    this.showCountIndicator = false,
-    this.shiftStackOnPlace = false,
-    this.numberOfCardsToShow,
-  });
-
-  final Pile kind;
-
-  final Rect region;
-  final Direction stackDirection;
-
-  final bool showCountIndicator;
-
-  final bool shiftStackOnPlace;
-
-  final int? numberOfCardsToShow;
-}
-
-class LayoutOptions {
-  LayoutOptions({required this.orientation, required this.mirror});
-  final Orientation orientation;
-  final bool mirror;
 }

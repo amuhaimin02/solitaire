@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../action.dart';
-import '../card_list.dart';
 import '../game/solitaire.dart';
+import '../play_table.dart';
 
 part 'game.freezed.dart';
 
@@ -26,11 +26,11 @@ enum GameStatus {
 
 class MoveRecord {
   MoveRecord(
-    this.cards,
+    this.table,
     this.action,
   );
 
-  final PlayCards cards;
+  final PlayTable table;
   final Action action;
 }
 

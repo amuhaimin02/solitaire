@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
-import '../models/card_list.dart';
 import '../models/game/simple.dart';
 import '../models/pile.dart';
+import '../models/play_table.dart';
 import '../providers/settings.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/game_table.dart';
@@ -73,11 +73,11 @@ class CustomizeScreen extends ConsumerWidget {
   Widget _buildTablePreview(BuildContext context) {
     final theme = SolitaireTheme.of(context);
 
+    // TODO: Create function to generate demo setup
     final rules = SimpleSolitaire();
-    final cards = PlayCards.fromGame(rules);
-    cards(const Draw()).addAll(rules.prepareDrawPile(Random(1)).allFaceDown);
-
-    rules.setup(cards);
+    PlayTable table = PlayTable.fromGame(rules)
+        .modify(const Draw(), rules.prepareDrawPile(Random(1)));
+    table = rules.setup(table);
 
     return AnimatedContainer(
       duration: themeChangeAnimation.duration,
@@ -93,7 +93,7 @@ class CustomizeScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
           child: GameTable(
             rules: rules,
-            cards: cards,
+            table: table,
             interactive: false,
             animateMovement: false,
           ),

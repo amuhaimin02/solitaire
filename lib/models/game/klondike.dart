@@ -2,12 +2,16 @@ import 'dart:math';
 
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
+import 'package:solitaire/models/table_layout.dart';
 
+import '../../providers/game_logic.dart';
+import '../../services/card_shuffler.dart';
 import '../action.dart';
 import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
+import '../play_table.dart';
 import 'solitaire.dart';
 
 class Klondike extends SolitaireGame {
@@ -42,31 +46,31 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  Layout getLayout(List<Pile> piles, [LayoutOptions? options]) {
+  TableLayout getLayout(List<Pile> piles, [TableLayoutOptions? options]) {
     switch (options?.orientation) {
       case Orientation.portrait || null:
-        return Layout(
+        return TableLayout(
           gridSize: const Size(7, 6),
           items: [
             for (final pile in piles)
               switch (pile) {
-                Draw() => LayoutItem(
+                Draw() => TableLayoutItem(
                     kind: const Draw(),
                     region: const Rect.fromLTWH(6, 0, 1, 1),
                     showCountIndicator: true,
                   ),
-                Discard() => LayoutItem(
+                Discard() => TableLayoutItem(
                     kind: const Discard(),
                     region: const Rect.fromLTWH(4, 0, 2, 1),
                     stackDirection: Direction.left,
                     shiftStackOnPlace: true,
                     numberOfCardsToShow: 3,
                   ),
-                Foundation(:final index) => LayoutItem(
+                Foundation(:final index) => TableLayoutItem(
                     kind: Foundation(index),
                     region: Rect.fromLTWH(index.toDouble(), 0, 1, 1),
                   ),
-                Tableau(:final index) => LayoutItem(
+                Tableau(:final index) => TableLayoutItem(
                     kind: Tableau(index),
                     region: Rect.fromLTWH(index.toDouble(), 1.3, 1, 4.7),
                     stackDirection: Direction.down,
@@ -75,25 +79,25 @@ class Klondike extends SolitaireGame {
           ],
         );
       case Orientation.landscape:
-        return Layout(gridSize: const Size(10, 4), items: [
+        return TableLayout(gridSize: const Size(10, 4), items: [
           for (final pile in piles)
             switch (pile) {
-              Draw() => LayoutItem(
+              Draw() => TableLayoutItem(
                   kind: const Draw(),
                   region: const Rect.fromLTWH(9, 2.5, 1, 1),
                   showCountIndicator: true,
                 ),
-              Discard() => LayoutItem(
+              Discard() => TableLayoutItem(
                   kind: const Discard(),
                   region: const Rect.fromLTWH(9, 0.5, 1, 2),
                   stackDirection: Direction.down,
                   numberOfCardsToShow: 3,
                 ),
-              Foundation(:final index) => LayoutItem(
+              Foundation(:final index) => TableLayoutItem(
                   kind: Foundation(index),
                   region: Rect.fromLTWH(0, index.toDouble(), 1, 1),
                 ),
-              Tableau(:final index) => LayoutItem(
+              Tableau(:final index) => TableLayoutItem(
                   kind: Tableau(index),
                   region: Rect.fromLTWH(index.toDouble() + 1.5, 0, 1, 4),
                   stackDirection: Direction.down,
@@ -104,34 +108,37 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  PlayCardList prepareDrawPile(Random random) {
-    return PlayCardGenerator.generateOrderedDeck()..shuffle(random);
+  List<PlayCard> prepareDrawPile(Random random) {
+    return const CardShuffler().generateShuffledDeck(random);
   }
 
   @override
-  void setup(PlayCards cards) {
-    for (final t in allTableaus.cast<Tableau>()) {
-      final tableau = cards(t);
-      final c = cards(const Draw()).pickLast(t.index + 1);
-      c.last = c.last.faceUp();
+  PlayTable setup(PlayTable table) {
+    final tableauPile = <Pile, List<PlayCard>>{};
 
-      tableau.addAll(c);
+    List<PlayCard> tableauCards;
+    List<PlayCard> remainingCards = table.drawPile;
+
+    for (final t in table.allTableauPiles) {
+      (remainingCards, tableauCards) = remainingCards.splitLast(t.index + 1);
+      tableauPile[t] = tableauCards.allFaceDown.topmostFaceUp;
     }
+
+    return table.modifyMultiple({
+      ...tableauPile,
+      const Draw(): remainingCards.allFaceDown,
+    });
   }
 
   @override
-  bool winConditions(PlayCards cards) {
-    return cards(const Draw()).isEmpty &&
-        cards(const Discard()).isEmpty &&
-        allTableaus.every((t) => cards(t).isEmpty);
-    // Easiest way to check is to ensure all cards are already in foundation pile
-    // return Iterable.generate(numberOfFoundationPiles,
-    //         (f) => state.pile(Foundation(f)).length).sum ==
-    //     PlayCard.numberOfCardsInDeck;
+  bool winConditions(PlayTable table) {
+    return table.drawPile.isEmpty &&
+        table.discardPile.isEmpty &&
+        table.allTableauPiles.every((t) => table.get(t).isEmpty);
   }
 
   @override
-  bool canPick(PlayCardList cards, Pile from) {
+  bool canPick(List<PlayCard> cards, Pile from) {
     // Cards in hand must all face up
     if (!cards.isAllFacingUp) {
       return false;
@@ -139,7 +146,7 @@ class Klondike extends SolitaireGame {
 
     switch (from) {
       case Tableau():
-        return cards.followRankDecreasingOrder();
+        return cards.isSortedByRankDecreasingOrder;
       case _:
         // Only tableau piles are allowed for picking multiple cards
         return cards.isSingle;
@@ -147,7 +154,7 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  bool canPlace(PlayCardList cards, Pile target, PlayCardList cardsOnTable) {
+  bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) {
     switch (target) {
       case Foundation():
         // Cannot move more than one cards all at once to foundation pile
@@ -157,11 +164,11 @@ class Klondike extends SolitaireGame {
 
         final card = cards.single;
 
-        if (cardsOnTable.isEmpty) {
+        if (cardsOnPile.isEmpty) {
           return card.rank == Rank.ace;
         }
 
-        final topmostCard = cardsOnTable.last;
+        final topmostCard = cardsOnPile.last;
 
         // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
         return card.isFacingUp &&
@@ -170,11 +177,11 @@ class Klondike extends SolitaireGame {
 
       case Tableau():
         // If column is empty, only King or card group starting with King can be placed
-        if (cardsOnTable.isEmpty) {
+        if (cardsOnPile.isEmpty) {
           return cards.first.rank == Rank.king;
         }
 
-        final topmostCard = cardsOnTable.last;
+        final topmostCard = cardsOnPile.last;
 
         // Card on top of each other should follow ranks in decreasing order,
         // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
@@ -190,9 +197,9 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  bool canAutoSolve(PlayCards cards) {
-    for (final t in allTableaus) {
-      final tableau = cards(t);
+  bool canAutoSolve(PlayTable table) {
+    for (final t in table.allTableauPiles) {
+      final tableau = table.get(t);
       if (tableau.isNotEmpty && !tableau.isAllFacingUp) {
         return false;
       }
@@ -201,24 +208,24 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> autoMoveStrategy(PlayCards cards) sync* {
-    for (final f in allFoundations) {
+  Iterable<MoveIntent> autoMoveStrategy(PlayTable table) sync* {
+    for (final f in table.allFoundationPiles) {
       yield MoveIntent(const Discard(), f);
     }
-    for (final t in allTableaus) {
-      for (final f in allFoundations) {
+    for (final t in table.allTableauPiles) {
+      for (final f in table.allFoundationPiles) {
         yield MoveIntent(t, f);
       }
     }
   }
 
   @override
-  Iterable<MoveIntent> autoSolveStrategy(PlayCards cards) sync* {
+  Iterable<MoveIntent> autoSolveStrategy(PlayTable table) sync* {
     // Try moving cards from tableau to foundation
-    for (final t in allTableaus) {
-      for (final f in allFoundations) {
+    for (final t in table.allTableauPiles) {
+      for (final f in table.allFoundationPiles) {
         yield MoveIntent(t, f);
-        final discard = cards(const Discard());
+        final discard = table.discardPile;
         if (discard.isNotEmpty) {
           yield MoveIntent(const Discard(), f);
           yield MoveIntent(const Discard(), t);
@@ -229,15 +236,17 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  (PlayCards, int) afterEachMove(Move move, PlayCards cards) {
-    for (final t in allTableaus) {
-      final tableau = cards(t);
+  (PlayTable, int) afterEachMove(Move move, PlayTable table) {
+    PlayTable updatedTable = table;
+
+    for (final t in table.allTableauPiles) {
+      final tableau = table.get(t);
       if (tableau.isNotEmpty && tableau.last.isFacingDown) {
-        tableau.last = tableau.last.faceUp();
+        table.modify(t, tableau.topmostFaceUp);
       }
     }
 
-    return (cards, 5);
+    return (updatedTable, 5);
   }
 }
 
@@ -257,7 +266,7 @@ class KlondikeVariant extends SolitaireVariant<Klondike> {
   @override
   String get tag => "${scoring.name.toParamCase()}:${draws.name.toParamCase()}";
 
-  int calculateScore(Move move, PlayCards cards) {
+  int calculateScore(Move move, PlayTable table) {
     switch (scoring) {
       case KlondikeScoring.standard:
         return 1;

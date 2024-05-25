@@ -2,12 +2,15 @@ import 'dart:math';
 
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
+import 'package:solitaire/models/table_layout.dart';
 
+import '../../services/card_shuffler.dart';
 import '../action.dart';
 import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
+import '../play_table.dart';
 import 'solitaire.dart';
 
 class SimpleSolitaire extends SolitaireGame {
@@ -30,25 +33,25 @@ class SimpleSolitaire extends SolitaireGame {
       ];
 
   @override
-  Layout getLayout(List<Pile> piles, [LayoutOptions? options]) {
-    return Layout(
+  TableLayout getLayout(List<Pile> piles, [TableLayoutOptions? options]) {
+    return TableLayout(
       gridSize: const Size(4, 3),
       items: [
         for (final pile in piles)
           switch (pile) {
-            Draw() => LayoutItem(
+            Draw() => TableLayoutItem(
                 kind: const Draw(),
                 region: const Rect.fromLTWH(3, 0, 1, 1),
               ),
-            Discard() => LayoutItem(
+            Discard() => TableLayoutItem(
                 kind: const Discard(),
                 region: const Rect.fromLTWH(2, 0, 2, 1),
               ),
-            Foundation(:final index) => LayoutItem(
+            Foundation(:final index) => TableLayoutItem(
                 kind: Foundation(index),
                 region: Rect.fromLTWH(index.toDouble(), 0, 1, 1),
               ),
-            Tableau(:final index) => LayoutItem(
+            Tableau(:final index) => TableLayoutItem(
                 kind: Tableau(index),
                 region: Rect.fromLTWH(index.toDouble(), 1, 1, 2),
                 stackDirection: Direction.down,
@@ -59,48 +62,55 @@ class SimpleSolitaire extends SolitaireGame {
   }
 
   @override
-  PlayCardList prepareDrawPile(Random random) {
-    return PlayCardGenerator.generateOrderedDeck()..shuffle(random);
+  List<PlayCard> prepareDrawPile(Random random) {
+    return const CardShuffler().generateShuffledDeck(random);
   }
 
   @override
-  void setup(PlayCards cards) {
-    for (final t in allTableaus.cast<Tableau>()) {
-      final tableau = cards(t);
-      final c = cards(const Draw()).pickLast(t.index + 1);
-      c.last = c.last.faceUp();
+  PlayTable setup(PlayTable table) {
+    final tableauPile = <Pile, List<PlayCard>>{};
 
-      tableau.addAll(c);
+    List<PlayCard> tableauCards;
+    List<PlayCard> remainingCards = table.drawPile;
+
+    for (final t in table.allTableauPiles) {
+      (remainingCards, tableauCards) = remainingCards.splitLast(t.index + 1);
+      tableauPile[t] = tableauCards.allFaceDown.topmostFaceUp;
     }
+
+    return table.modifyMultiple({
+      ...tableauPile,
+      const Draw(): remainingCards.allFaceDown,
+    });
   }
 
   @override
-  (PlayCards, int) afterEachMove(Move move, PlayCards cards) {
-    return (cards, 1);
+  (PlayTable, int) afterEachMove(Move move, PlayTable table) {
+    return (table, 1);
   }
 
   @override
-  Iterable<MoveIntent> autoMoveStrategy(PlayCards cards) {
+  Iterable<MoveIntent> autoMoveStrategy(PlayTable table) {
     return [];
   }
 
   @override
-  Iterable<MoveIntent> autoSolveStrategy(PlayCards cards) {
+  Iterable<MoveIntent> autoSolveStrategy(PlayTable table) {
     return [];
   }
 
   @override
-  bool canAutoSolve(PlayCards cards) {
+  bool canAutoSolve(PlayTable table) {
     return false;
   }
 
   @override
-  bool canPick(PlayCardList cards, Pile from) {
+  bool canPick(List<PlayCard> cards, Pile from) {
     return true;
   }
 
   @override
-  bool canPlace(PlayCardList cards, Pile target, List<PlayCard> cardsOnTable) {
+  bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) {
     return (target is Tableau && cards.length > 1) || cards.length == 1;
   }
 
@@ -108,7 +118,7 @@ class SimpleSolitaire extends SolitaireGame {
   int get drawsPerTurn => 1;
 
   @override
-  bool winConditions(PlayCards cards) {
+  bool winConditions(PlayTable table) {
     return false;
   }
 }

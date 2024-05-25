@@ -1,7 +1,5 @@
-import 'card_list.dart';
-import 'pile.dart';
-
 import 'card.dart';
+import 'pile.dart';
 
 sealed class Action {}
 
@@ -11,7 +9,7 @@ class GameStart extends Action {
 }
 
 class Move extends Action {
-  final PlayCardList cards;
+  final List<PlayCard> cards;
   final Pile from;
   final Pile to;
 

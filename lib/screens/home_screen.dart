@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../animations.dart';
-import '../models/card_list.dart';
 import '../models/pile.dart';
+import '../models/play_table.dart';
 import '../providers/game_selection.dart';
 import '../providers/settings.dart';
 import '../utils/widgets.dart';
@@ -168,18 +168,17 @@ class _GameSelection extends ConsumerWidget {
       child: FastPageView(
         itemCount: gamesNameList.length,
         itemBuilder: (context, index) {
-          final cards =
-              PlayCards.fromGame(gamesCollection[gamesNameList[index]]!.first);
-          cards(const Draw())
-              .addAll(selectedGame.prepareDrawPile(Random(index)).allFaceDown);
-          selectedGame.setup(cards);
+          PlayTable table = PlayTable.fromGame(selectedGame)
+              .modify(const Draw(), selectedGame.prepareDrawPile(Random(1)));
+          table = selectedGame.setup(table);
+
           return GameTable(
             key: ValueKey(index),
             interactive: false,
             animateMovement: false,
             rules: selectedGame,
             orientation: orientation,
-            cards: cards,
+            table: table,
           );
         },
         onPageChanged: (index) {

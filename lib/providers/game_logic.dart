@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,6 +12,7 @@ import '../models/game/simple.dart';
 import '../models/game/solitaire.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
+import '../models/play_table.dart';
 import '../models/states/game.dart';
 import '../utils/iterators.dart';
 import '../utils/prng.dart';
@@ -105,13 +107,12 @@ class CurrentGame extends _$CurrentGame {
 }
 
 @riverpod
-class CardsOnTable extends _$CardsOnTable {
+class PlayTableState extends _$PlayTableState {
   @override
-  PlayCards build() => const PlayCards({});
+  PlayTable build() => PlayTable.empty();
 
-  void update(PlayCards cards) {
-    // TODO: Make playcards immutable
-    state = cards.copy();
+  void update(PlayTable table) {
+    state = table;
   }
 }
 
@@ -149,7 +150,7 @@ class GameController extends _$GameController {
   }
 
   void highlightHints() {
-    final cards = ref.read(cardsOnTableProvider);
+    final table = ref.read(playTableStateProvider);
 
     final movableCards = <PlayCard>[];
     for (final (card, from) in _getAllVisibleCards()) {
@@ -158,7 +159,7 @@ class GameController extends _$GameController {
       }
     }
     if (movableCards.isEmpty) {
-      final drawPile = cards(const Draw());
+      final drawPile = table.drawPile;
       if (drawPile.isNotEmpty) {
         movableCards.add(drawPile.last);
       }
@@ -170,16 +171,14 @@ class GameController extends _$GameController {
   MoveResult tryMove(MoveIntent move,
       {bool doMove = true, bool doPreMove = true}) {
     final game = ref.read(currentGameProvider);
-    final cards = ref.read(cardsOnTableProvider);
+    final table = ref.read(playTableStateProvider);
 
     final Move? targetMove;
 
     Move refreshDrawPile() {
       // Try to refresh draw pile
-      final cardsInDiscardPile = cards(const Discard());
-
       return Move(
-        cardsInDiscardPile.reversed.toList().allFaceDown,
+        table.discardPile.reversed.toList().allFaceDown,
         const Discard(),
         const Draw(),
       );
@@ -192,11 +191,11 @@ class GameController extends _$GameController {
               'cannot move cards from draw pile to pile other than discard',
               move);
         }
-        final cardsInDrawPile = cards(const Draw());
+        final cardsInDrawPile = table.drawPile;
 
         if (cardsInDrawPile.isEmpty) {
           // Try to refresh draw pile
-          final cardsInDiscardPile = cards(const Discard());
+          final cardsInDiscardPile = table.discardPile;
 
           if (cardsInDiscardPile.isEmpty) {
             return MoveNotDone("No cards to refresh", null, move.from);
@@ -218,16 +217,16 @@ class GameController extends _$GameController {
         }
 
         if (move.to == const Draw()) {
-          if (cards(const Draw()).isEmpty) {
+          if (table.drawPile.isEmpty) {
             targetMove = refreshDrawPile();
           } else {
             return MoveForbidden('cannot move cards back to draw pile', move);
           }
         } else {
           final cardToMove = move.card;
-          final cardsInPile = cards(move.from);
+          final cardsInPile = table.get(move.from);
 
-          final PlayCardList cardsToPick;
+          final List<PlayCard> cardsToPick;
 
           if (move.from is! Tableau &&
               move.card != null &&
@@ -237,7 +236,7 @@ class GameController extends _$GameController {
           }
 
           if (cardToMove != null) {
-            cardsToPick = cardsInPile.getUntilLast(cardToMove);
+            cardsToPick = cardsInPile.getLastFromCard(cardToMove);
           } else {
             if (cardsInPile.isEmpty) {
               return MoveNotDone("No cards in pile", null, move.from);
@@ -249,7 +248,7 @@ class GameController extends _$GameController {
             return MoveForbidden(
                 'cannot pick the card(s) $cardsToPick from ${move.from}', move);
           }
-          if (!game.rules.canPlace(cardsToPick, move.to, cards(move.to))) {
+          if (!game.rules.canPlace(cardsToPick, move.to, table.get(move.to))) {
             return MoveForbidden(
                 'cannot place the card(s) $cardsToPick on ${move.to}', move);
           }
@@ -314,8 +313,8 @@ class GameController extends _$GameController {
 
     do {
       handled = false;
-      final cards = ref.read(cardsOnTableProvider);
-      for (final move in game.rules.autoSolveStrategy(cards)) {
+      final table = ref.read(playTableStateProvider);
+      for (final move in game.rules.autoSolveStrategy(table)) {
         final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
@@ -336,22 +335,24 @@ class GameController extends _$GameController {
 
   void _setupPiles() {
     final game = ref.read(currentGameProvider);
-    // Clear up tables, and set up new draw pile
 
-    final cards = PlayCards.fromGame(game.rules);
-    cards(const Draw()).addAll(game.rules
-        .prepareDrawPile(CustomPRNG.create(game.randomSeed))
-        .allFaceDown);
+    // Clear up table, and set up new draw pile
+    final table = PlayTable.fromGame(game.rules).modify(
+        const Draw(),
+        game.rules
+            .prepareDrawPile(CustomPRNG.create(game.randomSeed))
+            .allFaceDown);
 
-    ref.read(cardsOnTableProvider.notifier).update(cards);
+    ref.read(playTableStateProvider.notifier).update(table);
   }
 
   void _distributeCards() {
-    final cards = ref.read(cardsOnTableProvider);
+    final table = ref.read(playTableStateProvider);
     final game = ref.read(currentGameProvider);
-    game.rules.setup(cards);
 
-    ref.read(cardsOnTableProvider.notifier).update(cards);
+    final updatedTable = game.rules.setup(table);
+
+    ref.read(playTableStateProvider.notifier).update(updatedTable);
   }
 
   Future<void> _doPremove() async {
@@ -365,8 +366,8 @@ class GameController extends _$GameController {
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
-      final cards = ref.read(cardsOnTableProvider);
-      for (final move in game.rules.autoMoveStrategy(cards)) {
+      final table = ref.read(playTableStateProvider);
+      for (final move in game.rules.autoMoveStrategy(table)) {
         // The card was just recently move. Skip that
         if (lastMove?.to == move.from && lastMove?.to is! Discard) {
           continue;
@@ -388,25 +389,34 @@ class GameController extends _$GameController {
 
   Move _doMoveCards(Move move, {bool doPremove = true}) {
     final game = ref.read(currentGameProvider);
-    final cards = ref.read(cardsOnTableProvider);
-    final cardsInHand = move.cards;
+    final table = ref.read(playTableStateProvider);
 
-    final cardsOnTable = cards(move.from);
+    final cardsInHand = move.cards;
+    final cardsOnTable = table.get(move.from);
 
     // Check and remove cards from source pile to hand
-    cardsOnTable.removeRange(
-        cardsOnTable.length - cardsInHand.length, cardsOnTable.length);
+    final (remainingCards, cardsToPickUp) =
+        cardsOnTable.splitLast(cardsInHand.length);
+
+    // Check whether card picked is similar to what is on hand
+    if (!const ListEquality().equals(cardsToPickUp, cardsInHand)) {
+      throw StateError("Cards picked up and in hand is not the same");
+    }
 
     // Move all cards on hand to target pile
-    cards(move.to).addAll(cardsInHand);
+    PlayTable updatedTable = table.modifyMultiple({
+      move.from: remainingCards,
+      move.to: [...table.get(move.to), ...cardsInHand]
+    });
 
     // Clear any hinted cards if any
     ref.read(hintedCardsProvider.notifier).clear();
 
-    final (newCards, score) = game.rules.afterEachMove(move, cards);
+    final int score;
+    (updatedTable, score) = game.rules.afterEachMove(move, updatedTable);
 
     // Update cards on table with new version
-    ref.read(cardsOnTableProvider.notifier).update(newCards);
+    ref.read(playTableStateProvider.notifier).update(updatedTable);
 
     // Add in the new score for the move, if any
     ref.read(scoreProvider.notifier).add(score);
@@ -430,20 +440,20 @@ class GameController extends _$GameController {
 
   Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {
     final game = ref.read(currentGameProvider);
-    final cards = ref.read(cardsOnTableProvider);
-    for (final t in game.rules.allTableaus) {
-      for (final c in cards(t)) {
+    final table = ref.read(playTableStateProvider);
+    for (final t in table.allTableauPiles) {
+      for (final c in table.get(t)) {
         yield (c, t);
       }
     }
-    for (final f in game.rules.allFoundations) {
-      if (cards(f).isNotEmpty) {
-        yield (cards(f).last, f);
+    for (final f in table.allFoundationPiles) {
+      if (table.get(f).isNotEmpty) {
+        yield (table.get(f).last, f);
       }
     }
 
-    if (cards(const Discard()).isNotEmpty) {
-      yield (cards(const Discard()).last, const Discard());
+    if (table.discardPile.isNotEmpty) {
+      yield (table.discardPile.last, const Discard());
     }
   }
 }
@@ -456,21 +466,21 @@ class MoveHistory extends _$MoveHistory {
   }
 
   void createNew() {
-    final cards = ref.read(cardsOnTableProvider);
+    final table = ref.read(playTableStateProvider);
 
     state = [
-      MoveRecord(cards.copy(), GameStart()),
+      MoveRecord(table, GameStart()),
     ];
   }
 
   void add(Move move) {
-    final cards = ref.read(cardsOnTableProvider);
+    final table = ref.read(playTableStateProvider);
     final moves = ref.read(moveCountProvider);
     ref.read(moveCountProvider.notifier).forward();
 
     state = [
       ...state.getRange(0, moves + 1),
-      MoveRecord(cards.copy(), move),
+      MoveRecord(table, move),
     ];
   }
 
@@ -490,7 +500,7 @@ class MoveHistory extends _$MoveHistory {
     if (canUndo) {
       moves.reverse();
       final record = state[moves.state];
-      ref.read(cardsOnTableProvider.notifier).update(record.cards);
+      ref.read(playTableStateProvider.notifier).update(record.table);
     }
   }
 
@@ -500,7 +510,7 @@ class MoveHistory extends _$MoveHistory {
     if (canRedo) {
       moves.forward();
       final record = state[moves.state];
-      ref.read(cardsOnTableProvider.notifier).update(record.cards);
+      ref.read(playTableStateProvider.notifier).update(record.table);
     }
   }
 }
@@ -524,23 +534,23 @@ Move? lastMove(LastMoveRef ref) {
 @riverpod
 bool isGameFinished(IsGameFinishedRef ref) {
   final game = ref.watch(currentGameProvider);
-  final cards = ref.watch(cardsOnTableProvider);
+  final table = ref.watch(playTableStateProvider);
 
-  return game.rules.winConditions(cards);
+  return game.rules.winConditions(table);
 }
 
 @riverpod
 bool autoSolvable(AutoSolvableRef ref) {
   final game = ref.watch(currentGameProvider);
-  final cards = ref.watch(cardsOnTableProvider);
+  final table = ref.watch(playTableStateProvider);
 
-  return game.rules.canAutoSolve(cards);
+  return game.rules.canAutoSolve(table);
 }
 
 @riverpod
 class HintedCards extends _$HintedCards {
   @override
-  PlayCardList? build() {
+  List<PlayCard>? build() {
     return null;
   }
 
@@ -548,7 +558,7 @@ class HintedCards extends _$HintedCards {
     state = null;
   }
 
-  void highlight(PlayCardList cards) {
+  void highlight(List<PlayCard> cards) {
     state = cards;
     Future.delayed(const Duration(seconds: 1), () {
       state = null;
@@ -581,7 +591,7 @@ class GameDebug extends _$GameDebug {
       return;
     }
 
-    final presetCards = PlayCards({
+    final presetCards = PlayTable.fromMap({
       const Draw(): [
         const PlayCard(Suit.club, Rank.four).faceDown(),
         const PlayCard(Suit.heart, Rank.four).faceDown(),
@@ -591,26 +601,26 @@ class GameDebug extends _$GameDebug {
         const PlayCard(Suit.club, Rank.six).faceDown(),
         const PlayCard(Suit.club, Rank.two).faceDown(),
       ],
-      const Discard(): [],
-      const Foundation(0): [const PlayCard(Suit.heart, Rank.ace)],
-      const Foundation(1): [const PlayCard(Suit.diamond, Rank.ace)],
-      const Foundation(2): [const PlayCard(Suit.club, Rank.ace)],
-      const Foundation(3): [const PlayCard(Suit.spade, Rank.ace)],
-      const Tableau(0): [
-        const PlayCard(Suit.heart, Rank.three),
-        const PlayCard(Suit.heart, Rank.two)
+      const Discard(): const [],
+      const Foundation(0): const [PlayCard(Suit.heart, Rank.ace)],
+      const Foundation(1): const [PlayCard(Suit.diamond, Rank.ace)],
+      const Foundation(2): const [PlayCard(Suit.club, Rank.ace)],
+      const Foundation(3): const [PlayCard(Suit.spade, Rank.ace)],
+      const Tableau(0): const [
+        PlayCard(Suit.heart, Rank.three),
+        PlayCard(Suit.heart, Rank.two)
       ],
-      const Tableau(1): [
-        const PlayCard(Suit.spade, Rank.three),
-        const PlayCard(Suit.spade, Rank.two),
+      const Tableau(1): const [
+        PlayCard(Suit.spade, Rank.three),
+        PlayCard(Suit.spade, Rank.two),
       ],
-      const Tableau(2): [
-        const PlayCard(Suit.diamond, Rank.three),
-        const PlayCard(Suit.diamond, Rank.two),
+      const Tableau(2): const [
+        PlayCard(Suit.diamond, Rank.three),
+        PlayCard(Suit.diamond, Rank.two),
       ],
-      const Tableau(3): [const PlayCard(Suit.club, Rank.three)],
+      const Tableau(3): const [PlayCard(Suit.club, Rank.three)],
     });
 
-    ref.read(cardsOnTableProvider.notifier).update(presetCards);
+    ref.read(playTableStateProvider.notifier).update(presetCards);
   }
 }

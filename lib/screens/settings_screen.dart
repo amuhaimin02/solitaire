@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/settings.dart';
-import '../utils/system_orientation.dart';
+import '../services/system_orientation.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/section_title.dart';
 

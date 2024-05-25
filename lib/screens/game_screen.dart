@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
 import '../models/action.dart';
-import '../models/card_list.dart';
+import '../models/card.dart';
 import '../models/game/solitaire.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
@@ -212,7 +212,7 @@ class _PlayArea extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(currentGameProvider);
-    final cards = ref.watch(cardsOnTableProvider);
+    final table = ref.watch(playTableStateProvider);
     final gameStatus = ref.watch(gameControllerProvider);
     final highlightedCards = ref.watch(hintedCardsProvider);
 
@@ -224,7 +224,7 @@ class _PlayArea extends ConsumerWidget {
 
         final oneTapMove = ref.watch(oneTapMoveProvider);
 
-        PlayCardList? lastMovedCards;
+        List<PlayCard>? lastMovedCards;
 
         if (showLastMoves) {
           final lastMove = ref.watch(lastMoveProvider);
@@ -237,7 +237,7 @@ class _PlayArea extends ConsumerWidget {
           alignment: Alignment.center,
           children: [
             GameTable(
-              cards: cards,
+              table: table,
               rules: game.rules,
               orientation: orientation,
               highlightedCards: highlightedCards,
@@ -269,8 +269,8 @@ class _PlayArea extends ConsumerWidget {
                     return null;
 
                   case Discard() || Foundation():
-                    if (oneTapMove && cards(pile).isNotEmpty) {
-                      final cardToMove = cards(pile).last;
+                    if (oneTapMove && table.get(pile).isNotEmpty) {
+                      final cardToMove = table.get(pile).last;
                       final result = _feedbackMoveResult(
                           controller.tryQuickMove(cardToMove, pile));
                       return result is MoveSuccess ? null : null;

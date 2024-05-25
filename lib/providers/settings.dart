@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../utils/system_orientation.dart';
+import '../models/serializer.dart';
+import '../services/system_orientation.dart';
 import '../widgets/solitaire_theme.dart';
 
 part 'settings.g.dart';
@@ -36,10 +37,7 @@ class AppThemeColor extends _$AppThemeColor
   List<Color> get options => themeColorPalette;
 
   @override
-  SettingsSerializer get serializer => SettingsSerializer(
-        from: (raw) => Color(int.parse(raw, radix: 16)),
-        to: (color) => color.value.toRadixString(16),
-      );
+  Serializer get serializer => ColorSerializer();
 
   @override
   Color build() => _get();
@@ -218,7 +216,7 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
 
   List<T>? get options => null;
 
-  SettingsSerializer? get serializer => null;
+  Serializer? get serializer => null;
 
   T _get() {
     final prefs = ref.watch(sharedPreferencesInstanceProvider);
@@ -328,12 +326,4 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
     }
     return value;
   }
-}
-
-class SettingsSerializer<T> {
-  final T Function(String raw) from;
-
-  final String Function(T value) to;
-
-  SettingsSerializer({required this.from, required this.to});
 }
