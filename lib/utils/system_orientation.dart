@@ -4,6 +4,7 @@ enum ScreenOrientation { auto, landscape, portrait }
 
 class ScreenOrientationManager {
   static void change(ScreenOrientation orientation) {
+    print("Changing orientation ${orientation}");
     switch (orientation) {
       case ScreenOrientation.auto:
         SystemChrome.setPreferredOrientations([]);

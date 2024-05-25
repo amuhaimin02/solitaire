@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../card.dart';
 import '../direction.dart';
 import '../pile.dart';
-import '../score_tracker.dart';
 import 'rules.dart';
 
 class Klondike extends SolitaireGame {
@@ -228,7 +227,7 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  PlayCards afterEachMove(Move move, PlayCards cards) {
+  (PlayCards, int) afterEachMove(Move move, PlayCards cards) {
     for (final t in allTableaus) {
       final tableau = cards(t);
       if (tableau.isNotEmpty && tableau.last.isFacingDown) {
@@ -236,7 +235,7 @@ class Klondike extends SolitaireGame {
       }
     }
 
-    return cards;
+    return (cards, 5);
   }
 }
 

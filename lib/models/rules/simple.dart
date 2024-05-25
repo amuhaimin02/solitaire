@@ -1,12 +1,11 @@
+import 'dart:math';
+
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
 
 import '../card.dart';
 import '../direction.dart';
 import '../pile.dart';
-import '../score_tracker.dart';
-import 'dart:math';
-
 import 'rules.dart';
 
 class SimpleSolitaire extends SolitaireGame {
@@ -74,8 +73,8 @@ class SimpleSolitaire extends SolitaireGame {
   }
 
   @override
-  PlayCards afterEachMove(Move move, PlayCards cards) {
-    return cards;
+  (PlayCards, int) afterEachMove(Move move, PlayCards cards) {
+    return (cards, 1);
   }
 
   @override

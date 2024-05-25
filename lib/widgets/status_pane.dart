@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 
-import '../models/states/play_time.dart';
 import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import '../utils/types.dart';
 import '../utils/widgets.dart';
 
-class StatusPane extends StatelessWidget {
+class StatusPane extends ConsumerWidget {
   const StatusPane({super.key, required this.orientation});
 
   final Orientation orientation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final settings = context.watch<SettingsManager>();
-    final showMoves = settings.get(Settings.showMovesDuringPlay);
-    final showTime = settings.get(Settings.showTimeDuringPlay);
-    final showScore = settings.get(Settings.showScoreDuringPlay);
+    final showMoves = ref.watch(showMovesProvider);
+    final showTime = ref.watch(showTimeProvider);
+    final showScore = ref.watch(showScoreProvider);
 
     return DefaultTextStyle.merge(
       style: Theme.of(context)
@@ -61,13 +58,7 @@ class TimeLabel extends ConsumerWidget {
       stream: Stream.periodic(const Duration(milliseconds: 200)),
       builder: (context, snapshot) {
         final playTime = ref.read(playTimeProvider);
-        switch (playTime) {
-          case PlayTimeRunning(:final elapsed) ||
-                PlayTimePaused(:final elapsed):
-            return Text(elapsed.toMMSSString());
-          default:
-            return const Text('--:--');
-        }
+        return Text(playTime.toMMSSString());
       },
     );
   }

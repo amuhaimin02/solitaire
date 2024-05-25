@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../direction.dart';
 import '../pile.dart';
-import '../score_tracker.dart';
 
 abstract class SolitaireGame {
   const SolitaireGame([this._variant]);
@@ -48,7 +47,7 @@ abstract class SolitaireGame {
 
   Iterable<MoveIntent> autoSolveStrategy(PlayCards cards);
 
-  PlayCards afterEachMove(Move move, PlayCards cards);
+  (PlayCards card, int score) afterEachMove(Move move, PlayCards cards);
 
   Iterable<Pile> get allTableaus {
     return piles.whereType<Tableau>();

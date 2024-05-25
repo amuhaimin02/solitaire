@@ -7,8 +7,10 @@ import '../models/pile.dart';
 import '../models/rules/rules.dart';
 import '../models/states/game.dart';
 import '../providers/game_logic.dart';
+import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
+import '../widgets/debug_pane.dart';
 import '../widgets/game_table.dart';
 import '../widgets/ripple_background.dart';
 import '../widgets/shrinkable.dart';
@@ -25,8 +27,11 @@ class GameScreen extends ConsumerStatefulWidget {
 class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
-    // TODO: Do not initiate here
     super.initState();
+    _startGame();
+  }
+
+  void _startGame() {
     Future.microtask(() {
       final args = ModalRoute.of(context)!.settings.arguments;
       if (args is SolitaireGame) {
@@ -41,6 +46,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
     final viewPadding = MediaQuery.of(context).viewPadding;
+    final isFinished = ref
+        .watch(gameControllerProvider.select((s) => s == GameStatus.finished));
+
+    ref.listen(gameControllerProvider, (_, newStatus) {
+      if (newStatus == GameStatus.finished) {
+        Future.microtask(() => _showFinishDialog(context));
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -48,7 +61,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: RippleBackground(
-        decoration: BoxDecoration(color: theme.tableBackgroundColor),
+        decoration: isFinished
+            ? BoxDecoration(color: theme.winningBackgroundColor)
+            : BoxDecoration(color: theme.tableBackgroundColor),
         child: OrientationBuilder(
           builder: (context, orientation) {
             return LayoutBuilder(
@@ -155,6 +170,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           ),
                       },
                     ),
+                    const Align(
+                      alignment: Alignment.bottomLeft,
+                      child: DebugPane(),
+                    )
                   ],
                 );
               },
@@ -165,25 +184,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  // Future<void> _showFinishDialog(
-  //     BuildContext context, SolitaireGame rules) async {
-  //   final confirm = await showDialog<bool>(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (_) => ChangeNotifierProvider.value(
-  //       value: context.read<GameState>(),
-  //       child: const _FinishDialog(),
-  //     ),
-  //   );
-  //
-  //   if (!context.mounted) return;
-  //
-  //   if (confirm == true) {
-  //     Navigator.popAndPushNamed(context, '/game', arguments: rules);
-  //   } else {
-  //     Navigator.pop(context);
-  //   }
-  // }
+  Future<void> _showFinishDialog(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _FinishDialog(),
+    );
+
+    if (!context.mounted) return;
+
+    if (confirm == true) {
+      final game = ref.read(currentGameProvider);
+      ref.read(gameControllerProvider.notifier).startNew(game.rules);
+    } else {
+      Navigator.pop(context);
+    }
+  }
 }
 
 class _PlayArea extends ConsumerWidget {
@@ -343,7 +359,7 @@ class _AutoSolveButton extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Shrinkable(
-      show: autoSolvable && gameStatus != GameStatus.autoSolving,
+      show: autoSolvable && gameStatus == GameStatus.started,
       child: FloatingActionButton.extended(
         backgroundColor: colorScheme.secondary,
         foregroundColor: colorScheme.onSecondary,
@@ -357,14 +373,16 @@ class _AutoSolveButton extends ConsumerWidget {
   }
 }
 
-class _FinishDialog extends StatelessWidget {
+class _FinishDialog extends ConsumerWidget {
   const _FinishDialog({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    // final gameState = context.watch<GameState>();
+    final moves = ref.watch(movesProvider);
+    final playTime = ref.watch(playTimeProvider);
+    final score = ref.watch(scoreProvider);
 
     return AlertDialog(
       title: const Text('You win!'),
@@ -379,15 +397,15 @@ class _FinishDialog extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Moves: ${0}'),
+              Text('Moves: $moves'),
               const Spacer(),
-              Text('Time: 00:00'),
+              Text('Time: ${playTime.toMMSSString()}'),
             ],
           ),
           const Divider(),
           const Text('Base score'),
           Text(
-            '0',
+            '$score',
             style: textTheme.bodyLarge!
                 .copyWith(color: colorScheme.onSurfaceVariant),
             textAlign: TextAlign.end,
@@ -395,7 +413,7 @@ class _FinishDialog extends StatelessWidget {
           const Divider(),
           const Text('Final score'),
           Text(
-            '0',
+            '$score',
             style:
                 textTheme.headlineMedium!.copyWith(color: colorScheme.primary),
             textAlign: TextAlign.end,

@@ -4,9 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart' hide Consumer;
+
 import '../animations.dart';
-import '../models/game_selection_state.dart';
 import '../models/pile.dart';
 import '../providers/game_selection.dart';
 import '../providers/settings.dart';
@@ -269,11 +268,11 @@ class _GameVariantSelection extends ConsumerWidget {
   }
 }
 
-class _GameMenu extends StatelessWidget {
+class _GameMenu extends ConsumerWidget {
   const _GameMenu({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -281,16 +280,13 @@ class _GameMenu extends StatelessWidget {
         children: [
           FilledButton.tonalIcon(
             onPressed: () {
-              if (context
-                  .read<SettingsManager>()
-                  .get(Settings.randomizeThemeColor)) {
-                context.read<SettingsManager>().set(
-                    Settings.themeColor, themeColorPalette.sample(1).single);
+              if (ref.read(randomizeThemeColorProvider)) {
+                ref
+                    .watch(appThemeColorProvider.notifier)
+                    .set(themeColorPalette.sample(1).single);
               }
-
-              final selection = context.read<GameSelectionState>();
-              Navigator.pushNamed(context, '/game',
-                  arguments: selection.selectedRules);
+              final game = ref.read(selectedGameProvider);
+              Navigator.pushNamed(context, '/game', arguments: game);
             },
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, 56),
@@ -306,9 +302,8 @@ class _GameMenu extends StatelessWidget {
             maintainState: true,
             child: FilledButton.icon(
               onPressed: () {
-                final selection = context.read<GameSelectionState>();
-                Navigator.pushNamed(context, '/game',
-                    arguments: selection.selectedRules);
+                final game = ref.read(selectedGameProvider);
+                Navigator.pushNamed(context, '/game', arguments: game);
               },
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, 56),

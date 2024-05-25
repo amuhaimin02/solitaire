@@ -1,6 +1,7 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../pile.dart';
 import '../rules/rules.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'game.freezed.dart';
 
@@ -14,13 +15,12 @@ class PlayData with _$PlayData {
 }
 
 enum GameStatus {
-  initializing,
   ready,
+  initializing,
   preparing,
   started,
   autoSolving,
-  ended,
-  restarting
+  finished,
 }
 
 class MoveRecord {

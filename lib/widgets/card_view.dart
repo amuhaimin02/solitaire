@@ -5,9 +5,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import '../animations.dart';
 import '../models/card.dart';
 import '../utils/canvas.dart';
-import '../utils/colors.dart';
 import 'flippable.dart';
-import 'soft_shadow.dart';
 import 'solitaire_theme.dart';
 
 class CardView extends StatelessWidget {

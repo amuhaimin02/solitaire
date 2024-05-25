@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../utils/colors.dart';
-
 class ColorButton extends StatelessWidget {
   const ColorButton({
     super.key,

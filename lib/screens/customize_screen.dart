@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
 import '../models/pile.dart';
@@ -12,11 +12,11 @@ import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 
-class CustomizeScreen extends StatelessWidget {
+class CustomizeScreen extends ConsumerWidget {
   const CustomizeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final viewPadding = MediaQuery.of(context).viewPadding;
 
     return Scaffold(
@@ -39,9 +39,9 @@ class CustomizeScreen extends StatelessWidget {
                     Expanded(
                       child: _buildTablePreview(context),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 480,
-                      child: _buildSettingsList(context),
+                      child: _SettingsList(),
                     ),
                   ],
                 ),
@@ -54,9 +54,9 @@ class CustomizeScreen extends StatelessWidget {
                           flex: 2,
                           child: _buildTablePreview(context),
                         ),
-                        Expanded(
+                        const Expanded(
                           flex: 3,
-                          child: _buildSettingsList(context),
+                          child: _SettingsList(),
                         ),
                       ],
                     ),
@@ -100,14 +100,21 @@ class CustomizeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildSettingsList(BuildContext context) {
-    final settings = context.watch<SettingsManager>();
+class _SettingsList extends ConsumerWidget {
+  const _SettingsList({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final randomizeColor = settings.get(Settings.randomizeThemeColor);
-    final coloredBackground = settings.get(Settings.coloredBackground);
-    final amoledDarkTheme = settings.get(Settings.amoledDarkTheme);
+    final themeMode = ref.watch(appThemeModeProvider);
+    final themeColor = ref.watch(appThemeColorProvider);
+
+    final randomizeColor = ref.watch(randomizeThemeColorProvider);
+    final coloredBackground = ref.watch(coloredBackgroundProvider);
+    final amoledDarkTheme = ref.watch(amoledBackgroundProvider);
 
     return FadingEdgeListView(
       verticalPadding: 32,
@@ -135,9 +142,9 @@ class CustomizeScreen extends StatelessWidget {
                   icon: Icon(Icons.dark_mode),
                 ),
               ],
-              selected: {settings.get(Settings.themeMode)},
+              selected: {themeMode},
               onSelectionChanged: (value) {
-                settings.set(Settings.themeMode, value.single);
+                ref.read(appThemeModeProvider.notifier).set(value.single);
               },
             ),
           ),
@@ -161,7 +168,9 @@ class CustomizeScreen extends StatelessWidget {
                       value: randomizeColor,
                       onChanged: (value) {
                         if (value == true) {
-                          settings.set(Settings.randomizeThemeColor, true);
+                          ref
+                              .read(randomizeThemeColorProvider.notifier)
+                              .set(true);
                         }
                       },
                     ),
@@ -170,26 +179,19 @@ class CustomizeScreen extends StatelessWidget {
                       alignment: WrapAlignment.start,
                       children: [
                         for (final color in themeColorPalette)
-                          // ColorButton(
-                          //   size: 40,
-                          //   color: color,
-                          //   isSelected: settings.get(Settings.presetColor).value ==
-                          //       color.value,
-                          //   onTap: () {
-                          //     settings.set(Settings.presetColor, color);
-                          //   },
-                          // ),
                           IconButton(
                             onPressed: () {
                               if (randomizeColor) {
-                                settings.set(
-                                    Settings.randomizeThemeColor, false);
+                                ref
+                                    .read(randomizeThemeColorProvider.notifier)
+                                    .set(false);
                               }
-                              settings.set(Settings.themeColor, color);
+                              ref
+                                  .read(appThemeColorProvider.notifier)
+                                  .set(color);
                             },
                             isSelected: !randomizeColor &&
-                                settings.get(Settings.themeColor).value ==
-                                    color.value,
+                                themeColor.value == color.value,
                             iconSize: 32,
                             icon: const Icon(Icons.circle_outlined),
                             selectedIcon: const Icon(Icons.circle),
@@ -208,10 +210,9 @@ class CustomizeScreen extends StatelessWidget {
           title: const Text('AMOLED dark background'),
           subtitle: const Text('Use pitch black background when on dark mode'),
           value: amoledDarkTheme,
-          onChanged: !coloredBackground &&
-                  settings.get(Settings.themeMode) != ThemeMode.light
+          onChanged: !coloredBackground && themeMode != ThemeMode.light
               ? (value) {
-                  settings.toggle(Settings.amoledDarkTheme);
+                  ref.read(amoledBackgroundProvider.notifier).toggle();
                 }
               : null,
         ),
@@ -221,16 +222,16 @@ class CustomizeScreen extends StatelessWidget {
               'Use strong colors of the theme for the table background'),
           value: coloredBackground,
           onChanged: (value) {
-            settings.toggle(Settings.coloredBackground);
+            ref.read(coloredBackgroundProvider.notifier).toggle();
           },
         ),
         const SectionTitle('Cards'),
         SwitchListTile(
           title: const Text('Standard card colors'),
           subtitle: const Text('Use standard red-black card face colors'),
-          value: settings.get(Settings.useStandardCardColors),
+          value: ref.watch(standardCardColorProvider),
           onChanged: (value) {
-            settings.toggle(Settings.useStandardCardColors);
+            ref.read(standardCardColorProvider.notifier).toggle();
           },
         ),
       ],

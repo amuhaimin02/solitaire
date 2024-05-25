@@ -2,9 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
 
-import '../models/game_state.dart';
 import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import 'solitaire_theme.dart';
@@ -24,12 +22,10 @@ class ControlPane extends ConsumerWidget {
       IconButton(
         tooltip: 'Start new game',
         onPressed: () {
-          if (context
-              .read<SettingsManager>()
-              .get(Settings.randomizeThemeColor)) {
-            context
-                .read<SettingsManager>()
-                .set(Settings.themeColor, themeColorPalette.sample(1).single);
+          if (ref.read(randomizeThemeColorProvider)) {
+            ref
+                .watch(appThemeColorProvider.notifier)
+                .set(themeColorPalette.sample(1).single);
           }
           final game = ref.read(currentGameProvider);
           ref.read(gameControllerProvider.notifier).startNew(game.rules);

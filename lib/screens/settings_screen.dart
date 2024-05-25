@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 
-import '../models/pile.dart';
 import '../providers/settings.dart';
 import '../utils/system_orientation.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/section_title.dart';
-import '../widgets/solitaire_theme.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final settings = context.watch<SettingsManager>();
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -51,9 +48,11 @@ class SettingsScreen extends StatelessWidget {
                         // icon: Icon(Icons.stay_current_landscape),
                       ),
                     ],
-                    selected: {settings.get(Settings.screenOrientation)},
+                    selected: {ref.watch(appScreenOrientationProvider)},
                     onSelectionChanged: (value) {
-                      settings.set(Settings.screenOrientation, value.single);
+                      ref
+                          .read(appScreenOrientationProvider.notifier)
+                          .set(value.single);
                     },
                   ),
                 ),
@@ -63,36 +62,36 @@ class SettingsScreen extends StatelessWidget {
                 secondary: const Icon(Icons.crop_portrait),
                 subtitle: const Text(
                     'Recently moved cards will be indicated with a border'),
-                value: settings.get(Settings.showMoveHighlight),
+                value: ref.watch(showLastMovesProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.showMoveHighlight);
+                  ref.read(showLastMovesProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
                 title: const Text('Show score'),
                 secondary: Icon(MdiIcons.counter),
                 subtitle: const Text('Show score obtained during play'),
-                value: settings.get(Settings.showScoreDuringPlay),
+                value: ref.watch(showScoreProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.showScoreDuringPlay);
+                  ref.read(showScoreProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
                 title: const Text('Show moves'),
                 secondary: Icon(MdiIcons.cards),
                 subtitle: const Text('Show number of moves during play'),
-                value: settings.get(Settings.showMovesDuringPlay),
+                value: ref.watch(showMovesProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.showMovesDuringPlay);
+                  ref.read(showMovesProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
                 title: const Text('Show time'),
                 secondary: Icon(MdiIcons.timerOutline),
                 subtitle: const Text('Show play time during play'),
-                value: settings.get(Settings.showTimeDuringPlay),
+                value: ref.watch(showTimeProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.showTimeDuringPlay);
+                  ref.read(showTimeProvider.notifier).toggle();
                 },
               ),
               const SectionTitle('Behavior'),
@@ -101,9 +100,9 @@ class SettingsScreen extends StatelessWidget {
                 secondary: Icon(MdiIcons.gestureTap),
                 subtitle: const Text(
                     'Tapping on cards will automatically move to possible places'),
-                value: settings.get(Settings.oneTapMove),
+                value: ref.watch(oneTapMoveProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.oneTapMove);
+                  ref.read(oneTapMoveProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
@@ -111,9 +110,9 @@ class SettingsScreen extends StatelessWidget {
                 secondary: Icon(MdiIcons.transferRight),
                 subtitle: const Text(
                     'Cards will be moved to winning position when possible after each move'),
-                value: settings.get(Settings.autoPremove),
+                value: ref.watch(autoPremoveProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.autoPremove);
+                  ref.read(autoPremoveProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
@@ -121,9 +120,9 @@ class SettingsScreen extends StatelessWidget {
                 secondary: Icon(MdiIcons.autoFix),
                 subtitle: const Text(
                     'If solution is possible, auto solve button will automatically finish the game'),
-                value: settings.get(Settings.showAutoSolveButton),
+                value: ref.watch(showAutoSolveButtonProvider),
                 onChanged: (value) {
-                  settings.toggle(Settings.showAutoSolveButton);
+                  ref.read(showAutoSolveButtonProvider.notifier).toggle();
                 },
               ),
             ],

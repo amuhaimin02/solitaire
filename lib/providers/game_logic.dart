@@ -4,12 +4,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
-import '../models/game_state.dart';
 import '../models/pile.dart';
+import '../models/rules/klondike.dart';
 import '../models/rules/rules.dart';
 import '../models/rules/simple.dart';
 import '../models/states/game.dart';
-import '../models/states/play_time.dart';
 import '../utils/iterators.dart';
 import '../utils/prng.dart';
 
@@ -26,6 +25,10 @@ class Score extends _$Score {
     });
     return 0;
   }
+
+  void add(int value) {
+    state += value;
+  }
 }
 
 @riverpod
@@ -33,25 +36,13 @@ class PlayTime extends _$PlayTime {
   static final _stopwatch = Stopwatch();
 
   @override
-  PlayTimeState build() {
-    ref.listen(currentGameProvider, (oldGame, newGame) {
-      if (oldGame != newGame) {
-        stop();
-      }
-    });
-
-    if (_stopwatch.isRunning) {
-      return PlayTimeRunning(_stopwatch.elapsed);
-    } else if (_stopwatch.elapsed > Duration.zero) {
-      return PlayTimePaused(_stopwatch.elapsed);
-    } else {
-      return const PlayTimeStopped();
-    }
+  Duration build() {
+    return _stopwatch.elapsed;
   }
 
   void restart() {
     _stopwatch
-      ..stop()
+      ..reset()
       ..start();
     ref.invalidateSelf();
   }
@@ -104,6 +95,7 @@ class CurrentGame extends _$CurrentGame {
   }
 
   void start(PlayData game) {
+    print('start game ${game}');
     state = game;
   }
 }
@@ -313,6 +305,8 @@ class GameController extends _$GameController {
     bool handled, isWinning;
 
     ref.read(playTimeProvider.notifier).pause();
+    state = GameStatus.autoSolving;
+
     do {
       handled = false;
       final cards = ref.read(cardsOnTableProvider);
@@ -405,16 +399,25 @@ class GameController extends _$GameController {
     // Clear any hinted cards if any
     ref.read(hintedCardsProvider.notifier).clear();
 
+    final (newCards, score) = game.rules.afterEachMove(move, cards);
+
     // Update cards on table with new version
-    final newCards = game.rules.afterEachMove(move, cards);
     ref.read(cardsOnTableProvider.notifier).update(newCards);
+
+    // Add in the new score for the move, if any
+    ref.read(scoreProvider.notifier).add(score);
 
     // Add to move history
     ref.read(moveHistoryProvider.notifier).add(move);
 
-    // if (doPremove && _status != GameStatus.autoSolving && canAutoPremove) {
-    //   _doPremove();
-    // }
+    // Check if the game is winning
+    if (ref.read(isFinishedProvider)) {
+      state = GameStatus.finished;
+    }
+
+    if (doPremove && state != GameStatus.autoSolving) {
+      _doPremove();
+    }
     return move;
   }
 
@@ -509,7 +512,10 @@ bool isFinished(IsFinishedRef ref) {
 
 @riverpod
 bool autoSolvable(AutoSolvableRef ref) {
-  return false;
+  final game = ref.watch(currentGameProvider);
+  final cards = ref.watch(cardsOnTableProvider);
+
+  return game.rules.canAutoSolve(cards);
 }
 
 @riverpod
@@ -528,5 +534,59 @@ class HintedCards extends _$HintedCards {
     Future.delayed(const Duration(seconds: 1), () {
       state = null;
     });
+  }
+}
+
+@riverpod
+UserAction? userAction(UserActionRef ref) {
+  return null;
+}
+
+// --------------------------------------
+@riverpod
+class GameDebug extends _$GameDebug {
+  @override
+  void build() {
+    return;
+  }
+
+  void debugTestCustomLayout() {
+    final game = ref.read(currentGameProvider);
+
+    if (game.rules is! Klondike) {
+      return;
+    }
+
+    final presetCards = PlayCards({
+      const Draw(): [
+        const PlayCard(Suit.club, Rank.four).faceDown(),
+        const PlayCard(Suit.heart, Rank.four).faceDown(),
+        const PlayCard(Suit.spade, Rank.four).faceDown(),
+        const PlayCard(Suit.heart, Rank.five).faceDown(),
+        const PlayCard(Suit.club, Rank.five).faceDown(),
+        const PlayCard(Suit.club, Rank.six).faceDown(),
+        const PlayCard(Suit.club, Rank.two).faceDown(),
+      ],
+      const Discard(): [],
+      const Foundation(0): [const PlayCard(Suit.heart, Rank.ace)],
+      const Foundation(1): [const PlayCard(Suit.diamond, Rank.ace)],
+      const Foundation(2): [const PlayCard(Suit.club, Rank.ace)],
+      const Foundation(3): [const PlayCard(Suit.spade, Rank.ace)],
+      const Tableau(0): [
+        const PlayCard(Suit.heart, Rank.three),
+        const PlayCard(Suit.heart, Rank.two)
+      ],
+      const Tableau(1): [
+        const PlayCard(Suit.spade, Rank.three),
+        const PlayCard(Suit.spade, Rank.two),
+      ],
+      const Tableau(2): [
+        const PlayCard(Suit.diamond, Rank.three),
+        const PlayCard(Suit.diamond, Rank.two),
+      ],
+      const Tableau(3): [const PlayCard(Suit.club, Rank.three)],
+    });
+
+    ref.read(cardsOnTableProvider.notifier).update(presetCards);
   }
 }
