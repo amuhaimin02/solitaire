@@ -33,4 +33,4 @@ class MoveRecord {
   final Action action;
 }
 
-enum UserAction { undoMultiple, redoMultiple }
+enum UserActionOptions { undoMultiple, redoMultiple }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/states/game.dart';
 import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import 'solitaire_theme.dart';
@@ -16,7 +17,10 @@ class ControlPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final moves = ref.watch(moveHistoryProvider.notifier);
-    ref.watch(movesProvider);
+
+    // Only watching so this widget can be updated whenever move count changes.
+    // Mainly for undo/redo button
+    ref.watch(moveCountProvider);
 
     final children = [
       IconButton(
@@ -48,13 +52,15 @@ class ControlPane extends ConsumerWidget {
         onHold: (duration) {
           if (duration == Duration.zero) {
             HapticFeedback.heavyImpact();
-            // context.read<GameState>().userAction = UserAction.undoMultiple;
+            ref
+                .read(userActionProvider.notifier)
+                .set(UserActionOptions.undoMultiple);
           }
 
           ref.read(moveHistoryProvider.notifier).undo();
         },
         onRelease: () {
-          // context.read<GameState>().userAction = null;
+          ref.read(userActionProvider.notifier).clear();
         },
         child: IconButton(
           tooltip: 'Undo',
@@ -71,13 +77,15 @@ class ControlPane extends ConsumerWidget {
         onHold: (duration) {
           if (duration == Duration.zero) {
             HapticFeedback.heavyImpact();
-            // context.read<GameState>().userAction = UserAction.redoMultiple;
+            ref
+                .read(userActionProvider.notifier)
+                .set(UserActionOptions.redoMultiple);
           }
 
           ref.read(moveHistoryProvider.notifier).redo();
         },
         onRelease: () {
-          // context.read<GameState>().userAction = null;
+          ref.read(userActionProvider.notifier).clear();
         },
         child: IconButton(
           tooltip: 'Redo',

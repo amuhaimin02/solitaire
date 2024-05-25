@@ -88,7 +88,7 @@ class MoveLabel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final moves = ref.watch(movesProvider);
+    final moves = ref.watch(moveCountProvider);
 
     return Row(
       mainAxisSize: MainAxisSize.min,

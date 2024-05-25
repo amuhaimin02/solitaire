@@ -11,6 +11,7 @@ import '../models/rules/simple.dart';
 import '../models/states/game.dart';
 import '../utils/iterators.dart';
 import '../utils/prng.dart';
+import 'settings.dart';
 
 part 'game_logic.g.dart';
 
@@ -66,7 +67,7 @@ class PlayTime extends _$PlayTime {
 }
 
 @riverpod
-class Moves extends _$Moves {
+class MoveCount extends _$MoveCount {
   @override
   int build() {
     ref.listen(currentGameProvider, (oldGame, newGame) {
@@ -139,8 +140,9 @@ class GameController extends _$GameController {
     ref.read(moveHistoryProvider.notifier).createNew();
     state = GameStatus.started;
 
-    // TODO: Read from settings
-    _doPremove();
+    if (ref.read(autoPremoveProvider)) {
+      _doPremove();
+    }
   }
 
   void highlightHints() {
@@ -319,7 +321,7 @@ class GameController extends _$GameController {
           break;
         }
       }
-      isWinning = ref.read(isFinishedProvider);
+      isWinning = ref.read(isGameFinishedProvider);
     } while (handled && !isWinning);
 
     if (!isWinning) {
@@ -352,8 +354,7 @@ class GameController extends _$GameController {
   Future<void> _doPremove() async {
     final game = ref.read(currentGameProvider);
 
-    // TODO: Check for last move
-    // final Move? lastMove = latestAction is Move ? (latestAction as Move) : null;
+    final Move? lastMove = ref.read(lastMoveProvider);
 
     ref.read(playTimeProvider.notifier).pause();
 
@@ -364,9 +365,9 @@ class GameController extends _$GameController {
       final cards = ref.read(cardsOnTableProvider);
       for (final move in game.rules.autoMoveStrategy(cards)) {
         // The card was just recently move. Skip that
-        // if (lastMove?.to == move.from && lastMove?.to is! Discard) {
-        //   continue;
-        // }
+        if (lastMove?.to == move.from && lastMove?.to is! Discard) {
+          continue;
+        }
         final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
           HapticFeedback.mediumImpact();
@@ -374,7 +375,7 @@ class GameController extends _$GameController {
           break;
         }
       }
-      isWinning = ref.read(isFinishedProvider);
+      isWinning = ref.read(isGameFinishedProvider);
     } while (handled && !isWinning);
 
     if (!isWinning) {
@@ -411,11 +412,14 @@ class GameController extends _$GameController {
     ref.read(moveHistoryProvider.notifier).add(move);
 
     // Check if the game is winning
-    if (ref.read(isFinishedProvider)) {
+    if (ref.read(isGameFinishedProvider)) {
       state = GameStatus.finished;
     }
 
-    if (doPremove && state != GameStatus.autoSolving) {
+    // If possible and allowed to premove, do it
+    if (doPremove &&
+        ref.read(autoPremoveProvider) &&
+        state == GameStatus.started) {
       _doPremove();
     }
     return move;
@@ -458,26 +462,27 @@ class MoveHistory extends _$MoveHistory {
 
   void add(Move move) {
     final cards = ref.read(cardsOnTableProvider);
-    ref.read(movesProvider.notifier).forward();
+    final moves = ref.read(moveCountProvider);
+    ref.read(moveCountProvider.notifier).forward();
 
     state = [
-      ...state,
+      ...state.getRange(0, moves + 1),
       MoveRecord(cards.copy(), move),
     ];
   }
 
   bool get canUndo {
-    final moves = ref.read(movesProvider);
+    final moves = ref.read(moveCountProvider);
     return moves > 0;
   }
 
   bool get canRedo {
-    final moves = ref.read(movesProvider);
+    final moves = ref.read(moveCountProvider);
     return moves < state.length - 1;
   }
 
   void undo() {
-    final moves = ref.read(movesProvider.notifier);
+    final moves = ref.read(moveCountProvider.notifier);
 
     if (canUndo) {
       moves.reverse();
@@ -487,7 +492,7 @@ class MoveHistory extends _$MoveHistory {
   }
 
   void redo() {
-    final moves = ref.read(movesProvider.notifier);
+    final moves = ref.read(moveCountProvider.notifier);
 
     if (canRedo) {
       moves.forward();
@@ -497,13 +502,24 @@ class MoveHistory extends _$MoveHistory {
   }
 }
 
-// @riverpod
-// Move lastMove(LastMoveRef ref) {
-//   return null;
-// }
+@riverpod
+Move? lastMove(LastMoveRef ref) {
+  final history = ref.watch(moveHistoryProvider);
+  final move = ref.watch(moveCountProvider);
+
+  if (history.isEmpty || move >= history.length) {
+    return null;
+  }
+  final lastAction = history[move].action;
+  if (lastAction is Move) {
+    return lastAction;
+  } else {
+    return null;
+  }
+}
 
 @riverpod
-bool isFinished(IsFinishedRef ref) {
+bool isGameFinished(IsGameFinishedRef ref) {
   final game = ref.watch(currentGameProvider);
   final cards = ref.watch(cardsOnTableProvider);
 
@@ -538,8 +554,13 @@ class HintedCards extends _$HintedCards {
 }
 
 @riverpod
-UserAction? userAction(UserActionRef ref) {
-  return null;
+class UserAction extends _$UserAction {
+  @override
+  UserActionOptions? build() => null;
+
+  void set(UserActionOptions action) => state = action;
+
+  void clear() => state = null;
 }
 
 // --------------------------------------

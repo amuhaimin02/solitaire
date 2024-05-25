@@ -7,6 +7,7 @@ import '../models/pile.dart';
 import '../models/rules/rules.dart';
 import '../models/states/game.dart';
 import '../providers/game_logic.dart';
+import '../providers/settings.dart';
 import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
@@ -214,21 +215,20 @@ class _PlayArea extends ConsumerWidget {
 
     return OrientationBuilder(
       builder: (context, orientation) {
-        // final showMoveHighlight = context.select<SettingsManager, bool>(
-        //     (s) => s.get(Settings.showMoveHighlight));
-        //
-        // final showAutoSolveButton = context.select<SettingsManager, bool>(
-        //     (s) => s.get(Settings.showAutoSolveButton));
-        //
-        // final oneTapMove = context
-        //     .select<SettingsManager, bool>((s) => s.get(Settings.oneTapMove));
+        final showLastMoves = ref.watch(showLastMovesProvider);
 
-        // if (showMoveHighlight) {
-        //   final lastAction = gameState.latestAction;
-        //   if (lastAction is Move && lastAction.from is! Draw) {
-        //     lastMovedCards = (gameState.latestAction as Move).cards;
-        //   }
-        // }
+        final showAutoSolveButton = ref.watch(showAutoSolveButtonProvider);
+
+        final oneTapMove = ref.watch(oneTapMoveProvider);
+
+        PlayCardList? lastMovedCards;
+
+        if (showLastMoves) {
+          final lastMove = ref.watch(lastMoveProvider);
+          if (lastMove != null && lastMove.from is! Draw) {
+            lastMovedCards = lastMove.cards;
+          }
+        }
 
         return Stack(
           alignment: Alignment.center,
@@ -238,21 +238,21 @@ class _PlayArea extends ConsumerWidget {
               rules: game.rules,
               orientation: orientation,
               highlightedCards: highlightedCards,
-              lastMovedCards: null,
+              lastMovedCards: lastMovedCards,
               animateDistribute: gameStatus == GameStatus.preparing,
               onCardTap: (card, pile) {
                 print('tapping card $card on $pile');
                 final controller = ref.read(gameControllerProvider.notifier);
 
-                switch (pile) {
-                  case Tableau():
-                    // if (oneTapMove) {
-                    final result = _feedbackMoveResult(
-                        controller.tryQuickMove(card, pile));
-                    return result is MoveSuccess ? null : [card];
-                  // }
-                  case _:
-                    return [card];
+                if (oneTapMove) {
+                  switch (pile) {
+                    case Tableau():
+                      final result = _feedbackMoveResult(
+                          controller.tryQuickMove(card, pile));
+                      return result is MoveSuccess ? null : [card];
+                    case _:
+                      return [card];
+                  }
                 }
                 return null;
               },
@@ -266,7 +266,7 @@ class _PlayArea extends ConsumerWidget {
                     return null;
 
                   case Discard() || Foundation():
-                    if (/* oneTapMove  && */ cards(pile).isNotEmpty) {
+                    if (oneTapMove && cards(pile).isNotEmpty) {
                       final cardToMove = cards(pile).last;
                       final result = _feedbackMoveResult(
                           controller.tryQuickMove(cardToMove, pile));
@@ -289,13 +289,13 @@ class _PlayArea extends ConsumerWidget {
             const Positioned.fill(
               child: _UserActionIndicator(),
             ),
-            // if (showAutoSolveButton)
-            const Positioned.fill(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: _AutoSolveButton(),
-              ),
-            )
+            if (showAutoSolveButton)
+              const Positioned.fill(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _AutoSolveButton(),
+                ),
+              )
           ],
         );
       },
@@ -317,20 +317,19 @@ class _PlayArea extends ConsumerWidget {
   }
 }
 
-class _UserActionIndicator extends StatelessWidget {
+class _UserActionIndicator extends ConsumerWidget {
   const _UserActionIndicator({super.key});
 
   static const userActionIcon = {
-    UserAction.undoMultiple: Icons.fast_rewind,
-    UserAction.redoMultiple: Icons.fast_forward,
+    UserActionOptions.undoMultiple: Icons.fast_rewind,
+    UserActionOptions.redoMultiple: Icons.fast_forward,
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final userAction = null;
-    // final userAction =
-    //     context.select<GameState, UserAction?>((s) => s.userAction);
+
+    final userAction = ref.watch(userActionProvider);
 
     return AnimatedSwitcher(
       duration: cardMoveAnimation.duration,
@@ -380,7 +379,7 @@ class _FinishDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final moves = ref.watch(movesProvider);
+    final moves = ref.watch(moveCountProvider);
     final playTime = ref.watch(playTimeProvider);
     final score = ref.watch(scoreProvider);
 
