@@ -3,11 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../animations.dart';
+import '../models/action.dart';
 import '../models/card.dart';
+import '../models/card_list.dart';
+import '../models/game/klondike.dart';
+import '../models/game/simple.dart';
+import '../models/game/solitaire.dart';
+import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/rules/klondike.dart';
-import '../models/rules/rules.dart';
-import '../models/rules/simple.dart';
 import '../models/states/game.dart';
 import '../utils/iterators.dart';
 import '../utils/prng.dart';

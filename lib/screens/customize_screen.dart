@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
+import '../models/card_list.dart';
+import '../models/game/simple.dart';
 import '../models/pile.dart';
-import '../models/rules/simple.dart';
 import '../providers/settings.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/game_table.dart';

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../animations.dart';
+import '../models/card_list.dart';
 import '../models/pile.dart';
 import '../providers/game_selection.dart';
 import '../providers/settings.dart';

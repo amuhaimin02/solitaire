@@ -7,9 +7,10 @@ import 'package:flutter/scheduler.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
+import '../models/card_list.dart';
 import '../models/direction.dart';
+import '../models/game/solitaire.dart';
 import '../models/pile.dart';
-import '../models/rules/rules.dart';
 import 'card_view.dart';
 import 'pile_marker.dart';
 import 'shakeable.dart';

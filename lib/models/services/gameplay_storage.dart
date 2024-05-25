@@ -1,4 +1,4 @@
-import '../rules/rules.dart';
+import '../game/solitaire.dart';
 import '../states/game.dart';
 
 class GameplayStorage {

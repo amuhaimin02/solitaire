@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
 
+import '../action.dart';
 import '../card.dart';
+import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
-import 'rules.dart';
+import 'solitaire.dart';
 
 class SimpleSolitaire extends SolitaireGame {
   @override

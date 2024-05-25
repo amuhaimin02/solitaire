@@ -1,7 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../pile.dart';
-import '../rules/rules.dart';
+import '../action.dart';
+import '../card_list.dart';
+import '../game/solitaire.dart';
 
 part 'game.freezed.dart';
 

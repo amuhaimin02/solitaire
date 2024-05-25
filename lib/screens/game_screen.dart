@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
+import '../models/action.dart';
+import '../models/card_list.dart';
+import '../models/game/solitaire.dart';
+import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/rules/rules.dart';
 import '../models/states/game.dart';
 import '../providers/game_logic.dart';
 import '../providers/settings.dart';

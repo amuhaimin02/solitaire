@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../action.dart';
+import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
 

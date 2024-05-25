@@ -1,10 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../models/rules/klondike.dart';
-import '../models/rules/rules.dart';
-import '../models/rules/simple.dart';
-
+import '../models/game/klondike.dart';
+import '../models/game/simple.dart';
+import '../models/game/solitaire.dart';
 part 'game_selection.g.dart';
 
 @riverpod
