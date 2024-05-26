@@ -7,7 +7,7 @@ import '../animations.dart';
 import '../models/game/simple.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
-import '../providers/settings.dart';
+import '../providers/themes.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
@@ -110,12 +110,12 @@ class _SettingsList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final themeMode = ref.watch(appThemeModeProvider);
-    final themeColor = ref.watch(appThemeColorProvider);
+    final themeMode = ref.watch(themeBaseModeProvider);
+    final themeColor = ref.watch(themeBaseColorProvider);
 
-    final randomizeColor = ref.watch(randomizeThemeColorProvider);
-    final coloredBackground = ref.watch(coloredBackgroundProvider);
-    final amoledDarkTheme = ref.watch(amoledBackgroundProvider);
+    final randomizeColor = ref.watch(themeBaseRandomizeColorProvider);
+    final coloredBackground = ref.watch(themeBackgroundColoredProvider);
+    final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
 
     return FadingEdgeListView(
       verticalPadding: 32,
@@ -145,7 +145,7 @@ class _SettingsList extends ConsumerWidget {
               ],
               selected: {themeMode},
               onSelectionChanged: (value) {
-                ref.read(appThemeModeProvider.notifier).set(value.single);
+                ref.read(themeBaseModeProvider.notifier).set(value.single);
               },
             ),
           ),
@@ -170,7 +170,7 @@ class _SettingsList extends ConsumerWidget {
                       onChanged: (value) {
                         if (value == true) {
                           ref
-                              .read(randomizeThemeColorProvider.notifier)
+                              .read(themeBaseRandomizeColorProvider.notifier)
                               .set(true);
                         }
                       },
@@ -184,11 +184,12 @@ class _SettingsList extends ConsumerWidget {
                             onPressed: () {
                               if (randomizeColor) {
                                 ref
-                                    .read(randomizeThemeColorProvider.notifier)
+                                    .read(themeBaseRandomizeColorProvider
+                                        .notifier)
                                     .set(false);
                               }
                               ref
-                                  .read(appThemeColorProvider.notifier)
+                                  .read(themeBaseColorProvider.notifier)
                                   .set(color);
                             },
                             isSelected: !randomizeColor &&
@@ -213,7 +214,7 @@ class _SettingsList extends ConsumerWidget {
           value: amoledDarkTheme,
           onChanged: !coloredBackground && themeMode != ThemeMode.light
               ? (value) {
-                  ref.read(amoledBackgroundProvider.notifier).toggle();
+                  ref.read(themeBackgroundAmoledProvider.notifier).toggle();
                 }
               : null,
         ),
@@ -223,16 +224,16 @@ class _SettingsList extends ConsumerWidget {
               'Use strong colors of the theme for the table background'),
           value: coloredBackground,
           onChanged: (value) {
-            ref.read(coloredBackgroundProvider.notifier).toggle();
+            ref.read(themeBackgroundColoredProvider.notifier).toggle();
           },
         ),
         const SectionTitle('Cards'),
         SwitchListTile(
           title: const Text('Standard card colors'),
           subtitle: const Text('Use standard red-black card face colors'),
-          value: ref.watch(standardCardColorProvider),
+          value: ref.watch(themeCardStandardColorProvider),
           onChanged: (value) {
-            ref.read(standardCardColorProvider.notifier).toggle();
+            ref.read(themeCardStandardColorProvider.notifier).toggle();
           },
         ),
       ],

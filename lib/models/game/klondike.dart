@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
-import '../table_layout.dart';
 
 import '../../services/card_shuffler.dart';
 import '../action.dart';
@@ -11,6 +10,7 @@ import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
 import '../play_table.dart';
+import '../table_layout.dart';
 import 'solitaire.dart';
 
 class Klondike extends SolitaireGame {

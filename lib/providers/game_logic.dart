@@ -150,7 +150,7 @@ class GameController extends _$GameController {
     ref.read(moveHistoryProvider.notifier).createNew();
     state = GameStatus.started;
 
-    if (ref.read(autoPremoveProvider)) {
+    if (ref.read(settingsUseAutoPremoveProvider)) {
       _doPremove();
     }
   }
@@ -468,7 +468,7 @@ class GameController extends _$GameController {
 
     // If possible and allowed to premove, do it
     if (doPremove &&
-        ref.read(autoPremoveProvider) &&
+        ref.read(settingsUseAutoPremoveProvider) &&
         state == GameStatus.started) {
       _doPremove();
     }

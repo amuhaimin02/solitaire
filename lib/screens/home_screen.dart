@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -10,12 +9,11 @@ import '../models/pile.dart';
 import '../models/play_table.dart';
 import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
-import '../providers/settings.dart';
+import '../providers/themes.dart';
 import '../utils/widgets.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/fast_page_view.dart';
 import '../widgets/game_table.dart';
-import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -284,11 +282,9 @@ class _GameControls extends ConsumerWidget {
         children: [
           FilledButton.tonalIcon(
             onPressed: () async {
-              if (ref.read(randomizeThemeColorProvider)) {
-                ref
-                    .watch(appThemeColorProvider.notifier)
-                    .set(themeColorPalette.sample(1).single);
-              }
+              ref
+                  .read(themeBaseRandomizeColorProvider.notifier)
+                  .tryShuffleColor();
               final game = ref.read(selectedGameProvider);
               Navigator.pushNamed(context, '/game', arguments: game);
             },

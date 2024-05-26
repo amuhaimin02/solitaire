@@ -16,9 +16,9 @@ class StatusPane extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final showMoves = ref.watch(showMovesProvider);
-    final showTime = ref.watch(showTimeProvider);
-    final showScore = ref.watch(showScoreProvider);
+    final showMoves = ref.watch(settingsShowMoveCountProvider);
+    final showTime = ref.watch(settingsShowPlayTimeProvider);
+    final showScore = ref.watch(settingsShowScoreProvider);
 
     return DefaultTextStyle.merge(
       style: Theme.of(context)

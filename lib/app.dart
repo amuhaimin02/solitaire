@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'providers/settings.dart';
+import 'providers/themes.dart';
 import 'screens/about_screen.dart';
 import 'screens/customize_screen.dart';
 import 'screens/game_screen.dart';
@@ -23,14 +24,14 @@ class SolitaireApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
-    ref.listen(appScreenOrientationProvider, (_, orientation) {
+    ref.listen(settingsScreenOrientationProvider, (_, orientation) {
       ScreenOrientationManager.change(orientation);
     });
 
-    ThemeMode themeMode = ref.watch(appThemeModeProvider);
-    final themeColor = ref.watch(appThemeColorProvider);
-    final coloredBackground = ref.watch(coloredBackgroundProvider);
-    final amoledDarkTheme = ref.watch(amoledBackgroundProvider);
+    ThemeMode themeMode = ref.watch(themeBaseModeProvider);
+    final themeColor = ref.watch(themeBaseColorProvider);
+    final coloredBackground = ref.watch(themeBackgroundColoredProvider);
+    final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
 
     ColorScheme colorScheme;
 
@@ -57,7 +58,7 @@ class SolitaireApp extends ConsumerWidget {
 
     final SolitaireCardStyle cardStyle;
 
-    if (ref.watch(standardCardColorProvider)) {
+    if (ref.watch(themeCardStandardColorProvider)) {
       cardStyle = SolitaireCardStyle(
         facePlainColor: Colors.white,
         faceAccentColor: Colors.white,

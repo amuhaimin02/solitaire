@@ -48,10 +48,10 @@ class SettingsScreen extends ConsumerWidget {
                         // icon: Icon(Icons.stay_current_landscape),
                       ),
                     ],
-                    selected: {ref.watch(appScreenOrientationProvider)},
+                    selected: {ref.watch(settingsScreenOrientationProvider)},
                     onSelectionChanged: (value) {
                       ref
-                          .read(appScreenOrientationProvider.notifier)
+                          .read(settingsScreenOrientationProvider.notifier)
                           .set(value.single);
                     },
                   ),
@@ -62,36 +62,36 @@ class SettingsScreen extends ConsumerWidget {
                 secondary: const Icon(Icons.crop_portrait),
                 subtitle: const Text(
                     'Recently moved cards will be indicated with a border'),
-                value: ref.watch(showLastMovesProvider),
+                value: ref.watch(settingsShowLastMoveProvider),
                 onChanged: (value) {
-                  ref.read(showLastMovesProvider.notifier).toggle();
+                  ref.read(settingsShowLastMoveProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
                 title: const Text('Show score'),
                 secondary: Icon(MdiIcons.counter),
                 subtitle: const Text('Show score obtained during play'),
-                value: ref.watch(showScoreProvider),
+                value: ref.watch(settingsShowScoreProvider),
                 onChanged: (value) {
-                  ref.read(showScoreProvider.notifier).toggle();
+                  ref.read(settingsShowScoreProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
                 title: const Text('Show moves'),
                 secondary: Icon(MdiIcons.cards),
                 subtitle: const Text('Show number of moves during play'),
-                value: ref.watch(showMovesProvider),
+                value: ref.watch(settingsShowMoveCountProvider),
                 onChanged: (value) {
-                  ref.read(showMovesProvider.notifier).toggle();
+                  ref.read(settingsShowMoveCountProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
                 title: const Text('Show time'),
                 secondary: Icon(MdiIcons.timerOutline),
                 subtitle: const Text('Show play time during play'),
-                value: ref.watch(showTimeProvider),
+                value: ref.watch(settingsShowPlayTimeProvider),
                 onChanged: (value) {
-                  ref.read(showTimeProvider.notifier).toggle();
+                  ref.read(settingsShowPlayTimeProvider.notifier).toggle();
                 },
               ),
               const SectionTitle('Behavior'),
@@ -100,9 +100,9 @@ class SettingsScreen extends ConsumerWidget {
                 secondary: Icon(MdiIcons.gestureTap),
                 subtitle: const Text(
                     'Tapping on cards will automatically move to possible places'),
-                value: ref.watch(oneTapMoveProvider),
+                value: ref.watch(settingsUseOneTapMoveProvider),
                 onChanged: (value) {
-                  ref.read(oneTapMoveProvider.notifier).toggle();
+                  ref.read(settingsUseOneTapMoveProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
@@ -110,9 +110,9 @@ class SettingsScreen extends ConsumerWidget {
                 secondary: Icon(MdiIcons.transferRight),
                 subtitle: const Text(
                     'Cards will be moved to winning position when possible after each move'),
-                value: ref.watch(autoPremoveProvider),
+                value: ref.watch(settingsUseAutoPremoveProvider),
                 onChanged: (value) {
-                  ref.read(autoPremoveProvider.notifier).toggle();
+                  ref.read(settingsUseAutoPremoveProvider.notifier).toggle();
                 },
               ),
               SwitchListTile(
@@ -120,9 +120,11 @@ class SettingsScreen extends ConsumerWidget {
                 secondary: Icon(MdiIcons.autoFix),
                 subtitle: const Text(
                     'If solution is possible, auto solve button will automatically finish the game'),
-                value: ref.watch(showAutoSolveButtonProvider),
+                value: ref.watch(settingsShowAutoSolveButtonProvider),
                 onChanged: (value) {
-                  ref.read(showAutoSolveButtonProvider.notifier).toggle();
+                  ref
+                      .read(settingsShowAutoSolveButtonProvider.notifier)
+                      .toggle();
                 },
               ),
             ],

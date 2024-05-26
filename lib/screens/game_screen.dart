@@ -236,11 +236,12 @@ class _PlayArea extends ConsumerWidget {
 
     return OrientationBuilder(
       builder: (context, orientation) {
-        final showLastMoves = ref.watch(showLastMovesProvider);
+        final showLastMoves = ref.watch(settingsShowLastMoveProvider);
 
-        final showAutoSolveButton = ref.watch(showAutoSolveButtonProvider);
+        final showAutoSolveButton =
+            ref.watch(settingsShowAutoSolveButtonProvider);
 
-        final oneTapMove = ref.watch(oneTapMoveProvider);
+        final oneTapMove = ref.watch(settingsUseOneTapMoveProvider);
 
         List<PlayCard>? lastMovedCards;
 
