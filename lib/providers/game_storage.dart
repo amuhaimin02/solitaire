@@ -34,6 +34,7 @@ class GameStorage extends _$GameStorage {
     final fileHandler = ref.read(fileHandlerProvider.notifier);
     final saveData =
         await decompressText(await fileHandler.load(_quickSaveFileName(game)));
+
     return const GameDataSerializer().deserialize(saveData);
   }
 

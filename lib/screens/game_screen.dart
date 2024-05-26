@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'home_screen.dart';
 import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
@@ -405,56 +406,53 @@ class _FinishDialog extends ConsumerWidget {
     final playTime = ref.watch(playTimeProvider);
     final score = ref.watch(scoreProvider);
 
-    return AlertDialog(
-      title: const Text('You win!'),
-      // TODO: Workaround. As Google Fonts didn't inherit text colors from color scheme, had to do it manually here
-      titleTextStyle: textTheme.headlineSmall!
-          .copyWith(color: colorScheme.onPrimaryContainer),
-      contentTextStyle:
-          textTheme.bodyMedium!.copyWith(color: colorScheme.onSurfaceVariant),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text('Moves: $moves'),
-              const Spacer(),
-              Text('Time: ${playTime.toMMSSString()}'),
-            ],
+    return DialogThemeFix(
+      child: AlertDialog(
+        title: const Text('You win!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text('Moves: $moves'),
+                const Spacer(),
+                Text('Time: ${playTime.toMMSSString()}'),
+              ],
+            ),
+            const Divider(),
+            const Text('Base score'),
+            Text(
+              '$score',
+              style: textTheme.bodyLarge!
+                  .copyWith(color: colorScheme.onSurfaceVariant),
+              textAlign: TextAlign.end,
+            ),
+            const Divider(),
+            const Text('Final score'),
+            Text(
+              '$score',
+              style: textTheme.headlineMedium!
+                  .copyWith(color: colorScheme.primary),
+              textAlign: TextAlign.end,
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton.tonal(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text('Quit'),
           ),
-          const Divider(),
-          const Text('Base score'),
-          Text(
-            '$score',
-            style: textTheme.bodyLarge!
-                .copyWith(color: colorScheme.onSurfaceVariant),
-            textAlign: TextAlign.end,
-          ),
-          const Divider(),
-          const Text('Final score'),
-          Text(
-            '$score',
-            style:
-                textTheme.headlineMedium!.copyWith(color: colorScheme.primary),
-            textAlign: TextAlign.end,
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: const Text('Play again'),
           ),
         ],
       ),
-      actions: [
-        FilledButton.tonal(
-          onPressed: () {
-            Navigator.pop(context, false);
-          },
-          child: const Text('Quit'),
-        ),
-        FilledButton(
-          onPressed: () {
-            Navigator.pop(context, true);
-          },
-          child: const Text('Play again'),
-        ),
-      ],
     );
   }
 }

@@ -109,6 +109,12 @@ class SolitaireApp extends ConsumerWidget {
       chipTheme: ChipThemeData(
         backgroundColor: solitaireThemeData.appBackgroundColor,
       ),
+      dialogTheme: DialogTheme(
+        titleTextStyle: textTheme.headlineSmall!
+            .copyWith(color: colorScheme.onPrimaryContainer),
+        contentTextStyle:
+            textTheme.bodyMedium!.copyWith(color: colorScheme.onSurfaceVariant),
+      ),
     );
 
     return SolitaireTheme(

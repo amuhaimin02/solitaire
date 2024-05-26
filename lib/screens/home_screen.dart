@@ -274,6 +274,8 @@ class _GameControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedGame = ref.watch(selectedGameProvider);
+    final hasQuickSave =
+        ref.watch(hasQuickSaveProvider(selectedGame)).value ?? false;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -282,10 +284,18 @@ class _GameControls extends ConsumerWidget {
         children: [
           FilledButton.tonalIcon(
             onPressed: () async {
+              if (hasQuickSave) {
+                final response = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => const _NewGameDialog(),
+                );
+                if (response != true) return;
+              }
               ref
                   .read(themeBaseRandomizeColorProvider.notifier)
                   .tryShuffleColor();
               final game = ref.read(selectedGameProvider);
+              if (!context.mounted) return;
               Navigator.pushNamed(context, '/game', arguments: game);
             },
             style: OutlinedButton.styleFrom(
@@ -296,8 +306,7 @@ class _GameControls extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           AnimatedVisibility(
-            visible:
-                ref.watch(hasQuickSaveProvider(selectedGame)).value ?? false,
+            visible: hasQuickSave,
             child: FilledButton.icon(
               onPressed: () async {
                 try {
@@ -305,11 +314,19 @@ class _GameControls extends ConsumerWidget {
                   final gameData = await ref
                       .read(gameStorageProvider.notifier)
                       .restoreQuickSave(game);
-                  if (context.mounted) {
-                    Navigator.pushNamed(context, '/game', arguments: gameData);
-                  }
+                  if (!context.mounted) return;
+                  Navigator.pushNamed(context, '/game', arguments: gameData);
                 } catch (e) {
-                  print(e);
+                  if (!context.mounted) return;
+                  final response = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => const _ContinueGameCorruptedDialog(),
+                  );
+                  if (response == true) {
+                    if (!context.mounted) return;
+                    final game = ref.read(selectedGameProvider);
+                    Navigator.pushNamed(context, '/game', arguments: game);
+                  }
                 }
               },
               style: FilledButton.styleFrom(
@@ -372,6 +389,80 @@ class _GameControls extends ConsumerWidget {
           )
         ],
       ),
+    );
+  }
+}
+
+class _NewGameDialog extends StatelessWidget {
+  const _NewGameDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogThemeFix(
+      child: AlertDialog(
+        title: const Text('Start new game?'),
+        content: const Text(
+            'There is a saved game available. Delete it and start a new one?'),
+        actions: [
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('New game'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContinueGameCorruptedDialog extends StatelessWidget {
+  const _ContinueGameCorruptedDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogThemeFix(
+      child: AlertDialog(
+        title: const Text('Cannot continue game'),
+        content: const Text(
+            'Failed to load game as data might be corrupted. Start a new game instead?'),
+        actions: [
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('New game'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// TODO: Temporary workaround to fix dialog theme when using Google Fonts
+class DialogThemeFix extends StatelessWidget {
+  const DialogThemeFix({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dialogTheme: DialogTheme(
+          titleTextStyle: textTheme.headlineSmall!
+              .copyWith(color: colorScheme.onPrimaryContainer),
+          contentTextStyle: textTheme.bodyMedium!
+              .copyWith(color: colorScheme.onSurfaceVariant),
+        ),
+      ),
+      child: child,
     );
   }
 }
