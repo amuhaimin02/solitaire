@@ -149,18 +149,23 @@ class SolitaireCardStyle {
 
   factory SolitaireCardStyle.fromColorScheme(
     ColorScheme colorScheme, {
-    bool amoledDarkTheme = false,
-    bool coloredBackground = false,
+    bool tintedCardFace = false,
   }) {
     final Color cardFacePlainColor, cardFaceAccentColor;
     final Color cardLabelPlainColor, cardLabelAccentColor;
-    final isDarkMode = colorScheme.brightness == Brightness.dark;
 
-    if (amoledDarkTheme && isDarkMode) {
-      cardLabelPlainColor = colorScheme.onSurface;
-      cardLabelAccentColor = colorScheme.onPrimaryContainer;
-      cardFacePlainColor = colorScheme.surfaceContainer;
-      cardFaceAccentColor = colorScheme.onPrimary;
+    if (tintedCardFace) {
+      if (colorScheme.brightness == Brightness.dark) {
+        cardLabelPlainColor = colorScheme.onSurface;
+        cardLabelAccentColor = colorScheme.onPrimaryContainer;
+        cardFacePlainColor = colorScheme.surfaceContainer;
+        cardFaceAccentColor = colorScheme.onPrimary;
+      } else {
+        cardLabelPlainColor = colorScheme.onSurface;
+        cardLabelAccentColor = colorScheme.onPrimaryContainer;
+        cardFacePlainColor = colorScheme.surfaceContainerLowest;
+        cardFaceAccentColor = colorScheme.primaryContainer;
+      }
     } else {
       cardLabelPlainColor = colorScheme.onSurface;
       cardLabelAccentColor = colorScheme.primary;

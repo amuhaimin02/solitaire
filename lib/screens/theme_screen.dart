@@ -13,8 +13,8 @@ import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 
-class CustomizeScreen extends ConsumerWidget {
-  const CustomizeScreen({super.key});
+class ThemeScreen extends ConsumerWidget {
+  const ThemeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,7 +74,7 @@ class CustomizeScreen extends ConsumerWidget {
     final theme = SolitaireTheme.of(context);
 
     // TODO: Create function to generate demo setup
-    final rules = const SimpleSolitaire();
+    const rules = SimpleSolitaire();
     PlayTable table = PlayTable.fromGame(rules)
         .modify(const Draw(), rules.prepareDrawPile(Random(1)));
     table = rules.setup(table);
@@ -120,7 +120,7 @@ class _SettingsList extends ConsumerWidget {
     return FadingEdgeListView(
       verticalPadding: 32,
       children: [
-        const SectionTitle('Base theme', first: true),
+        const SectionTitle('Overall', first: true),
         ListTile(
           title: const Text('Theme mode'),
           subtitle: Padding(
@@ -157,52 +157,37 @@ class _SettingsList extends ConsumerWidget {
             child: Material(
               color: colorScheme.surfaceTint.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    CheckboxListTile(
-                      title: const Text('Random color'),
-                      secondary: const Icon(Icons.shuffle),
-                      subtitle: const Text(
-                          'Color changes every time new game starts'),
-                      value: randomizeColor,
-                      onChanged: (value) {
-                        if (value == true) {
-                          ref
-                              .read(themeBaseRandomizeColorProvider.notifier)
-                              .set(true);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      alignment: WrapAlignment.start,
-                      children: [
-                        for (final color in themeColorPalette)
-                          IconButton(
-                            onPressed: () {
-                              if (randomizeColor) {
-                                ref
-                                    .read(themeBaseRandomizeColorProvider
-                                        .notifier)
-                                    .set(false);
-                              }
-                              ref
-                                  .read(themeBaseColorProvider.notifier)
-                                  .set(color);
-                            },
-                            isSelected: !randomizeColor &&
-                                themeColor.value == color.value,
-                            iconSize: 32,
-                            icon: const Icon(Icons.circle_outlined),
-                            selectedIcon: const Icon(Icons.circle),
-                            color: color,
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  CheckboxListTile(
+                    title: const Text('Random color'),
+                    secondary: const Icon(Icons.shuffle),
+                    subtitle:
+                        const Text('Color changes every time new game starts'),
+                    value: randomizeColor,
+                    onChanged: (value) {
+                      if (value == true) {
+                        ref
+                            .read(themeBaseRandomizeColorProvider.notifier)
+                            .set(true);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _ColorSelectionTile(
+                    value: randomizeColor ? null : themeColor,
+                    options: themeColorPalette,
+                    onTap: (color) {
+                      if (randomizeColor) {
+                        ref
+                            .read(themeBaseRandomizeColorProvider.notifier)
+                            .set(false);
+                      }
+                      ref.read(themeBaseColorProvider.notifier).set(color);
+                    },
+                  ),
+                ],
               ),
             ),
           ),
@@ -228,15 +213,119 @@ class _SettingsList extends ConsumerWidget {
           },
         ),
         const SectionTitle('Cards'),
+        ListTile(
+          title: const Text('Card theme mode'),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: SegmentedButton<ThemeMode>(
+              segments: const [
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  label: Text('Follow theme'),
+                  icon: Icon(Icons.contrast),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  label: Text('Light'),
+                  icon: Icon(Icons.light_mode),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  label: Text('Dark'),
+                  icon: Icon(Icons.dark_mode),
+                ),
+              ],
+              selected: {ref.watch(themeCardModeProvider)},
+              onSelectionChanged: (value) {
+                ref.read(themeCardModeProvider.notifier).set(value.single);
+              },
+            ),
+          ),
+        ),
+        ListTile(
+          title: const Text('Select card colors'),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Material(
+              color: colorScheme.surfaceTint.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  CheckboxListTile(
+                    title: const Text('Follow base color'),
+                    secondary: const Icon(Icons.color_lens),
+                    subtitle: const Text('Use same color as background'),
+                    value:
+                        ref.watch(themeCardColorProvider) == Colors.transparent,
+                    onChanged: (value) {
+                      if (value == true) {
+                        ref
+                            .read(themeCardColorProvider.notifier)
+                            .set(Colors.transparent);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _ColorSelectionTile(
+                    value: ref.watch(themeCardColorProvider),
+                    options: themeColorPalette,
+                    onTap: (color) {
+                      ref.read(themeCardColorProvider.notifier).set(color);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         SwitchListTile(
-          title: const Text('Standard card colors'),
-          subtitle: const Text('Use standard red-black card face colors'),
-          value: ref.watch(themeCardStandardColorProvider),
+          title: const Text('Tinted card face'),
+          subtitle:
+              const Text('Add colors to card face for easier recognition'),
+          value: ref.watch(themeCardTintedFaceProvider),
           onChanged: (value) {
-            ref.read(themeCardStandardColorProvider.notifier).toggle();
+            ref.read(themeCardTintedFaceProvider.notifier).toggle();
           },
         ),
       ],
     );
+  }
+}
+
+class _ColorSelectionTile extends StatelessWidget {
+  const _ColorSelectionTile({
+    super.key,
+    required this.value,
+    required this.options,
+    required this.onTap,
+  });
+
+  final Color? value;
+
+  final List<Color> options;
+
+  final Function(Color) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Wrap(
+        alignment: WrapAlignment.start,
+        children: [
+          for (final color in themeColorPalette)
+            IconButton(
+              onPressed: () => onTap(color),
+              isSelected: color.value == value?.value,
+              iconSize: 32,
+              icon: const Icon(Icons.circle_outlined),
+              selectedIcon: const Icon(Icons.circle),
+              color: color,
+            ),
+        ],
+      ),
+    );
+    ;
   }
 }

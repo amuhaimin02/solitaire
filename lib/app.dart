@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'providers/settings.dart';
 import 'providers/themes.dart';
 import 'screens/about_screen.dart';
-import 'screens/customize_screen.dart';
+import 'screens/theme_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
@@ -32,6 +32,8 @@ class SolitaireApp extends ConsumerWidget {
     final themeColor = ref.watch(themeBaseColorProvider);
     final coloredBackground = ref.watch(themeBackgroundColoredProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
+    final cardThemeMode = ref.watch(themeCardModeProvider);
+    final cardColor = ref.watch(themeCardColorProvider);
 
     ColorScheme colorScheme;
 
@@ -58,26 +60,25 @@ class SolitaireApp extends ConsumerWidget {
 
     final SolitaireCardStyle cardStyle;
 
-    if (ref.watch(themeCardStandardColorProvider)) {
-      cardStyle = SolitaireCardStyle(
-        facePlainColor: Colors.white,
-        faceAccentColor: Colors.white,
-        labelPlainColor: Colors.grey.shade800,
-        labelAccentColor: Colors.red,
-        coverColor: colorScheme.primary,
-        unitSize: const Size(2.5, 3.5),
-        margin: 0.06,
-        coverBorderPadding: 0.02,
-        stackGap: const Offset(0.3, 0.3),
-        cornerRadius: 0.1,
+    final ColorScheme cardColorScheme;
+
+    if (cardThemeMode != ThemeMode.system || cardColor != Colors.transparent) {
+      cardColorScheme = ColorScheme.fromSeed(
+        seedColor: cardColor != Colors.transparent ? cardColor : themeColor,
+        brightness: switch (cardThemeMode) {
+          ThemeMode.light => Brightness.light,
+          ThemeMode.dark => Brightness.dark,
+          ThemeMode.system => colorScheme.brightness,
+        },
       );
     } else {
-      cardStyle = SolitaireCardStyle.fromColorScheme(
-        colorScheme,
-        amoledDarkTheme: amoledDarkTheme,
-        coloredBackground: coloredBackground,
-      );
+      cardColorScheme = colorScheme;
     }
+
+    cardStyle = SolitaireCardStyle.fromColorScheme(
+      cardColorScheme,
+      tintedCardFace: ref.watch(themeCardTintedFaceProvider),
+    );
 
     final solitaireThemeData = SolitaireThemeData.fromColorScheme(
       colorScheme: colorScheme,
@@ -120,7 +121,7 @@ class SolitaireApp extends ConsumerWidget {
         routes: {
           '/home': (context) => const HomeScreen(),
           '/game': (context) => const GameScreen(),
-          '/customize': (context) => const CustomizeScreen(),
+          '/theme': (context) => const ThemeScreen(),
           '/settings': (context) => const SettingsScreen(),
           '/stats': (context) => const StatisticsScreen(),
           '/about': (context) => const AboutScreen(),

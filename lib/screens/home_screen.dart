@@ -349,7 +349,7 @@ class _GameControls extends ConsumerWidget {
               ),
               IconButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/customize');
+                  Navigator.pushNamed(context, '/theme');
                 },
                 tooltip: 'Customize',
                 icon: const Icon(Icons.imagesearch_roller),

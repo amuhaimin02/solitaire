@@ -70,19 +70,6 @@ class ThemeBackgroundAmoled extends _$ThemeBackgroundAmoled
 }
 
 @riverpod
-class ThemeCardStandardColor extends _$ThemeCardStandardColor
-    with SharedPreferencesProviderMixin {
-  @override
-  final String key = 'theme_card_standard_color';
-
-  @override
-  final bool defaultValue = false;
-
-  @override
-  bool build() => get();
-}
-
-@riverpod
 class ThemeBaseRandomizeColor extends _$ThemeBaseRandomizeColor
     with SharedPreferencesProviderMixin {
   @override
@@ -105,4 +92,49 @@ class ThemeBaseRandomizeColor extends _$ThemeBaseRandomizeColor
       ref.read(themeBaseColorProvider.notifier).set(newColor);
     }
   }
+}
+
+@riverpod
+class ThemeCardMode extends _$ThemeCardMode
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'theme_card_mode';
+
+  @override
+  final ThemeMode defaultValue = ThemeMode.system;
+
+  @override
+  List<ThemeMode> get options => ThemeMode.values;
+
+  @override
+  ThemeMode build() => get();
+}
+
+@riverpod
+class ThemeCardColor extends _$ThemeCardColor
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'theme_card_color';
+
+  @override
+  final Color defaultValue = Colors.transparent;
+
+  @override
+  Serializer get serializer => const ColorSerializer();
+
+  @override
+  Color build() => get();
+}
+
+@riverpod
+class ThemeCardTintedFace extends _$ThemeCardTintedFace
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'theme_card_tinted_face';
+
+  @override
+  final bool defaultValue = false;
+
+  @override
+  bool build() => get();
 }
