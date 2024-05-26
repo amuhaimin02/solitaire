@@ -2,9 +2,8 @@ import 'dart:math';
 
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
-import 'package:solitaire/models/table_layout.dart';
+import '../table_layout.dart';
 
-import '../../providers/game_logic.dart';
 import '../../services/card_shuffler.dart';
 import '../action.dart';
 import '../card.dart';
@@ -18,10 +17,10 @@ class Klondike extends SolitaireGame {
   const Klondike(KlondikeVariant super.variant);
 
   @override
-  String get name => "Klondike";
+  String get name => 'Klondike';
 
   @override
-  String get tag => name.toParamCase();
+  String get tag => 'klondike';
 
   static const numberOfTableauPiles = 7;
 
@@ -261,10 +260,10 @@ class KlondikeVariant extends SolitaireVariant<Klondike> {
   });
 
   @override
-  String get name => "${scoring.fullName}, ${draws.fullName}";
+  String get name => '${scoring.fullName}, ${draws.fullName}';
 
   @override
-  String get tag => "${scoring.name.toParamCase()}:${draws.name.toParamCase()}";
+  String get tag => '${scoring.name.toParamCase()}-${draws.name.toParamCase()}';
 
   int calculateScore(Move move, PlayTable table) {
     switch (scoring) {
@@ -279,8 +278,8 @@ class KlondikeVariant extends SolitaireVariant<Klondike> {
 }
 
 enum KlondikeDraws {
-  oneDraw("1 draw"),
-  threeDraws("3 draws");
+  oneDraw('1 draw'),
+  threeDraws('3 draws');
 
   final String fullName;
 
@@ -288,9 +287,9 @@ enum KlondikeDraws {
 }
 
 enum KlondikeScoring {
-  standard("Standard"),
-  vegas("Vegas"),
-  cumulativeVegas("Cumulative Vegas");
+  standard('Standard'),
+  vegas('Vegas'),
+  cumulativeVegas('Cumulative Vegas');
 
   final String fullName;
 

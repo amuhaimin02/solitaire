@@ -1,0 +1,1 @@
+enum UserActionOptions { undoMultiple, redoMultiple }

@@ -13,7 +13,7 @@ abstract class SolitaireGame {
 
   SolitaireVariant<SolitaireGame> get variant {
     if (_variant == null) {
-      throw ArgumentError("$name does not have any variants set");
+      throw ArgumentError('$name does not have any variants set');
     }
     return _variant;
   }
@@ -49,6 +49,17 @@ abstract class SolitaireGame {
   Iterable<MoveIntent> autoSolveStrategy(PlayTable table);
 
   (PlayTable card, int score) afterEachMove(Move move, PlayTable table);
+
+  String get fullTag {
+    if (hasVariants) {
+      return '$tag-${variant.tag}';
+    } else {
+      return tag;
+    }
+  }
+
+  @override
+  String toString() => fullTag;
 }
 
 abstract class SolitaireVariant<T extends SolitaireGame> {

@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:xrandom/xrandom.dart';
 
 class CustomPRNG {
-  static const charset = "ABCDEFGHJKLMNPQRTUVWXY23456789";
+  static const charset = 'ABCDEFGHJKLMNPQRTUVWXY23456789';
 
   static String generateSeed({required int length}) {
     final random = Xrandom();

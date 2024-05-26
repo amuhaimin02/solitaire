@@ -6,11 +6,15 @@ import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
 import '../models/game/solitaire.dart';
+import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/states/game.dart';
+import '../models/play_data.dart';
+import '../models/user_action.dart';
 import '../providers/game_logic.dart';
+import '../providers/game_storage.dart';
 import '../providers/settings.dart';
+import '../services/route_observer.dart';
 import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
@@ -28,7 +32,8 @@ class GameScreen extends ConsumerStatefulWidget {
   ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends ConsumerState<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen>
+    with RouteAware, RouteObserved {
   @override
   void initState() {
     super.initState();
@@ -40,10 +45,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       final args = ModalRoute.of(context)!.settings.arguments;
       if (args is SolitaireGame) {
         ref.read(gameControllerProvider.notifier).startNew(args);
-      } else {
-        throw ArgumentError('Please pass a SolitaireRules as the argument');
+      } else if (args is GameData) {
+        ref.read(gameControllerProvider.notifier).restore(args);
       }
     });
+  }
+
+  @override
+  void onEnter() {}
+
+  @override
+  void onLeave() {
+    if (ref.read(gameControllerProvider) != GameStatus.started) {
+      print('Game not started. Skipping');
+      return;
+    }
+    final gameData = ref.read(gameControllerProvider.notifier).suspend();
+    ref.read(gameStorageProvider.notifier).quickSave(gameData);
   }
 
   @override
@@ -177,7 +195,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     const Align(
                       alignment: Alignment.bottomLeft,
                       child: DebugPane(),
-                    )
+                    ),
                   ],
                 );
               },
@@ -213,7 +231,7 @@ class _PlayArea extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(currentGameProvider);
     final table = ref.watch(playTableStateProvider);
-    final gameStatus = ref.watch(gameControllerProvider);
+    final status = ref.watch(gameControllerProvider);
     final highlightedCards = ref.watch(hintedCardsProvider);
 
     return OrientationBuilder(
@@ -242,7 +260,7 @@ class _PlayArea extends ConsumerWidget {
               orientation: orientation,
               highlightedCards: highlightedCards,
               lastMovedCards: lastMovedCards,
-              animateDistribute: gameStatus == GameStatus.preparing,
+              animateDistribute: status == GameStatus.preparing,
               onCardTap: (card, pile) {
                 print('tapping card $card on $pile');
                 final controller = ref.read(gameControllerProvider.notifier);

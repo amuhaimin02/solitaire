@@ -9,8 +9,10 @@ import '../animations.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
 import '../providers/game_selection.dart';
+import '../providers/game_storage.dart';
 import '../providers/settings.dart';
 import '../utils/widgets.dart';
+import '../widgets/animated_visibility.dart';
 import '../widgets/fast_page_view.dart';
 import '../widgets/game_table.dart';
 import '../widgets/solitaire_theme.dart';
@@ -68,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       _GameVariantDropdown(),
-                                      _GameMenu(),
+                                      _GameControls(),
                                     ],
                                   ),
                           ),
@@ -104,7 +106,7 @@ class HomeScreen extends StatelessWidget {
                                         child: _GameSelection(
                                             orientation: orientation),
                                       ),
-                                      const _GameMenu(),
+                                      const _GameControls(),
                                       const SizedBox(height: 48),
                                     ],
                                   ),
@@ -212,7 +214,7 @@ class _GameVariantDropdown extends ConsumerWidget {
           iconAlignment: IconAlignment.end,
           label: selectedGame.hasVariants
               ? Text(selectedGame.variant.name)
-              : const Text("(no variant)"),
+              : const Text('(no variant)'),
           icon: const Icon(Icons.arrow_drop_down),
           onPressed: selectedGame.hasVariants
               ? () {
@@ -268,18 +270,20 @@ class _GameVariantSelection extends ConsumerWidget {
   }
 }
 
-class _GameMenu extends ConsumerWidget {
-  const _GameMenu({super.key});
+class _GameControls extends ConsumerWidget {
+  const _GameControls({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final selectedGame = ref.watch(selectedGameProvider);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           FilledButton.tonalIcon(
-            onPressed: () {
+            onPressed: () async {
               if (ref.read(randomizeThemeColorProvider)) {
                 ref
                     .watch(appThemeColorProvider.notifier)
@@ -295,15 +299,22 @@ class _GameMenu extends ConsumerWidget {
             icon: Icon(MdiIcons.cardsPlaying),
           ),
           const SizedBox(height: 8),
-          Visibility(
-            visible: true,
-            maintainSize: true,
-            maintainAnimation: true,
-            maintainState: true,
+          AnimatedVisibility(
+            visible:
+                ref.watch(hasQuickSaveProvider(selectedGame)).value ?? false,
             child: FilledButton.icon(
-              onPressed: () {
-                final game = ref.read(selectedGameProvider);
-                Navigator.pushNamed(context, '/game', arguments: game);
+              onPressed: () async {
+                try {
+                  final game = ref.read(selectedGameProvider);
+                  final gameData = await ref
+                      .read(gameStorageProvider.notifier)
+                      .restoreQuickSave(game);
+                  if (context.mounted) {
+                    Navigator.pushNamed(context, '/game', arguments: gameData);
+                  }
+                } catch (e) {
+                  print(e);
+                }
               },
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, 56),
@@ -319,36 +330,46 @@ class _GameMenu extends ConsumerWidget {
             runSpacing: 12,
             children: [
               IconButton(
-                onPressed: () {},
-                tooltip: "Help",
+                onPressed: () async {
+                  final game = ref.read(selectedGameProvider);
+                  await ref
+                      .read(gameStorageProvider.notifier)
+                      .deleteQuickSave(game);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Quick save cleared')),
+                    );
+                  }
+                },
+                tooltip: 'Help',
                 icon: const Icon(Icons.help),
               ),
               IconButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/stats');
                 },
-                tooltip: "Statistics",
+                tooltip: 'Statistics',
                 icon: const Icon(Icons.leaderboard),
               ),
               IconButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/customize');
                 },
-                tooltip: "Customize",
+                tooltip: 'Customize',
                 icon: const Icon(Icons.imagesearch_roller),
               ),
               IconButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/settings');
                 },
-                tooltip: "Settings",
+                tooltip: 'Settings',
                 icon: const Icon(Icons.settings),
               ),
               IconButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/about');
                 },
-                tooltip: "About",
+                tooltip: 'About',
                 icon: const Icon(Icons.info),
               ),
             ],

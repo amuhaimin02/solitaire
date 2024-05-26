@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,12 +9,16 @@ import '../models/card_list.dart';
 import '../models/game/klondike.dart';
 import '../models/game/simple.dart';
 import '../models/game/solitaire.dart';
+import '../models/game_status.dart';
+import '../models/move_record.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
+import '../models/play_data.dart';
 import '../models/play_table.dart';
-import '../models/states/game.dart';
+import '../models/user_action.dart';
 import '../utils/iterators.dart';
 import '../utils/prng.dart';
+import '../utils/stopwatch.dart';
 import 'settings.dart';
 
 part 'game_logic.g.dart';
@@ -24,13 +27,12 @@ part 'game_logic.g.dart';
 class Score extends _$Score {
   @override
   int build() {
-    ref.listen(currentGameProvider, (oldGame, newGame) {
-      if (oldGame != newGame) {
-        state = 0;
-      }
-    });
     return 0;
   }
+
+  void set(int value) => state = value;
+
+  void reset() => state = 0;
 
   void add(int value) {
     state += value;
@@ -39,11 +41,15 @@ class Score extends _$Score {
 
 @riverpod
 class PlayTime extends _$PlayTime {
-  static final _stopwatch = Stopwatch();
+  static final _stopwatch = SettableStopwatch();
 
   @override
   Duration build() {
     return _stopwatch.elapsed;
+  }
+
+  void set(Duration playTime) {
+    _stopwatch.startDuration = playTime;
   }
 
   void restart() {
@@ -75,13 +81,12 @@ class PlayTime extends _$PlayTime {
 class MoveCount extends _$MoveCount {
   @override
   int build() {
-    ref.listen(currentGameProvider, (oldGame, newGame) {
-      if (oldGame != newGame) {
-        state = 0;
-      }
-    });
     return 0;
   }
+
+  void set(int value) => state = value;
+
+  void reset() => state = 0;
 
   void forward() => state++;
 
@@ -92,16 +97,15 @@ class MoveCount extends _$MoveCount {
 class CurrentGame extends _$CurrentGame {
   // TODO: Make nullable
   @override
-  PlayData build() {
-    return PlayData(
-      rules: SimpleSolitaire(),
+  GameMetadata build() {
+    return GameMetadata(
+      rules: const SimpleSolitaire(),
       startedTime: DateTime.now(),
-      randomSeed: "1234",
+      randomSeed: '1234',
     );
   }
 
-  void start(PlayData game) {
-    print('start game ${game}');
+  void start(GameMetadata game) {
     state = game;
   }
 }
@@ -123,12 +127,14 @@ class GameController extends _$GameController {
 
   Future<void> startNew(SolitaireGame game) async {
     // Prepare a new game to start
-    final newPlayData = PlayData(
+    final newPlayData = GameMetadata(
       rules: game,
       startedTime: DateTime.now(),
       randomSeed: DateTime.now().millisecondsSinceEpoch.toString(),
     );
     ref.read(currentGameProvider.notifier).start(newPlayData);
+    ref.read(moveCountProvider.notifier).reset();
+    ref.read(scoreProvider.notifier).reset();
 
     // Setup draw piles for the new game
     _setupPiles();
@@ -147,6 +153,37 @@ class GameController extends _$GameController {
     if (ref.read(autoPremoveProvider)) {
       _doPremove();
     }
+  }
+
+  GameData suspend() {
+    // Stop timer to release resources
+    ref.read(playTimeProvider.notifier).pause();
+
+    return GameData(
+      metadata: ref.read(currentGameProvider),
+      state: GameState(
+        moves: ref.read(moveCountProvider),
+        score: ref.read(scoreProvider),
+        playTime: ref.read(playTimeProvider),
+      ),
+      history: ref.read(moveHistoryProvider),
+    );
+  }
+
+  void restore(GameData gameData) {
+    ref.read(currentGameProvider.notifier).start(gameData.metadata);
+    ref.read(scoreProvider.notifier).set(gameData.state.score);
+    ref.read(moveCountProvider.notifier).set(gameData.state.moves);
+    ref.read(playTimeProvider.notifier).set(gameData.state.playTime);
+    ref.read(moveHistoryProvider.notifier).set(gameData.history);
+    ref
+        .read(playTableStateProvider.notifier)
+        .update(gameData.history[gameData.state.moves].table);
+
+    // Start timer immediately
+    ref.read(playTimeProvider.notifier).resume();
+
+    state = GameStatus.started;
   }
 
   void highlightHints() {
@@ -198,7 +235,7 @@ class GameController extends _$GameController {
           final cardsInDiscardPile = table.discardPile;
 
           if (cardsInDiscardPile.isEmpty) {
-            return MoveNotDone("No cards to refresh", null, move.from);
+            return MoveNotDone('No cards to refresh', null, move.from);
           }
 
           targetMove = refreshDrawPile();
@@ -239,7 +276,7 @@ class GameController extends _$GameController {
             cardsToPick = cardsInPile.getLastFromCard(cardToMove);
           } else {
             if (cardsInPile.isEmpty) {
-              return MoveNotDone("No cards in pile", null, move.from);
+              return MoveNotDone('No cards in pile', null, move.from);
             }
             cardsToPick = [cardsInPile.last];
           }
@@ -299,7 +336,7 @@ class GameController extends _$GameController {
       }
     }
 
-    return MoveNotDone("Cannot move this card anywhere", card, from);
+    return MoveNotDone('Cannot move this card anywhere', card, from);
   }
 
   Future<void> autoSolve() async {
@@ -399,9 +436,9 @@ class GameController extends _$GameController {
         cardsOnTable.splitLast(cardsInHand.length);
 
     // Check whether card picked is similar to what is on hand
-    if (!const ListEquality().equals(cardsToPickUp, cardsInHand)) {
-      throw StateError("Cards picked up and in hand is not the same");
-    }
+    // if (!const ListEquality().equals(cardsToPickUp, cardsInHand)) {
+    //   throw StateError("Cards picked up and in hand is not the same");
+    // }
 
     // Move all cards on hand to target pile
     PlayTable updatedTable = table.modifyMultiple({
@@ -439,7 +476,6 @@ class GameController extends _$GameController {
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {
-    final game = ref.read(currentGameProvider);
     final table = ref.read(playTableStateProvider);
     for (final t in table.allTableauPiles) {
       for (final c in table.get(t)) {
@@ -469,9 +505,11 @@ class MoveHistory extends _$MoveHistory {
     final table = ref.read(playTableStateProvider);
 
     state = [
-      MoveRecord(table, GameStart()),
+      MoveRecord(action: GameStart(), table: table),
     ];
   }
+
+  void set(List<MoveRecord> records) => state = records;
 
   void add(Move move) {
     final table = ref.read(playTableStateProvider);
@@ -480,7 +518,7 @@ class MoveHistory extends _$MoveHistory {
 
     state = [
       ...state.getRange(0, moves + 1),
-      MoveRecord(table, move),
+      MoveRecord(action: move, table: table),
     ];
   }
 

@@ -10,6 +10,7 @@ import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
+import 'services/route_observer.dart';
 import 'services/system_orientation.dart';
 import 'widgets/ripple_background.dart';
 import 'widgets/solitaire_theme.dart';
@@ -123,6 +124,7 @@ class SolitaireApp extends ConsumerWidget {
           '/stats': (context) => const StatisticsScreen(),
           '/about': (context) => const AboutScreen(),
         },
+        navigatorObservers: [routeObserver],
       ),
     );
   }

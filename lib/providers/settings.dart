@@ -12,7 +12,7 @@ part 'settings.g.dart';
 @riverpod
 class AppThemeMode extends _$AppThemeMode with SharedPreferencesProviderMixin {
   @override
-  final String key = "app_theme_mode";
+  final String key = 'app_theme_mode';
 
   @override
   final ThemeMode defaultValue = ThemeMode.system;
@@ -28,7 +28,7 @@ class AppThemeMode extends _$AppThemeMode with SharedPreferencesProviderMixin {
 class AppThemeColor extends _$AppThemeColor
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "app_theme_color";
+  final String key = 'app_theme_color';
 
   @override
   final Color defaultValue = themeColorPalette.first;
@@ -37,7 +37,7 @@ class AppThemeColor extends _$AppThemeColor
   List<Color> get options => themeColorPalette;
 
   @override
-  Serializer get serializer => ColorSerializer();
+  Serializer get serializer => const ColorSerializer();
 
   @override
   Color build() => _get();
@@ -47,7 +47,7 @@ class AppThemeColor extends _$AppThemeColor
 class ColoredBackground extends _$ColoredBackground
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "colored_background";
+  final String key = 'colored_background';
 
   @override
   final bool defaultValue = false;
@@ -60,7 +60,7 @@ class ColoredBackground extends _$ColoredBackground
 class AmoledBackground extends _$AmoledBackground
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "amoled_background";
+  final String key = 'amoled_background';
 
   @override
   final bool defaultValue = false;
@@ -73,7 +73,7 @@ class AmoledBackground extends _$AmoledBackground
 class StandardCardColor extends _$StandardCardColor
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "standard_card_color";
+  final String key = 'standard_card_color';
 
   @override
   final bool defaultValue = false;
@@ -86,7 +86,7 @@ class StandardCardColor extends _$StandardCardColor
 class RandomizeThemeColor extends _$RandomizeThemeColor
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "randomize_theme_color";
+  final String key = 'randomize_theme_color';
 
   @override
   final bool defaultValue = false;
@@ -99,7 +99,7 @@ class RandomizeThemeColor extends _$RandomizeThemeColor
 class AppScreenOrientation extends _$AppScreenOrientation
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "app_screen_orientation";
+  final String key = 'app_screen_orientation';
 
   @override
   final ScreenOrientation defaultValue = ScreenOrientation.auto;
@@ -115,7 +115,7 @@ class AppScreenOrientation extends _$AppScreenOrientation
 class ShowLastMoves extends _$ShowLastMoves
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "show_last_moves";
+  final String key = 'show_last_moves';
 
   @override
   final bool defaultValue = true;
@@ -127,7 +127,7 @@ class ShowLastMoves extends _$ShowLastMoves
 @riverpod
 class ShowScore extends _$ShowScore with SharedPreferencesProviderMixin {
   @override
-  final String key = "show_score";
+  final String key = 'show_score';
 
   @override
   final bool defaultValue = true;
@@ -137,9 +137,9 @@ class ShowScore extends _$ShowScore with SharedPreferencesProviderMixin {
 }
 
 @riverpod
-class ShowMoves extends _$ShowScore with SharedPreferencesProviderMixin {
+class ShowMoves extends _$ShowMoves with SharedPreferencesProviderMixin {
   @override
-  final String key = "show_moves";
+  final String key = 'show_moves';
 
   @override
   final bool defaultValue = true;
@@ -151,7 +151,7 @@ class ShowMoves extends _$ShowScore with SharedPreferencesProviderMixin {
 @riverpod
 class ShowTime extends _$ShowTime with SharedPreferencesProviderMixin {
   @override
-  final String key = "show_time";
+  final String key = 'show_time';
 
   @override
   final bool defaultValue = true;
@@ -163,7 +163,7 @@ class ShowTime extends _$ShowTime with SharedPreferencesProviderMixin {
 @riverpod
 class OneTapMove extends _$OneTapMove with SharedPreferencesProviderMixin {
   @override
-  final String key = "one_tap_move";
+  final String key = 'one_tap_move';
 
   @override
   final bool defaultValue = true;
@@ -175,7 +175,7 @@ class OneTapMove extends _$OneTapMove with SharedPreferencesProviderMixin {
 @riverpod
 class AutoPremove extends _$AutoPremove with SharedPreferencesProviderMixin {
   @override
-  final String key = "auto_premove";
+  final String key = 'auto_premove';
 
   @override
   final bool defaultValue = true;
@@ -188,7 +188,7 @@ class AutoPremove extends _$AutoPremove with SharedPreferencesProviderMixin {
 class ShowAutoSolveButton extends _$ShowAutoSolveButton
     with SharedPreferencesProviderMixin {
   @override
-  final String key = "show_auto_solve_button";
+  final String key = 'show_auto_solve_button';
 
   @override
   final bool defaultValue = true;
@@ -258,7 +258,7 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
         state = _saveToPrefs(prefs, key, defaultValue);
       }
     } else {
-      throw ArgumentError("toggling is not supported for type $T");
+      throw ArgumentError('toggling is not supported for type $T');
     }
   }
 
@@ -284,16 +284,16 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
           final opts = options;
           if (opts == null) {
             throw ArgumentError(
-                "Please provide options list for enum settings");
+                'Please provide options list for enum settings');
           }
           final storedEnum = (opts as List<Enum>)
               .firstWhereOrNull((e) => e.name == storedValue);
           return storedEnum as T?;
         } else if (serializer != null) {
-          return serializer!.from(storedValue);
+          return serializer!.deserialize(storedValue);
         } else {
           throw ArgumentError(
-              "Type $T is not supported. Please provide a serializer");
+              'Type $T is not supported. Please provide a serializer');
         }
     }
   }
@@ -313,15 +313,15 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
           final opts = options;
           if (opts == null) {
             throw ArgumentError(
-                "Please provide options list for enum settings");
+                'Please provide options list for enum settings');
           }
           final valueEnum = (opts as List<Enum>).firstWhere((e) => e == value);
           prefs.setString(key, valueEnum.name);
         } else if (serializer != null) {
-          prefs.setString(key, serializer!.to(value));
+          prefs.setString(key, serializer!.serialize(value));
         } else {
           throw ArgumentError(
-              "Type $T is not supported. Please provide a serializer");
+              'Type $T is not supported. Please provide a serializer');
         }
     }
     return value;

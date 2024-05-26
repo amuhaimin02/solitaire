@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
-import 'package:solitaire/models/table_layout.dart';
+import '../table_layout.dart';
 
 import '../../services/card_shuffler.dart';
 import '../action.dart';
@@ -14,8 +14,10 @@ import '../play_table.dart';
 import 'solitaire.dart';
 
 class SimpleSolitaire extends SolitaireGame {
+  const SimpleSolitaire();
+
   @override
-  String get name => "Simple";
+  String get name => 'Simple';
 
   @override
   String get tag => name.toParamCase();

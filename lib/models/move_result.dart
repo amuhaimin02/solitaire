@@ -14,7 +14,7 @@ class MoveForbidden extends MoveResult {
   const MoveForbidden(this.reason, this.move);
 
   @override
-  String toString() => "MoveForbidden($reason)";
+  String toString() => 'MoveForbidden($reason)';
 }
 
 class MoveSuccess extends MoveResult {
@@ -23,7 +23,7 @@ class MoveSuccess extends MoveResult {
   const MoveSuccess(this.move);
 
   @override
-  String toString() => "MoveSuccess($move)";
+  String toString() => 'MoveSuccess($move)';
 }
 
 class MoveNotDone extends MoveResult {
@@ -34,5 +34,5 @@ class MoveNotDone extends MoveResult {
   const MoveNotDone(this.reason, this.card, this.from);
 
   @override
-  String toString() => "MoveNotDone($reason)";
+  String toString() => 'MoveNotDone($reason)';
 }

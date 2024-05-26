@@ -6,7 +6,7 @@ class Draw extends Pile {
   const Draw();
 
   @override
-  String toString() => "Draw";
+  String toString() => 'Draw';
 
   @override
   bool operator ==(Object other) => other is Draw;
@@ -18,7 +18,7 @@ class Draw extends Pile {
 class Discard extends Pile {
   const Discard();
   @override
-  String toString() => "Discard";
+  String toString() => 'Discard';
 
   @override
   bool operator ==(Object other) => other is Discard;
@@ -39,7 +39,7 @@ class Foundation extends Pile {
   int get hashCode => Object.hash(index, null);
 
   @override
-  String toString() => "Foundation($index)";
+  String toString() => 'Foundation($index)';
 }
 
 class Tableau extends Pile {
@@ -54,5 +54,5 @@ class Tableau extends Pile {
   int get hashCode => Object.hash(index, null);
 
   @override
-  String toString() => "Tableau($index)";
+  String toString() => 'Tableau($index)';
 }

@@ -74,7 +74,7 @@ class CustomizeScreen extends ConsumerWidget {
     final theme = SolitaireTheme.of(context);
 
     // TODO: Create function to generate demo setup
-    final rules = SimpleSolitaire();
+    final rules = const SimpleSolitaire();
     PlayTable table = PlayTable.fromGame(rules)
         .modify(const Draw(), rules.prepareDrawPile(Random(1)));
     table = rules.setup(table);

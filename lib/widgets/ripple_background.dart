@@ -74,7 +74,6 @@ class _RippleBackgroundState extends State<RippleBackground>
   Widget _buildChild(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final parentSize = constraints.biggest;
         final rippleCenter =
             _rippleOffset ?? constraints.biggest.center(Offset.zero);
 

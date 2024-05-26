@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+
 import '../models/card.dart';
 
 class CardShuffler {

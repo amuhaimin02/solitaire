@@ -40,6 +40,8 @@ class PlayTable {
     return UnmodifiableListView(cards);
   }
 
+  Map<Pile, List<PlayCard>> get allCards => UnmodifiableMapView(_allCards);
+
   List<PlayCard> get drawPile => get(const Draw());
 
   List<PlayCard> get discardPile => get(const Discard());

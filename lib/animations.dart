@@ -12,7 +12,7 @@ class DurationCurve {
     final totalDuration = duration + delay;
     return DurationCurve(
       totalDuration,
-      Interval(delay.inMilliseconds / totalDuration.inMilliseconds, 1.0,
+      Interval(delay.inMicroseconds / totalDuration.inMicroseconds, 1.0,
           curve: curve),
     );
   }
@@ -23,7 +23,7 @@ class DurationCurve {
 
   @override
   String toString() {
-    return "DurationCurve($duration, $curve)";
+    return 'DurationCurve($duration, $curve)';
   }
 }
 

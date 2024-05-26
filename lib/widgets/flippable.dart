@@ -7,7 +7,7 @@ class Flippable extends StatefulWidget {
     required this.front,
     required this.back,
     required this.duration,
-    this.curve = standardEasing,
+    this.curve = Easing.standard,
   });
 
   final bool flipped;
