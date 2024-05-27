@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><g transform="rotate(45,300,300)" fill="red">
-  <path d="M150 150h350v350H150Z" />
-  <path d="M-25 325a175 175 0 1 0 350 0a175 175 0 1 0 -350 0" />
-  <path d="M150 150a175 175 0 1 0 350 0a175 175 0 1 0 -350 0" /></g>
-</svg>

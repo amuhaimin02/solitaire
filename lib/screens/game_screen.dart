@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'home_screen.dart';
 import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
@@ -12,6 +10,7 @@ import '../models/move_result.dart';
 import '../models/pile.dart';
 import '../models/play_data.dart';
 import '../models/user_action.dart';
+import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_storage.dart';
 import '../providers/settings.dart';
@@ -25,6 +24,7 @@ import '../widgets/ripple_background.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
+import 'home_screen.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -78,6 +78,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
       }
     });
 
+    ref.watch(feedbackProvider);
+
     return Scaffold(
       appBar: AppBar(
         forceMaterialTransparency: true,
@@ -91,15 +93,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
           builder: (context, orientation) {
             return LayoutBuilder(
               builder: (context, constraints) {
+                final colorScheme = Theme.of(context).colorScheme;
                 final isMobile = constraints.biggest.shortestSide < 600;
 
                 final playAreaMargin = isMobile
                     ? const EdgeInsets.all(8)
                     : const EdgeInsets.all(40);
 
-                const divider = SizedBox(
+                final divider = SizedBox(
                   width: 48,
-                  child: Divider(height: 24),
+                  child: Divider(height: 24, color: colorScheme.outline),
                 );
 
                 final gameStatus = ref.watch(gameControllerProvider);
@@ -247,8 +250,8 @@ class _PlayArea extends ConsumerWidget {
         List<PlayCard>? lastMovedCards;
 
         if (showLastMoves) {
-          final lastMove = ref.watch(lastMoveProvider);
-          if (lastMove != null && lastMove.from is! Draw) {
+          final lastMove = ref.watch(lastActionProvider).move;
+          if (lastMove != null) {
             lastMovedCards = lastMove.cards;
           }
         }
@@ -270,8 +273,7 @@ class _PlayArea extends ConsumerWidget {
                 if (oneTapMove) {
                   switch (pile) {
                     case Tableau():
-                      final result = _feedbackMoveResult(
-                          controller.tryQuickMove(card, pile));
+                      final result = controller.tryQuickMove(card, pile);
                       return result is MoveSuccess ? null : [card];
                     case _:
                       return [card];
@@ -284,15 +286,14 @@ class _PlayArea extends ConsumerWidget {
                 final controller = ref.read(gameControllerProvider.notifier);
                 switch (pile) {
                   case Draw():
-                    _feedbackMoveResult(controller
-                        .tryMove(MoveIntent(const Draw(), const Discard())));
+                    controller
+                        .tryMove(MoveIntent(const Draw(), const Discard()));
                     return null;
 
                   case Discard() || Foundation():
                     if (oneTapMove && table.get(pile).isNotEmpty) {
                       final cardToMove = table.get(pile).last;
-                      final result = _feedbackMoveResult(
-                          controller.tryQuickMove(cardToMove, pile));
+                      final result = controller.tryQuickMove(cardToMove, pile);
                       return result is MoveSuccess ? null : null;
                     }
                   case _:
@@ -303,8 +304,8 @@ class _PlayArea extends ConsumerWidget {
                 print('dropping card $card from $from to $to');
                 final controller = ref.read(gameControllerProvider.notifier);
 
-                final result = _feedbackMoveResult(
-                  controller.tryMove(MoveIntent(from, to, card)),
+                final result = controller.tryMove(
+                  MoveIntent(from, to, card),
                 );
                 return result is MoveSuccess ? null : [card];
               },
@@ -323,20 +324,6 @@ class _PlayArea extends ConsumerWidget {
         );
       },
     );
-  }
-
-  MoveResult _feedbackMoveResult(MoveResult result) {
-    if (result is MoveSuccess) {
-      switch (result.move.to) {
-        case Discard():
-          HapticFeedback.lightImpact();
-        case Tableau():
-          HapticFeedback.mediumImpact();
-        case Draw() || Foundation():
-          HapticFeedback.heavyImpact();
-      }
-    }
-    return result;
   }
 }
 

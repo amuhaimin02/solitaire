@@ -29,7 +29,10 @@ linter:
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
 
-# Custom lint for Riverpod
 analyzer:
+  errors:
+    unused_element: ignore
+
+  # Custom lint for Riverpod
   plugins:
     - custom_lint

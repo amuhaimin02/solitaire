@@ -58,7 +58,7 @@ class ControlPane extends ConsumerWidget {
         },
         child: IconButton(
           tooltip: 'Undo',
-          onPressed: moves.canUndo ? () {} : null,
+          onPressed: moves.canUndo() ? () {} : null,
           icon: const Icon(Icons.undo, size: 24),
         ),
       ),
@@ -83,7 +83,7 @@ class ControlPane extends ConsumerWidget {
         },
         child: IconButton(
           tooltip: 'Redo',
-          onPressed: moves.canRedo ? () {} : null,
+          onPressed: moves.canRedo() ? () {} : null,
           icon: const Icon(Icons.redo, size: 24),
         ),
       ),

@@ -212,82 +212,6 @@ class _SettingsList extends ConsumerWidget {
             ref.read(themeBackgroundColoredProvider.notifier).toggle();
           },
         ),
-        const SectionTitle('Cards'),
-        ListTile(
-          title: const Text('Card theme mode'),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: SegmentedButton<ThemeMode>(
-              segments: const [
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text('Follow theme'),
-                  icon: Icon(Icons.contrast),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode),
-                ),
-              ],
-              selected: {ref.watch(themeCardModeProvider)},
-              onSelectionChanged: (value) {
-                ref.read(themeCardModeProvider.notifier).set(value.single);
-              },
-            ),
-          ),
-        ),
-        ListTile(
-          title: const Text('Select card colors'),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Material(
-              color: colorScheme.surfaceTint.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                children: [
-                  CheckboxListTile(
-                    title: const Text('Follow base color'),
-                    secondary: const Icon(Icons.color_lens),
-                    subtitle: const Text('Use same color as background'),
-                    value:
-                        ref.watch(themeCardColorProvider) == Colors.transparent,
-                    onChanged: (value) {
-                      if (value == true) {
-                        ref
-                            .read(themeCardColorProvider.notifier)
-                            .set(Colors.transparent);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _ColorSelectionTile(
-                    value: ref.watch(themeCardColorProvider),
-                    options: themeColorPalette,
-                    onTap: (color) {
-                      ref.read(themeCardColorProvider.notifier).set(color);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        SwitchListTile(
-          title: const Text('Tinted card face'),
-          subtitle:
-              const Text('Add colors to card face for easier recognition'),
-          value: ref.watch(themeCardTintedFaceProvider),
-          onChanged: (value) {
-            ref.read(themeCardTintedFaceProvider.notifier).toggle();
-          },
-        ),
       ],
     );
   }
@@ -326,6 +250,5 @@ class _ColorSelectionTile extends StatelessWidget {
         ],
       ),
     );
-    ;
   }
 }

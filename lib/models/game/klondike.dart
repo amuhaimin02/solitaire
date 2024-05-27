@@ -231,21 +231,19 @@ class Klondike extends SolitaireGame {
         }
       }
     }
-    yield MoveIntent(const Draw(), const Discard());
+    yield const MoveIntent(Draw(), Discard());
   }
 
   @override
   (PlayTable, int) afterEachMove(Move move, PlayTable table) {
-    PlayTable updatedTable = table;
-
     for (final t in table.allTableauPiles) {
       final tableau = table.get(t);
       if (tableau.isNotEmpty && tableau.last.isFacingDown) {
-        table.modify(t, tableau.topmostFaceUp);
+        table = table.modify(t, tableau.topmostFaceUp);
       }
     }
 
-    return (updatedTable, 5);
+    return (table, 5);
   }
 }
 

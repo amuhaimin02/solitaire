@@ -8,6 +8,7 @@ class Flippable extends StatefulWidget {
     required this.back,
     required this.duration,
     this.curve = Easing.standard,
+    this.builder,
   });
 
   final bool flipped;
@@ -17,6 +18,8 @@ class Flippable extends StatefulWidget {
   final Duration duration;
 
   final Curve curve;
+
+  final Widget Function(BuildContext context, Widget child)? builder;
 
   @override
   State<Flippable> createState() => _FlippableState();
@@ -75,12 +78,24 @@ class _FlippableState extends State<Flippable>
 
   @override
   Widget build(BuildContext context) {
+    Widget buildChild(Widget child) {
+      if (widget.builder != null) {
+        return widget.builder!(context, child);
+      } else {
+        return child;
+      }
+    }
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
         final child = switch (widget.flipped) {
-          true => _animation.value < 0.5 ? widget.front : widget.back,
-          false => _animation.value < 0.5 ? widget.back : widget.front,
+          true => _animation.value < 0.5
+              ? buildChild(widget.front)
+              : buildChild(widget.back),
+          false => _animation.value < 0.5
+              ? buildChild(widget.back)
+              : buildChild(widget.front),
         };
 
         return MatrixTransition(

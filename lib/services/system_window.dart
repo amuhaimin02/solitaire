@@ -2,8 +2,8 @@ import 'package:flutter/services.dart';
 
 enum ScreenOrientation { auto, landscape, portrait }
 
-class ScreenOrientationManager {
-  static void change(ScreenOrientation orientation) {
+class SystemWindow {
+  static void changeOrientation(ScreenOrientation orientation) {
     print('Changing orientation $orientation');
     switch (orientation) {
       case ScreenOrientation.auto:
@@ -16,6 +16,15 @@ class ScreenOrientationManager {
       case ScreenOrientation.portrait:
         SystemChrome.setPreferredOrientations(
             [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
+    }
+  }
+
+  static setStatusBarVisibility(bool visible) {
+    print('Set status bar $visible');
+    if (visible) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
   }
 }

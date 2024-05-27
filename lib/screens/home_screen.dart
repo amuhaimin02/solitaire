@@ -11,9 +11,9 @@ import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
 import '../providers/themes.dart';
 import '../utils/widgets.dart';
-import '../widgets/animated_visibility.dart';
 import '../widgets/fast_page_view.dart';
 import '../widgets/game_table.dart';
+import '../widgets/solitaire_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -48,8 +48,15 @@ class HomeScreen extends StatelessWidget {
                               ),
                               Expanded(
                                 flex: 6,
-                                child: Padding(
+                                child: Container(
                                   padding: const EdgeInsets.all(16.0),
+                                  margin: const EdgeInsets.all(32.0),
+                                  width: 800,
+                                  decoration: BoxDecoration(
+                                    color: SolitaireTheme.of(context)
+                                        .tableBackgroundColor,
+                                    borderRadius: BorderRadius.circular(32),
+                                  ),
                                   child:
                                       _GameSelection(orientation: orientation),
                                 ),
@@ -58,8 +65,8 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Expanded(
-                          flex: 3,
+                        SizedBox(
+                          width: 320,
                           child: AnimatedSwitcher(
                             duration: standardAnimation.duration,
                             child: (dropdownOpened)
@@ -73,7 +80,6 @@ class HomeScreen extends StatelessWidget {
                                   ),
                           ),
                         ),
-                        const SizedBox(width: 32)
                       ],
                     );
                   case Orientation.portrait:
@@ -101,11 +107,17 @@ class HomeScreen extends StatelessWidget {
                                     children: [
                                       const _GameVariantDropdown(),
                                       Expanded(
-                                        child: _GameSelection(
-                                            orientation: orientation),
+                                        child: Container(
+                                          color: SolitaireTheme.of(context)
+                                              .tableBackgroundColor,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 24),
+                                          child: _GameSelection(
+                                            orientation: orientation,
+                                          ),
+                                        ),
                                       ),
                                       const _GameControls(),
-                                      const SizedBox(height: 48),
                                     ],
                                   ),
                           ),
@@ -131,22 +143,13 @@ class _GameTitle extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final selectedGame = ref.watch(selectedGameProvider);
 
-    return ShaderMask(
-      shaderCallback: (rect) {
-        return LinearGradient(
-          colors: [colorScheme.primary, colorScheme.primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ).createShader(rect);
-      },
-      child: Text(
-        selectedGame.name,
-        style: textTheme.displayMedium!.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-        textAlign: TextAlign.center,
+    return Text(
+      selectedGame.name,
+      style: textTheme.displayMedium!.copyWith(
+        color: colorScheme.primary,
+        fontWeight: FontWeight.bold,
       ),
+      textAlign: TextAlign.center,
     );
   }
 }
@@ -163,29 +166,26 @@ class _GameSelection extends ConsumerWidget {
     final gamesCollection = ref.watch(allSolitaireGamesMappedProvider);
     final gamesNameList = gamesCollection.keys.toList();
 
-    return SizedBox(
-      width: 800,
-      child: FastPageView(
-        itemCount: gamesNameList.length,
-        itemBuilder: (context, index) {
-          PlayTable table = PlayTable.fromGame(selectedGame)
-              .modify(const Draw(), selectedGame.prepareDrawPile(Random(1)));
-          table = selectedGame.setup(table);
+    return FastPageView(
+      itemCount: gamesNameList.length,
+      itemBuilder: (context, index) {
+        PlayTable table = PlayTable.fromGame(selectedGame)
+            .modify(const Draw(), selectedGame.prepareDrawPile(Random(1)));
+        table = selectedGame.setup(table);
 
-          return GameTable(
-            key: ValueKey(index),
-            interactive: false,
-            animateMovement: false,
-            rules: selectedGame,
-            orientation: orientation,
-            table: table,
-          );
-        },
-        onPageChanged: (index) {
-          final nextGame = gamesCollection[gamesNameList[index]]!.first;
-          ref.read(selectedGameProvider.notifier).select(nextGame);
-        },
-      ),
+        return GameTable(
+          key: ValueKey(index),
+          interactive: false,
+          animateMovement: false,
+          rules: selectedGame,
+          orientation: orientation,
+          table: table,
+        );
+      },
+      onPageChanged: (index) {
+        final nextGame = gamesCollection[gamesNameList[index]]!.first;
+        ref.read(selectedGameProvider.notifier).select(nextGame);
+      },
     );
   }
 }
@@ -196,30 +196,36 @@ class _GameVariantDropdown extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedGame = ref.watch(selectedGameProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.all(32.0),
-      child: Visibility(
-        visible: selectedGame.hasVariants,
-        maintainSize: true,
-        maintainAnimation: true,
-        maintainState: true,
-        child: OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.only(
-                left: 16, right: 8), // Restore visual balance
-          ),
-          iconAlignment: IconAlignment.end,
-          label: selectedGame.hasVariants
-              ? Text(selectedGame.variant.name)
-              : const Text('(no variant)'),
-          icon: const Icon(Icons.arrow_drop_down),
-          onPressed: selectedGame.hasVariants
-              ? () {
-                  ref.read(gameSelectionDropdownProvider.notifier).open();
-                }
-              : null,
-        ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.center,
+        children: [
+          if (selectedGame.hasVariants)
+            ActionChip(
+              label: Text(selectedGame.variant.name),
+              avatar: const Icon(Icons.keyboard_arrow_down),
+              iconTheme: IconThemeData(color: colorScheme.onSurface),
+              onPressed: () {
+                ref.read(gameSelectionDropdownProvider.notifier).open();
+              },
+            ),
+          ActionChip(
+            label: const Text('How to play?'),
+            iconTheme: IconThemeData(color: colorScheme.onSurface),
+            avatar: const Icon(Icons.library_books),
+            onPressed: () {
+              final game = ref.read(selectedGameProvider);
+              ref.read(gameStorageProvider.notifier).deleteQuickSave(game);
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Save game deleted')));
+            },
+          )
+        ],
       ),
     );
   }
@@ -237,7 +243,7 @@ class _GameVariantSelection extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -278,36 +284,12 @@ class _GameControls extends ConsumerWidget {
         ref.watch(hasQuickSaveProvider(selectedGame)).value ?? false;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FilledButton.tonalIcon(
-            onPressed: () async {
-              if (hasQuickSave) {
-                final response = await showDialog<bool>(
-                  context: context,
-                  builder: (_) => const _NewGameDialog(),
-                );
-                if (response != true) return;
-              }
-              ref
-                  .read(themeBaseRandomizeColorProvider.notifier)
-                  .tryShuffleColor();
-              final game = ref.read(selectedGameProvider);
-              if (!context.mounted) return;
-              Navigator.pushNamed(context, '/game', arguments: game);
-            },
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 56),
-            ),
-            label: const Text('New game'),
-            icon: Icon(MdiIcons.cardsPlaying),
-          ),
-          const SizedBox(height: 8),
-          AnimatedVisibility(
-            visible: hasQuickSave,
-            child: FilledButton.icon(
+          if (hasQuickSave)
+            FilledButton.icon(
               onPressed: () async {
                 try {
                   final game = ref.read(selectedGameProvider);
@@ -335,28 +317,35 @@ class _GameControls extends ConsumerWidget {
               label: const Text('Continue last game'),
               icon: Icon(MdiIcons.cardsPlaying),
             ),
+          const SizedBox(height: 8),
+          FilledButton.tonalIcon(
+            onPressed: () async {
+              if (hasQuickSave) {
+                final response = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => const _NewGameDialog(),
+                );
+                if (response != true) return;
+              }
+              ref
+                  .read(themeBaseRandomizeColorProvider.notifier)
+                  .tryShuffleColor();
+              final game = ref.read(selectedGameProvider);
+              if (!context.mounted) return;
+              Navigator.pushNamed(context, '/game', arguments: game);
+            },
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 56),
+            ),
+            label: const Text('New game'),
+            icon: Icon(MdiIcons.cardsPlaying),
           ),
           const SizedBox(height: 24),
           Wrap(
             alignment: WrapAlignment.center,
             spacing: 16,
-            runSpacing: 12,
+            runSpacing: 16,
             children: [
-              IconButton(
-                onPressed: () async {
-                  final game = ref.read(selectedGameProvider);
-                  await ref
-                      .read(gameStorageProvider.notifier)
-                      .deleteQuickSave(game);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Quick save cleared')),
-                    );
-                  }
-                },
-                tooltip: 'Help',
-                icon: const Icon(Icons.help),
-              ),
               IconButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/stats');

@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/shared_preferences.dart';
-import '../services/system_orientation.dart';
+import '../services/system_window.dart';
 
 part 'settings.g.dart';
 
@@ -19,6 +19,19 @@ class SettingsScreenOrientation extends _$SettingsScreenOrientation
 
   @override
   ScreenOrientation build() => get();
+}
+
+@riverpod
+class SettingsShowStatusBar extends _$SettingsShowStatusBar
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_show_status_bar';
+
+  @override
+  final bool defaultValue = true;
+
+  @override
+  bool build() => get();
 }
 
 @riverpod
@@ -104,6 +117,32 @@ class SettingsShowAutoSolveButton extends _$SettingsShowAutoSolveButton
     with SharedPreferencesProviderMixin {
   @override
   final String key = 'settings_show_auto_solve_button';
+
+  @override
+  final bool defaultValue = true;
+
+  @override
+  bool build() => get();
+}
+
+@riverpod
+class SettingsEnableSounds extends _$SettingsEnableSounds
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_enable_sounds';
+
+  @override
+  final bool defaultValue = true;
+
+  @override
+  bool build() => get();
+}
+
+@riverpod
+class SettingsEnableVibration extends _$SettingsEnableVibration
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_enable_vibration';
 
   @override
   final bool defaultValue = true;

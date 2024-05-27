@@ -143,6 +143,8 @@ class ActionSerializer implements Serializer<Action> {
         final toString = const PileSerializer().serialize(to);
         final cardsString = const PlayCardListSerializer().serialize(cards);
         return 'MV:$fromString:$toString:$cardsString';
+      default:
+        throw ArgumentError('Cannot save this action: $action');
     }
   }
 

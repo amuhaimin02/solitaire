@@ -52,7 +52,7 @@ class _FastPageViewState extends State<FastPageView> {
                     switchOutCurve: Curves.easeInOut,
                     transitionBuilder: (child, animation) {
                       final isReversing =
-                          animation.status == AnimationStatus.reverse;
+                          animation.status == AnimationStatus.completed;
 
                       final slideTween = Tween(
                           begin: (isReversing

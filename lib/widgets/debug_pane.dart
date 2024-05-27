@@ -14,8 +14,8 @@ class DebugPane extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(ref.watch(gameControllerProvider).name,
-              style: const TextStyle(color: Colors.white)),
+          // Text(ref.watch(gameControllerProvider).name,
+          //     style: const TextStyle(color: Colors.white)),
           IconButton(
             onPressed: () {
               ref.read(gameDebugProvider.notifier).debugTestCustomLayout();

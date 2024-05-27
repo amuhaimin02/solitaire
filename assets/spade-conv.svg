@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">  <g transform="rotate(225,30,30)">
-  <path d="M20 20h30v30H20Z" />
-  <path d="M5 35a15 15 0 1 0 30 0a15 15 0 1 0 -30 0" />
-  <path d="M20 20a15 15 0 1 0 30 0a15 15 0 1 0 -30 0" />  </g>
-  <path d="M30,30 Q30,50 20,60 H40 Q30,50 30,30" />
-</svg>

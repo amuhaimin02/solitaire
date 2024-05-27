@@ -1,5 +1,4 @@
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../animations.dart';
@@ -132,6 +131,7 @@ class GameController extends _$GameController {
       startedTime: DateTime.now(),
       randomSeed: DateTime.now().millisecondsSinceEpoch.toString(),
     );
+    ref.read(lastActionProvider.notifier).send(const Idle());
     ref.read(currentGameProvider.notifier).start(newPlayData);
     ref.read(moveCountProvider.notifier).reset();
     ref.read(scoreProvider.notifier).reset();
@@ -171,6 +171,7 @@ class GameController extends _$GameController {
   }
 
   void restore(GameData gameData) {
+    ref.read(lastActionProvider.notifier).send(const Idle());
     ref.read(currentGameProvider.notifier).start(gameData.metadata);
     ref.read(scoreProvider.notifier).set(gameData.state.score);
     ref.read(moveCountProvider.notifier).set(gameData.state.moves);
@@ -354,7 +355,6 @@ class GameController extends _$GameController {
       for (final move in game.rules.autoSolveStrategy(table)) {
         final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
-          HapticFeedback.mediumImpact();
           handled = true;
           await Future.delayed(autoMoveDelay * timeDilation);
           break;
@@ -395,7 +395,7 @@ class GameController extends _$GameController {
   Future<void> _doPremove() async {
     final game = ref.read(currentGameProvider);
 
-    final Move? lastMove = ref.read(lastMoveProvider);
+    final Action lastAction = ref.read(lastActionProvider);
 
     ref.read(playTimeProvider.notifier).pause();
 
@@ -406,12 +406,13 @@ class GameController extends _$GameController {
       final table = ref.read(playTableStateProvider);
       for (final move in game.rules.autoMoveStrategy(table)) {
         // The card was just recently move. Skip that
-        if (lastMove?.to == move.from && lastMove?.to is! Discard) {
+        if (lastAction is Move &&
+            lastAction.to == move.from &&
+            lastAction.to is! Discard) {
           continue;
         }
         final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
-          HapticFeedback.mediumImpact();
           handled = true;
           break;
         }
@@ -503,9 +504,9 @@ class MoveHistory extends _$MoveHistory {
 
   void createNew() {
     final table = ref.read(playTableStateProvider);
-
+    ref.read(lastActionProvider.notifier).send(const GameStart());
     state = [
-      MoveRecord(action: GameStart(), table: table),
+      MoveRecord(action: const GameStart(), table: table),
     ];
   }
 
@@ -515,19 +516,19 @@ class MoveHistory extends _$MoveHistory {
     final table = ref.read(playTableStateProvider);
     final moves = ref.read(moveCountProvider);
     ref.read(moveCountProvider.notifier).forward();
-
+    ref.read(lastActionProvider.notifier).send(move);
     state = [
       ...state.getRange(0, moves + 1),
       MoveRecord(action: move, table: table),
     ];
   }
 
-  bool get canUndo {
+  bool canUndo() {
     final moves = ref.read(moveCountProvider);
     return moves > 0;
   }
 
-  bool get canRedo {
+  bool canRedo() {
     final moves = ref.read(moveCountProvider);
     return moves < state.length - 1;
   }
@@ -535,7 +536,9 @@ class MoveHistory extends _$MoveHistory {
   void undo() {
     final moves = ref.read(moveCountProvider.notifier);
 
-    if (canUndo) {
+    if (canUndo()) {
+      final currentMove = state[moves.state].action as Move;
+      ref.read(lastActionProvider.notifier).send(Undo(currentMove));
       moves.reverse();
       final record = state[moves.state];
       ref.read(playTableStateProvider.notifier).update(record.table);
@@ -545,29 +548,36 @@ class MoveHistory extends _$MoveHistory {
   void redo() {
     final moves = ref.read(moveCountProvider.notifier);
 
-    if (canRedo) {
+    if (canRedo()) {
       moves.forward();
       final record = state[moves.state];
+      ref.read(lastActionProvider.notifier).send(Undo(record.action as Move));
       ref.read(playTableStateProvider.notifier).update(record.table);
     }
   }
 }
 
 @riverpod
-Move? lastMove(LastMoveRef ref) {
-  final history = ref.watch(moveHistoryProvider);
-  final move = ref.watch(moveCountProvider);
+class LastAction extends _$LastAction {
+  @override
+  Action build() => const Idle();
 
-  if (history.isEmpty || move >= history.length) {
-    return null;
-  }
-  final lastAction = history[move].action;
-  if (lastAction is Move) {
-    return lastAction;
-  } else {
-    return null;
+  void send(Action newAction) {
+    state = newAction;
   }
 }
+
+// @riverpod
+// Move? lastMove(LastMoveRef ref) {
+//   final history = ref.watch(moveHistoryProvider);
+//   final move = ref.watch(moveCountProvider);
+//
+//   if (history.isEmpty || move >= history.length) {
+//     return null;
+//   }
+//   final lastAction = history[move].action;
+//   return lastAction.move;
+// }
 
 @riverpod
 bool isGameFinished(IsGameFinishedRef ref) {

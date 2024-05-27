@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Action;
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -32,43 +33,39 @@ class CardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-
-    return SizedBox(
-      width: size.width,
-      height: size.height,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          CardHighlight(
-            highlight: highlightColor != null,
-            color: highlightColor ?? colorScheme.primary,
-            size: size,
-          ),
-          Positioned.fill(
-            child: Padding(
+    return Flippable(
+      duration: cardMoveAnimation.duration,
+      curve: cardMoveAnimation.curve,
+      flipped: hideFace || card.flipped,
+      front: Material(
+        borderRadius: BorderRadius.circular(
+            size.shortestSide * theme.cardStyle.cornerRadius),
+        elevation: elevation ?? 2,
+        child: CardFace(card: card, size: size),
+      ),
+      back: Material(
+        borderRadius: BorderRadius.circular(
+            size.shortestSide * theme.cardStyle.cornerRadius),
+        elevation: elevation ?? 2,
+        child: CardCover(size: size),
+      ),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            CardHighlight(
+              highlight: highlightColor != null,
+              color: highlightColor ?? colorScheme.primary,
+              size: size,
+            ),
+            Positioned.fill(
+                child: Padding(
               padding:
                   EdgeInsets.all(size.shortestSide * theme.cardStyle.margin),
-              child: Flippable(
-                duration: cardMoveAnimation.duration,
-                curve: cardMoveAnimation.curve,
-                flipped: hideFace || card.flipped,
-                front: Material(
-                  borderRadius: BorderRadius.circular(
-                      size.shortestSide * theme.cardStyle.cornerRadius),
-                  elevation: elevation ?? 2,
-                  child: CardFace(card: card, size: size),
-                ),
-                back: Material(
-                  borderRadius: BorderRadius.circular(
-                      size.shortestSide * theme.cardStyle.cornerRadius),
-                  elevation: elevation ?? 2,
-                  child: CardCover(size: size),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+              child: child,
+            )),
+          ],
+        );
+      },
     );
   }
 }
@@ -125,11 +122,11 @@ class CardFace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacingFactor = size.shortestSide * 0.05;
-    final labelSizingFactor = size.shortestSide * 0.32;
+    final labelSizingFactor = size.shortestSide * 0.36;
     final iconSizingFactor = size.shortestSide * 0.25;
     final theme = SolitaireTheme.of(context);
 
-    final iconSvgPath = 'assets/${card.suit.name}.svg';
+    final iconPath = 'assets/${card.suit.name}.png';
 
     final Color backgroundColor, foregroundColor;
     switch (card.suit.color) {
@@ -147,58 +144,77 @@ class CardFace extends StatelessWidget {
         borderRadius: BorderRadius.circular(
             size.shortestSide * theme.cardStyle.cornerRadius),
       ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: spacingFactor * 0.4,
-              horizontal: spacingFactor * 1.2,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  card.rank.symbol,
-                  style: GoogleFonts.dosis(
-                    fontSize: labelSizingFactor,
-                    color: foregroundColor,
-                    fontWeight: FontWeight.bold,
+      child: ClipRRect(
+        clipBehavior: Clip.hardEdge,
+        borderRadius: BorderRadius.circular(
+            size.shortestSide * theme.cardStyle.cornerRadius),
+        child: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                left: spacingFactor,
+                right: spacingFactor * 1.5,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    card.rank.symbol,
+                    style: GoogleFonts.dosis(
+                      fontSize: labelSizingFactor,
+                      height: 1.25,
+                      color: foregroundColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Icon(
-                  suitIcons[card.suit],
-                  size: labelSizingFactor * 0.9,
-                  color: foregroundColor,
-                ),
-                // SvgPicture.asset(
-                //   iconSvgPath,
-                //   width: labelSizingFactor * 0.9,
-                //   height: labelSizingFactor * 0.9,
-                //   colorFilter: ColorFilter.mode(cardColor, BlendMode.srcIn),
-                // )
-              ],
+                  // Icon(
+                  //   suitIcons[card.suit],
+                  //   size: labelSizingFactor * 0.9,
+                  //   color: foregroundColor,
+                  // ),
+                  // SvgPicture.asset(
+                  //   iconPath,
+                  //   width: labelSizingFactor * 0.8,
+                  //   height: labelSizingFactor * 0.8,
+                  //   colorFilter:
+                  //       ColorFilter.mode(foregroundColor, BlendMode.srcIn),
+                  // ),
+                  Image.asset(
+                    iconPath,
+                    width: labelSizingFactor * 0.8,
+                    height: labelSizingFactor * 0.8,
+                    color: foregroundColor,
+                  )
+                ],
+              ),
             ),
-          ),
-          Positioned(
-            bottom: -(size.height * 0.0),
-            left: -(size.width * 0.15),
-            child: Icon(
-              suitIcons[card.suit],
-              size: iconSizingFactor * 3,
-              color: foregroundColor.withOpacity(0.3),
-            ),
-            // child: SvgPicture.asset(
-            //   iconSvgPath,
-            //   width: iconSizingFactor * 3,
-            //   height: iconSizingFactor * 3,
-            //   colorFilter: ColorFilter.mode(
-            //     cardColor.withOpacity(0.2),
-            //     BlendMode.srcIn,
-            //   ),
-            // ),
-          )
-        ],
+            Positioned(
+              bottom: -(size.height * 0.00),
+              left: -(size.width * 0.10),
+              // child: Icon(
+              //   suitIcons[card.suit],
+              //   size: iconSizingFactor * 3,
+              //   color: foregroundColor.withOpacity(0.3),
+              // ),
+              child: Image.asset(
+                iconPath,
+                width: iconSizingFactor * 2.8,
+                height: iconSizingFactor * 2.8,
+                color: foregroundColor.withOpacity(0.3),
+              ),
+              // child: SvgPicture.asset(
+              //   iconSvgPath,
+              //   width: iconSizingFactor * 2.8,
+              //   height: iconSizingFactor * 2.8,
+              //   colorFilter: ColorFilter.mode(
+              //     foregroundColor.withOpacity(0.3),
+              //     BlendMode.srcIn,
+              //   ),
+              // ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -218,13 +234,44 @@ class CardCover extends StatelessWidget {
       borderRadius: BorderRadius.circular(
           size.shortestSide * theme.cardStyle.cornerRadius),
       child: CustomPaint(
-        painter: FourTrianglesCardCover(
+        painter: SimpleCardCover(
           color: colorScheme.primary,
-          secondaryColor:
-              Color.lerp(colorScheme.primary, colorScheme.onPrimary, 0.25)!,
         ),
       ),
     );
+  }
+}
+
+class SimpleCardCover extends CustomPainter {
+  final Color color;
+  final Color? secondaryColor;
+
+  SimpleCardCover({
+    super.repaint,
+    required this.color,
+    this.secondaryColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final drawArea = Offset.zero & size;
+    final paint = Paint();
+
+    if (secondaryColor != null) {
+      paint.shader = LinearGradient(
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+        colors: [color, secondaryColor!],
+      ).createShader(drawArea);
+    } else {
+      paint.color = color;
+    }
+    canvas.drawRect(drawArea, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant SimpleCardCover oldDelegate) {
+    return color != oldDelegate.color;
   }
 }
 
@@ -285,9 +332,6 @@ class FourBordersCardCover extends CustomPainter {
     final drawArea = Offset.zero & size;
     final paint = Paint();
 
-    paint.color = color;
-    canvas.drawRect(drawArea, paint);
-
     final center = drawArea.center;
     final topLeft = drawArea.topLeft;
     final bottomLeft = drawArea.bottomLeft;
@@ -299,10 +343,13 @@ class FourBordersCardCover extends CustomPainter {
     final topRightInner = Offset.lerp(topRight, center, borderSizeRatio)!;
     final bottomRightInner = Offset.lerp(bottomRight, center, borderSizeRatio)!;
 
-    paint.color = Color.lerp(color, secondaryColor, 0.25)!;
+    paint.color = Color.lerp(color, secondaryColor, 0.5)!;
+    canvas.drawRect(drawArea, paint);
+
+    paint.color = Color.lerp(color, secondaryColor, 0)!;
     drawShape(canvas, [topLeft, topLeftInner, topRightInner, topRight], paint);
 
-    paint.color = Color.lerp(color, secondaryColor, 0.5)!;
+    paint.color = Color.lerp(color, secondaryColor, 0.25)!;
     drawShape(canvas, [topRight, topRightInner, bottomRightInner, bottomRight],
         paint);
 
@@ -317,6 +364,50 @@ class FourBordersCardCover extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant FourBordersCardCover oldDelegate) {
+    return color != oldDelegate.color;
+  }
+}
+
+class LayeredBorderCardCover extends CustomPainter {
+  final Color color;
+  final Color secondaryColor;
+
+  LayeredBorderCardCover({
+    super.repaint,
+    required this.color,
+    required this.secondaryColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final drawArea = Offset.zero & size;
+    final paint = Paint();
+
+    final center = drawArea.center;
+    final topLeft = drawArea.topLeft;
+    final bottomLeft = drawArea.bottomLeft;
+    final topRight = drawArea.topRight;
+    final bottomRight = drawArea.bottomRight;
+
+    paint.color = Color.lerp(color, secondaryColor, 0)!;
+    canvas.drawRect(drawArea, paint);
+
+    for (final ratio in [1 / 3]) {
+      final topLeftInner = Offset.lerp(topLeft, center, ratio)!;
+      final bottomLeftInner = Offset.lerp(bottomLeft, center, ratio)!;
+      final topRightInner = Offset.lerp(topRight, center, ratio)!;
+      final bottomRightInner = Offset.lerp(bottomRight, center, ratio)!;
+
+      paint.color = Color.lerp(color, secondaryColor, ratio)!;
+      drawShape(
+          canvas,
+          [topLeftInner, topRightInner, bottomRightInner, bottomLeftInner],
+          paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LayeredBorderCardCover oldDelegate) {
     return color != oldDelegate.color;
   }
 }

@@ -608,7 +608,10 @@ class _CardLayerState extends State<_CardLayer> {
     _touchingCardPile = originPile;
 
     if (originPile is Tableau) {
-      _touchingCards = widget.table.get(originPile).getLastFromCard(card);
+      final cards = widget.table.get(originPile).getLastFromCard(card);
+      if (cards.isAllFacingUp) {
+        _touchingCards = cards;
+      }
     } else if (originPile is Discard) {
       // Always pick top most card regardless of visibility
       final topmostCard = widget.table.get(originPile).lastOrNull;

@@ -39,9 +39,9 @@ class StatusPane extends ConsumerWidget {
               if (showTime) const Expanded(child: Center(child: TimeLabel())),
               if (showScore) const Expanded(child: Center(child: ScoreLabel())),
               if (showMoves) const Expanded(child: Center(child: MoveLabel())),
-            ].separatedBy(const SizedBox(
+            ].separatedBy(SizedBox(
               height: 24,
-              child: VerticalDivider(),
+              child: VerticalDivider(color: colorScheme.outline),
             )),
           ),
       },

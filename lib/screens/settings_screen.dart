@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/settings.dart';
-import '../services/system_orientation.dart';
+import '../services/system_window.dart';
 import '../widgets/fading_edge_list_view.dart';
 import '../widgets/section_title.dart';
 
@@ -23,7 +23,7 @@ class SettingsScreen extends ConsumerWidget {
           child: FadingEdgeListView(
             verticalPadding: 32,
             children: [
-              const SectionTitle('Appearance', first: true),
+              const SectionTitle('System', first: true),
               ListTile(
                 title: const Text('Screen orientation'),
                 leading: const Icon(Icons.screen_rotation_alt),
@@ -57,6 +57,15 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              SwitchListTile(
+                title: const Text('Show status bar'),
+                secondary: const Icon(Icons.web_asset),
+                value: ref.watch(settingsShowStatusBarProvider),
+                onChanged: (value) {
+                  ref.read(settingsShowStatusBarProvider.notifier).toggle();
+                },
+              ),
+              const SectionTitle('Appearance'),
               SwitchListTile(
                 title: const Text('Highlight last moves'),
                 secondary: const Icon(Icons.crop_portrait),
@@ -125,6 +134,23 @@ class SettingsScreen extends ConsumerWidget {
                   ref
                       .read(settingsShowAutoSolveButtonProvider.notifier)
                       .toggle();
+                },
+              ),
+              const SectionTitle('Feedback'),
+              SwitchListTile(
+                title: const Text('Sounds'),
+                secondary: const Icon(Icons.volume_up),
+                value: ref.watch(settingsEnableSoundsProvider),
+                onChanged: (value) {
+                  ref.read(settingsEnableSoundsProvider.notifier).toggle();
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Vibrations'),
+                secondary: const Icon(Icons.vibration),
+                value: ref.watch(settingsEnableVibrationProvider),
+                onChanged: (value) {
+                  ref.read(settingsEnableVibrationProvider.notifier).toggle();
                 },
               ),
             ],

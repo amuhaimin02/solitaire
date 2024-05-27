@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'providers/settings.dart';
 import 'providers/themes.dart';
 import 'screens/about_screen.dart';
-import 'screens/theme_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
+import 'screens/theme_screen.dart';
 import 'services/route_observer.dart';
-import 'services/system_orientation.dart';
+import 'services/system_window.dart';
 import 'widgets/ripple_background.dart';
 import 'widgets/solitaire_theme.dart';
 
@@ -22,18 +21,17 @@ class SolitaireApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
-
     ref.listen(settingsScreenOrientationProvider, (_, orientation) {
-      ScreenOrientationManager.change(orientation);
+      SystemWindow.changeOrientation(orientation);
+    });
+    ref.listen(settingsShowStatusBarProvider, (_, visible) {
+      SystemWindow.setStatusBarVisibility(visible);
     });
 
     ThemeMode themeMode = ref.watch(themeBaseModeProvider);
     final themeColor = ref.watch(themeBaseColorProvider);
     final coloredBackground = ref.watch(themeBackgroundColoredProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
-    final cardThemeMode = ref.watch(themeCardModeProvider);
-    final cardColor = ref.watch(themeCardColorProvider);
 
     ColorScheme colorScheme;
 
@@ -58,26 +56,9 @@ class SolitaireApp extends ConsumerWidget {
           : themeColorPalette.first,
     );
 
-    final SolitaireCardStyle cardStyle;
-
-    final ColorScheme cardColorScheme;
-
-    if (cardThemeMode != ThemeMode.system || cardColor != Colors.transparent) {
-      cardColorScheme = ColorScheme.fromSeed(
-        seedColor: cardColor != Colors.transparent ? cardColor : themeColor,
-        brightness: switch (cardThemeMode) {
-          ThemeMode.light => Brightness.light,
-          ThemeMode.dark => Brightness.dark,
-          ThemeMode.system => colorScheme.brightness,
-        },
-      );
-    } else {
-      cardColorScheme = colorScheme;
-    }
-
-    cardStyle = SolitaireCardStyle.fromColorScheme(
-      cardColorScheme,
-      tintedCardFace: ref.watch(themeCardTintedFaceProvider),
+    final cardStyle = SolitaireCardStyle.fromColorScheme(
+      colorScheme,
+      tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
     );
 
     final solitaireThemeData = SolitaireThemeData.fromColorScheme(
