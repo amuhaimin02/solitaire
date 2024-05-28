@@ -19,29 +19,6 @@ class _GameMenuOptions {
 class GameMenuButton extends StatelessWidget {
   const GameMenuButton({super.key});
 
-  static final _allOptions = [
-    _GameMenuOptions(
-      icon: MdiIcons.cardsPlaying,
-      label: 'Select game',
-      onTap: (context) {},
-    ),
-    _GameMenuOptions(
-      icon: Icons.color_lens,
-      label: 'Customize',
-      onTap: (context) => Navigator.pushNamed(context, '/theme'),
-    ),
-    _GameMenuOptions(
-      icon: Icons.settings,
-      label: 'Settings',
-      onTap: (context) => Navigator.pushNamed(context, '/settings'),
-    ),
-    _GameMenuOptions(
-      icon: Icons.info,
-      label: 'About',
-      onTap: (context) => Navigator.pushNamed(context, '/about'),
-    )
-  ];
-
   @override
   Widget build(BuildContext context) {
     return IconButton(
@@ -53,9 +30,37 @@ class GameMenuButton extends StatelessWidget {
 
   Future<void> _onPressed(BuildContext context) async {
     final buttonPosition = context.globalPaintBounds!;
-    final dialogAnchor = buttonPosition.center;
-
     HapticFeedback.mediumImpact();
+
+    final orientation = MediaQuery.of(context).orientation;
+
+    final dialogAnchor = switch (orientation) {
+      Orientation.portrait => buttonPosition.bottomLeft,
+      Orientation.landscape => buttonPosition.topRight,
+    };
+
+    final allOptions = [
+      _GameMenuOptions(
+        icon: MdiIcons.cardsPlaying,
+        label: 'Select game',
+        onTap: (context) => Navigator.pushNamed(context, '/select'),
+      ),
+      _GameMenuOptions(
+        icon: Icons.color_lens,
+        label: 'Customize',
+        onTap: (context) => Navigator.pushNamed(context, '/theme'),
+      ),
+      _GameMenuOptions(
+        icon: Icons.settings,
+        label: 'Settings',
+        onTap: (context) => Navigator.pushNamed(context, '/settings'),
+      ),
+      _GameMenuOptions(
+        icon: Icons.info,
+        label: 'About',
+        onTap: (context) => Navigator.pushNamed(context, '/about'),
+      )
+    ];
 
     final selectedOptions = await showGeneralDialog<_GameMenuOptions>(
       context: context,
@@ -75,7 +80,7 @@ class GameMenuButton extends StatelessWidget {
                       .animate(animation),
                   alignment: Alignment.topLeft,
                   child: Container(
-                    margin: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.all(16),
                     width: 240,
                     alignment: Alignment.topLeft,
                     child: Material(
@@ -87,7 +92,7 @@ class GameMenuButton extends StatelessWidget {
                         children: [
                           const _ScreenOrientationToggle(),
                           const Divider(),
-                          for (final option in _allOptions)
+                          for (final option in allOptions)
                             ListTile(
                               leading: Icon(option.icon),
                               title: Text(option.label),
@@ -130,34 +135,28 @@ class _ScreenOrientationToggle extends ConsumerWidget {
             tooltip: 'Auto rotate (follow system settings)',
             isSelected: currentOrientation == ScreenOrientation.auto,
             icon: const Icon(Icons.screen_rotation),
-            onPressed: () {
-              ref
-                  .read(settingsScreenOrientationProvider.notifier)
-                  .set(ScreenOrientation.auto);
-            },
+            onPressed: () => _change(context, ref, ScreenOrientation.auto),
           ),
           IconButton.filled(
             tooltip: 'Portrait',
             isSelected: currentOrientation == ScreenOrientation.portrait,
             icon: const Icon(Icons.stay_current_portrait),
-            onPressed: () {
-              ref
-                  .read(settingsScreenOrientationProvider.notifier)
-                  .set(ScreenOrientation.portrait);
-            },
+            onPressed: () => _change(context, ref, ScreenOrientation.portrait),
           ),
           IconButton.filled(
             tooltip: 'Landscape',
             isSelected: currentOrientation == ScreenOrientation.landscape,
             icon: const Icon(Icons.stay_current_landscape),
-            onPressed: () {
-              ref
-                  .read(settingsScreenOrientationProvider.notifier)
-                  .set(ScreenOrientation.landscape);
-            },
+            onPressed: () => _change(context, ref, ScreenOrientation.landscape),
           ),
         ],
       ),
     );
+  }
+
+  void _change(
+      BuildContext context, WidgetRef ref, ScreenOrientation newOrientation) {
+    ref.read(settingsScreenOrientationProvider.notifier).set(newOrientation);
+    Navigator.pop(context);
   }
 }

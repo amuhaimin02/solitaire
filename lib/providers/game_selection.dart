@@ -2,9 +2,23 @@ import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game/all.dart';
+import '../models/game/klondike.dart';
+import '../models/game/simple.dart';
 import '../models/game/solitaire.dart';
 
 part 'game_selection.g.dart';
+
+@riverpod
+List<SolitaireGame> solitaireGameList(SolitaireGameListRef ref) {
+  return [
+    for (final scoring in KlondikeScoring.values)
+      for (final draws in KlondikeDraws.values)
+        Klondike(
+          KlondikeVariant(draws: draws, scoring: scoring),
+        ),
+    const SimpleSolitaire(),
+  ];
+}
 
 @riverpod
 Map<String, List<SolitaireGame>> allSolitaireGamesMapped(

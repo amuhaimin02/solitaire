@@ -24,39 +24,6 @@ class SettingsScreen extends ConsumerWidget {
             verticalPadding: 32,
             children: [
               const SectionTitle('System', first: true),
-              ListTile(
-                title: const Text('Screen orientation'),
-                leading: const Icon(Icons.screen_rotation_alt),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: SegmentedButton<ScreenOrientation>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(
-                        value: ScreenOrientation.auto,
-                        label: Text('Auto'),
-                        // icon: Icon(Icons.screen_rotation),
-                      ),
-                      ButtonSegment(
-                        value: ScreenOrientation.portrait,
-                        label: Text('Portrait'),
-                        // icon: Icon(Icons.stay_current_portrait),
-                      ),
-                      ButtonSegment(
-                        value: ScreenOrientation.landscape,
-                        label: Text('Landscape'),
-                        // icon: Icon(Icons.stay_current_landscape),
-                      ),
-                    ],
-                    selected: {ref.watch(settingsScreenOrientationProvider)},
-                    onSelectionChanged: (value) {
-                      ref
-                          .read(settingsScreenOrientationProvider.notifier)
-                          .set(value.single);
-                    },
-                  ),
-                ),
-              ),
               SwitchListTile(
                 title: const Text('Show status bar'),
                 secondary: const Icon(Icons.web_asset),

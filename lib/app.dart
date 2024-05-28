@@ -6,6 +6,7 @@ import 'providers/settings.dart';
 import 'providers/themes.dart';
 import 'screens/about_screen.dart';
 import 'screens/game_screen.dart';
+import 'screens/game_selection_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
@@ -77,6 +78,8 @@ class SolitaireApp extends ConsumerWidget {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
       ),
+      scaffoldBackgroundColor:
+          amoledDarkTheme && themeMode == ThemeMode.dark ? Colors.black : null,
       splashFactory: InkSparkle.splashFactory,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -107,6 +110,7 @@ class SolitaireApp extends ConsumerWidget {
         routes: {
           '/home': (context) => const HomeScreen(),
           '/game': (context) => const GameScreen(),
+          '/select': (context) => const GameSelectionScreen(),
           '/theme': (context) => const ThemeScreen(),
           '/settings': (context) => const SettingsScreen(),
           '/stats': (context) => const StatisticsScreen(),

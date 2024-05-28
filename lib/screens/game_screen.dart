@@ -168,11 +168,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 32),
-                                  child: Visibility(
+                                  child: AnimatedVisibility(
                                     visible: !isPreparing,
-                                    maintainSize: true,
-                                    maintainAnimation: true,
-                                    maintainState: true,
                                     child: StatusPane(orientation: orientation),
                                   ),
                                 ),
@@ -292,8 +289,7 @@ class _PlayArea extends ConsumerWidget {
                 final controller = ref.read(gameControllerProvider.notifier);
                 switch (pile) {
                   case Draw():
-                    controller
-                        .tryMove(const MoveIntent(Draw(), Discard()));
+                    controller.tryMove(const MoveIntent(Draw(), Discard()));
                     return null;
 
                   case Discard() || Foundation():
