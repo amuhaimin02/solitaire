@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/settings.dart';
-import '../services/system_window.dart';
-import '../widgets/fading_edge_list_view.dart';
 import '../widgets/section_title.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -15,13 +13,12 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
-        scrolledUnderElevation: 0,
       ),
       body: Center(
         child: SizedBox(
           width: 600,
-          child: FadingEdgeListView(
-            verticalPadding: 32,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 16),
             children: [
               const SectionTitle('System', first: true),
               SwitchListTile(

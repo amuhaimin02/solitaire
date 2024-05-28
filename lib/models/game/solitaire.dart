@@ -7,30 +7,17 @@ import '../play_table.dart';
 import '../table_layout.dart';
 
 abstract class SolitaireGame {
-  const SolitaireGame([this._variant]);
-
-  final SolitaireVariant<SolitaireGame>? _variant;
-
-  SolitaireVariant<SolitaireGame> get variant {
-    if (_variant == null) {
-      throw ArgumentError('$name does not have any variants set');
-    }
-    return _variant;
-  }
-
-  bool get hasVariants => _variant != null;
-
-  // --------------------------------------------
+  const SolitaireGame();
 
   String get name;
+
+  String get family;
 
   String get tag;
 
   int get drawsPerTurn;
 
-  List<Pile> get piles;
-
-  TableLayout getLayout(List<Pile> piles, [TableLayoutOptions? options]);
+  TableLayout getLayout([TableLayoutOptions? options]);
 
   List<PlayCard> prepareDrawPile(Random random);
 
@@ -49,23 +36,4 @@ abstract class SolitaireGame {
   Iterable<MoveIntent> autoSolveStrategy(PlayTable table);
 
   (PlayTable card, int score) afterEachMove(Move move, PlayTable table);
-
-  String get fullTag {
-    if (hasVariants) {
-      return '$tag-${variant.tag}';
-    } else {
-      return tag;
-    }
-  }
-
-  @override
-  String toString() => fullTag;
-}
-
-abstract class SolitaireVariant<T extends SolitaireGame> {
-  const SolitaireVariant();
-
-  String get name;
-
-  String get tag;
 }

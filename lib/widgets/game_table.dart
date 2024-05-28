@@ -23,9 +23,8 @@ import 'ticking_number.dart';
 class GameTable extends StatelessWidget {
   const GameTable({
     super.key,
-    required this.rules,
+    required this.layout,
     required this.table,
-    this.orientation = Orientation.portrait,
     this.interactive = true,
     this.onCardTap,
     this.onCardDrop,
@@ -36,7 +35,7 @@ class GameTable extends StatelessWidget {
     this.animateMovement = true,
   });
 
-  final SolitaireGame rules;
+  final TableLayout layout;
 
   final List<PlayCard>? Function(PlayCard card, Pile pile)? onCardTap;
 
@@ -44,8 +43,6 @@ class GameTable extends StatelessWidget {
   final List<PlayCard>? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
   final bool interactive;
-
-  final Orientation orientation;
 
   final PlayTable table;
 
@@ -60,11 +57,6 @@ class GameTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
-
-    final layout = rules.getLayout(
-      rules.piles,
-      TableLayoutOptions(orientation: orientation, mirror: false),
-    );
 
     return IgnorePointer(
       ignoring: !interactive,

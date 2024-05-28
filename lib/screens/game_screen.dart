@@ -7,6 +7,7 @@ import '../models/card.dart';
 import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
+import '../models/table_layout.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
@@ -18,13 +19,13 @@ import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
 import '../widgets/debug_pane.dart';
+import '../widgets/fixes.dart';
 import '../widgets/game_table.dart';
 import '../widgets/ripple_background.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
 import 'game_menu_button.dart';
-import 'home_screen.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -58,7 +59,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   @override
-  void onEnter() {}
+  void onEnter() {
+    ref.read(playTimeProvider.notifier).resume();
+    print('resuming');
+  }
 
   @override
   void onLeave() {
@@ -264,8 +268,9 @@ class _PlayArea extends ConsumerWidget {
           children: [
             GameTable(
               table: table,
-              rules: game.rules,
-              orientation: orientation,
+              layout: game.rules.getLayout(
+                TableLayoutOptions(orientation: orientation, mirror: false),
+              ),
               highlightedCards: highlightedCards,
               lastMovedCards: lastMovedCards,
               animateDistribute: status == GameStatus.preparing,
@@ -350,10 +355,10 @@ class _UserActionIndicator extends ConsumerWidget {
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(32),
-                color: colorScheme.onSecondaryFixed.withOpacity(0.5),
+                color: colorScheme.secondary,
               ),
               child: Icon(userActionIcon[userAction],
-                  size: 72, color: colorScheme.secondaryFixed),
+                  size: 72, color: colorScheme.onSecondary),
             )
           : null,
     );

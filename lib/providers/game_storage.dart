@@ -8,7 +8,7 @@ import 'file_handler.dart';
 
 part 'game_storage.g.dart';
 
-String _quickSaveFileName(SolitaireGame game) => 'continue-${game.fullTag}';
+String _quickSaveFileName(SolitaireGame game) => 'continue-${game.tag}';
 
 @riverpod
 class GameStorage extends _$GameStorage {

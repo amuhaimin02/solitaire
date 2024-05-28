@@ -13,96 +13,100 @@ import '../play_table.dart';
 import '../table_layout.dart';
 import 'solitaire.dart';
 
+enum KlondikeScoring {
+  standard('Standard'),
+  vegas('Vegas'),
+  cumulativeVegas('Cumulative Vegas');
+
+  final String fullName;
+
+  const KlondikeScoring(this.fullName);
+}
+
 class Klondike extends SolitaireGame {
-  const Klondike(KlondikeVariant super.variant);
+  const Klondike({required this.numberOfDraws, required this.scoring});
 
   @override
-  String get name => 'Klondike';
+  String get name =>
+      '${scoring.fullName}, $numberOfDraws draw${numberOfDraws != 1 ? 's' : ''}';
 
   @override
-  String get tag => 'klondike';
+  String get family => 'Klondike';
+
+  @override
+  String get tag => 'klondike-$drawsPerTurn-draw-${scoring.name.toParamCase()}';
+
+  final int numberOfDraws;
+
+  final KlondikeScoring scoring;
 
   static const numberOfTableauPiles = 7;
 
   static const numberOfFoundationPiles = 4;
 
   @override
-  int get drawsPerTurn {
-    return switch ((variant as KlondikeVariant).draws) {
-      KlondikeDraws.oneDraw => 1,
-      KlondikeDraws.threeDraws => 3,
-    };
-  }
+  int get drawsPerTurn => numberOfDraws;
 
   @override
-  List<Pile> get piles {
-    return [
-      for (int i = 0; i < numberOfFoundationPiles; i++) Foundation(i),
-      for (int i = 0; i < numberOfTableauPiles; i++) Tableau(i),
-      const Discard(),
-      const Draw(),
-    ];
-  }
-
-  @override
-  TableLayout getLayout(List<Pile> piles, [TableLayoutOptions? options]) {
+  TableLayout getLayout([TableLayoutOptions? options]) {
     switch (options?.orientation) {
       case Orientation.portrait || null:
         return TableLayout(
           gridSize: const Size(7, 6),
           items: [
-            for (final pile in piles)
-              switch (pile) {
-                Draw() => TableLayoutItem(
-                    kind: const Draw(),
-                    region: const Rect.fromLTWH(6, 0, 1, 1),
-                    showCountIndicator: true,
-                  ),
-                Discard() => TableLayoutItem(
-                    kind: const Discard(),
-                    region: const Rect.fromLTWH(4, 0, 2, 1),
-                    stackDirection: Direction.left,
-                    shiftStackOnPlace: true,
-                    numberOfCardsToShow: 3,
-                  ),
-                Foundation(:final index) => TableLayoutItem(
-                    kind: Foundation(index),
-                    region: Rect.fromLTWH(index.toDouble(), 0, 1, 1),
-                  ),
-                Tableau(:final index) => TableLayoutItem(
-                    kind: Tableau(index),
-                    region: Rect.fromLTWH(index.toDouble(), 1.3, 1, 4.7),
-                    stackDirection: Direction.down,
-                  ),
-              }
+            for (int i = 0; i < 4; i++)
+              TableLayoutItem(
+                kind: Foundation(i),
+                region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+              ),
+            for (int i = 0; i < 7; i++)
+              TableLayoutItem(
+                kind: Tableau(i),
+                region: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
+                stackDirection: Direction.down,
+              ),
+            TableLayoutItem(
+              kind: const Draw(),
+              region: const Rect.fromLTWH(6, 0, 1, 1),
+              showCountIndicator: true,
+            ),
+            TableLayoutItem(
+              kind: const Discard(),
+              region: const Rect.fromLTWH(4, 0, 2, 1),
+              stackDirection: Direction.left,
+              shiftStackOnPlace: true,
+              numberOfCardsToShow: 3,
+            ),
           ],
         );
       case Orientation.landscape:
-        return TableLayout(gridSize: const Size(10, 4), items: [
-          for (final pile in piles)
-            switch (pile) {
-              Draw() => TableLayoutItem(
-                  kind: const Draw(),
-                  region: const Rect.fromLTWH(9, 2.5, 1, 1),
-                  showCountIndicator: true,
-                ),
-              Discard() => TableLayoutItem(
-                  kind: const Discard(),
-                  region: const Rect.fromLTWH(9, 0.5, 1, 2),
-                  stackDirection: Direction.down,
-                  numberOfCardsToShow: 3,
-                ),
-              Foundation(:final index) => TableLayoutItem(
-                  kind: Foundation(index),
-                  region: Rect.fromLTWH(0, index.toDouble(), 1, 1),
-                ),
-              Tableau(:final index) => TableLayoutItem(
-                  kind: Tableau(index),
-                  region: Rect.fromLTWH(index.toDouble() + 1.5, 0, 1, 4),
-                  stackDirection: Direction.down,
-                ),
-            }
-        ]);
+        return TableLayout(
+          gridSize: const Size(10, 4),
+          items: [
+            for (int i = 0; i < 4; i++)
+              TableLayoutItem(
+                kind: Foundation(i),
+                region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+              ),
+            for (int i = 0; i < 7; i++)
+              TableLayoutItem(
+                kind: Tableau(i),
+                region: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+                stackDirection: Direction.down,
+              ),
+            TableLayoutItem(
+              kind: const Draw(),
+              region: const Rect.fromLTWH(9, 2.5, 1, 1),
+              showCountIndicator: true,
+            ),
+            TableLayoutItem(
+              kind: const Discard(),
+              region: const Rect.fromLTWH(9, 0.5, 1, 2),
+              stackDirection: Direction.down,
+              numberOfCardsToShow: 3,
+            ),
+          ],
+        );
     }
   }
 
@@ -245,51 +249,4 @@ class Klondike extends SolitaireGame {
 
     return (table, 5);
   }
-}
-
-class KlondikeVariant extends SolitaireVariant<Klondike> {
-  final KlondikeDraws draws;
-
-  final KlondikeScoring scoring;
-
-  const KlondikeVariant({
-    required this.draws,
-    required this.scoring,
-  });
-
-  @override
-  String get name => '${scoring.fullName}, ${draws.fullName}';
-
-  @override
-  String get tag => '${scoring.name.toParamCase()}-${draws.name.toParamCase()}';
-
-  int calculateScore(Move move, PlayTable table) {
-    switch (scoring) {
-      case KlondikeScoring.standard:
-        return 1;
-      case KlondikeScoring.vegas:
-        return 5;
-      case KlondikeScoring.cumulativeVegas:
-        return 10;
-    }
-  }
-}
-
-enum KlondikeDraws {
-  oneDraw('1 draw'),
-  threeDraws('3 draws');
-
-  final String fullName;
-
-  const KlondikeDraws(this.fullName);
-}
-
-enum KlondikeScoring {
-  standard('Standard'),
-  vegas('Vegas'),
-  cumulativeVegas('Cumulative Vegas');
-
-  final String fullName;
-
-  const KlondikeScoring(this.fullName);
 }

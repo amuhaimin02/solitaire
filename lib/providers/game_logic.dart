@@ -6,7 +6,6 @@ import '../models/action.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
 import '../models/game/klondike.dart';
-import '../models/game/simple.dart';
 import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
 import '../models/move_record.dart';
@@ -18,6 +17,7 @@ import '../models/user_action.dart';
 import '../utils/iterators.dart';
 import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
+import 'game_selection.dart';
 import 'settings.dart';
 
 part 'game_logic.g.dart';
@@ -98,7 +98,7 @@ class CurrentGame extends _$CurrentGame {
   @override
   GameMetadata build() {
     return GameMetadata(
-      rules: const SimpleSolitaire(),
+      rules: ref.watch(allSolitaireGamesProvider).first,
       startedTime: DateTime.now(),
       randomSeed: '1234',
     );
@@ -153,6 +153,11 @@ class GameController extends _$GameController {
     if (ref.read(settingsUseAutoPremoveProvider)) {
       _doPremove();
     }
+  }
+
+  void restart() async {
+    ref.read(moveHistoryProvider.notifier).restart();
+    ref.read(playTimeProvider.notifier).restart();
   }
 
   GameData suspend() {
@@ -554,6 +559,12 @@ class MoveHistory extends _$MoveHistory {
       ref.read(lastActionProvider.notifier).send(Undo(record.action as Move));
       ref.read(playTableStateProvider.notifier).update(record.table);
     }
+  }
+
+  void restart() {
+    ref.read(moveCountProvider.notifier).set(0);
+    ref.read(playTableStateProvider.notifier).update(state.first.table);
+    ref.read(lastActionProvider.notifier).send(const GameStart());
   }
 }
 

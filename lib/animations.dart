@@ -37,7 +37,7 @@ const standardAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);
 
 const themeChangeAnimation =
-    DurationCurve(Duration(milliseconds: 500), Easing.standard);
+    DurationCurve(Duration(milliseconds: 700), Easing.standard);
 
 const numberTickAnimation =
     DurationCurve(Duration(milliseconds: 250), Curves.fastOutSlowIn);

@@ -27,7 +27,8 @@ class PlayTable {
   factory PlayTable.fromGame(SolitaireGame game) {
     return PlayTable._(
       UnmodifiableMapView({
-        for (final pile in game.piles) pile: List.empty(growable: false),
+        for (final pile in game.getLayout().items)
+          pile.kind: List.empty(growable: false),
       }),
     );
   }

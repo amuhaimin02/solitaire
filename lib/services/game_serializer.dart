@@ -58,13 +58,13 @@ class GameMetadataSerializer implements Serializer<GameMetadata> {
 
   @override
   String serialize(GameMetadata metadata) {
-    return '${metadata.rules.fullTag}:${metadata.randomSeed}:${metadata.startedTime.millisecondsSinceEpoch}';
+    return '${metadata.rules.tag}:${metadata.randomSeed}:${metadata.startedTime.millisecondsSinceEpoch}';
   }
 
   @override
   GameMetadata deserialize(String raw) {
     final [val1, val2, val3] = raw.split(':');
-    final game = allSolitaireGames.firstWhere((game) => game.fullTag == val1);
+    final game = solitaireGamesList.firstWhere((game) => game.tag == val1);
     final randomSeed = val2;
     final startedTime = DateTime.fromMillisecondsSinceEpoch(int.parse(val3));
 

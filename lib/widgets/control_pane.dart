@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_action.dart';
 import '../providers/game_logic.dart';
 import '../providers/themes.dart';
+import 'fixes.dart';
 import 'tap_hold_detector.dart';
 
 class ControlPane extends ConsumerWidget {
@@ -24,9 +25,10 @@ class ControlPane extends ConsumerWidget {
       IconButton(
         tooltip: 'Start new game',
         onPressed: () {
-          ref.read(themeBaseRandomizeColorProvider.notifier).tryShuffleColor();
-          final game = ref.read(currentGameProvider);
-          ref.read(gameControllerProvider.notifier).startNew(game.rules);
+          showDialog(
+            context: context,
+            builder: (_) => const _RestartDialog(),
+          );
         },
         icon: const Icon(Icons.restart_alt, size: 24),
       ),
@@ -105,5 +107,42 @@ class ControlPane extends ConsumerWidget {
           children: children,
         ),
     };
+  }
+}
+
+class _RestartDialog extends ConsumerWidget {
+  const _RestartDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DialogThemeFix(
+      child: AlertDialog(
+        title: const Text('Restart game?'),
+        content: const Text(
+            'Do you want to restart this game from beginning or redeal for a new game?'),
+        actions: [
+          FilledButton.tonalIcon(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(gameControllerProvider.notifier).restart();
+            },
+            icon: const Icon(Icons.fast_rewind),
+            label: const Text('Restart'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              ref
+                  .read(themeBaseRandomizeColorProvider.notifier)
+                  .tryShuffleColor();
+              final game = ref.read(currentGameProvider);
+              ref.read(gameControllerProvider.notifier).startNew(game.rules);
+            },
+            icon: const Icon(Icons.restart_alt),
+            label: const Text('New game'),
+          ),
+        ],
+      ),
+    );
   }
 }

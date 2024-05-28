@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/settings.dart';
 import '../services/system_window.dart';
-import '../utils/widgets.dart';
+import '../widgets/popup_button.dart';
 
 class _GameMenuOptions {
   final IconData icon;
@@ -21,24 +20,6 @@ class GameMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: 'Menu',
-      onPressed: () => _onPressed(context),
-      icon: const Icon(Icons.more_horiz),
-    );
-  }
-
-  Future<void> _onPressed(BuildContext context) async {
-    final buttonPosition = context.globalPaintBounds!;
-    HapticFeedback.mediumImpact();
-
-    final orientation = MediaQuery.of(context).orientation;
-
-    final dialogAnchor = switch (orientation) {
-      Orientation.portrait => buttonPosition.bottomLeft,
-      Orientation.landscape => buttonPosition.topRight,
-    };
-
     final allOptions = [
       _GameMenuOptions(
         icon: MdiIcons.cardsPlaying,
@@ -62,59 +43,25 @@ class GameMenuButton extends StatelessWidget {
       )
     ];
 
-    final selectedOptions = await showGeneralDialog<_GameMenuOptions>(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black26,
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Stack(
-          children: <Widget>[
-            Positioned.fill(
-              left: dialogAnchor.dx,
-              top: dialogAnchor.dy,
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: ScaleTransition(
-                  scale: CurveTween(curve: Easing.emphasizedDecelerate)
-                      .animate(animation),
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                    margin: const EdgeInsets.all(16),
-                    width: 240,
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      elevation: 24,
-                      borderRadius: BorderRadius.circular(16),
-                      child: ListView(
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        children: [
-                          const _ScreenOrientationToggle(),
-                          const Divider(),
-                          for (final option in allOptions)
-                            ListTile(
-                              leading: Icon(option.icon),
-                              title: Text(option.label),
-                              onTap: () {
-                                Navigator.pop(context, option);
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ],
-        );
+    return PopupButton(
+      tooltip: 'Menu',
+      icon: const Icon(Icons.more_horiz),
+      builder: (context, dismiss) {
+        return [
+          const _ScreenOrientationToggle(),
+          const Divider(),
+          for (final option in allOptions)
+            ListTile(
+              leading: Icon(option.icon),
+              title: Text(option.label),
+              onTap: () {
+                dismiss();
+                option.onTap(context);
+              },
+            ),
+        ];
       },
     );
-
-    if (selectedOptions != null && context.mounted) {
-      selectedOptions.onTap(context);
-    }
   }
 }
 

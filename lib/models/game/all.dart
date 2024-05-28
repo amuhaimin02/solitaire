@@ -1,11 +1,7 @@
 import 'klondike.dart';
-import 'simple.dart';
 
-final allSolitaireGames = [
+final solitaireGamesList = [
   for (final scoring in KlondikeScoring.values)
-    for (final draws in KlondikeDraws.values)
-      Klondike(
-        KlondikeVariant(draws: draws, scoring: scoring),
-      ),
-  const SimpleSolitaire(),
+    for (final draws in [1, 3])
+      Klondike(numberOfDraws: draws, scoring: scoring),
 ];
