@@ -95,14 +95,14 @@ class SolitaireThemeData {
 
     if (amoledDarkTheme && colorScheme.brightness == Brightness.dark) {
       appBackgroundColor = tableBackgroundColor = Colors.black;
-      winningBackgroundColor = colorScheme.surfaceContainerHighest;
+      winningBackgroundColor = colorScheme.surfaceContainer;
     } else if (coloredBackground) {
       appBackgroundColor = colorScheme.surface;
       tableBackgroundColor = colorScheme.primaryContainer;
-      winningBackgroundColor = colorScheme.surfaceContainerHighest;
+      winningBackgroundColor = colorScheme.surfaceContainer;
     } else {
       appBackgroundColor = colorScheme.surface;
-      tableBackgroundColor = colorScheme.surfaceContainerHighest;
+      tableBackgroundColor = colorScheme.surfaceContainer;
       winningBackgroundColor = colorScheme.primaryContainer;
     }
 

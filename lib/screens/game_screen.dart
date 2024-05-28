@@ -4,14 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
-import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/play_data.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
+import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
 import '../providers/settings.dart';
 import '../services/route_observer.dart';
@@ -24,6 +23,7 @@ import '../widgets/ripple_background.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
+import 'game_menu_button.dart';
 import 'home_screen.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -42,12 +42,17 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   void _startGame() {
-    Future.microtask(() {
-      final args = ModalRoute.of(context)!.settings.arguments;
-      if (args is SolitaireGame) {
-        ref.read(gameControllerProvider.notifier).startNew(args);
-      } else if (args is GameData) {
-        ref.read(gameControllerProvider.notifier).restore(args);
+    Future.microtask(() async {
+      final currentGame = ref.read(selectedGameProvider);
+      final hasQuickSave =
+          await ref.read(hasQuickSaveProvider(currentGame).future);
+      if (hasQuickSave) {
+        final gameData = await ref
+            .read(gameStorageProvider.notifier)
+            .restoreQuickSave(currentGame);
+        ref.read(gameControllerProvider.notifier).restore(gameData);
+      } else {
+        ref.read(gameControllerProvider.notifier).startNew(currentGame);
       }
     });
   }
@@ -83,6 +88,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     return Scaffold(
       appBar: AppBar(
         forceMaterialTransparency: true,
+        leading: const GameMenuButton(),
       ),
       extendBodyBehindAppBar: true,
       body: RippleBackground(
@@ -287,7 +293,7 @@ class _PlayArea extends ConsumerWidget {
                 switch (pile) {
                   case Draw():
                     controller
-                        .tryMove(MoveIntent(const Draw(), const Discard()));
+                        .tryMove(const MoveIntent(Draw(), Discard()));
                     return null;
 
                   case Discard() || Foundation():

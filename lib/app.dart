@@ -74,16 +74,15 @@ class SolitaireApp extends ConsumerWidget {
       useMaterial3: true,
       textTheme: textTheme,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
       ),
       splashFactory: InkSparkle.splashFactory,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.android: FadeOutInTransitionBuilder(),
-          TargetPlatform.iOS: FadeOutInTransitionBuilder(),
-          TargetPlatform.macOS: FadeOutInTransitionBuilder(),
+          TargetPlatform.android: SlideUpTransitionBuilder(),
+          TargetPlatform.iOS: SlideUpTransitionBuilder(),
+          TargetPlatform.macOS: SlideUpTransitionBuilder(),
         },
       ),
       tooltipTheme: const TooltipThemeData(preferBelow: false),
@@ -104,7 +103,7 @@ class SolitaireApp extends ConsumerWidget {
         title: 'Solitaire',
         theme: themeData,
         themeAnimationStyle: AnimationStyle.noAnimation,
-        initialRoute: '/home',
+        initialRoute: '/game',
         routes: {
           '/home': (context) => const HomeScreen(),
           '/game': (context) => const GameScreen(),
@@ -145,6 +144,40 @@ class FadeOutInTransitionBuilder extends PageTransitionsBuilder {
           child: child,
         ),
       ),
+    );
+  }
+}
+
+class SlideUpTransitionBuilder extends PageTransitionsBuilder {
+  const SlideUpTransitionBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+      PageRoute<T> route,
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      Widget child) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final curvedAnimation =
+        CurveTween(curve: Easing.emphasizedDecelerate).animate(animation);
+
+    return Stack(
+      children: [
+        DecoratedBoxTransition(
+          decoration: DecorationTween(
+            begin: const BoxDecoration(color: Colors.transparent),
+            end: BoxDecoration(color: colorScheme.surface),
+          ).animate(animation),
+          child: SlideTransition(
+            position: Tween(
+              begin: const Offset(0, 1),
+              end: const Offset(0, 0),
+            ).animate(curvedAnimation),
+            child: child,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart' hide Action;
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -152,9 +151,9 @@ class CardFace extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.only(
-                left: spacingFactor,
-                right: spacingFactor * 1.5,
-              ),
+                  left: spacingFactor * 1.2,
+                  right: spacingFactor * 1.6,
+                  top: spacingFactor * 0.2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,

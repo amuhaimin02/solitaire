@@ -280,15 +280,14 @@ class _GameControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedGame = ref.watch(selectedGameProvider);
-    final hasQuickSave =
-        ref.watch(hasQuickSaveProvider(selectedGame)).value ?? false;
+    final hasQuickSave = ref.watch(hasQuickSaveProvider(selectedGame)).value;
 
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (hasQuickSave)
+          if (hasQuickSave != false)
             FilledButton.icon(
               onPressed: () async {
                 try {
@@ -320,7 +319,7 @@ class _GameControls extends ConsumerWidget {
           const SizedBox(height: 8),
           FilledButton.tonalIcon(
             onPressed: () async {
-              if (hasQuickSave) {
+              if (hasQuickSave == true) {
                 final response = await showDialog<bool>(
                   context: context,
                   builder: (_) => const _NewGameDialog(),

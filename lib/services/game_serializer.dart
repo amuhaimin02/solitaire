@@ -152,7 +152,7 @@ class ActionSerializer implements Serializer<Action> {
   Action deserialize(String raw) {
     switch (raw.substring(0, 2)) {
       case 'GS':
-        return GameStart();
+        return const GameStart();
       case 'MV':
         final [_, from, to, cards] = raw.split(':');
         return Move(
