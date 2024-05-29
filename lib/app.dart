@@ -7,6 +7,7 @@ import 'providers/themes.dart';
 import 'screens/about_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/game_selection_screen.dart';
+import 'screens/help_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'screens/theme_screen.dart';
@@ -112,6 +113,7 @@ class SolitaireApp extends ConsumerWidget {
           '/theme': (context) => const ThemeScreen(),
           '/settings': (context) => const SettingsScreen(),
           '/stats': (context) => const StatisticsScreen(),
+          '/help': (context) => const HelpScreen(),
           '/about': (context) => const AboutScreen(),
         },
         navigatorObservers: [routeObserver],

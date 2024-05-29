@@ -28,7 +28,7 @@ class Klondike extends SolitaireGame {
 
   @override
   String get name =>
-      '${scoring.fullName}, $numberOfDraws draw${numberOfDraws != 1 ? 's' : ''}';
+      'Klondike ${scoring.fullName}, $numberOfDraws draw${numberOfDraws != 1 ? 's' : ''}';
 
   @override
   String get family => 'Klondike';

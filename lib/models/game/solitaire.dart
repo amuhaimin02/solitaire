@@ -36,4 +36,13 @@ abstract class SolitaireGame {
   Iterable<MoveIntent> autoSolveStrategy(PlayTable table);
 
   (PlayTable card, int score) afterEachMove(Move move, PlayTable table);
+
+  @override
+  String toString() => name;
+
+  PlayTable generateRandomSetup() {
+    final table = PlayTable.fromGame(this)
+        .modify(const Draw(), prepareDrawPile(Random()));
+    return setup(table);
+  }
 }

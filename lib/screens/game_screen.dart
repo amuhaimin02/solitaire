@@ -258,7 +258,7 @@ class _PlayArea extends ConsumerWidget {
 
         if (showLastMoves) {
           final lastMove = ref.watch(lastActionProvider).move;
-          if (lastMove != null) {
+          if (lastMove != null && lastMove.from != const Draw()) {
             lastMovedCards = lastMove.cards;
           }
         }

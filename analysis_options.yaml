@@ -34,5 +34,5 @@ analyzer:
     unused_element: ignore
 
   # Custom lint for Riverpod
-  plugins:
-    - custom_lint
+#  plugins:
+#    - custom_lint

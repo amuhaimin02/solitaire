@@ -18,6 +18,16 @@ Map<String, List<SolitaireGame>> allSolitaireGamesMapped(
 }
 
 @riverpod
+List<SolitaireGame> favoritedGames(FavoritedGamesRef ref) {
+  return ref.watch(allSolitaireGamesProvider);
+}
+
+@riverpod
+List<SolitaireGame> continuableGames(ContinuableGamesRef ref) {
+  return ref.watch(allSolitaireGamesProvider);
+}
+
+@riverpod
 class GameSelectionDropdown extends _$GameSelectionDropdown {
   @override
   bool build() => false;

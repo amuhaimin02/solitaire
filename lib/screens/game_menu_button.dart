@@ -22,11 +22,6 @@ class GameMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final allOptions = [
       _GameMenuOptions(
-        icon: MdiIcons.cardsPlaying,
-        label: 'Select game',
-        onTap: (context) => Navigator.pushNamed(context, '/select'),
-      ),
-      _GameMenuOptions(
         icon: Icons.color_lens,
         label: 'Customize',
         onTap: (context) => Navigator.pushNamed(context, '/theme'),
@@ -37,6 +32,11 @@ class GameMenuButton extends StatelessWidget {
         onTap: (context) => Navigator.pushNamed(context, '/settings'),
       ),
       _GameMenuOptions(
+        icon: Icons.help,
+        label: 'Help',
+        onTap: (context) => Navigator.pushNamed(context, '/help'),
+      ),
+      _GameMenuOptions(
         icon: Icons.info,
         label: 'About',
         onTap: (context) => Navigator.pushNamed(context, '/about'),
@@ -45,10 +45,19 @@ class GameMenuButton extends StatelessWidget {
 
     return PopupButton(
       tooltip: 'Menu',
-      icon: const Icon(Icons.more_horiz),
+      icon: const Icon(Icons.menu),
       builder: (context, dismiss) {
         return [
           const _ScreenOrientationToggle(),
+          const Divider(),
+          ListTile(
+            leading: Icon(MdiIcons.cardsPlaying),
+            title: const Text('Change game'),
+            onTap: () {
+              dismiss();
+              Navigator.pushNamed(context, '/select');
+            },
+          ),
           const Divider(),
           for (final option in allOptions)
             ListTile(
