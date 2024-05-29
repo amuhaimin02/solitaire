@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import '../services/system_window.dart';
 import '../widgets/popup_button.dart';
@@ -50,6 +51,7 @@ class GameMenuButton extends StatelessWidget {
         return [
           const _ScreenOrientationToggle(),
           const Divider(),
+          const _CurrentGameDisplay(),
           ListTile(
             leading: Icon(MdiIcons.cardsPlaying),
             title: const Text('Change game'),
@@ -114,5 +116,35 @@ class _ScreenOrientationToggle extends ConsumerWidget {
       BuildContext context, WidgetRef ref, ScreenOrientation newOrientation) {
     ref.read(settingsScreenOrientationProvider.notifier).set(newOrientation);
     Navigator.pop(context);
+  }
+}
+
+class _CurrentGameDisplay extends ConsumerWidget {
+  const _CurrentGameDisplay({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final currentGame = ref.watch(currentGameProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Now playing',
+            style: textTheme.labelLarge!
+                .copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            currentGame.rules.name,
+            style: textTheme.bodyLarge!.copyWith(color: colorScheme.secondary),
+          ),
+        ],
+      ),
+    );
   }
 }

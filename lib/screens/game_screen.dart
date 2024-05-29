@@ -10,6 +10,7 @@ import '../models/pile.dart';
 import '../models/table_layout.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
+import '../providers/file_handler.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
@@ -45,8 +46,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _startGame() {
     Future.microtask(() async {
       final currentGame = ref.read(selectedGameProvider);
+      await ref.read(appDataDirectoryFutureProvider.future);
       final hasQuickSave =
-          await ref.read(hasQuickSaveProvider(currentGame).future);
+          ref.read(continuableGamesProvider).contains(currentGame);
+
       if (hasQuickSave) {
         final gameData = await ref
             .read(gameStorageProvider.notifier)

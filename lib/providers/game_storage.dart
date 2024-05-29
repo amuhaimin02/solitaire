@@ -8,7 +8,10 @@ import 'file_handler.dart';
 
 part 'game_storage.g.dart';
 
-String _quickSaveFileName(SolitaireGame game) => 'continue-${game.tag}';
+const saveFileExtension = '.save';
+
+String quickSaveFileName(SolitaireGame game) =>
+    'continue-${game.tag}$saveFileExtension';
 
 @riverpod
 class GameStorage extends _$GameStorage {
@@ -26,14 +29,16 @@ class GameStorage extends _$GameStorage {
     print(
         'Stored ${saveData.length} bytes of save data (compressed: ${compressedSaveData.length} bytes)');
 
-    fileHandler.save(_quickSaveFileName(game), compressedSaveData);
+    print('To ${quickSaveFileName(game)}');
+
+    fileHandler.save(quickSaveFileName(game), compressedSaveData);
     ref.invalidateSelf();
   }
 
   Future<GameData> restoreQuickSave(SolitaireGame game) async {
     final fileHandler = ref.read(fileHandlerProvider.notifier);
     final saveData =
-        await decompressText(await fileHandler.load(_quickSaveFileName(game)));
+        await decompressText(fileHandler.load(quickSaveFileName(game)));
 
     return const GameDataSerializer().deserialize(saveData);
   }
@@ -41,14 +46,12 @@ class GameStorage extends _$GameStorage {
   Future<void> deleteQuickSave(SolitaireGame game) async {
     final fileHandler = ref.read(fileHandlerProvider.notifier);
 
-    fileHandler.remove(_quickSaveFileName(game));
+    fileHandler.remove(quickSaveFileName(game));
     ref.invalidateSelf();
   }
-}
 
-@riverpod
-Future<bool> hasQuickSave(HasQuickSaveRef ref, SolitaireGame game) {
-  ref.watch(gameStorageProvider);
-  final fileHandler = ref.watch(fileHandlerProvider.notifier);
-  return fileHandler.exists(_quickSaveFileName(game));
+  List<String> getAllSaveFiles() {
+    final fileHandler = ref.read(fileHandlerProvider.notifier);
+    return fileHandler.listFiles('');
+  }
 }

@@ -7,6 +7,7 @@ import '../models/game/solitaire.dart';
 import '../models/table_layout.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
+import '../providers/game_storage.dart';
 import '../utils/widgets.dart';
 import '../widgets/game_table.dart';
 import '../widgets/solitaire_theme.dart';
@@ -38,8 +39,17 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
     if (splitView) {
       return Row(
         children: [
-          Expanded(child: _GameSelectionList(asSplitView: splitView)),
-          Expanded(child: _GameSelectionDetail(asSplitView: splitView)),
+          Expanded(
+            child: _GameSelectionList(
+              asSplitView: splitView,
+            ),
+          ),
+          Expanded(
+            child: _GameSelectionDetail(
+              game: ref.watch(selectedGameProvider),
+              asSplitView: splitView,
+            ),
+          ),
         ],
       );
     } else {
@@ -68,6 +78,7 @@ class _GameSelectionList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allGamesMapped = ref.watch(allSolitaireGamesMappedProvider);
+    final selectedGame = ref.watch(selectedGameProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -102,6 +113,7 @@ class _GameSelectionList extends ConsumerWidget {
                         children: [
                           for (final game in ref.watch(favoritedGamesProvider))
                             _GameListTile(
+                              selected: selectedGame == game,
                               game: game,
                               onTap: () => _onListTap(context, ref, game),
                             ),
@@ -113,6 +125,7 @@ class _GameSelectionList extends ConsumerWidget {
                           for (final game
                               in ref.watch(continuableGamesProvider))
                             _GameListTile(
+                              selected: selectedGame == game,
                               game: game,
                               onTap: () => _onListTap(context, ref, game),
                             ),
@@ -128,6 +141,7 @@ class _GameSelectionList extends ConsumerWidget {
                               children: [
                                 for (final game in group.value)
                                   _GameListTile(
+                                    selected: selectedGame == game,
                                     game: game,
                                     onTap: () => _onListTap(context, ref, game),
                                   )
@@ -147,15 +161,16 @@ class _GameSelectionList extends ConsumerWidget {
   }
 
   void _onListTap(BuildContext context, WidgetRef ref, SolitaireGame game) {
-    ref.read(selectedGameProvider.notifier).select(game);
-
     if (!asSplitView) {
       showBottomSheet(
         context: context,
-        builder: (_) => Container(
-          child: _GameSelectionDetail(asSplitView: asSplitView),
+        builder: (_) => _GameSelectionDetail(
+          asSplitView: asSplitView,
+          game: game,
         ),
       );
+    } else {
+      ref.read(selectedGameProvider.notifier).select(game);
     }
   }
 }
@@ -196,28 +211,37 @@ class _GameListGroup extends StatelessWidget {
 }
 
 class _GameListTile extends ConsumerWidget {
-  const _GameListTile({super.key, required this.game, this.onTap});
+  const _GameListTile({
+    super.key,
+    required this.game,
+    this.onTap,
+    this.selected = false,
+  });
 
   final SolitaireGame game;
 
   final VoidCallback? onTap;
 
+  final bool selected;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final selectedGame = ref.watch(selectedGameProvider);
 
     return ListTile(
-      selected: selectedGame == game,
+      selected: selected,
       selectedColor: colorScheme.onSecondary,
       selectedTileColor: colorScheme.secondary,
       leading: Icon(MdiIcons.cardsPlayingSpadeOutline),
       title: Text(game.name),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      trailing: const Wrap(
-        spacing: 0,
+      trailing: Wrap(
+        spacing: 12,
         children: [
-          Icon(Icons.favorite),
+          if (ref.watch(continuableGamesProvider).contains(game))
+            const Icon(Icons.play_arrow),
+          if (ref.watch(favoritedGamesProvider).contains(game))
+            const Icon(Icons.favorite),
         ],
       ),
       onTap: onTap,
@@ -226,15 +250,17 @@ class _GameListTile extends ConsumerWidget {
 }
 
 class _GameSelectionDetail extends ConsumerWidget {
-  const _GameSelectionDetail({super.key, required this.asSplitView});
+  const _GameSelectionDetail(
+      {super.key, required this.asSplitView, required this.game});
 
   final bool asSplitView;
+
+  final SolitaireGame game;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final selectedGame = ref.watch(selectedGameProvider);
 
     return Material(
       child: Column(
@@ -246,8 +272,8 @@ class _GameSelectionDetail extends ConsumerWidget {
               padding: const EdgeInsets.all(32),
               child: Center(
                 child: GameTable(
-                  key: ValueKey(selectedGame),
-                  layout: selectedGame.getLayout(
+                  key: ValueKey(game),
+                  layout: game.getLayout(
                     TableLayoutOptions(
                       orientation: asSplitView
                           ? Orientation.landscape
@@ -255,7 +281,7 @@ class _GameSelectionDetail extends ConsumerWidget {
                       mirror: false,
                     ),
                   ),
-                  table: selectedGame.generateRandomSetup(),
+                  table: game.generateRandomSetup(),
                   animateDistribute: false,
                   animateMovement: false,
                   interactive: false,
@@ -270,7 +296,7 @@ class _GameSelectionDetail extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  selectedGame.name,
+                  game.name,
                   style: textTheme.headlineSmall!.copyWith(
                     color: colorScheme.secondary,
                   ),
@@ -300,7 +326,7 @@ class _GameSelectionDetail extends ConsumerWidget {
                         const EdgeInsets.only(bottom: 24),
                     width: double.infinity,
                     child: FilledButton.icon(
-                      icon: Icon(MdiIcons.cardsPlaying),
+                      icon: const Icon(Icons.play_circle),
                       label: const Text('Start new game'),
                       onPressed: () {
                         if (!asSplitView) {
@@ -309,9 +335,10 @@ class _GameSelectionDetail extends ConsumerWidget {
                         }
                         Navigator.pop(context);
 
+                        ref.read(selectedGameProvider.notifier).select(game);
                         ref
                             .read(gameControllerProvider.notifier)
-                            .startNew(selectedGame);
+                            .startNew(game);
                       },
                     ),
                   ),
@@ -321,11 +348,26 @@ class _GameSelectionDetail extends ConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.all(24),
                       children: [
-                        FilledButton.tonalIcon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.favorite_border),
-                          label: const Text('Add to favorites'),
-                        ),
+                        if (ref.watch(favoritedGamesProvider).contains(game))
+                          FilledButton.tonalIcon(
+                            icon: const Icon(Icons.favorite),
+                            label: const Text('Added to favorites'),
+                            onPressed: () {
+                              ref
+                                  .read(favoritedGamesProvider.notifier)
+                                  .removeFromFavorite(game);
+                            },
+                          )
+                        else
+                          FilledButton.tonalIcon(
+                            icon: const Icon(Icons.favorite_border),
+                            label: const Text('Add to favorites'),
+                            onPressed: () {
+                              ref
+                                  .read(favoritedGamesProvider.notifier)
+                                  .addToFavorite(game);
+                            },
+                          ),
                         FilledButton.tonalIcon(
                           onPressed: () {},
                           icon: const Icon(Icons.book),
@@ -335,6 +377,15 @@ class _GameSelectionDetail extends ConsumerWidget {
                           onPressed: () {},
                           icon: const Icon(Icons.leaderboard),
                           label: const Text('Statistics'),
+                        ),
+                        FilledButton.tonalIcon(
+                          onPressed: () {
+                            ref
+                                .read(gameStorageProvider.notifier)
+                                .deleteQuickSave(game);
+                          },
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Delete last save'),
                         ),
                       ].separatedBy(const SizedBox(width: 16)),
                     ),
