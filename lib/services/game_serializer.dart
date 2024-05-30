@@ -58,7 +58,7 @@ class GameMetadataSerializer implements Serializer<GameMetadata> {
 
   @override
   String serialize(GameMetadata metadata) {
-    return '${metadata.rules.tag}:${metadata.randomSeed}:${metadata.startedTime.millisecondsSinceEpoch}';
+    return '${metadata.game.tag}:${metadata.randomSeed}:${metadata.startedTime.millisecondsSinceEpoch}';
   }
 
   @override
@@ -69,7 +69,7 @@ class GameMetadataSerializer implements Serializer<GameMetadata> {
     final startedTime = DateTime.fromMillisecondsSinceEpoch(int.parse(val3));
 
     return GameMetadata(
-      rules: game,
+      game: game,
       randomSeed: randomSeed,
       startedTime: startedTime,
     );

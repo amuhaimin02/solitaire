@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 extension PrintableDuration on Duration {
   static final maxDisplayableDuration = const Duration(minutes: 100).inSeconds;
 
@@ -24,5 +26,16 @@ extension ChunkableString on String {
     for (int i = 0; i < length; i += partsLength) {
       yield substring(i, i + partsLength);
     }
+  }
+}
+
+extension RectExtension on Rect {
+  Rect scale(Size scaleSize) {
+    return Rect.fromLTWH(
+      left * scaleSize.width,
+      top * scaleSize.height,
+      width * scaleSize.width,
+      height * scaleSize.height,
+    );
   }
 }

@@ -19,7 +19,7 @@ class GameStorage extends _$GameStorage {
   DateTime build() => DateTime.now();
 
   Future<void> quickSave(GameData gameData) async {
-    final game = gameData.metadata.rules;
+    final game = gameData.metadata.game;
 
     final saveData = const GameDataSerializer().serialize(gameData);
     final compressedSaveData = await compressText(saveData);

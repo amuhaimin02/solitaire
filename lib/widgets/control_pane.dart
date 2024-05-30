@@ -136,7 +136,7 @@ class _RestartDialog extends ConsumerWidget {
                   .read(themeBaseRandomizeColorProvider.notifier)
                   .tryShuffleColor();
               final game = ref.read(currentGameProvider);
-              ref.read(gameControllerProvider.notifier).startNew(game.rules);
+              ref.read(gameControllerProvider.notifier).startNew(game.game);
             },
             icon: const Icon(Icons.restart_alt),
             label: const Text('New game'),

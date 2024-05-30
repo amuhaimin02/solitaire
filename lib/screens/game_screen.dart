@@ -231,7 +231,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     if (confirm == true) {
       final game = ref.read(currentGameProvider);
-      ref.read(gameControllerProvider.notifier).startNew(game.rules);
+      ref.read(gameControllerProvider.notifier).startNew(game.game);
     } else {
       Navigator.pop(context);
     }
@@ -271,7 +271,7 @@ class _PlayArea extends ConsumerWidget {
           children: [
             GameTable(
               table: table,
-              layout: game.rules.getLayout(
+              layout: game.game.getLayout(
                 TableLayoutOptions(orientation: orientation, mirror: false),
               ),
               highlightedCards: highlightedCards,

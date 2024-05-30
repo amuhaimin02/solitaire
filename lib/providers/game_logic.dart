@@ -98,7 +98,7 @@ class CurrentGame extends _$CurrentGame {
   @override
   GameMetadata build() {
     return GameMetadata(
-      rules: ref.watch(allSolitaireGamesProvider).first,
+      game: ref.watch(allSolitaireGamesProvider).first,
       startedTime: DateTime.now(),
       randomSeed: '1234',
     );
@@ -127,7 +127,7 @@ class GameController extends _$GameController {
   Future<void> startNew(SolitaireGame game) async {
     // Prepare a new game to start
     final newPlayData = GameMetadata(
-      rules: game,
+      game: game,
       startedTime: DateTime.now(),
       randomSeed: DateTime.now().millisecondsSinceEpoch.toString(),
     );
@@ -158,6 +158,7 @@ class GameController extends _$GameController {
   void restart() async {
     ref.read(moveHistoryProvider.notifier).restart();
     ref.read(playTimeProvider.notifier).restart();
+    ref.read(scoreProvider.notifier).reset();
   }
 
   GameData suspend() {
@@ -247,7 +248,7 @@ class GameController extends _$GameController {
           targetMove = refreshDrawPile();
         } else {
           // Pick from draw pile
-          final cardsToPick = cardsInDrawPile.getLast(game.rules.drawsPerTurn);
+          final cardsToPick = cardsInDrawPile.getLast(game.game.drawsPerTurn);
           targetMove = Move(
             [...cardsToPick.allFaceUp],
             const Draw(),
@@ -287,11 +288,11 @@ class GameController extends _$GameController {
             cardsToPick = [cardsInPile.last];
           }
 
-          if (!game.rules.canPick(cardsToPick, move.from)) {
+          if (!game.game.canPick(cardsToPick, move.from)) {
             return MoveForbidden(
                 'cannot pick the card(s) $cardsToPick from ${move.from}', move);
           }
-          if (!game.rules.canPlace(cardsToPick, move.to, table.get(move.to))) {
+          if (!game.game.canPlace(cardsToPick, move.to, table.get(move.to))) {
             return MoveForbidden(
                 'cannot place the card(s) $cardsToPick on ${move.to}', move);
           }
@@ -357,7 +358,7 @@ class GameController extends _$GameController {
     do {
       handled = false;
       final table = ref.read(playTableStateProvider);
-      for (final move in game.rules.autoSolveStrategy(table)) {
+      for (final move in game.game.autoSolveStrategy(table)) {
         final result = tryMove(move, doPreMove: false);
         if (result is MoveSuccess) {
           handled = true;
@@ -379,9 +380,9 @@ class GameController extends _$GameController {
     final game = ref.read(currentGameProvider);
 
     // Clear up table, and set up new draw pile
-    final table = PlayTable.fromGame(game.rules).modify(
+    final table = PlayTable.fromGame(game.game).modify(
         const Draw(),
-        game.rules
+        game.game
             .prepareDrawPile(CustomPRNG.create(game.randomSeed))
             .allFaceDown);
 
@@ -392,7 +393,7 @@ class GameController extends _$GameController {
     final table = ref.read(playTableStateProvider);
     final game = ref.read(currentGameProvider);
 
-    final updatedTable = game.rules.setup(table);
+    final updatedTable = game.game.setup(table);
 
     ref.read(playTableStateProvider.notifier).update(updatedTable);
   }
@@ -409,7 +410,7 @@ class GameController extends _$GameController {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       final table = ref.read(playTableStateProvider);
-      for (final move in game.rules.autoMoveStrategy(table)) {
+      for (final move in game.game.autoMoveStrategy(table)) {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
             lastAction.to == move.from &&
@@ -456,7 +457,7 @@ class GameController extends _$GameController {
     ref.read(hintedCardsProvider.notifier).clear();
 
     final int score;
-    (updatedTable, score) = game.rules.afterEachMove(move, updatedTable);
+    (updatedTable, score) = game.game.afterEachMove(move, updatedTable);
 
     // Update cards on table with new version
     ref.read(playTableStateProvider.notifier).update(updatedTable);
@@ -565,6 +566,7 @@ class MoveHistory extends _$MoveHistory {
     ref.read(moveCountProvider.notifier).set(0);
     ref.read(playTableStateProvider.notifier).update(state.first.table);
     ref.read(lastActionProvider.notifier).send(const GameStart());
+    state = [state.first];
   }
 }
 
@@ -595,7 +597,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
   final game = ref.watch(currentGameProvider);
   final table = ref.watch(playTableStateProvider);
 
-  return game.rules.winConditions(table);
+  return game.game.winConditions(table);
 }
 
 @riverpod
@@ -603,7 +605,7 @@ bool autoSolvable(AutoSolvableRef ref) {
   final game = ref.watch(currentGameProvider);
   final table = ref.watch(playTableStateProvider);
 
-  return game.rules.canAutoSolve(table);
+  return game.game.canAutoSolve(table);
 }
 
 @riverpod
@@ -646,7 +648,7 @@ class GameDebug extends _$GameDebug {
   void debugTestCustomLayout() {
     final game = ref.read(currentGameProvider);
 
-    if (game.rules is! Klondike) {
+    if (game.game is! Klondike) {
       return;
     }
 

@@ -41,8 +41,9 @@ abstract class SolitaireGame {
   String toString() => name;
 
   PlayTable generateRandomSetup() {
+    // TODO: Do not use predetermined random
     final table = PlayTable.fromGame(this)
-        .modify(const Draw(), prepareDrawPile(Random()));
+        .modify(const Draw(), prepareDrawPile(Random(1)));
     return setup(table);
   }
 }
