@@ -8,12 +8,12 @@ import 'game_storage.dart';
 
 part 'game_selection.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 List<SolitaireGame> allSolitaireGames(AllSolitaireGamesRef ref) {
   return solitaireGamesList;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Map<String, List<SolitaireGame>> allSolitaireGamesMapped(
     AllSolitaireGamesMappedRef ref) {
   return groupBy(ref.watch(allSolitaireGamesProvider), (rules) => rules.family);
@@ -29,7 +29,7 @@ class GameSelectionDropdown extends _$GameSelectionDropdown {
   void close() => state = false;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedGame extends _$SelectedGame {
   @override
   SolitaireGame build() => ref.watch(allSolitaireGamesProvider).first;

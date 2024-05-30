@@ -9,9 +9,9 @@ import '../models/play_table.dart';
 import '../models/table_layout.dart';
 import '../providers/themes.dart';
 import '../widgets/game_table.dart';
-import '../widgets/ripple_background.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
+import '../widgets/two_pane.dart';
 
 final _sampleLayout = TableLayout(
   gridSize: const Size(4, 3),
@@ -72,43 +72,10 @@ class ThemeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Customize'),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final orientation = constraints.maxWidth > 800
-              ? Orientation.landscape
-              : Orientation.portrait;
-
-          return switch (orientation) {
-            Orientation.landscape => Row(
-                children: [
-                  Expanded(
-                    child: _buildTablePreview(context),
-                  ),
-                  const SizedBox(
-                    width: 480,
-                    child: _SettingsList(),
-                  ),
-                ],
-              ),
-            Orientation.portrait => Center(
-                child: SizedBox(
-                  width: 600,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: _buildTablePreview(context),
-                      ),
-                      const Expanded(
-                        flex: 3,
-                        child: _SettingsList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          };
-        },
+      body: TwoPane(
+        primaryBuilder: (context) => _buildTablePreview(context),
+        secondaryBuilder: (context) => const _SettingsList(),
+        stackingStyleOnPortrait: StackingStyle.topDown,
       ),
     );
   }
@@ -153,143 +120,153 @@ class _SettingsList extends ConsumerWidget {
     final coloredBackground = ref.watch(themeBackgroundColoredProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      children: [
-        const SectionTitle('Overall', first: true),
-        ListTile(
-          title: const Text('Theme mode'),
-          subtitle: const Text('Select light or dark mode'),
-          trailing: Wrap(
-            spacing: 8,
-            children: [
-              IconButton.filled(
-                tooltip: 'Auto (follow system)',
-                isSelected: themeMode == ThemeMode.system,
-                color: themeMode == ThemeMode.system
-                    ? colorScheme.onPrimary
-                    : colorScheme.primary,
-                onPressed: () {
-                  ref
-                      .read(themeBaseModeProvider.notifier)
-                      .set(ThemeMode.system);
-                },
-                icon: const Icon(Icons.brightness_auto),
-              ),
-              IconButton.filled(
-                tooltip: 'Light',
-                isSelected: themeMode == ThemeMode.light,
-                color: themeMode == ThemeMode.light
-                    ? colorScheme.onPrimary
-                    : colorScheme.primary,
-                onPressed: () {
-                  ref.read(themeBaseModeProvider.notifier).set(ThemeMode.light);
-                },
-                icon: const Icon(Icons.light_mode),
-              ),
-              IconButton.filled(
-                tooltip: 'Dark',
-                isSelected: themeMode == ThemeMode.dark,
-                color: themeMode == ThemeMode.dark
-                    ? colorScheme.onPrimary
-                    : colorScheme.primary,
-                onPressed: () {
-                  ref.read(themeBaseModeProvider.notifier).set(ThemeMode.dark);
-                },
-                icon: const Icon(Icons.dark_mode),
-              )
-            ],
-          ),
-        ),
-        // subtitle: Padding(
-        //   padding: const EdgeInsets.only(top: 8),
-        //   child: SegmentedButton<ThemeMode>(
-        //     segments: const [
-        //       ButtonSegment(
-        //         value: ThemeMode.system,
-        //         label: Text('System'),
-        //         icon: Icon(Icons.brightness_6),
-        //       ),
-        //       ButtonSegment(
-        //         value: ThemeMode.light,
-        //         label: Text('Light'),
-        //         icon: Icon(Icons.light_mode),
-        //       ),
-        //       ButtonSegment(
-        //         value: ThemeMode.dark,
-        //         label: Text('Dark'),
-        //         icon: Icon(Icons.dark_mode),
-        //       ),
-        //     ],
-        //     selected: {themeMode},
-        //     onSelectionChanged: (value) {
-        //       ref.read(themeBaseModeProvider.notifier).set(value.single);
-        //     },
-        //   ),
-        // ),
-        ListTile(
-          title: const Text('Select colors'),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Material(
-              color: colorScheme.surfaceTint.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
+    return Center(
+      child: SizedBox(
+        width: 600,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          children: [
+            const SectionTitle('Overall', first: true),
+            ListTile(
+              title: const Text('Theme mode'),
+              subtitle: const Text('Select light or dark mode'),
+              trailing: Wrap(
+                spacing: 8,
                 children: [
-                  CheckboxListTile(
-                    title: const Text('Random color'),
-                    secondary: const Icon(Icons.shuffle),
-                    subtitle:
-                        const Text('Color changes every time new game starts'),
-                    value: randomizeColor,
-                    onChanged: (value) {
-                      if (value == true) {
-                        ref
-                            .read(themeBaseRandomizeColorProvider.notifier)
-                            .set(true);
-                      }
+                  IconButton.filled(
+                    tooltip: 'Auto (follow system)',
+                    isSelected: themeMode == ThemeMode.system,
+                    color: themeMode == ThemeMode.system
+                        ? colorScheme.onPrimary
+                        : colorScheme.primary,
+                    onPressed: () {
+                      ref
+                          .read(themeBaseModeProvider.notifier)
+                          .set(ThemeMode.system);
                     },
+                    icon: const Icon(Icons.brightness_auto),
                   ),
-                  const SizedBox(height: 8),
-                  _ColorSelectionTile(
-                    value: randomizeColor ? null : themeColor,
-                    options: themeColorPalette,
-                    onTap: (color) {
-                      if (randomizeColor) {
-                        ref
-                            .read(themeBaseRandomizeColorProvider.notifier)
-                            .set(false);
-                      }
-                      ref.read(themeBaseColorProvider.notifier).set(color);
+                  IconButton.filled(
+                    tooltip: 'Light',
+                    isSelected: themeMode == ThemeMode.light,
+                    color: themeMode == ThemeMode.light
+                        ? colorScheme.onPrimary
+                        : colorScheme.primary,
+                    onPressed: () {
+                      ref
+                          .read(themeBaseModeProvider.notifier)
+                          .set(ThemeMode.light);
                     },
+                    icon: const Icon(Icons.light_mode),
                   ),
+                  IconButton.filled(
+                    tooltip: 'Dark',
+                    isSelected: themeMode == ThemeMode.dark,
+                    color: themeMode == ThemeMode.dark
+                        ? colorScheme.onPrimary
+                        : colorScheme.primary,
+                    onPressed: () {
+                      ref
+                          .read(themeBaseModeProvider.notifier)
+                          .set(ThemeMode.dark);
+                    },
+                    icon: const Icon(Icons.dark_mode),
+                  )
                 ],
               ),
             ),
-          ),
+            // subtitle: Padding(
+            //   padding: const EdgeInsets.only(top: 8),
+            //   child: SegmentedButton<ThemeMode>(
+            //     segments: const [
+            //       ButtonSegment(
+            //         value: ThemeMode.system,
+            //         label: Text('System'),
+            //         icon: Icon(Icons.brightness_6),
+            //       ),
+            //       ButtonSegment(
+            //         value: ThemeMode.light,
+            //         label: Text('Light'),
+            //         icon: Icon(Icons.light_mode),
+            //       ),
+            //       ButtonSegment(
+            //         value: ThemeMode.dark,
+            //         label: Text('Dark'),
+            //         icon: Icon(Icons.dark_mode),
+            //       ),
+            //     ],
+            //     selected: {themeMode},
+            //     onSelectionChanged: (value) {
+            //       ref.read(themeBaseModeProvider.notifier).set(value.single);
+            //     },
+            //   ),
+            // ),
+            ListTile(
+              title: const Text('Select colors'),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Material(
+                  color: colorScheme.surfaceTint.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: [
+                      CheckboxListTile(
+                        title: const Text('Random color'),
+                        secondary: const Icon(Icons.shuffle),
+                        subtitle: const Text(
+                            'Color changes every time new game starts'),
+                        value: randomizeColor,
+                        onChanged: (value) {
+                          if (value == true) {
+                            ref
+                                .read(themeBaseRandomizeColorProvider.notifier)
+                                .set(true);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _ColorSelectionTile(
+                        value: randomizeColor ? null : themeColor,
+                        options: themeColorPalette,
+                        onTap: (color) {
+                          if (randomizeColor) {
+                            ref
+                                .read(themeBaseRandomizeColorProvider.notifier)
+                                .set(false);
+                          }
+                          ref.read(themeBaseColorProvider.notifier).set(color);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SectionTitle('Background'),
+            SwitchListTile(
+              title: const Text('AMOLED dark background'),
+              subtitle:
+                  const Text('Use pitch black background when on dark mode'),
+              value: amoledDarkTheme,
+              onChanged: !coloredBackground && themeMode != ThemeMode.light
+                  ? (value) {
+                      ref.read(themeBackgroundAmoledProvider.notifier).toggle();
+                    }
+                  : null,
+            ),
+            SwitchListTile(
+              title: const Text('Colored table background'),
+              subtitle: const Text(
+                  'Use strong colors of the theme for the table background'),
+              value: coloredBackground,
+              onChanged: (value) {
+                ref.read(themeBackgroundColoredProvider.notifier).toggle();
+              },
+            ),
+          ],
         ),
-        const SectionTitle('Background'),
-        SwitchListTile(
-          title: const Text('AMOLED dark background'),
-          subtitle: const Text('Use pitch black background when on dark mode'),
-          value: amoledDarkTheme,
-          onChanged: !coloredBackground && themeMode != ThemeMode.light
-              ? (value) {
-                  ref.read(themeBackgroundAmoledProvider.notifier).toggle();
-                }
-              : null,
-        ),
-        SwitchListTile(
-          title: const Text('Colored table background'),
-          subtitle: const Text(
-              'Use strong colors of the theme for the table background'),
-          value: coloredBackground,
-          onChanged: (value) {
-            ref.read(themeBackgroundColoredProvider.notifier).toggle();
-          },
-        ),
-      ],
+      ),
     );
   }
 }

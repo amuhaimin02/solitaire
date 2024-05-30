@@ -12,6 +12,7 @@ import '../utils/widgets.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
 import '../widgets/solitaire_theme.dart';
+import '../widgets/two_pane.dart';
 
 class GameSelectionScreen extends ConsumerStatefulWidget {
   const GameSelectionScreen({super.key});
@@ -22,11 +23,6 @@ class GameSelectionScreen extends ConsumerStatefulWidget {
 }
 
 class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
-  late final _scrollController = ScrollController();
-
-  // Ensure autoscroll is done once. This variable will be the flag
-  bool _autoScrolled = false;
-
   @override
   void initState() {
     super.initState();
@@ -34,47 +30,16 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
-    final splitView = orientation == Orientation.landscape;
-
-    if (splitView) {
-      return Row(
-        children: [
-          Expanded(
-            child: _GameSelectionList(
-              asSplitView: splitView,
-            ),
-          ),
-          Expanded(
-            child: _GameSelectionDetail(
-              game: ref.watch(selectedGameProvider),
-              asSplitView: splitView,
-            ),
-          ),
-        ],
-      );
-    } else {
-      return _GameSelectionList(asSplitView: splitView);
-    }
+    return TwoPane(
+      primaryBuilder: (context) => const _GameSelectionList(),
+      secondaryBuilder: (context) => const _GameSelectionDetail(),
+      stackingStyleOnPortrait: StackingStyle.bottomSheet,
+    );
   }
-  //
-  // void _scrollToSelection(BuildContext context) {
-  //   Future.microtask(() {
-  //     final itemBound = context.globalPaintBounds;
-  //     final screenSize = MediaQuery.of(context).size;
-  //
-  //     if (itemBound != null) {
-  //       _scrollController.jumpTo(itemBound.center.dy - screenSize.height / 2);
-  //       _autoScrolled = true;
-  //     }
-  //   });
-  // }
 }
 
 class _GameSelectionList extends ConsumerWidget {
-  const _GameSelectionList({super.key, required this.asSplitView});
-
-  final bool asSplitView;
+  const _GameSelectionList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,34 +54,36 @@ class _GameSelectionList extends ConsumerWidget {
           )
         ],
       ),
-      body: Builder(builder: (context) {
-        return DefaultTabController(
-          length: 3,
-          child: PageStorage(
-            bucket: PageStorageBucket(),
-            child: Column(
-              children: [
-                const TabBar.secondary(
-                  tabs: [
-                    Tab(text: 'Favorites'),
-                    Tab(text: 'Continue'),
-                    Tab(text: 'All games'),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _buildFavoriteGameList(context, ref),
-                      _buildContinueGameList(context, ref),
-                      _buildAllGamesList(context, ref),
+      body: Builder(
+        builder: (context) {
+          return DefaultTabController(
+            length: 3,
+            child: PageStorage(
+              bucket: PageStorageBucket(),
+              child: Column(
+                children: [
+                  const TabBar.secondary(
+                    tabs: [
+                      Tab(text: 'Favorites'),
+                      Tab(text: 'Continue'),
+                      Tab(text: 'All games'),
                     ],
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _buildFavoriteGameList(context, ref),
+                        _buildContinueGameList(context, ref),
+                        _buildAllGamesList(context, ref),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     );
   }
 
@@ -137,7 +104,7 @@ class _GameSelectionList extends ConsumerWidget {
         children: [
           for (final game in favoritedGames)
             _GameListTile(
-              selected: asSplitView && selectedGame == game,
+              selected: TwoPane.of(context).isActive && selectedGame == game,
               game: game,
               onTap: () => _onListTap(context, ref, game),
             ),
@@ -163,7 +130,7 @@ class _GameSelectionList extends ConsumerWidget {
         children: [
           for (final game in continuableGames)
             _GameListTile(
-              selected: asSplitView && selectedGame == game,
+              selected: TwoPane.of(context).isActive && selectedGame == game,
               game: game,
               onTap: () => _onListTap(context, ref, game),
             ),
@@ -185,7 +152,8 @@ class _GameSelectionList extends ConsumerWidget {
             children: [
               for (final game in group.value)
                 _GameListTile(
-                  selected: asSplitView && selectedGame == game,
+                  selected:
+                      TwoPane.of(context).isActive && selectedGame == game,
                   game: game,
                   onTap: () => _onListTap(context, ref, game),
                 )
@@ -196,18 +164,8 @@ class _GameSelectionList extends ConsumerWidget {
   }
 
   void _onListTap(BuildContext context, WidgetRef ref, SolitaireGame game) {
-    if (!asSplitView) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => _GameSelectionDetail(
-          asSplitView: asSplitView,
-          game: game,
-        ),
-      );
-    } else {
-      ref.read(selectedGameProvider.notifier).select(game);
-    }
+    ref.read(selectedGameProvider.notifier).select(game);
+    TwoPane.of(context).pushSecondary();
   }
 }
 
@@ -288,17 +246,14 @@ class _GameListTile extends ConsumerWidget {
 }
 
 class _GameSelectionDetail extends ConsumerWidget {
-  const _GameSelectionDetail(
-      {super.key, required this.asSplitView, required this.game});
-
-  final bool asSplitView;
-
-  final SolitaireGame game;
+  const _GameSelectionDetail({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    final selectedGame = ref.watch(selectedGameProvider);
 
     return Material(
       child: Column(
@@ -312,16 +267,16 @@ class _GameSelectionDetail extends ConsumerWidget {
                 padding: const EdgeInsets.all(32),
                 child: Center(
                   child: GameTable(
-                    key: ValueKey(game),
-                    layout: game.getLayout(
+                    key: ValueKey(selectedGame),
+                    layout: selectedGame.getLayout(
                       TableLayoutOptions(
-                        orientation: asSplitView
+                        orientation: TwoPane.of(context).isActive
                             ? Orientation.landscape
                             : Orientation.portrait,
                         mirror: false,
                       ),
                     ),
-                    table: game.generateRandomSetup(),
+                    table: selectedGame.generateRandomSetup(),
                     fitEmptySpaces: true,
                     animateDistribute: false,
                     animateMovement: false,
@@ -329,7 +284,7 @@ class _GameSelectionDetail extends ConsumerWidget {
                   ),
                 ),
               );
-              if (asSplitView) {
+              if (TwoPane.of(context).isActive) {
                 return Expanded(child: gameTableWidget);
               } else {
                 return gameTableWidget;
@@ -343,7 +298,7 @@ class _GameSelectionDetail extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  game.name,
+                  selectedGame.name,
                   style: textTheme.headlineSmall!.copyWith(
                     color: colorScheme.secondary,
                   ),
@@ -365,22 +320,20 @@ class _GameSelectionDetail extends ConsumerWidget {
               child: Column(
                 children: [
                   SizedBox(
-                    height: 56,
+                    height: 48,
                     width: double.infinity,
                     child: FilledButton.icon(
                       icon: const Icon(Icons.play_circle),
                       label: const Text('Play game'),
                       onPressed: () {
-                        if (!asSplitView) {
-                          // Dismiss this screen as it was opened as a modal
-                          Navigator.pop(context);
-                        }
+                        TwoPane.of(context).popSecondary();
                         Navigator.pop(context);
-
-                        ref.read(selectedGameProvider.notifier).select(game);
+                        ref
+                            .read(selectedGameProvider.notifier)
+                            .select(selectedGame);
                         ref
                             .read(gameControllerProvider.notifier)
-                            .startNew(game);
+                            .startNew(selectedGame);
                       },
                     ),
                   ),
@@ -391,14 +344,16 @@ class _GameSelectionDetail extends ConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       clipBehavior: Clip.none,
                       children: [
-                        if (ref.watch(favoritedGamesProvider).contains(game))
+                        if (ref
+                            .watch(favoritedGamesProvider)
+                            .contains(selectedGame))
                           FilledButton.tonalIcon(
                             icon: const Icon(Icons.favorite),
                             label: const Text('Added to favorites'),
                             onPressed: () {
                               ref
                                   .read(favoritedGamesProvider.notifier)
-                                  .removeFromFavorite(game);
+                                  .removeFromFavorite(selectedGame);
                             },
                           )
                         else
@@ -408,7 +363,7 @@ class _GameSelectionDetail extends ConsumerWidget {
                             onPressed: () {
                               ref
                                   .read(favoritedGamesProvider.notifier)
-                                  .addToFavorite(game);
+                                  .addToFavorite(selectedGame);
                             },
                           ),
                         FilledButton.tonalIcon(
@@ -425,7 +380,7 @@ class _GameSelectionDetail extends ConsumerWidget {
                           onPressed: () {
                             ref
                                 .read(gameStorageProvider.notifier)
-                                .deleteQuickSave(game);
+                                .deleteQuickSave(selectedGame);
                           },
                           icon: const Icon(Icons.delete),
                           label: const Text('Delete last save'),

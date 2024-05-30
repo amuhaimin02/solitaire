@@ -40,13 +40,6 @@ class Klondike extends SolitaireGame {
 
   final KlondikeScoring scoring;
 
-  static const numberOfTableauPiles = 7;
-
-  static const numberOfFoundationPiles = 4;
-
-  @override
-  int get drawsPerTurn => numberOfDraws;
-
   @override
   TableLayout getLayout([TableLayoutOptions? options]) {
     switch (options?.orientation) {
@@ -109,6 +102,9 @@ class Klondike extends SolitaireGame {
         );
     }
   }
+
+  @override
+  int get drawsPerTurn => numberOfDraws;
 
   @override
   List<PlayCard> prepareDrawPile(Random random) {
