@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 
 final routeObserver = RouteObserver<ModalRoute<void>>();
 
-mixin RouteObserved<T extends StatefulWidget> on State<T>, RouteAware {
+mixin RouteObserved<T extends StatefulWidget>
+    on State<T>, RouteAware, WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -12,6 +19,7 @@ mixin RouteObserved<T extends StatefulWidget> on State<T>, RouteAware {
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -33,6 +41,18 @@ mixin RouteObserved<T extends StatefulWidget> on State<T>, RouteAware {
   @override
   void didPopNext() {
     onEnter();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.hidden:
+        onLeave();
+      case AppLifecycleState.resumed:
+        onEnter();
+      default:
+    }
   }
 
   void onEnter();

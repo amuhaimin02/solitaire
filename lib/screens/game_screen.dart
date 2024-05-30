@@ -15,7 +15,6 @@ import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
 import '../providers/settings.dart';
-import '../services/route_observer.dart';
 import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
@@ -23,6 +22,7 @@ import '../widgets/debug_pane.dart';
 import '../widgets/fixes.dart';
 import '../widgets/game_table.dart';
 import '../widgets/ripple_background.dart';
+import '../widgets/route_observer.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
@@ -36,7 +36,7 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen>
-    with RouteAware, RouteObserved {
+    with RouteAware, WidgetsBindingObserver, RouteObserved {
   @override
   void initState() {
     super.initState();

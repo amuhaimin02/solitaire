@@ -68,52 +68,47 @@ class ThemeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return RippleBackground(
-      decoration:
-          BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Customize'),
-        ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final orientation = constraints.maxWidth > 800
-                ? Orientation.landscape
-                : Orientation.portrait;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Customize'),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final orientation = constraints.maxWidth > 800
+              ? Orientation.landscape
+              : Orientation.portrait;
 
-            return switch (orientation) {
-              Orientation.landscape => Row(
-                  children: [
-                    Expanded(
-                      child: _buildTablePreview(context),
-                    ),
-                    const SizedBox(
-                      width: 480,
-                      child: _SettingsList(),
-                    ),
-                  ],
-                ),
-              Orientation.portrait => Center(
-                  child: SizedBox(
-                    width: 600,
-                    child: Column(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: _buildTablePreview(context),
-                        ),
-                        const Expanded(
-                          flex: 3,
-                          child: _SettingsList(),
-                        ),
-                      ],
-                    ),
+          return switch (orientation) {
+            Orientation.landscape => Row(
+                children: [
+                  Expanded(
+                    child: _buildTablePreview(context),
+                  ),
+                  const SizedBox(
+                    width: 480,
+                    child: _SettingsList(),
+                  ),
+                ],
+              ),
+            Orientation.portrait => Center(
+                child: SizedBox(
+                  width: 600,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _buildTablePreview(context),
+                      ),
+                      const Expanded(
+                        flex: 3,
+                        child: _SettingsList(),
+                      ),
+                    ],
                   ),
                 ),
-            };
-          },
-        ),
+              ),
+          };
+        },
       ),
     );
   }
