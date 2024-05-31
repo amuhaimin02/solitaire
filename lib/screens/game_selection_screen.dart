@@ -255,144 +255,168 @@ class _GameSelectionDetail extends ConsumerWidget {
 
     final selectedGame = ref.watch(selectedGameProvider);
 
-    return Material(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Builder(
-            builder: (context) {
-              final gameTableWidget = Container(
-                color: SolitaireTheme.of(context).tableBackgroundColor,
-                padding: const EdgeInsets.all(32),
-                child: Center(
-                  child: GameTable(
-                    key: ValueKey(selectedGame),
-                    layout: selectedGame.getLayout(
-                      TableLayoutOptions(
-                        orientation: TwoPane.of(context).isActive
-                            ? Orientation.landscape
-                            : Orientation.portrait,
-                        mirror: false,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        print(constraints);
+        return Material(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Builder(
+                builder: (context) {
+                  final gameTableWidget = Container(
+                    color: SolitaireTheme.of(context).backgroundColor,
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
+                      child: GameTable(
+                        key: ValueKey(selectedGame),
+                        layout: selectedGame.getLayout(
+                          TableLayoutOptions(
+                            orientation: TwoPane.of(context).isActive
+                                ? Orientation.landscape
+                                : Orientation.portrait,
+                            mirror: false,
+                          ),
+                        ),
+                        table: selectedGame.generateRandomSetup(),
+                        fitEmptySpaces: true,
+                        animateDistribute: false,
+                        animateMovement: false,
+                        interactive: false,
                       ),
                     ),
-                    table: selectedGame.generateRandomSetup(),
-                    fitEmptySpaces: true,
-                    animateDistribute: false,
-                    animateMovement: false,
-                    interactive: false,
-                  ),
-                ),
-              );
-              if (TwoPane.of(context).isActive) {
-                return Expanded(child: gameTableWidget);
-              } else {
-                return gameTableWidget;
-              }
-            },
-          ),
-          Container(
-            color: colorScheme.surfaceContainerLow,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  selectedGame.name,
-                  style: textTheme.headlineSmall!.copyWith(
-                    color: colorScheme.secondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Details of gameplay will be available here',
-                  style: textTheme.bodyLarge!.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                )
-              ],
-            ),
-          ),
-          Container(
-            color: colorScheme.surfaceContainerLowest,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 48,
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      icon: const Icon(Icons.play_circle),
-                      label: const Text('Play game'),
-                      onPressed: () {
-                        TwoPane.of(context).popSecondary();
-                        Navigator.pop(context);
-                        ref
-                            .read(selectedGameProvider.notifier)
-                            .select(selectedGame);
-                        ref
-                            .read(gameControllerProvider.notifier)
-                            .startNew(selectedGame);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 48,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      children: [
-                        if (ref
-                            .watch(favoritedGamesProvider)
-                            .contains(selectedGame))
-                          FilledButton.tonalIcon(
-                            icon: const Icon(Icons.favorite),
-                            label: const Text('Added to favorites'),
-                            onPressed: () {
-                              ref
-                                  .read(favoritedGamesProvider.notifier)
-                                  .removeFromFavorite(selectedGame);
-                            },
-                          )
-                        else
-                          FilledButton.tonalIcon(
-                            icon: const Icon(Icons.favorite_border),
-                            label: const Text('Add to favorites'),
-                            onPressed: () {
-                              ref
-                                  .read(favoritedGamesProvider.notifier)
-                                  .addToFavorite(selectedGame);
-                            },
-                          ),
-                        FilledButton.tonalIcon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.book),
-                          label: const Text('View rules'),
-                        ),
-                        FilledButton.tonalIcon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.leaderboard),
-                          label: const Text('Statistics'),
-                        ),
-                        FilledButton.tonalIcon(
-                          onPressed: () {
-                            ref
-                                .read(gameStorageProvider.notifier)
-                                .deleteQuickSave(selectedGame);
-                          },
-                          icon: const Icon(Icons.delete),
-                          label: const Text('Delete last save'),
-                        ),
-                      ].separatedBy(const SizedBox(width: 8)),
-                    ),
-                  )
-                ],
+                  );
+                  if (TwoPane.of(context).isActive) {
+                    return Expanded(child: gameTableWidget);
+                  } else {
+                    return gameTableWidget;
+                  }
+                },
               ),
-            ),
-          )
-        ],
+              Container(
+                color: colorScheme.surfaceContainerLow,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      selectedGame.name,
+                      style: textTheme.headlineSmall!.copyWith(
+                        color: colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Details of gameplay will be available here',
+                      style: textTheme.bodyLarge!.copyWith(
+                        color: colorScheme.onSurface,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              _GameSelectionOptions(
+                singleLine: constraints.maxHeight <= 500,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GameSelectionOptions extends ConsumerWidget {
+  const _GameSelectionOptions({super.key, required this.singleLine});
+
+  final bool singleLine;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final selectedGame = ref.watch(selectedGameProvider);
+
+    final playButtonWidget = FilledButton.icon(
+      icon: const Icon(Icons.play_circle),
+      label: const Text('Play game'),
+      onPressed: () {
+        TwoPane.of(context).popSecondary();
+        Navigator.pop(context);
+        ref.read(selectedGameProvider.notifier).select(selectedGame);
+        ref.read(gameControllerProvider.notifier).startNew(selectedGame);
+      },
+    );
+
+    final miscButtonWidgets = [
+      if (ref.watch(favoritedGamesProvider).contains(selectedGame))
+        FilledButton.tonalIcon(
+          icon: const Icon(Icons.favorite),
+          label: const Text('Added to favorites'),
+          onPressed: () {
+            ref
+                .read(favoritedGamesProvider.notifier)
+                .removeFromFavorite(selectedGame);
+          },
+        )
+      else
+        FilledButton.tonalIcon(
+          icon: const Icon(Icons.favorite_border),
+          label: const Text('Add to favorites'),
+          onPressed: () {
+            ref
+                .read(favoritedGamesProvider.notifier)
+                .addToFavorite(selectedGame);
+          },
+        ),
+      FilledButton.tonalIcon(
+        onPressed: () {},
+        icon: const Icon(Icons.book),
+        label: const Text('View rules'),
+      ),
+      FilledButton.tonalIcon(
+        onPressed: () {},
+        icon: const Icon(Icons.leaderboard),
+        label: const Text('Statistics'),
+      ),
+      FilledButton.tonalIcon(
+        onPressed: () {
+          ref.read(gameStorageProvider.notifier).deleteQuickSave(selectedGame);
+        },
+        icon: const Icon(Icons.delete),
+        label: const Text('Delete last save'),
+      ),
+    ];
+
+    return ClipRect(
+      clipBehavior: Clip.hardEdge,
+      child: Container(
+        color: colorScheme.surfaceContainerLowest,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            if (!singleLine) ...[
+              SizedBox(
+                height: 48,
+                width: double.infinity,
+                child: playButtonWidget,
+              ),
+              const SizedBox(height: 12),
+            ],
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                children: [
+                  if (singleLine) playButtonWidget,
+                  ...miscButtonWidgets,
+                ].separatedBy(const SizedBox(width: 8)),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

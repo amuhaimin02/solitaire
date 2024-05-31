@@ -87,7 +87,7 @@ class ThemeScreen extends ConsumerWidget {
       duration: themeChangeAnimation.duration,
       curve: themeChangeAnimation.curve,
       decoration: BoxDecoration(
-        color: theme.tableBackgroundColor,
+        color: theme.backgroundColor,
       ),
       padding: const EdgeInsets.all(24) +
           EdgeInsets.only(left: MediaQuery.of(context).viewPadding.left),

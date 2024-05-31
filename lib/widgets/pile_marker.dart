@@ -22,17 +22,17 @@ class PileMarker extends StatelessWidget {
       Tableau() => MdiIcons.close,
     };
 
-    final borderOnly = theme.appBackgroundColor == Colors.black;
+    final borderOnly = theme.backgroundColor == Colors.black;
 
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.all(size.shortestSide * theme.cardStyle.margin),
+      padding: EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
       child: Container(
         decoration: BoxDecoration(
           color: borderOnly ? null : colorScheme.secondary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(
-              size.shortestSide * theme.cardStyle.cornerRadius),
+              size.shortestSide * theme.cardTheme.cornerRadius),
           border: borderOnly
               ? Border.all(
                   color: colorScheme.secondary.withOpacity(0.2), width: 2)

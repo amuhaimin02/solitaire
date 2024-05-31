@@ -88,8 +88,8 @@ class _GameTableState extends State<GameTable> {
     return IgnorePointer(
       ignoring: !widget.interactive,
       child: AspectRatio(
-        aspectRatio: (tableSize.width * theme.cardStyle.unitSize.width) /
-            (tableSize.height * theme.cardStyle.unitSize.height),
+        aspectRatio: (tableSize.width * theme.cardTheme.unitSize.width) /
+            (tableSize.height * theme.cardTheme.unitSize.height),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final gridUnit = Size(
@@ -266,7 +266,7 @@ class _GameTableState extends State<GameTable> {
             maxHeight,
             item.region.top +
                 1 +
-                table.get(item.kind).length * theme.cardStyle.stackGap.dy,
+                table.get(item.kind).length * theme.cardTheme.stackGap.dy,
           );
         case Direction.none:
         default:
@@ -302,7 +302,7 @@ class _GameTableState extends State<GameTable> {
         return newRect.translate(
           -(gridUnit.width * 0.5),
           -(gridUnit.height * 0.75 -
-              index * (gridUnit.height * theme.cardStyle.stackGap.dy * 0.9)),
+              index * (gridUnit.height * theme.cardTheme.stackGap.dy * 0.9)),
         );
       } else {
         return measure(originalPosition);
@@ -346,9 +346,9 @@ class _GameTableState extends State<GameTable> {
 
       return Offset(
         computeOffset(
-            offset, direction.dx, theme.cardStyle.stackGap.dx, region.width),
+            offset, direction.dx, theme.cardTheme.stackGap.dx, region.width),
         computeOffset(
-            offset, direction.dy, theme.cardStyle.stackGap.dy, region.height),
+            offset, direction.dy, theme.cardTheme.stackGap.dy, region.height),
       );
     }
 

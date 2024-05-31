@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'models/theme.dart';
 import 'providers/settings.dart';
 import 'providers/themes.dart';
 import 'screens/about_screen.dart';
@@ -57,29 +58,26 @@ class SolitaireApp extends ConsumerWidget {
           : themeColorPalette.first,
     );
 
-    final cardStyle = SolitaireCardStyle.fromColorScheme(
+    final cardTheme = CardThemeData.fromColorScheme(
       colorScheme,
       tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
     );
 
-    final solitaireThemeData = SolitaireThemeData.fromColorScheme(
+    TableThemeData tableTheme = TableThemeData.fromColorScheme(
       colorScheme: colorScheme,
-      cardStyle: cardStyle,
-      amoledDarkTheme: amoledDarkTheme,
+      cardTheme: cardTheme,
       coloredBackground: coloredBackground,
     );
 
     final textTheme = GoogleFonts.manropeTextTheme();
 
-    final themeData = ThemeData(
+    ThemeData appTheme = ThemeData(
       useMaterial3: true,
       textTheme: textTheme,
       colorScheme: colorScheme,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
       ),
-      scaffoldBackgroundColor:
-          amoledDarkTheme && themeMode == ThemeMode.dark ? Colors.black : null,
       splashFactory: InkSparkle.splashFactory,
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -89,22 +87,18 @@ class SolitaireApp extends ConsumerWidget {
         },
       ),
       tooltipTheme: const TooltipThemeData(preferBelow: false),
-      chipTheme: ChipThemeData(
-        backgroundColor: solitaireThemeData.appBackgroundColor,
-      ),
-      dialogTheme: DialogTheme(
-        titleTextStyle: textTheme.headlineSmall!
-            .copyWith(color: colorScheme.onPrimaryContainer),
-        contentTextStyle:
-            textTheme.bodyMedium!.copyWith(color: colorScheme.onSurfaceVariant),
-      ),
     );
 
+    if (amoledDarkTheme && themeMode == ThemeMode.dark) {
+      tableTheme = tableTheme.copyWith(backgroundColor: Colors.black);
+      appTheme = appTheme.copyWith(scaffoldBackgroundColor: Colors.black);
+    }
+
     return SolitaireTheme(
-      data: solitaireThemeData,
+      data: tableTheme,
       child: MaterialApp(
         title: 'Solitaire',
-        theme: themeData,
+        theme: appTheme,
         themeAnimationStyle: AnimationStyle.noAnimation,
         initialRoute: '/game',
         routes: {
@@ -139,14 +133,10 @@ class FadeOutInTransitionBuilder extends PageTransitionsBuilder {
 
     return FadeTransition(
       opacity: animation.drive(fadeOutCurve),
-      child: RippleBackground(
-        decoration:
-            BoxDecoration(color: SolitaireTheme.of(context).appBackgroundColor),
-        child: FadeTransition(
-          opacity: secondaryAnimation
-              .drive(Tween(begin: 1.0, end: 0.0).chain(fadeInCurve)),
-          child: child,
-        ),
+      child: FadeTransition(
+        opacity: secondaryAnimation
+            .drive(Tween(begin: 1.0, end: 0.0).chain(fadeInCurve)),
+        child: child,
       ),
     );
   }

@@ -38,13 +38,13 @@ class CardView extends StatelessWidget {
       flipped: hideFace || card.flipped,
       front: Material(
         borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardStyle.cornerRadius),
+            size.shortestSide * theme.cardTheme.cornerRadius),
         elevation: elevation ?? 2,
         child: CardFace(card: card, size: size),
       ),
       back: Material(
         borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardStyle.cornerRadius),
+            size.shortestSide * theme.cardTheme.cornerRadius),
         elevation: elevation ?? 2,
         child: CardCover(size: size),
       ),
@@ -59,7 +59,7 @@ class CardView extends StatelessWidget {
             Positioned.fill(
                 child: Padding(
               padding:
-                  EdgeInsets.all(size.shortestSide * theme.cardStyle.margin),
+                  EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
               child: child,
             )),
           ],
@@ -93,7 +93,7 @@ class CardHighlight extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(size.shortestSide *
-              (theme.cardStyle.cornerRadius + theme.cardStyle.margin)),
+              (theme.cardTheme.cornerRadius + theme.cardTheme.margin)),
         ),
       ),
     );
@@ -130,23 +130,23 @@ class CardFace extends StatelessWidget {
     final Color backgroundColor, foregroundColor;
     switch (card.suit.color) {
       case SuitColor.black:
-        backgroundColor = theme.cardStyle.facePlainColor;
-        foregroundColor = theme.cardStyle.labelPlainColor;
+        backgroundColor = theme.cardTheme.facePlainColor;
+        foregroundColor = theme.cardTheme.labelPlainColor;
       case SuitColor.red:
-        backgroundColor = theme.cardStyle.faceAccentColor;
-        foregroundColor = theme.cardStyle.labelAccentColor;
+        backgroundColor = theme.cardTheme.faceAccentColor;
+        foregroundColor = theme.cardTheme.labelAccentColor;
     }
 
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardStyle.cornerRadius),
+            size.shortestSide * theme.cardTheme.cornerRadius),
       ),
       child: ClipRRect(
         clipBehavior: Clip.hardEdge,
         borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardStyle.cornerRadius),
+            size.shortestSide * theme.cardTheme.cornerRadius),
         child: Stack(
           children: [
             Padding(
@@ -231,7 +231,7 @@ class CardCover extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(
-          size.shortestSide * theme.cardStyle.cornerRadius),
+          size.shortestSide * theme.cardTheme.cornerRadius),
       child: CustomPaint(
         painter: SimpleCardCover(
           color: colorScheme.primary,

@@ -104,13 +104,15 @@ class TwoPaneState extends State<TwoPane> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => Wrap(
-              children: [
-                _TwoPaneScope(
-                  state: this,
-                  child: widget.secondaryBuilder(context),
-                ),
-              ],
+            builder: (context) => SingleChildScrollView(
+              child: Wrap(
+                children: [
+                  _TwoPaneScope(
+                    state: this,
+                    child: widget.secondaryBuilder(context),
+                  ),
+                ],
+              ),
             ),
           );
         case StackingStyle.newPage:
