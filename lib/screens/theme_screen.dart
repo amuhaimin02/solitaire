@@ -3,40 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
 import '../models/card.dart';
-import '../models/direction.dart';
+import '../models/game/demo.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
-import '../models/table_layout.dart';
 import '../providers/themes.dart';
 import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/two_pane.dart';
-
-final _sampleLayout = TableLayout(
-  gridSize: const Size(4, 3),
-  items: [
-    TableLayoutItem(
-      kind: const Draw(),
-      region: const Rect.fromLTWH(3, 0, 1, 1),
-    ),
-    TableLayoutItem(
-      kind: const Discard(),
-      region: const Rect.fromLTWH(2, 0, 2, 1),
-    ),
-    for (int i = 0; i < 2; i++)
-      TableLayoutItem(
-        kind: Foundation(i),
-        region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-      ),
-    for (int i = 0; i < 4; i++)
-      TableLayoutItem(
-        kind: Tableau(i),
-        region: Rect.fromLTWH(i.toDouble(), 1, 1, 2),
-        stackDirection: Direction.down,
-      ),
-  ],
-);
 
 final _samplePlayTable = PlayTable.fromMap({
   const Draw(): const [
@@ -95,7 +69,7 @@ class ThemeScreen extends ConsumerWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
           child: GameTable(
-            layout: _sampleLayout,
+            game: SolitaireDemo(),
             table: _samplePlayTable,
             interactive: false,
             animateMovement: false,

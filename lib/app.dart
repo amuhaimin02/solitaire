@@ -13,7 +13,6 @@ import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'screens/theme_screen.dart';
 import 'services/system_window.dart';
-import 'widgets/ripple_background.dart';
 import 'widgets/route_observer.dart';
 import 'widgets/solitaire_theme.dart';
 

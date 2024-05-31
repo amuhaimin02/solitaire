@@ -104,6 +104,7 @@ class TwoPaneState extends State<TwoPane> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
+            showDragHandle: true,
             builder: (context) => SingleChildScrollView(
               child: Wrap(
                 children: [

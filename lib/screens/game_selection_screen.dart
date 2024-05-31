@@ -4,10 +4,8 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../animations.dart';
 import '../models/game/solitaire.dart';
-import '../models/table_layout.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
-import '../providers/game_storage.dart';
 import '../utils/widgets.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
@@ -26,6 +24,9 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(() {
+      ref.read(selectedGameProvider.notifier).deselect();
+    });
   }
 
   @override
@@ -57,7 +58,7 @@ class _GameSelectionList extends ConsumerWidget {
       body: Builder(
         builder: (context) {
           return DefaultTabController(
-            length: 3,
+            length: 2,
             child: PageStorage(
               bucket: PageStorageBucket(),
               child: Column(
@@ -65,7 +66,6 @@ class _GameSelectionList extends ConsumerWidget {
                   const TabBar.secondary(
                     tabs: [
                       Tab(text: 'Favorites'),
-                      Tab(text: 'Continue'),
                       Tab(text: 'All games'),
                     ],
                   ),
@@ -73,7 +73,6 @@ class _GameSelectionList extends ConsumerWidget {
                     child: TabBarView(
                       children: [
                         _buildFavoriteGameList(context, ref),
-                        _buildContinueGameList(context, ref),
                         _buildAllGamesList(context, ref),
                       ],
                     ),
@@ -103,32 +102,6 @@ class _GameSelectionList extends ConsumerWidget {
         key: const PageStorageKey('favorite'),
         children: [
           for (final game in favoritedGames)
-            _GameListTile(
-              selected: TwoPane.of(context).isActive && selectedGame == game,
-              game: game,
-              onTap: () => _onListTap(context, ref, game),
-            ),
-        ],
-      );
-    }
-  }
-
-  Widget _buildContinueGameList(BuildContext context, WidgetRef ref) {
-    final selectedGame = ref.watch(selectedGameProvider);
-    final continuableGames = ref.watch(continuableGamesProvider);
-
-    if (continuableGames.isEmpty) {
-      return const EmptyScreen(
-        icon: Icon(Icons.play_circle),
-        title: Text('No pending games yet'),
-        body: Text(
-            'Game that you have played and not finished yet will be listed here'),
-      );
-    } else {
-      return ListView(
-        key: const PageStorageKey('continue'),
-        children: [
-          for (final game in continuableGames)
             _GameListTile(
               selected: TwoPane.of(context).isActive && selectedGame == game,
               game: game,
@@ -226,16 +199,14 @@ class _GameListTile extends ConsumerWidget {
       selected: selected,
       selectedColor: colorScheme.secondary,
       selectedTileColor: colorScheme.secondaryContainer,
-      leading: Icon(MdiIcons.cardsPlayingSpadeOutline),
+      leading: currentGame.game == game
+          ? const Icon(Icons.play_circle)
+          : Icon(MdiIcons.cardsPlayingSpadeOutline),
       title: Text(game.name),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       trailing: Wrap(
         spacing: 12,
         children: [
-          if (currentGame.game == game)
-            const Icon(Icons.play_circle)
-          else if (ref.watch(continuableGamesProvider).contains(game))
-            const Icon(Icons.play_arrow),
           if (ref.watch(favoritedGamesProvider).contains(game))
             const Icon(Icons.favorite),
         ],
@@ -255,9 +226,15 @@ class _GameSelectionDetail extends ConsumerWidget {
 
     final selectedGame = ref.watch(selectedGameProvider);
 
+    if (selectedGame == null) {
+      return EmptyScreen(
+        icon: Icon(MdiIcons.cardsPlaying),
+        title: const Text('Select a game'),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        print(constraints);
         return Material(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -271,14 +248,7 @@ class _GameSelectionDetail extends ConsumerWidget {
                     child: Center(
                       child: GameTable(
                         key: ValueKey(selectedGame),
-                        layout: selectedGame.getLayout(
-                          TableLayoutOptions(
-                            orientation: TwoPane.of(context).isActive
-                                ? Orientation.landscape
-                                : Orientation.portrait,
-                            mirror: false,
-                          ),
-                        ),
+                        game: selectedGame,
                         table: selectedGame.generateRandomSetup(),
                         fitEmptySpaces: true,
                         animateDistribute: false,
@@ -319,6 +289,7 @@ class _GameSelectionDetail extends ConsumerWidget {
               ),
               _GameSelectionOptions(
                 singleLine: constraints.maxHeight <= 500,
+                game: selectedGame,
               ),
             ],
           ),
@@ -329,14 +300,16 @@ class _GameSelectionDetail extends ConsumerWidget {
 }
 
 class _GameSelectionOptions extends ConsumerWidget {
-  const _GameSelectionOptions({super.key, required this.singleLine});
+  const _GameSelectionOptions(
+      {super.key, required this.game, required this.singleLine});
 
   final bool singleLine;
+
+  final SolitaireGame game;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final selectedGame = ref.watch(selectedGameProvider);
 
     final playButtonWidget = FilledButton.icon(
       icon: const Icon(Icons.play_circle),
@@ -344,20 +317,18 @@ class _GameSelectionOptions extends ConsumerWidget {
       onPressed: () {
         TwoPane.of(context).popSecondary();
         Navigator.pop(context);
-        ref.read(selectedGameProvider.notifier).select(selectedGame);
-        ref.read(gameControllerProvider.notifier).startNew(selectedGame);
+        ref.read(selectedGameProvider.notifier).select(game);
+        ref.read(gameControllerProvider.notifier).startNew(game);
       },
     );
 
     final miscButtonWidgets = [
-      if (ref.watch(favoritedGamesProvider).contains(selectedGame))
+      if (ref.watch(favoritedGamesProvider).contains(game))
         FilledButton.tonalIcon(
           icon: const Icon(Icons.favorite),
           label: const Text('Added to favorites'),
           onPressed: () {
-            ref
-                .read(favoritedGamesProvider.notifier)
-                .removeFromFavorite(selectedGame);
+            ref.read(favoritedGamesProvider.notifier).removeFromFavorite(game);
           },
         )
       else
@@ -365,9 +336,7 @@ class _GameSelectionOptions extends ConsumerWidget {
           icon: const Icon(Icons.favorite_border),
           label: const Text('Add to favorites'),
           onPressed: () {
-            ref
-                .read(favoritedGamesProvider.notifier)
-                .addToFavorite(selectedGame);
+            ref.read(favoritedGamesProvider.notifier).addToFavorite(game);
           },
         ),
       FilledButton.tonalIcon(
@@ -380,13 +349,6 @@ class _GameSelectionOptions extends ConsumerWidget {
         icon: const Icon(Icons.leaderboard),
         label: const Text('Statistics'),
       ),
-      FilledButton.tonalIcon(
-        onPressed: () {
-          ref.read(gameStorageProvider.notifier).deleteQuickSave(selectedGame);
-        },
-        icon: const Icon(Icons.delete),
-        label: const Text('Delete last save'),
-      ),
     ];
 
     return ClipRect(
@@ -398,7 +360,7 @@ class _GameSelectionOptions extends ConsumerWidget {
           children: [
             if (!singleLine) ...[
               SizedBox(
-                height: 48,
+                height: 56,
                 width: double.infinity,
                 child: playButtonWidget,
               ),

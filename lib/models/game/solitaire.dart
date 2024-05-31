@@ -3,8 +3,8 @@ import 'dart:math';
 import '../action.dart';
 import '../card.dart';
 import '../pile.dart';
+import '../pile_info.dart';
 import '../play_table.dart';
-import '../table_layout.dart';
 
 abstract class SolitaireGame {
   const SolitaireGame();
@@ -15,25 +15,29 @@ abstract class SolitaireGame {
 
   String get tag;
 
-  int get drawsPerTurn;
+  int get drawsPerTurn => 1;
 
-  TableLayout getLayout([TableLayoutOptions? options]);
+  TableLayoutNew get tableSize;
+
+  List<PileItem> get piles;
 
   List<PlayCard> prepareDrawPile(Random random);
 
   PlayTable setup(PlayTable table);
 
-  bool winConditions(PlayTable table);
+  bool winConditions(PlayTable table) => false;
 
-  bool canPick(List<PlayCard> cards, Pile from);
+  bool canPick(List<PlayCard> cards, Pile from) => false;
 
-  bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile);
+  bool canPlace(
+          List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) =>
+      false;
 
-  bool canAutoSolve(PlayTable table);
+  bool canAutoSolve(PlayTable table) => false;
 
-  Iterable<MoveIntent> autoMoveStrategy(PlayTable table);
+  Iterable<MoveIntent> autoMoveStrategy(PlayTable table) => [];
 
-  Iterable<MoveIntent> autoSolveStrategy(PlayTable table);
+  Iterable<MoveIntent> autoSolveStrategy(PlayTable table) => [];
 
   (PlayTable card, int score) afterEachMove(Move move, PlayTable table);
 

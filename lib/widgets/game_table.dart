@@ -9,9 +9,10 @@ import '../animations.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
 import '../models/direction.dart';
+import '../models/game/solitaire.dart';
 import '../models/pile.dart';
+import '../models/pile_info.dart';
 import '../models/play_table.dart';
-import '../models/table_layout.dart';
 import '../utils/types.dart';
 import 'card_view.dart';
 import 'pile_marker.dart';
@@ -23,7 +24,7 @@ import 'ticking_number.dart';
 class GameTable extends StatefulWidget {
   const GameTable({
     super.key,
-    required this.layout,
+    required this.game,
     required this.table,
     this.interactive = true,
     this.onCardTap,
@@ -34,9 +35,10 @@ class GameTable extends StatefulWidget {
     this.animateDistribute = false,
     this.animateMovement = true,
     this.fitEmptySpaces = false,
+    this.orientation = Orientation.portrait,
   });
 
-  final TableLayout layout;
+  final SolitaireGame game;
 
   final List<PlayCard>? Function(PlayCard card, Pile pile)? onCardTap;
 
@@ -58,6 +60,8 @@ class GameTable extends StatefulWidget {
 
   final bool fitEmptySpaces;
 
+  final Orientation orientation;
+
   @override
   State<GameTable> createState() => _GameTableState();
 }
@@ -71,18 +75,43 @@ class _GameTableState extends State<GameTable> {
 
   Timer? _touchDragTimer, _shakeCardTimer;
 
+  late List<Pile> _piles;
+  late Map<Pile, Rect> _resolvedRegion;
+  late Map<Pile, PileLayout> _resolvedLayout;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolvePiles();
+  }
+
+  @override
+  void didUpdateWidget(covariant GameTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _resolvePiles();
+  }
+
+  void _resolvePiles() {
+    _piles = widget.game.piles.map((p) => p.kind).toList();
+    _resolvedRegion = {
+      for (final pile in widget.game.piles)
+        pile.kind: pile.layout.resolvedRegion(widget.orientation),
+    };
+    _resolvedLayout = {
+      for (final pile in widget.game.piles) pile.kind: pile.layout,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
 
     final Size tableSize;
 
-    // TODO: Calculate this
     if (widget.fitEmptySpaces) {
-      tableSize =
-          _calculateConsumedTableSpace(context, widget.layout, widget.table);
+      tableSize = _calculateConsumedTableSpace(context);
     } else {
-      tableSize = widget.layout.gridSize;
+      tableSize = widget.game.tableSize.resolve(widget.orientation);
     }
 
     return IgnorePointer(
@@ -112,22 +141,29 @@ class _GameTableState extends State<GameTable> {
   }
 
   Widget _buildMarkerLayer(BuildContext context, Size gridUnit) {
+    Rect computeMarkerPlacement(Pile pile) {
+      final layout = _resolvedLayout[pile]!;
+      final region = _resolvedRegion[pile]!;
+      final shiftStack = layout.resolveShiftStack(widget.orientation);
+      final stackDirection = layout.resolvedStackDirection(widget.orientation);
+
+      final rect = Rect.fromLTWH(
+        stackDirection.dx < 0 && shiftStack ? region.right - 1 : region.left,
+        stackDirection.dy < 0 && shiftStack ? region.bottom - 1 : region.top,
+        1,
+        1,
+      );
+
+      return rect;
+    }
+
     return Stack(
       children: [
-        for (final item in widget.layout.items)
+        for (final pile in _piles)
           Positioned.fromRect(
-            rect: Rect.fromLTWH(
-              item.stackDirection.dx < 0 && item.shiftStackOnPlace
-                  ? item.region.right - 1
-                  : item.region.left,
-              item.stackDirection.dy < 0 && item.shiftStackOnPlace
-                  ? item.region.bottom - 1
-                  : item.region.top,
-              1,
-              1,
-            ).scale(gridUnit),
+            rect: computeMarkerPlacement(pile).scale(gridUnit),
             child: PileMarker(
-              pile: item.kind,
+              pile: pile,
               size: gridUnit,
             ),
           ),
@@ -160,18 +196,18 @@ class _GameTableState extends State<GameTable> {
     void onPointerUp(PointerUpEvent event) {
       final point = _convertToGrid(event.localPosition, gridUnit);
 
-      final dropRegion = widget.layout.items
-          .firstWhereOrNull((item) => item.region.contains(point));
+      final dropPile = _piles
+          .firstWhereOrNull((pile) => _resolvedRegion[pile]!.contains(point));
 
-      if (dropRegion != null) {
+      if (dropPile != null) {
         if (_touchingCards != null &&
             _touchingCardPile != null &&
-            _touchingCardPile != dropRegion.kind) {
-          _onCardDrop(context, _touchingCards!.first, _touchingCardPile!,
-              dropRegion.kind);
+            _touchingCardPile != dropPile) {
+          _onCardDrop(
+              context, _touchingCards!.first, _touchingCardPile!, dropPile);
         } else {
           // Register as a normal tap (typically when user taps a tableau region not covered by cards)
-          _onPileTap(context, dropRegion.kind);
+          _onPileTap(context, dropPile);
         }
       }
 
@@ -224,8 +260,7 @@ class _GameTableState extends State<GameTable> {
         children: [
           ...sortCardWidgets(
             [
-              for (final item in widget.layout.items)
-                ..._buildPile(context, gridUnit, item),
+              for (final pile in _piles) ..._buildPile(context, gridUnit, pile),
             ],
           ),
         ],
@@ -236,13 +271,14 @@ class _GameTableState extends State<GameTable> {
   Widget _buildOverlayLayer(BuildContext context, Size gridUnit) {
     return Stack(
       children: [
-        for (final item in widget.layout.items)
-          if (item.showCountIndicator)
+        for (final pile in _piles)
+          if (_resolvedLayout[pile]!.showCount)
             Positioned.fromRect(
-              rect: Rect.fromLTWH(item.region.left, item.region.top, 1, 1)
+              rect: Rect.fromLTWH(_resolvedRegion[pile]!.left,
+                      _resolvedRegion[pile]!.top, 1, 1)
                   .scale(gridUnit),
               child: _CountIndicator(
-                count: widget.table.get(item.kind).length,
+                count: widget.table.get(pile).length,
                 cardSize: gridUnit,
               ),
             ),
@@ -250,37 +286,43 @@ class _GameTableState extends State<GameTable> {
     );
   }
 
-  Size _calculateConsumedTableSpace(
-      BuildContext context, TableLayout layout, PlayTable table) {
+  Size _calculateConsumedTableSpace(BuildContext context) {
     var maxWidth = 0.0;
     var maxHeight = 0.0;
 
     final theme = SolitaireTheme.of(context);
 
-    // TODO: Improve this algorithm
-    for (final item in layout.items) {
-      switch (item.stackDirection) {
+    for (final pile in _piles) {
+      final layout = _resolvedLayout[pile]!;
+      final region = _resolvedRegion[pile]!;
+
+      final stackDirection = layout.resolvedStackDirection(widget.orientation);
+
+      switch (stackDirection) {
         case Direction.down:
-          maxWidth = max(maxWidth, item.region.right);
+          maxWidth = max(maxWidth, region.right);
           maxHeight = max(
             maxHeight,
-            item.region.top +
+            region.top +
                 1 +
-                table.get(item.kind).length * theme.cardTheme.stackGap.dy,
+                widget.table.get(pile).length * theme.cardTheme.stackGap.dy,
           );
         case Direction.none:
         default:
-          maxWidth = max(maxWidth, item.region.right);
-          maxHeight = max(maxHeight, item.region.bottom);
+          maxWidth = max(maxWidth, region.right);
+          maxHeight = max(maxHeight, region.bottom);
       }
     }
 
     return Size(maxWidth, maxHeight);
   }
 
-  List<Widget> _buildPile(
-      BuildContext context, Size gridUnit, TableLayoutItem item) {
+  List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
     final theme = SolitaireTheme.of(context);
+
+    final layout = _resolvedLayout[pile]!;
+    final region = _resolvedRegion[pile]!;
+    final stackDirection = layout.resolvedStackDirection(widget.orientation);
 
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
@@ -290,8 +332,6 @@ class _GameTableState extends State<GameTable> {
         gridRect.height * gridUnit.height,
       );
     }
-
-    final region = item.region;
 
     Rect computePosition(PlayCard card, Rect originalPosition) {
       if (_touchingCards != null &&
@@ -311,14 +351,14 @@ class _GameTableState extends State<GameTable> {
 
     Offset calculateStackGap(int index, int stackLength, Direction direction) {
       final int visualIndex, visualLength, offset;
+      final shiftStack = layout.resolveShiftStack(widget.orientation);
 
-      if (item.numberOfCardsToShow != null) {
-        visualLength = item.numberOfCardsToShow!;
+      if (layout.previewCards != null) {
+        visualLength = layout.previewCards!;
         if (stackLength > visualLength) {
-          visualIndex =
-              max(0, item.numberOfCardsToShow! - (stackLength - index));
+          visualIndex = max(0, layout.previewCards! - (stackLength - index));
         } else {
-          if (item.shiftStackOnPlace) {
+          if (shiftStack) {
             visualIndex = visualLength - (stackLength - index);
           } else {
             visualIndex = index;
@@ -329,7 +369,7 @@ class _GameTableState extends State<GameTable> {
         visualIndex = index;
       }
 
-      if (item.shiftStackOnPlace) {
+      if (shiftStack) {
         offset = visualLength - visualIndex - 1;
       } else {
         offset = visualIndex;
@@ -354,15 +394,15 @@ class _GameTableState extends State<GameTable> {
 
     List<PlayCard> cards = [];
 
-    cards = widget.table.get(item.kind);
+    cards = widget.table.get(pile);
 
     DurationCurve computeAnimation(int cardIndex) {
       if (!widget.animateMovement) {
         return DurationCurve.zero;
       } else if (_lastTouchPoint != null) {
         return cardDragAnimation;
-      } else if (widget.animateDistribute && item.kind is Tableau) {
-        final tableau = item.kind as Tableau;
+      } else if (widget.animateDistribute && pile is Tableau) {
+        final tableau = pile;
         final delayFactor = cardMoveAnimation.duration * 0.3;
         // return cardMoveAnimation.timeScaled(10);
 
@@ -382,7 +422,7 @@ class _GameTableState extends State<GameTable> {
       return null;
     }
 
-    switch (item.stackDirection) {
+    switch (stackDirection) {
       case Direction.none:
         return [
           if (cards.isNotEmpty)
@@ -398,10 +438,11 @@ class _GameTableState extends State<GameTable> {
                   shake: _shakingCards?.contains(card) == true,
                   isMoving: _lastTouchPoint != null &&
                       _touchingCards?.contains(card) == true,
-                  onTouch: () => _onCardTouch(context, card, item.kind),
+                  onTouch: () => _onCardTouch(context, card, pile),
                   card: card,
-                  layout: item,
-                  cardsInPile: widget.table.get(item.kind),
+                  layout: layout,
+                  stackDirection: stackDirection,
+                  cardsInPile: widget.table.get(pile),
                   highlightColor: highlightCardColor(card),
                 ),
               ),
@@ -409,9 +450,9 @@ class _GameTableState extends State<GameTable> {
 
       default:
         Offset stackAnchor;
-        if (item.stackDirection == Direction.left) {
+        if (stackDirection == Direction.left) {
           stackAnchor = Offset(region.width - 1, 0);
-        } else if (item.stackDirection == Direction.up) {
+        } else if (stackDirection == Direction.up) {
           stackAnchor = Offset(0, region.height - 1);
         } else {
           stackAnchor = Offset.zero;
@@ -427,19 +468,19 @@ class _GameTableState extends State<GameTable> {
                 card,
                 Rect.fromLTWH(region.left, region.top, 1, 1)
                     .shift(stackAnchor)
-                    .shift(calculateStackGap(
-                        i, cards.length, item.stackDirection)),
+                    .shift(calculateStackGap(i, cards.length, stackDirection)),
               ),
               child: _CardWidget(
                 cardSize: gridUnit,
                 shake: _shakingCards?.contains(card) == true,
                 isMoving: _lastTouchPoint != null &&
                     _touchingCards?.contains(card) == true,
-                onTouch: () => _onCardTouch(context, card, item.kind),
-                onTap: () => _onCardTap(context, card, item.kind),
+                onTouch: () => _onCardTouch(context, card, pile),
+                onTap: () => _onCardTap(context, card, pile),
                 card: card,
-                layout: item,
-                cardsInPile: widget.table.get(item.kind),
+                layout: layout,
+                stackDirection: stackDirection,
+                cardsInPile: widget.table.get(pile),
                 highlightColor: highlightCardColor(card),
               ),
             ),
@@ -512,6 +553,7 @@ class _CardWidget extends StatelessWidget {
     required this.card,
     required this.layout,
     required this.cardsInPile,
+    required this.stackDirection,
     this.onTouch,
     this.onTap,
     this.highlightColor,
@@ -522,14 +564,17 @@ class _CardWidget extends StatelessWidget {
 
   final PlayCard card;
 
-  final TableLayoutItem layout;
+  final PileLayout layout;
 
   final List<PlayCard> cardsInPile;
 
   final VoidCallback? onTouch;
+
   final VoidCallback? onTap;
 
   final Color? highlightColor;
+
+  final Direction stackDirection;
 
   final Size cardSize;
 
@@ -545,13 +590,13 @@ class _CardWidget extends StatelessWidget {
     final double elevation;
     final bool hideFace;
 
-    if (layout.stackDirection == Direction.none) {
+    if (stackDirection == Direction.none) {
       elevation =
           cardIndex > cardPileLength - 1 - cardShowThreshold ? minElevation : 0;
       hideFace = cardPileLength > cardShowThreshold &&
           cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
     } else {
-      final cardLimit = layout.numberOfCardsToShow;
+      final cardLimit = layout.previewCards;
       if (cardLimit != null && cardIndex < cardPileLength - cardLimit) {
         elevation = 0;
       } else {

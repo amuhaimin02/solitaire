@@ -7,10 +7,8 @@ import '../models/card.dart';
 import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/table_layout.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
-import '../providers/file_handler.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
@@ -45,18 +43,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   void _startGame() {
     Future.microtask(() async {
-      final currentGame = ref.read(selectedGameProvider);
-      await ref.read(appDataDirectoryFutureProvider.future);
-      final hasQuickSave =
-          ref.read(continuableGamesProvider).contains(currentGame);
-
-      if (hasQuickSave) {
-        final gameData = await ref
-            .read(gameStorageProvider.notifier)
-            .restoreQuickSave(currentGame);
+      if (await ref.read(gameStorageProvider.notifier).hasQuickSave()) {
+        final gameData =
+            await ref.read(gameStorageProvider.notifier).restoreQuickSave();
         ref.read(gameControllerProvider.notifier).restore(gameData);
       } else {
-        ref.read(gameControllerProvider.notifier).startNew(currentGame);
+        // Continue with last opened game
+        ref.read(gameControllerProvider.notifier).startNew(
+              ref.read(allSolitaireGamesProvider).first,
+            );
       }
     });
   }
@@ -271,9 +266,8 @@ class _PlayArea extends ConsumerWidget {
           children: [
             GameTable(
               table: table,
-              layout: game.game.getLayout(
-                TableLayoutOptions(orientation: orientation, mirror: false),
-              ),
+              game: game.game,
+              orientation: orientation,
               highlightedCards: highlightedCards,
               lastMovedCards: lastMovedCards,
               animateDistribute: status == GameStatus.preparing,

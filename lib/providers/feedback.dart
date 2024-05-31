@@ -15,7 +15,6 @@ void feedback(FeedbackRef ref) {
   final target = lastAction.move?.to;
 
   if (ref.read(settingsEnableVibrationProvider)) {
-    print('bzzz');
     switch (target) {
       case Draw():
         HapticFeedback.heavyImpact();

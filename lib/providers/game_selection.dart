@@ -4,7 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/game/all.dart';
 import '../models/game/solitaire.dart';
 import '../services/shared_preferences.dart';
-import 'game_storage.dart';
 
 part 'game_selection.g.dart';
 
@@ -32,18 +31,11 @@ class GameSelectionDropdown extends _$GameSelectionDropdown {
 @Riverpod(keepAlive: true)
 class SelectedGame extends _$SelectedGame {
   @override
-  SolitaireGame build() => ref.watch(allSolitaireGamesProvider).first;
+  SolitaireGame? build() => null;
 
   void select(SolitaireGame newGame) => state = newGame;
-}
 
-@riverpod
-List<SolitaireGame> selectedGameAlternateVariants(
-    SelectedGameAlternateVariantsRef ref) {
-  final selectedGame = ref.watch(selectedGameProvider);
-  final allGamesMapped = ref.watch(allSolitaireGamesMappedProvider);
-
-  return allGamesMapped[selectedGame.name]!;
+  void deselect() => state = null;
 }
 
 @riverpod
@@ -82,13 +74,4 @@ class FavoritedGames extends _$FavoritedGames {
         favoritedTags.whereNot((tag) => tag == game.tag).toList());
     ref.invalidateSelf();
   }
-}
-
-@riverpod
-List<SolitaireGame> continuableGames(ContinuableGamesRef ref) {
-  final saveFiles = ref.watch(gameStorageProvider.notifier).getAllSaveFiles();
-  return ref
-      .watch(allSolitaireGamesProvider)
-      .where((game) => saveFiles.contains(quickSaveFileName(game)))
-      .toList();
 }

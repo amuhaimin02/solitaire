@@ -9,8 +9,8 @@ import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
+import '../pile_info.dart';
 import '../play_table.dart';
-import '../table_layout.dart';
 import 'solitaire.dart';
 
 enum KlondikeScoring {
@@ -41,66 +41,53 @@ class Klondike extends SolitaireGame {
   final KlondikeScoring scoring;
 
   @override
-  TableLayout getLayout([TableLayoutOptions? options]) {
-    switch (options?.orientation) {
-      case Orientation.portrait || null:
-        return TableLayout(
-          gridSize: const Size(7, 6),
-          items: [
-            for (int i = 0; i < 4; i++)
-              TableLayoutItem(
-                kind: Foundation(i),
-                region: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              ),
-            for (int i = 0; i < 7; i++)
-              TableLayoutItem(
-                kind: Tableau(i),
-                region: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-                stackDirection: Direction.down,
-              ),
-            TableLayoutItem(
-              kind: const Draw(),
-              region: const Rect.fromLTWH(6, 0, 1, 1),
-              showCountIndicator: true,
-            ),
-            TableLayoutItem(
-              kind: const Discard(),
-              region: const Rect.fromLTWH(4, 0, 2, 1),
-              stackDirection: Direction.left,
-              shiftStackOnPlace: true,
-              numberOfCardsToShow: 3,
-            ),
-          ],
-        );
-      case Orientation.landscape:
-        return TableLayout(
-          gridSize: const Size(10, 4),
-          items: [
-            for (int i = 0; i < 4; i++)
-              TableLayoutItem(
-                kind: Foundation(i),
-                region: Rect.fromLTWH(0, i.toDouble(), 1, 1),
-              ),
-            for (int i = 0; i < 7; i++)
-              TableLayoutItem(
-                kind: Tableau(i),
-                region: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
-                stackDirection: Direction.down,
-              ),
-            TableLayoutItem(
-              kind: const Draw(),
-              region: const Rect.fromLTWH(9, 2.5, 1, 1),
-              showCountIndicator: true,
-            ),
-            TableLayoutItem(
-              kind: const Discard(),
-              region: const Rect.fromLTWH(9, 0.5, 1, 2),
-              stackDirection: Direction.down,
-              numberOfCardsToShow: 3,
-            ),
-          ],
-        );
-    }
+  TableLayoutNew get tableSize {
+    return const TableLayoutNew(
+      portrait: Size(7, 6),
+      landscape: Size(10, 4),
+    );
+  }
+
+  @override
+  List<PileItem> get piles {
+    return [
+      for (int i = 0; i < 4; i++)
+        PileItem(
+          kind: Foundation(i),
+          layout: PileLayout(
+            portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+            landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+          ),
+        ),
+      for (int i = 0; i < 7; i++)
+        PileItem(
+          kind: Tableau(i),
+          layout: PileLayout(
+            portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
+            landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+            stackDirection: Direction.down,
+          ),
+        ),
+      PileItem(
+        kind: const Draw(),
+        layout: const PileLayout(
+          portrait: Rect.fromLTWH(6, 0, 1, 1),
+          landscape: Rect.fromLTWH(9, 2.5, 1, 1),
+          showCount: true,
+        ),
+      ),
+      PileItem(
+        kind: const Discard(),
+        layout: const PileLayout(
+          portrait: Rect.fromLTWH(4, 0, 2, 1),
+          landscape: Rect.fromLTWH(9, 0.5, 1, 2),
+          portraitStackDirection: Direction.left,
+          landscapeStackDirection: Direction.down,
+          portraitShiftStack: true,
+          previewCards: 3,
+        ),
+      ),
+    ];
   }
 
   @override
