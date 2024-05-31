@@ -58,9 +58,10 @@ class SolitaireApp extends ConsumerWidget {
           : themeColorPalette.first,
     );
 
-    final cardTheme = CardThemeData.fromColorScheme(
+    CardThemeData cardTheme = CardThemeData.fromColorScheme(
       colorScheme,
       tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
+      useClassicColors: ref.watch(themeUseClassicCardColorsProvider),
     );
 
     TableThemeData tableTheme = TableThemeData.fromColorScheme(

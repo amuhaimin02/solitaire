@@ -38,42 +38,51 @@ class Score extends _$Score {
   }
 }
 
+@Riverpod(keepAlive: true)
+SettableStopwatch stopwatch(StopwatchRef ref) {
+  return SettableStopwatch();
+}
+
 @riverpod
 class PlayTime extends _$PlayTime {
-  static final _stopwatch = SettableStopwatch();
-
   @override
   Duration build() {
-    return _stopwatch.elapsed;
+    return ref.read(stopwatchProvider).elapsed;
   }
 
   void set(Duration playTime) {
-    _stopwatch.startDuration = playTime;
+    ref.read(stopwatchProvider).startDuration = playTime;
   }
 
   void restart() {
-    _stopwatch
+    ref.read(stopwatchProvider)
       ..reset()
       ..start();
     ref.invalidateSelf();
   }
 
   void resume() {
-    _stopwatch.start();
+    ref.read(stopwatchProvider).start();
     ref.invalidateSelf();
   }
 
   void pause() {
-    _stopwatch.stop();
+    ref.read(stopwatchProvider).stop();
     ref.invalidateSelf();
   }
 
   void stop() {
-    _stopwatch
+    ref.read(stopwatchProvider)
       ..stop()
       ..reset();
     ref.invalidateSelf();
   }
+}
+
+@riverpod
+bool playTimeIsRunning(PlayTimeIsRunningRef ref) {
+  ref.watch(playTimeProvider);
+  return ref.watch(stopwatchProvider).isRunning;
 }
 
 @riverpod

@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:material_color_utilities/material_color_utilities.dart';
 
 part 'theme.freezed.dart';
 
@@ -59,27 +58,25 @@ class CardThemeData with _$CardThemeData {
   factory CardThemeData.fromColorScheme(
     ColorScheme colorScheme, {
     bool tintedCardFace = false,
+    bool useClassicColors = false,
   }) {
-    final Color cardFacePlainColor, cardFaceAccentColor;
-    final Color cardLabelPlainColor, cardLabelAccentColor;
+    Color cardLabelPlainColor = colorScheme.onSurfaceVariant;
+    Color cardLabelAccentColor = colorScheme.primary;
+    Color cardFacePlainColor = colorScheme.surfaceContainerLowest;
+    Color cardFaceAccentColor = colorScheme.surfaceContainerLowest;
 
-    if (tintedCardFace) {
-      if (colorScheme.brightness == Brightness.dark) {
-        cardLabelPlainColor = colorScheme.onSurface;
-        cardLabelAccentColor = colorScheme.onPrimaryContainer;
-        cardFacePlainColor = colorScheme.surfaceContainer;
-        cardFaceAccentColor = colorScheme.onPrimary;
-      } else {
-        cardLabelPlainColor = colorScheme.onSurface;
-        cardLabelAccentColor = colorScheme.onPrimaryContainer;
-        cardFacePlainColor = colorScheme.surfaceContainerLowest;
-        cardFaceAccentColor = colorScheme.primaryContainer;
-      }
-    } else {
-      cardLabelPlainColor = colorScheme.onSurface;
-      cardLabelAccentColor = colorScheme.primary;
-      cardFacePlainColor = colorScheme.surfaceContainerLowest;
-      cardFaceAccentColor = colorScheme.surfaceContainerLowest;
+    if (tintedCardFace && colorScheme.brightness == Brightness.dark) {
+      cardLabelPlainColor = colorScheme.onSurfaceVariant;
+      cardLabelAccentColor = colorScheme.onPrimaryContainer;
+      cardFacePlainColor = colorScheme.surfaceContainer;
+      cardFaceAccentColor = colorScheme.onPrimary;
+    }
+
+    if (useClassicColors) {
+      cardLabelPlainColor = Colors.grey.shade800;
+      cardLabelAccentColor = Colors.red.shade600;
+      cardFacePlainColor = Colors.grey.shade50;
+      cardFaceAccentColor = Colors.grey.shade50;
     }
 
     return CardThemeData(

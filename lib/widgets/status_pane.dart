@@ -55,9 +55,12 @@ class TimeLabel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<Null>(
-      stream: Stream.periodic(const Duration(milliseconds: 200)),
+      stream: ref.watch(playTimeIsRunningProvider)
+          ? Stream.periodic(const Duration(milliseconds: 200))
+          : const Stream.empty(),
       builder: (context, snapshot) {
         final playTime = ref.read(playTimeProvider);
+        ref.invalidate(playTimeProvider);
         return Text(playTime.toMMSSString());
       },
     );

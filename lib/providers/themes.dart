@@ -93,3 +93,16 @@ class ThemeBaseRandomizeColor extends _$ThemeBaseRandomizeColor
     }
   }
 }
+
+@riverpod
+class ThemeUseClassicCardColors extends _$ThemeUseClassicCardColors
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'theme_use_classic_card_colors';
+
+  @override
+  final bool defaultValue = false;
+
+  @override
+  bool build() => get();
+}

@@ -175,32 +175,6 @@ class _SettingsList extends ConsumerWidget {
                 ],
               ),
             ),
-            // subtitle: Padding(
-            //   padding: const EdgeInsets.only(top: 8),
-            //   child: SegmentedButton<ThemeMode>(
-            //     segments: const [
-            //       ButtonSegment(
-            //         value: ThemeMode.system,
-            //         label: Text('System'),
-            //         icon: Icon(Icons.brightness_6),
-            //       ),
-            //       ButtonSegment(
-            //         value: ThemeMode.light,
-            //         label: Text('Light'),
-            //         icon: Icon(Icons.light_mode),
-            //       ),
-            //       ButtonSegment(
-            //         value: ThemeMode.dark,
-            //         label: Text('Dark'),
-            //         icon: Icon(Icons.dark_mode),
-            //       ),
-            //     ],
-            //     selected: {themeMode},
-            //     onSelectionChanged: (value) {
-            //       ref.read(themeBaseModeProvider.notifier).set(value.single);
-            //     },
-            //   ),
-            // ),
             ListTile(
               title: const Text('Select colors'),
               subtitle: Padding(
@@ -208,37 +182,44 @@ class _SettingsList extends ConsumerWidget {
                 child: Material(
                   color: colorScheme.surfaceTint.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    children: [
-                      CheckboxListTile(
-                        title: const Text('Random color'),
-                        secondary: const Icon(Icons.shuffle),
-                        subtitle: const Text(
-                            'Color changes every time new game starts'),
-                        value: randomizeColor,
-                        onChanged: (value) {
-                          if (value == true) {
+                  clipBehavior: Clip.hardEdge,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      children: [
+                        CheckboxListTile(
+                          title: const Text('Random color'),
+                          secondary: const Icon(Icons.shuffle),
+                          subtitle: const Text(
+                              'Color changes every time new game starts'),
+                          value: randomizeColor,
+                          onChanged: (value) {
+                            if (value == true) {
+                              ref
+                                  .read(
+                                      themeBaseRandomizeColorProvider.notifier)
+                                  .set(true);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        _ColorSelectionTile(
+                          value: randomizeColor ? null : themeColor,
+                          options: themeColorPalette,
+                          onTap: (color) {
+                            if (randomizeColor) {
+                              ref
+                                  .read(
+                                      themeBaseRandomizeColorProvider.notifier)
+                                  .set(false);
+                            }
                             ref
-                                .read(themeBaseRandomizeColorProvider.notifier)
-                                .set(true);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _ColorSelectionTile(
-                        value: randomizeColor ? null : themeColor,
-                        options: themeColorPalette,
-                        onTap: (color) {
-                          if (randomizeColor) {
-                            ref
-                                .read(themeBaseRandomizeColorProvider.notifier)
-                                .set(false);
-                          }
-                          ref.read(themeBaseColorProvider.notifier).set(color);
-                        },
-                      ),
-                    ],
+                                .read(themeBaseColorProvider.notifier)
+                                .set(color);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -262,6 +243,16 @@ class _SettingsList extends ConsumerWidget {
               value: coloredBackground,
               onChanged: (value) {
                 ref.read(themeBackgroundColoredProvider.notifier).toggle();
+              },
+            ),
+            const SectionTitle('Cards'),
+            SwitchListTile(
+              title: const Text('Classic card colors'),
+              subtitle: const Text(
+                  'Use standard red-black labels with white background.'),
+              value: ref.watch(themeUseClassicCardColorsProvider),
+              onChanged: (value) {
+                ref.read(themeUseClassicCardColorsProvider.notifier).toggle();
               },
             ),
           ],
