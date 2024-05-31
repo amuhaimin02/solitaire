@@ -9,6 +9,7 @@ import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
+import '../pile_action.dart';
 import '../pile_info.dart';
 import '../play_table.dart';
 import 'solitaire.dart';
@@ -41,8 +42,11 @@ class Klondike extends SolitaireGame {
   final KlondikeScoring scoring;
 
   @override
-  TableLayoutNew get tableSize {
-    return const TableLayoutNew(
+  int get drawsPerTurn => numberOfDraws;
+
+  @override
+  TableLayout get tableSize {
+    return const TableLayout(
       portrait: Size(7, 6),
       landscape: Size(10, 4),
     );
@@ -67,6 +71,11 @@ class Klondike extends SolitaireGame {
             landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
             stackDirection: Direction.down,
           ),
+          onSetup: [
+            PickCardsFrom(const Draw(), count: i + 1),
+            const FlipAllCardsFaceDown(),
+            const FlipTopmostCardFaceUp(),
+          ],
         ),
       PileItem(
         kind: const Draw(),
@@ -75,6 +84,10 @@ class Klondike extends SolitaireGame {
           landscape: Rect.fromLTWH(9, 2.5, 1, 1),
           showCount: true,
         ),
+        onStart: const [
+          AddDeck(count: 1),
+          FlipAllCardsFaceDown(),
+        ],
       ),
       PileItem(
         kind: const Discard(),
@@ -88,32 +101,6 @@ class Klondike extends SolitaireGame {
         ),
       ),
     ];
-  }
-
-  @override
-  int get drawsPerTurn => numberOfDraws;
-
-  @override
-  List<PlayCard> prepareDrawPile(Random random) {
-    return const CardShuffler().generateShuffledDeck(random);
-  }
-
-  @override
-  PlayTable setup(PlayTable table) {
-    final tableauPile = <Pile, List<PlayCard>>{};
-
-    List<PlayCard> tableauCards;
-    List<PlayCard> remainingCards = table.drawPile;
-
-    for (final t in table.allTableauPiles) {
-      (remainingCards, tableauCards) = remainingCards.splitLast(t.index + 1);
-      tableauPile[t] = tableauCards.allFaceDown.topmostFaceUp;
-    }
-
-    return table.modifyMultiple({
-      ...tableauPile,
-      const Draw(): remainingCards.allFaceDown,
-    });
   }
 
   @override

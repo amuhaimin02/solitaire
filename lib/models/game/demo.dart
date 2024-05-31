@@ -5,6 +5,7 @@ import '../action.dart';
 import '../card.dart';
 import '../direction.dart';
 import '../pile.dart';
+import '../pile_action.dart';
 import '../pile_info.dart';
 import '../play_table.dart';
 import 'solitaire.dart';
@@ -67,10 +68,10 @@ class SolitaireDemo extends SolitaireGame {
   }
 
   @override
-  TableLayoutNew get tableSize {
-    return const TableLayoutNew(
-      portrait: Size(4, 4),
-      landscape: Size(4, 4),
+  TableLayout get tableSize {
+    return const TableLayout(
+      portrait: Size(4, 3),
+      landscape: Size(4, 3),
     );
   }
 

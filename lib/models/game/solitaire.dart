@@ -17,13 +17,9 @@ abstract class SolitaireGame {
 
   int get drawsPerTurn => 1;
 
-  TableLayoutNew get tableSize;
+  TableLayout get tableSize;
 
   List<PileItem> get piles;
-
-  List<PlayCard> prepareDrawPile(Random random);
-
-  PlayTable setup(PlayTable table);
 
   bool winConditions(PlayTable table) => false;
 
@@ -43,11 +39,4 @@ abstract class SolitaireGame {
 
   @override
   String toString() => name;
-
-  PlayTable generateRandomSetup() {
-    // TODO: Do not use predetermined random
-    final table = PlayTable.fromGame(this)
-        .modify(const Draw(), prepareDrawPile(Random(1)));
-    return setup(table);
-  }
 }

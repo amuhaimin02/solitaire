@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'direction.dart';
 import 'pile.dart';
+import 'pile_action.dart';
 
 class PileItem {
   PileItem({
     required this.kind,
     required this.layout,
+    this.onStart,
+    this.onSetup,
   });
 
   final Pile kind;
 
   final PileLayout layout;
+
+  List<PileAction>? onStart;
+
+  List<PileAction>? onSetup;
 }
 
 class PileLayout {
@@ -70,12 +77,12 @@ class PileLayout {
   }
 }
 
-class TableLayoutNew {
+class TableLayout {
   final Size portrait;
 
   final Size landscape;
 
-  const TableLayoutNew({
+  const TableLayout({
     required this.portrait,
     required this.landscape,
   });

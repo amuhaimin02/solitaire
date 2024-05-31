@@ -11,6 +11,7 @@ import '../models/game_status.dart';
 import '../models/move_record.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
+import '../models/pile_action.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/user_action.dart';
@@ -151,7 +152,7 @@ class GameController extends _$GameController {
     await Future.delayed(cardMoveAnimation.duration * timeDilation * 2);
 
     // Start distribute cards according to game
-    _distributeCards();
+    _setupCards();
     state = GameStatus.preparing;
     await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
 
@@ -386,25 +387,39 @@ class GameController extends _$GameController {
   // ----------------------------------
 
   void _setupPiles() {
-    final game = ref.read(currentGameProvider);
+    final gameData = ref.read(currentGameProvider);
+    PlayTable table = PlayTable.fromGame(gameData.game);
 
-    // Clear up table, and set up new draw pile
-    final table = PlayTable.fromGame(game.game).modify(
-        const Draw(),
-        game.game
-            .prepareDrawPile(CustomPRNG.create(game.randomSeed))
-            .allFaceDown);
+    for (final pile in gameData.game.piles) {
+      if (pile.onStart != null) {
+        table = PileAction.runAll(
+          originTable: table,
+          actions: pile.onStart!,
+          pile: pile.kind,
+          metadata: gameData,
+        );
+      }
+    }
 
     ref.read(playTableStateProvider.notifier).update(table);
   }
 
-  void _distributeCards() {
-    final table = ref.read(playTableStateProvider);
-    final game = ref.read(currentGameProvider);
+  void _setupCards() {
+    final gameData = ref.read(currentGameProvider);
+    PlayTable table = ref.read(playTableStateProvider);
 
-    final updatedTable = game.game.setup(table);
+    for (final pile in gameData.game.piles) {
+      if (pile.onSetup != null) {
+        table = PileAction.runAll(
+          originTable: table,
+          actions: pile.onSetup!,
+          pile: pile.kind,
+          metadata: gameData,
+        );
+      }
+    }
 
-    ref.read(playTableStateProvider.notifier).update(updatedTable);
+    ref.read(playTableStateProvider.notifier).update(table);
   }
 
   Future<void> _doPremove() async {

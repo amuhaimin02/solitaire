@@ -6,6 +6,7 @@ import '../animations.dart';
 import '../models/game/solitaire.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
+import '../services/play_table_generator.dart';
 import '../utils/widgets.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
@@ -249,7 +250,8 @@ class _GameSelectionDetail extends ConsumerWidget {
                       child: GameTable(
                         key: ValueKey(selectedGame),
                         game: selectedGame,
-                        table: selectedGame.generateRandomSetup(),
+                        table: PlayTableGenerator.generateSampleSetup(
+                            selectedGame),
                         fitEmptySpaces: true,
                         animateDistribute: false,
                         animateMovement: false,
