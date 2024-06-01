@@ -61,6 +61,8 @@ class SolitaireApp extends ConsumerWidget {
       colorScheme,
       tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
       useClassicColors: ref.watch(themeUseClassicCardColorsProvider),
+    ).copyWith(
+      compressStack: ref.watch(themeCompressCardStackProvider),
     );
 
     TableThemeData tableTheme = TableThemeData.fromColorScheme(

@@ -106,3 +106,16 @@ class ThemeUseClassicCardColors extends _$ThemeUseClassicCardColors
   @override
   bool build() => get();
 }
+
+@riverpod
+class ThemeCompressCardStack extends _$ThemeCompressCardStack
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'theme_compress_card_stack';
+
+  @override
+  final bool defaultValue = false;
+
+  @override
+  bool build() => get();
+}

@@ -52,6 +52,7 @@ class CardThemeData with _$CardThemeData {
     required double coverBorderPadding,
     required Offset stackGap,
     required double cornerRadius,
+    required bool compressStack,
   }) = _CardThemeData;
 
   factory CardThemeData.fromColorScheme(
@@ -89,6 +90,7 @@ class CardThemeData with _$CardThemeData {
       coverBorderPadding: 0.02,
       stackGap: const Offset(0.3, 0.3),
       cornerRadius: 0.1,
+      compressStack: false,
     );
   }
 }

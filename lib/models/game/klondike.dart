@@ -92,10 +92,10 @@ class Klondike extends SolitaireGame {
             const CardsFollowRankOrder(RankOrder.decreasing),
           ],
           placeable: [
-            const CardsAreFacingUp(),
-            const BuildupStartsWith(rank: Rank.king),
-            const BuildupFollowsRankOrder(RankOrder.decreasing),
-            const BuildupAlternateColors(),
+            // const CardsAreFacingUp(),
+            // const BuildupStartsWith(rank: Rank.king),
+            // const BuildupFollowsRankOrder(RankOrder.decreasing),
+            // const BuildupAlternateColors(),
           ],
         ),
       PileItem(

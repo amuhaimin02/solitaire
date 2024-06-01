@@ -291,38 +291,6 @@ class _GameTableState extends State<GameTable> {
     );
   }
 
-  Size _calculateConsumedTableSpace(BuildContext context) {
-    var maxWidth = 0.0;
-    var maxHeight = 0.0;
-
-    final theme = SolitaireTheme.of(context);
-
-    for (final pile in _piles) {
-      final layout = _layoutMap[pile]!;
-      final region = _resolvedRegion[pile]!;
-
-      final stackDirection =
-          layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
-
-      switch (stackDirection) {
-        case Direction.down:
-          maxWidth = max(maxWidth, region.right);
-          maxHeight = max(
-            maxHeight,
-            region.top +
-                1 +
-                widget.table.get(pile).length * theme.cardTheme.stackGap.dy,
-          );
-        case Direction.none:
-        default:
-          maxWidth = max(maxWidth, region.right);
-          maxHeight = max(maxHeight, region.bottom);
-      }
-    }
-
-    return Size(maxWidth, maxHeight);
-  }
-
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
     final theme = SolitaireTheme.of(context);
 
@@ -330,15 +298,6 @@ class _GameTableState extends State<GameTable> {
     final region = _resolvedRegion[pile]!;
     final stackDirection =
         layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
-
-    Rect measure(Rect gridRect) {
-      return Rect.fromLTWH(
-        gridRect.left * gridUnit.width,
-        gridRect.top * gridUnit.height,
-        gridRect.width * gridUnit.width,
-        gridRect.height * gridUnit.height,
-      );
-    }
 
     Rect computePosition(PlayCard card, Rect originalPosition) {
       if (_touchingCards != null &&
@@ -352,54 +311,8 @@ class _GameTableState extends State<GameTable> {
               index * (gridUnit.height * theme.cardTheme.stackGap.dy * 0.9)),
         );
       } else {
-        return measure(originalPosition);
+        return originalPosition.scale(gridUnit);
       }
-    }
-
-    Offset calculateStackGap(int index, int stackLength, Direction direction) {
-      final int visualIndex, visualLength, offset;
-      final shiftStack =
-          layout.shiftStack?.resolve(widget.orientation) ?? false;
-      final previewCards =
-          layout.previewCards?.resolve(widget.orientation) ?? 0;
-
-      if (layout.previewCards != null) {
-        visualLength = previewCards;
-        if (stackLength > visualLength) {
-          visualIndex = max(0, previewCards - (stackLength - index));
-        } else {
-          if (shiftStack) {
-            visualIndex = visualLength - (stackLength - index);
-          } else {
-            visualIndex = index;
-          }
-        }
-      } else {
-        visualLength = stackLength;
-        visualIndex = index;
-      }
-
-      if (shiftStack) {
-        offset = visualLength - visualIndex - 1;
-      } else {
-        offset = visualIndex;
-      }
-
-      double computeOffset(int offset, int directionComponent,
-          double maxStackGap, double regionSize) {
-        return directionComponent != 0
-            ? (offset *
-                directionComponent *
-                min(maxStackGap, (regionSize - 1) / (visualLength - 1)))
-            : 0;
-      }
-
-      return Offset(
-        computeOffset(
-            offset, direction.dx, theme.cardTheme.stackGap.dx, region.width),
-        computeOffset(
-            offset, direction.dy, theme.cardTheme.stackGap.dy, region.height),
-      );
     }
 
     List<PlayCard> cards = [];
@@ -414,7 +327,6 @@ class _GameTableState extends State<GameTable> {
       } else if (widget.animateDistribute && pile is Tableau) {
         final tableau = pile;
         final delayFactor = cardMoveAnimation.duration * 0.3;
-        // return cardMoveAnimation.timeScaled(10);
 
         return cardMoveAnimation
             .delayed(delayFactor * (tableau.index + cardIndex));
@@ -469,6 +381,20 @@ class _GameTableState extends State<GameTable> {
           stackAnchor = Offset.zero;
         }
 
+        final shiftStack =
+            layout.shiftStack?.resolve(widget.orientation) ?? false;
+        final previewCards =
+            layout.previewCards?.resolve(widget.orientation) ?? 0;
+
+        final stackGapPositions = _computeStackGapPositions(
+          context: context,
+          cards: cards,
+          region: region,
+          stackDirection: stackDirection,
+          previewCards: previewCards,
+          shiftStack: shiftStack,
+        );
+
         return [
           for (final (i, card) in cards.indexed)
             AnimatedPositioned.fromRect(
@@ -479,7 +405,8 @@ class _GameTableState extends State<GameTable> {
                 card,
                 Rect.fromLTWH(region.left, region.top, 1, 1)
                     .shift(stackAnchor)
-                    .shift(calculateStackGap(i, cards.length, stackDirection)),
+                    // .shift(computeStackGap(i, cards.length, stackDirection)),
+                    .shift(stackGapPositions[i]),
               ),
               child: _CardWidget(
                 cardSize: gridUnit,
@@ -502,6 +429,115 @@ class _GameTableState extends State<GameTable> {
 
   Offset _convertToGrid(Offset point, Size gridUnit) {
     return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
+  }
+
+  List<Offset> _computeStackGapPositions({
+    required BuildContext context,
+    required List<PlayCard> cards,
+    required Rect region,
+    required Direction stackDirection,
+    int? previewCards,
+    bool? shiftStack,
+  }) {
+    final theme = SolitaireTheme.of(context);
+    final stackGap = theme.cardTheme.stackGap;
+    final compressStack = theme.cardTheme.compressStack;
+
+    final halfStack = stackGap.scale(0.5, 0.5);
+
+    if (cards.isEmpty) {
+      return [];
+    }
+
+    List<Offset> points = <Offset>[];
+    Offset lastGap = Offset.zero;
+
+    for (final card in cards) {
+      points.add(lastGap);
+
+      final Offset nextOffset;
+      if (compressStack) {
+        nextOffset = card.isFacingDown ? halfStack : stackGap;
+      } else {
+        nextOffset = stackGap;
+      }
+      // Only shift in one direction, either x or y
+      if (stackDirection.dx != 0) {
+        lastGap = lastGap.translate(nextOffset.dx, 0);
+      } else if (stackDirection.dy != 0) {
+        lastGap = lastGap.translate(0, nextOffset.dy);
+      }
+    }
+
+    // If preview card is enabled, hide the non-preview cards under the stack
+    if (previewCards != null &&
+        previewCards > 0 &&
+        points.length > previewCards) {
+      final remainingHiddenCards = points.length - previewCards;
+      final firstPoint = points[remainingHiddenCards];
+      points = [
+        ...Iterable.generate(remainingHiddenCards, (_) => Offset.zero),
+        ...points.slice(remainingHiddenCards, points.length).map(
+              (p) => p - firstPoint,
+            )
+      ];
+    }
+
+    // If shift stack is enable, move every card so the last card be placed on origin location
+    // (instead of first card)
+    if (shiftStack == true) {
+      final lastPoint = points.last;
+      points = points.map((p) => p - lastPoint).toList();
+    }
+
+    // Adjust spacing to fill in the parent region
+    final consumedSpace = points.last;
+    if (consumedSpace.dx > (region.width - 1) &&
+        consumedSpace.dy > (region.height - 1)) {
+      final ratioX = consumedSpace.dx / (region.width - 1);
+      final ratioY = consumedSpace.dy / (region.height - 1);
+      final adjustedPoints =
+          points.map((p) => p.scale(1 / ratioX, 1 / ratioY)).toList();
+      return adjustedPoints;
+    } else {
+      return points;
+    }
+  }
+
+  Size _calculateConsumedTableSpace(BuildContext context) {
+    var maxWidth = 0.0;
+    var maxHeight = 0.0;
+
+    final theme = SolitaireTheme.of(context);
+
+    for (final pile in _piles) {
+      final layout = _layoutMap[pile]!;
+      final region = _resolvedRegion[pile]!;
+
+      final stackDirection =
+          layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
+
+      switch (stackDirection) {
+        case Direction.none:
+          maxWidth = max(maxWidth, region.right);
+          maxHeight = max(maxHeight, region.bottom);
+        case _:
+          final stackPositions = _computeStackGapPositions(
+            context: context,
+            cards: widget.table.get(pile),
+            region: region,
+            stackDirection: stackDirection,
+            previewCards: layout.previewCards?.resolve(widget.orientation),
+            shiftStack: layout.shiftStack?.resolve(widget.orientation),
+          );
+          final lastPoint = stackPositions.lastOrNull ?? Offset.zero;
+
+          maxWidth = max(maxWidth, region.left + lastPoint.dx + 1);
+          maxHeight = max(maxHeight, region.top + lastPoint.dy + 1);
+      }
+    }
+
+    return Size(maxWidth, maxHeight);
   }
 
   void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {

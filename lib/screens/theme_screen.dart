@@ -72,7 +72,7 @@ class ThemeScreen extends ConsumerWidget {
             game: SolitaireDemo(),
             table: _samplePlayTable,
             interactive: false,
-            animateMovement: false,
+            animateMovement: true,
           ),
         ),
       ),
@@ -227,6 +227,15 @@ class _SettingsList extends ConsumerWidget {
               value: ref.watch(themeUseClassicCardColorsProvider),
               onChanged: (value) {
                 ref.read(themeUseClassicCardColorsProvider.notifier).toggle();
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Compress card stack'),
+              subtitle: const Text(
+                  'Reduce the spacing of face-down cards in the stack.'),
+              value: ref.watch(themeCompressCardStackProvider),
+              onChanged: (value) {
+                ref.read(themeCompressCardStackProvider.notifier).toggle();
               },
             ),
           ],
