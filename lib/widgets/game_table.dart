@@ -80,7 +80,7 @@ class _GameTableState extends State<GameTable> {
 
   late List<Pile> _piles;
   late Map<Pile, Rect> _resolvedRegion;
-  late Map<Pile, PileLayout> _resolvedLayout;
+  late Map<Pile, PileLayout> _layoutMap;
 
   @override
   void didChangeDependencies() {
@@ -98,9 +98,9 @@ class _GameTableState extends State<GameTable> {
     _piles = widget.game.piles.map((p) => p.kind).toList();
     _resolvedRegion = {
       for (final pile in widget.game.piles)
-        pile.kind: pile.layout.resolvedRegion(widget.orientation),
+        pile.kind: pile.layout.region.resolve(widget.orientation),
     };
-    _resolvedLayout = {
+    _layoutMap = {
       for (final pile in widget.game.piles) pile.kind: pile.layout,
     };
   }
@@ -145,10 +145,12 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildMarkerLayer(BuildContext context, Size gridUnit) {
     Rect computeMarkerPlacement(Pile pile) {
-      final layout = _resolvedLayout[pile]!;
+      final layout = _layoutMap[pile]!;
       final region = _resolvedRegion[pile]!;
-      final shiftStack = layout.resolveShiftStack(widget.orientation);
-      final stackDirection = layout.resolvedStackDirection(widget.orientation);
+      final shiftStack =
+          layout.shiftStack?.resolve(widget.orientation) ?? false;
+      final stackDirection =
+          layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
 
       final rect = Rect.fromLTWH(
         stackDirection.dx < 0 && shiftStack ? region.right - 1 : region.left,
@@ -275,7 +277,7 @@ class _GameTableState extends State<GameTable> {
     return Stack(
       children: [
         for (final pile in _piles)
-          if (_resolvedLayout[pile]!.showCount)
+          if (_layoutMap[pile]?.showCount?.resolve(widget.orientation) == true)
             Positioned.fromRect(
               rect: Rect.fromLTWH(_resolvedRegion[pile]!.left,
                       _resolvedRegion[pile]!.top, 1, 1)
@@ -296,10 +298,11 @@ class _GameTableState extends State<GameTable> {
     final theme = SolitaireTheme.of(context);
 
     for (final pile in _piles) {
-      final layout = _resolvedLayout[pile]!;
+      final layout = _layoutMap[pile]!;
       final region = _resolvedRegion[pile]!;
 
-      final stackDirection = layout.resolvedStackDirection(widget.orientation);
+      final stackDirection =
+          layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
 
       switch (stackDirection) {
         case Direction.down:
@@ -323,9 +326,10 @@ class _GameTableState extends State<GameTable> {
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
     final theme = SolitaireTheme.of(context);
 
-    final layout = _resolvedLayout[pile]!;
+    final layout = _layoutMap[pile]!;
     final region = _resolvedRegion[pile]!;
-    final stackDirection = layout.resolvedStackDirection(widget.orientation);
+    final stackDirection =
+        layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
 
     Rect measure(Rect gridRect) {
       return Rect.fromLTWH(
@@ -354,12 +358,15 @@ class _GameTableState extends State<GameTable> {
 
     Offset calculateStackGap(int index, int stackLength, Direction direction) {
       final int visualIndex, visualLength, offset;
-      final shiftStack = layout.resolveShiftStack(widget.orientation);
+      final shiftStack =
+          layout.shiftStack?.resolve(widget.orientation) ?? false;
+      final previewCards =
+          layout.previewCards?.resolve(widget.orientation) ?? 0;
 
       if (layout.previewCards != null) {
-        visualLength = layout.previewCards!;
+        visualLength = previewCards;
         if (stackLength > visualLength) {
-          visualIndex = max(0, layout.previewCards! - (stackLength - index));
+          visualIndex = max(0, previewCards - (stackLength - index));
         } else {
           if (shiftStack) {
             visualIndex = visualLength - (stackLength - index);
@@ -445,6 +452,7 @@ class _GameTableState extends State<GameTable> {
                   card: card,
                   layout: layout,
                   stackDirection: stackDirection,
+                  orientation: widget.orientation,
                   cardsInPile: widget.table.get(pile),
                   highlightColor: highlightCardColor(card),
                 ),
@@ -483,6 +491,7 @@ class _GameTableState extends State<GameTable> {
                 card: card,
                 layout: layout,
                 stackDirection: stackDirection,
+                orientation: widget.orientation,
                 cardsInPile: widget.table.get(pile),
                 highlightColor: highlightCardColor(card),
               ),
@@ -549,6 +558,7 @@ class _CardWidget extends StatelessWidget {
     required this.layout,
     required this.cardsInPile,
     required this.stackDirection,
+    required this.orientation,
     this.onTouch,
     this.onTap,
     this.highlightColor,
@@ -572,6 +582,8 @@ class _CardWidget extends StatelessWidget {
 
   final Direction stackDirection;
 
+  final Orientation orientation;
+
   final Size cardSize;
 
   static const cardShowThreshold = 3;
@@ -592,7 +604,7 @@ class _CardWidget extends StatelessWidget {
       hideFace = cardPileLength > cardShowThreshold &&
           cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
     } else {
-      final cardLimit = layout.previewCards;
+      final cardLimit = layout.previewCards?.resolve(orientation);
       if (cardLimit != null && cardIndex < cardPileLength - cardLimit) {
         elevation = 0;
       } else {

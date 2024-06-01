@@ -57,8 +57,10 @@ class Klondike extends SolitaireGame {
         PileItem(
           kind: Foundation(i),
           layout: PileLayout(
-            portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-            landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+              landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+            ),
           ),
           pickable: [
             const CardIsOnTop(),
@@ -74,9 +76,11 @@ class Klondike extends SolitaireGame {
         PileItem(
           kind: Tableau(i),
           layout: PileLayout(
-            portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-            landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
-            stackDirection: Direction.down,
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
+              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+            ),
+            stackDirection: const LayoutProperty.all(Direction.down),
           ),
           onSetup: [
             PickCardsFrom(const Draw(), count: i + 1),
@@ -97,9 +101,11 @@ class Klondike extends SolitaireGame {
       PileItem(
         kind: const Draw(),
         layout: const PileLayout(
-          portrait: Rect.fromLTWH(6, 0, 1, 1),
-          landscape: Rect.fromLTWH(9, 2.5, 1, 1),
-          showCount: true,
+          region: LayoutProperty(
+            portrait: Rect.fromLTWH(6, 0, 1, 1),
+            landscape: Rect.fromLTWH(9, 2.5, 1, 1),
+          ),
+          showCount: LayoutProperty.all(true),
         ),
         onStart: [
           const SetupNewDeck(count: 1),
@@ -112,12 +118,19 @@ class Klondike extends SolitaireGame {
       PileItem(
         kind: const Discard(),
         layout: const PileLayout(
-          portrait: Rect.fromLTWH(4, 0, 2, 1),
-          landscape: Rect.fromLTWH(9, 0.5, 1, 2),
-          portraitStackDirection: Direction.left,
-          landscapeStackDirection: Direction.down,
-          portraitShiftStack: true,
-          previewCards: 3,
+          region: LayoutProperty(
+            portrait: Rect.fromLTWH(4, 0, 2, 1),
+            landscape: Rect.fromLTWH(9, 0.5, 1, 2),
+          ),
+          stackDirection: LayoutProperty(
+            portrait: Direction.left,
+            landscape: Direction.down,
+          ),
+          shiftStack: LayoutProperty(
+            portrait: true,
+            landscape: false,
+          ),
+          previewCards: LayoutProperty.all(3),
         ),
         pickable: [
           const CardIsOnTop(),

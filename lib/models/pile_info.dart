@@ -30,58 +30,22 @@ class PileItem {
 
 class PileLayout {
   const PileLayout({
-    required this.portrait,
-    required this.landscape,
-    this.stackDirection = Direction.none,
-    this.portraitStackDirection,
-    this.landscapeStackDirection,
+    required this.region,
+    this.stackDirection,
     this.previewCards,
-    this.portraitShiftStack,
-    this.landscapeShiftStack,
-    this.showCount = false,
-    this.shiftStack = false,
+    this.showCount,
+    this.shiftStack,
   });
 
-  final Rect portrait;
+  final LayoutProperty<Rect> region;
 
-  final Rect landscape;
+  final LayoutProperty<Direction>? stackDirection;
 
-  final Direction stackDirection;
+  final LayoutProperty<int>? previewCards;
 
-  final Direction? portraitStackDirection;
+  final LayoutProperty<bool>? showCount;
 
-  final Direction? landscapeStackDirection;
-
-  final int? previewCards;
-
-  final bool showCount;
-
-  final bool shiftStack;
-
-  final bool? portraitShiftStack;
-
-  final bool? landscapeShiftStack;
-
-  Rect resolvedRegion(Orientation orientation) {
-    return switch (orientation) {
-      Orientation.portrait => portrait,
-      Orientation.landscape => landscape,
-    };
-  }
-
-  Direction resolvedStackDirection(Orientation orientation) {
-    return switch (orientation) {
-      Orientation.portrait => portraitStackDirection ?? stackDirection,
-      Orientation.landscape => landscapeStackDirection ?? stackDirection,
-    };
-  }
-
-  bool resolveShiftStack(Orientation orientation) {
-    return switch (orientation) {
-      Orientation.portrait => portraitShiftStack ?? shiftStack,
-      Orientation.landscape => landscapeShiftStack ?? shiftStack,
-    };
-  }
+  final LayoutProperty<bool>? shiftStack;
 }
 
 class TableLayout {
@@ -99,5 +63,35 @@ class TableLayout {
       Orientation.portrait => portrait,
       Orientation.landscape => landscape,
     };
+  }
+}
+
+class LayoutProperty<T> {
+  const LayoutProperty({
+    this.portrait,
+    this.landscape,
+    this.others,
+  });
+
+  final T? portrait;
+  final T? landscape;
+  final T? others;
+
+  const LayoutProperty.all(this.others)
+      : portrait = null,
+        landscape = null;
+
+  T resolve(Orientation orientation) {
+    return switch (orientation) {
+      Orientation.portrait => _ensureNotNull(portrait ?? others),
+      Orientation.landscape => _ensureNotNull(landscape ?? others),
+    };
+  }
+
+  T _ensureNotNull(T? value) {
+    if (value == null) {
+      throw ArgumentError('Cannot resolve value as the result is null');
+    }
+    return value;
   }
 }

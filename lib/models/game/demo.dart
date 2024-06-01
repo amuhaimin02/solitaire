@@ -32,31 +32,39 @@ class SolitaireDemo extends SolitaireGame {
         PileItem(
           kind: Foundation(i),
           layout: PileLayout(
-            portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-            landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+              landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+            ),
           ),
         ),
       for (int i = 0; i < 4; i++)
         PileItem(
           kind: Tableau(i),
           layout: PileLayout(
-            portrait: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
-            landscape: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
-            stackDirection: Direction.down,
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
+              landscape: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
+            ),
+            stackDirection: LayoutProperty.all(Direction.down),
           ),
         ),
       PileItem(
         kind: const Draw(),
         layout: const PileLayout(
-          portrait: Rect.fromLTWH(3, 0, 1, 1),
-          landscape: Rect.fromLTWH(3, 0, 1, 1),
+          region: LayoutProperty(
+            portrait: Rect.fromLTWH(3, 0, 1, 1),
+            landscape: Rect.fromLTWH(3, 0, 1, 1),
+          ),
         ),
       ),
       PileItem(
         kind: const Discard(),
         layout: const PileLayout(
-          portrait: Rect.fromLTWH(2, 0, 1, 1),
-          landscape: Rect.fromLTWH(2, 0, 1, 1),
+          region: LayoutProperty(
+            portrait: Rect.fromLTWH(2, 0, 1, 1),
+            landscape: Rect.fromLTWH(2, 0, 1, 1),
+          ),
         ),
       ),
     ];
