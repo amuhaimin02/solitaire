@@ -1,8 +1,4 @@
-import 'dart:math';
-
 import '../action.dart';
-import '../card.dart';
-import '../pile.dart';
 import '../pile_info.dart';
 import '../play_table.dart';
 
@@ -23,11 +19,9 @@ abstract class SolitaireGame {
 
   bool winConditions(PlayTable table) => false;
 
-  bool canPick(List<PlayCard> cards, Pile from) => false;
-
-  bool canPlace(
-          List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) =>
-      false;
+  // bool canPlace(
+  //         List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) =>
+  //     false;
 
   bool canAutoSolve(PlayTable table) => false;
 

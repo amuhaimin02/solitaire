@@ -14,24 +14,10 @@ class PlayTableGenerator {
     PlayTable table = PlayTable.fromGame(game);
 
     for (final pile in game.piles) {
-      if (pile.onStart != null) {
-        table = PileAction.runAll(
-          originTable: table,
-          actions: pile.onStart!,
-          pile: pile.kind,
-          metadata: sampleMetadata,
-        );
-      }
+      table = PileAction.runAll(pile.onStart, pile.kind, table, sampleMetadata);
     }
     for (final pile in game.piles) {
-      if (pile.onSetup != null) {
-        table = PileAction.runAll(
-          originTable: table,
-          actions: pile.onSetup!,
-          pile: pile.kind,
-          metadata: sampleMetadata,
-        );
-      }
+      table = PileAction.runAll(pile.onSetup, pile.kind, table, sampleMetadata);
     }
     return table;
   }

@@ -1,15 +1,13 @@
-import 'dart:math';
-
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/card_shuffler.dart';
 import '../action.dart';
 import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
 import '../pile_action.dart';
+import '../pile_check.dart';
 import '../pile_info.dart';
 import '../play_table.dart';
 import 'solitaire.dart';
@@ -62,6 +60,15 @@ class Klondike extends SolitaireGame {
             portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
             landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
           ),
+          pickable: [
+            const CardIsOnTop(),
+          ],
+          placeable: [
+            const CardsAreFacingUp(),
+            const BuildupStartsWith(rank: Rank.ace),
+            const BuildupFollowsRankOrder(RankOrder.increasing),
+            const BuildupSameSuit(),
+          ],
         ),
       for (int i = 0; i < 7; i++)
         PileItem(
@@ -76,6 +83,16 @@ class Klondike extends SolitaireGame {
             const FlipAllCardsFaceDown(),
             const FlipTopmostCardFaceUp(),
           ],
+          pickable: [
+            const CardsAreFacingUp(),
+            const CardsFollowRankOrder(RankOrder.decreasing),
+          ],
+          placeable: [
+            const CardsAreFacingUp(),
+            const BuildupStartsWith(rank: Rank.king),
+            const BuildupFollowsRankOrder(RankOrder.decreasing),
+            const BuildupAlternateColors(),
+          ],
         ),
       PileItem(
         kind: const Draw(),
@@ -84,9 +101,12 @@ class Klondike extends SolitaireGame {
           landscape: Rect.fromLTWH(9, 2.5, 1, 1),
           showCount: true,
         ),
-        onStart: const [
-          AddDeck(count: 1),
-          FlipAllCardsFaceDown(),
+        onStart: [
+          const SetupNewDeck(count: 1),
+          const FlipAllCardsFaceDown(),
+        ],
+        pickable: [
+          const CardIsOnTop(),
         ],
       ),
       PileItem(
@@ -99,6 +119,9 @@ class Klondike extends SolitaireGame {
           portraitShiftStack: true,
           previewCards: 3,
         ),
+        pickable: [
+          const CardIsOnTop(),
+        ],
       ),
     ];
   }
@@ -109,65 +132,49 @@ class Klondike extends SolitaireGame {
         table.discardPile.isEmpty &&
         table.allTableauPiles.every((t) => table.get(t).isEmpty);
   }
-
-  @override
-  bool canPick(List<PlayCard> cards, Pile from) {
-    // Cards in hand must all face up
-    if (!cards.isAllFacingUp) {
-      return false;
-    }
-
-    switch (from) {
-      case Tableau():
-        return cards.isSortedByRankDecreasingOrder;
-      case _:
-        // Only tableau piles are allowed for picking multiple cards
-        return cards.isSingle;
-    }
-  }
-
-  @override
-  bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) {
-    switch (target) {
-      case Foundation():
-        // Cannot move more than one cards all at once to foundation pile
-        if (!cards.isSingle) {
-          return false;
-        }
-
-        final card = cards.single;
-
-        if (cardsOnPile.isEmpty) {
-          return card.rank == Rank.ace;
-        }
-
-        final topmostCard = cardsOnPile.last;
-
-        // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
-        return card.isFacingUp &&
-            card.isSameSuitWith(topmostCard) &&
-            card.isOneRankOver(topmostCard);
-
-      case Tableau():
-        // If column is empty, only King or card group starting with King can be placed
-        if (cardsOnPile.isEmpty) {
-          return cards.first.rank == Rank.king;
-        }
-
-        final topmostCard = cardsOnPile.last;
-
-        // Card on top of each other should follow ranks in decreasing order,
-        // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
-        // In this case, we compare the suit "group" as they will be classified by color
-        return topmostCard.isFacingUp &&
-            cards.first.isOneRankUnder(topmostCard) &&
-            !cards.first.isSameColor(topmostCard);
-
-      case Draw() || Discard():
-        // Cannot return card back to these piles
-        return false;
-    }
-  }
+  //
+  // @override
+  // bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) {
+  //   switch (target) {
+  //     case Foundation():
+  //       // Cannot move more than one cards all at once to foundation pile
+  //       if (!cards.isSingle) {
+  //         return false;
+  //       }
+  //
+  //       final card = cards.single;
+  //
+  //       if (cardsOnPile.isEmpty) {
+  //         return card.rank == Rank.ace;
+  //       }
+  //
+  //       final topmostCard = cardsOnPile.last;
+  //
+  //       // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
+  //       return card.isFacingUp &&
+  //           card.isSameSuitWith(topmostCard) &&
+  //           card.isOneRankOver(topmostCard);
+  //
+  //     case Tableau():
+  //       // If column is empty, only King or card group starting with King can be placed
+  //       if (cardsOnPile.isEmpty) {
+  //         return cards.first.rank == Rank.king;
+  //       }
+  //
+  //       final topmostCard = cardsOnPile.last;
+  //
+  //       // Card on top of each other should follow ranks in decreasing order,
+  //       // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
+  //       // In this case, we compare the suit "group" as they will be classified by color
+  //       return topmostCard.isFacingUp &&
+  //           cards.first.isOneRankUnder(topmostCard) &&
+  //           !cards.first.isSameColor(topmostCard);
+  //
+  //     case Draw() || Discard():
+  //       // Cannot return card back to these piles
+  //       return false;
+  //   }
+  // }
 
   @override
   bool canAutoSolve(PlayTable table) {

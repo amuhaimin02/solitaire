@@ -7,6 +7,7 @@ import '../models/card.dart';
 import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
+import '../models/pile_check.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
@@ -303,6 +304,13 @@ class _PlayArea extends ConsumerWidget {
                   case _:
                 }
                 return null;
+              },
+              canDragCards: (cards, from) {
+                final pileInfo =
+                    game.game.piles.firstWhere((p) => p.kind == from);
+
+                return PileCheck.checkAll(
+                    pileInfo.pickable, from, cards, table);
               },
               onCardDrop: (card, from, to) {
                 print('dropping card $card from $from to $to');

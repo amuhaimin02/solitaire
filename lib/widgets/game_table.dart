@@ -30,6 +30,7 @@ class GameTable extends StatefulWidget {
     this.onCardTap,
     this.onCardDrop,
     this.onPileTap,
+    this.canDragCards,
     this.highlightedCards,
     this.lastMovedCards,
     this.animateDistribute = false,
@@ -45,6 +46,8 @@ class GameTable extends StatefulWidget {
   final List<PlayCard>? Function(Pile pile)? onPileTap;
 
   final List<PlayCard>? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+
+  final bool Function(List<PlayCard> card, Pile from)? canDragCards;
 
   final bool interactive;
 
@@ -493,19 +496,11 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {
-    _touchingCardPile = originPile;
+    final cardsToPick = widget.table.get(originPile).getLastFromCard(card);
 
-    if (originPile is Tableau) {
-      final cards = widget.table.get(originPile).getLastFromCard(card);
-      if (cards.isAllFacingUp) {
-        _touchingCards = cards;
-      }
-    } else if (originPile is Discard) {
-      // Always pick top most card regardless of visibility
-      final topmostCard = widget.table.get(originPile).lastOrNull;
-      _touchingCards = [topmostCard!];
-    } else {
-      _touchingCards = [card];
+    if (widget.canDragCards?.call(cardsToPick, originPile) == true) {
+      _touchingCards = cardsToPick;
+      _touchingCardPile = originPile;
     }
   }
 
@@ -558,6 +553,7 @@ class _CardWidget extends StatelessWidget {
     this.onTap,
     this.highlightColor,
   });
+
   final bool shake;
 
   final bool isMoving;

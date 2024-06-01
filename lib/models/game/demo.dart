@@ -1,11 +1,8 @@
-import 'dart:math';
 import 'dart:ui';
 
 import '../action.dart';
-import '../card.dart';
 import '../direction.dart';
 import '../pile.dart';
-import '../pile_action.dart';
 import '../pile_info.dart';
 import '../play_table.dart';
 import 'solitaire.dart';
@@ -19,6 +16,14 @@ class SolitaireDemo extends SolitaireGame {
 
   @override
   String get tag => 'demo';
+
+  @override
+  TableLayout get tableSize {
+    return const TableLayout(
+      portrait: Size(4, 3),
+      landscape: Size(4, 3),
+    );
+  }
 
   @override
   List<PileItem> get piles {
@@ -55,24 +60,6 @@ class SolitaireDemo extends SolitaireGame {
         ),
       ),
     ];
-  }
-
-  @override
-  List<PlayCard> prepareDrawPile(Random random) {
-    throw UnimplementedError();
-  }
-
-  @override
-  PlayTable setup(PlayTable table) {
-    throw UnimplementedError();
-  }
-
-  @override
-  TableLayout get tableSize {
-    return const TableLayout(
-      portrait: Size(4, 3),
-      landscape: Size(4, 3),
-    );
   }
 
   @override

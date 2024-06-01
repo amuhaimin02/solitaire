@@ -11,29 +11,25 @@ import 'play_table.dart';
 abstract class PileAction {
   const PileAction();
 
-  PlayTable run(Pile pile, PlayTable table, GameMetadata metadata);
+  PlayTable action(Pile pile, PlayTable table, GameMetadata metadata);
 
-  static PlayTable runAll({
-    required PlayTable originTable,
-    required List<PileAction> actions,
-    required Pile pile,
-    required GameMetadata metadata,
-  }) {
-    PlayTable updatedTable = originTable;
-    for (final action in actions) {
-      updatedTable = action.run(pile, updatedTable, metadata);
+  static PlayTable runAll(List<PileAction>? actions, Pile pile, PlayTable table,
+      GameMetadata metadata) {
+    if (actions == null) {
+      return table;
     }
-    return updatedTable;
+    return actions.fold(
+        table, (table, item) => table = item.action(pile, table, metadata));
   }
 }
 
-class AddDeck extends PileAction {
-  const AddDeck({this.count = 1});
+class SetupNewDeck extends PileAction {
+  const SetupNewDeck({this.count = 1});
 
   final int count;
 
   @override
-  PlayTable run(Pile pile, PlayTable table, GameMetadata metadata) {
+  PlayTable action(Pile pile, PlayTable table, GameMetadata metadata) {
     final existingCards = table.get(pile);
     final newCards = const CardShuffler()
         .generateShuffledDeck(Xrandom(metadata.randomSeed.hashCode));
@@ -45,7 +41,7 @@ class FlipAllCardsFaceUp extends PileAction {
   const FlipAllCardsFaceUp();
 
   @override
-  PlayTable run(Pile pile, PlayTable table, GameMetadata metadata) {
+  PlayTable action(Pile pile, PlayTable table, GameMetadata metadata) {
     return table.modify(pile, table.get(pile).allFaceUp);
   }
 }
@@ -54,7 +50,7 @@ class FlipAllCardsFaceDown extends PileAction {
   const FlipAllCardsFaceDown();
 
   @override
-  PlayTable run(Pile pile, PlayTable table, GameMetadata metadata) {
+  PlayTable action(Pile pile, PlayTable table, GameMetadata metadata) {
     return table.modify(pile, table.get(pile).allFaceDown);
   }
 }
@@ -63,7 +59,7 @@ class FlipTopmostCardFaceUp extends PileAction {
   const FlipTopmostCardFaceUp();
 
   @override
-  PlayTable run(Pile pile, PlayTable table, GameMetadata metadata) {
+  PlayTable action(Pile pile, PlayTable table, GameMetadata metadata) {
     final cardsOnPile = table.get(pile);
     return table.modify(pile, [
       ...cardsOnPile.slice(0, cardsOnPile.length - 1),
@@ -80,7 +76,7 @@ class PickCardsFrom extends PileAction {
   final int count;
 
   @override
-  PlayTable run(Pile pile, PlayTable table, GameMetadata metadata) {
+  PlayTable action(Pile pile, PlayTable table, GameMetadata metadata) {
     final cardsFromPile = table.get(fromPile);
     final List<PlayCard> cardsToPick, remainingCards;
     if (cardsFromPile.length >= count) {

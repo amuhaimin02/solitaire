@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'direction.dart';
 import 'pile.dart';
 import 'pile_action.dart';
+import 'pile_check.dart';
 
 class PileItem {
   PileItem({
@@ -10,6 +11,8 @@ class PileItem {
     required this.layout,
     this.onStart,
     this.onSetup,
+    this.pickable,
+    this.placeable,
   });
 
   final Pile kind;
@@ -19,6 +22,10 @@ class PileItem {
   List<PileAction>? onStart;
 
   List<PileAction>? onSetup;
+
+  List<PileCheck>? pickable;
+
+  List<PileCheck>? placeable;
 }
 
 class PileLayout {

@@ -12,11 +12,11 @@ import '../models/move_record.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
 import '../models/pile_action.dart';
+import '../models/pile_check.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/user_action.dart';
 import '../utils/iterators.dart';
-import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
 import 'game_selection.dart';
 import 'settings.dart';
@@ -230,7 +230,6 @@ class GameController extends _$GameController {
     final Move? targetMove;
 
     Move refreshDrawPile() {
-      // Try to refresh draw pile
       return Move(
         table.discardPile.reversed.toList().allFaceDown,
         const Discard(),
@@ -282,13 +281,6 @@ class GameController extends _$GameController {
 
           final List<PlayCard> cardsToPick;
 
-          if (move.from is! Tableau &&
-              move.card != null &&
-              cardsInPile.isNotEmpty &&
-              move.card != cardsInPile.last) {
-            return MoveForbidden('can only move card on top of pile', move);
-          }
-
           if (cardToMove != null) {
             cardsToPick = cardsInPile.getLastFromCard(cardToMove);
           } else {
@@ -298,13 +290,22 @@ class GameController extends _$GameController {
             cardsToPick = [cardsInPile.last];
           }
 
-          if (!game.game.canPick(cardsToPick, move.from)) {
+          final originPileInfo =
+              game.game.piles.firstWhere((p) => p.kind == move.from);
+
+          if (!PileCheck.checkAll(
+              originPileInfo.pickable, move.from, cardsToPick, table)) {
             return MoveForbidden(
-                'cannot pick the card(s) $cardsToPick from ${move.from}', move);
+                'cannot pick the card(s) from ${move.from}', move);
           }
-          if (!game.game.canPlace(cardsToPick, move.to, table.get(move.to))) {
+
+          final targetPileInfo =
+              game.game.piles.firstWhere((p) => p.kind == move.to);
+
+          if (!PileCheck.checkAll(
+              targetPileInfo.placeable, move.to, cardsToPick, table)) {
             return MoveForbidden(
-                'cannot place the card(s) $cardsToPick on ${move.to}', move);
+                'cannot place the card(s) on ${move.to}', move);
           }
 
           targetMove = Move(cardsToPick, move.from, move.to);
@@ -391,14 +392,7 @@ class GameController extends _$GameController {
     PlayTable table = PlayTable.fromGame(gameData.game);
 
     for (final pile in gameData.game.piles) {
-      if (pile.onStart != null) {
-        table = PileAction.runAll(
-          originTable: table,
-          actions: pile.onStart!,
-          pile: pile.kind,
-          metadata: gameData,
-        );
-      }
+      table = PileAction.runAll(pile.onStart, pile.kind, table, gameData);
     }
 
     ref.read(playTableStateProvider.notifier).update(table);
@@ -409,14 +403,7 @@ class GameController extends _$GameController {
     PlayTable table = ref.read(playTableStateProvider);
 
     for (final pile in gameData.game.piles) {
-      if (pile.onSetup != null) {
-        table = PileAction.runAll(
-          originTable: table,
-          actions: pile.onSetup!,
-          pile: pile.kind,
-          metadata: gameData,
-        );
-      }
+      table = PileAction.runAll(pile.onSetup, pile.kind, table, gameData);
     }
 
     ref.read(playTableStateProvider.notifier).update(table);
@@ -603,18 +590,6 @@ class LastAction extends _$LastAction {
     state = newAction;
   }
 }
-
-// @riverpod
-// Move? lastMove(LastMoveRef ref) {
-//   final history = ref.watch(moveHistoryProvider);
-//   final move = ref.watch(moveCountProvider);
-//
-//   if (history.isEmpty || move >= history.length) {
-//     return null;
-//   }
-//   final lastAction = history[move].action;
-//   return lastAction.move;
-// }
 
 @riverpod
 bool isGameFinished(IsGameFinishedRef ref) {
