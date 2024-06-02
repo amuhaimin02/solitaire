@@ -225,97 +225,97 @@ class GameController extends _$GameController {
   MoveResult tryMove(MoveIntent move,
       {bool doMove = true, bool doPreMove = true}) {
     final game = ref.read(currentGameProvider);
-    final table = ref.read(playTableStateProvider);
+    PlayTable table = ref.read(playTableStateProvider);
 
+    final originPileInfo =
+        game.game.piles.firstWhere((p) => p.kind == move.from);
+
+    final targetPileInfo = game.game.piles.firstWhere((p) => p.kind == move.to);
+
+    if (move.from == move.to) {
+      return MoveForbidden('cannot move cards back to its pile', move);
+    }
+
+    final cardToMove = move.card;
+    final cardsInPile = table.get(move.from);
+
+    final List<PlayCard> cardsToPick;
     final Move? targetMove;
 
-    Move refreshDrawPile() {
-      return Move(
-        table.discardPile.reversed.toList().allFaceDown,
-        const Discard(),
-        const Draw(),
+    if (cardToMove != null) {
+      cardsToPick = cardsInPile.getLastFromCard(cardToMove);
+    } else {
+      if (cardsInPile.isEmpty) {
+        cardsToPick = [];
+      } else {
+        cardsToPick = [cardsInPile.last];
+      }
+    }
+
+    PileActionResult result;
+
+    if (cardsToPick.isEmpty && originPileInfo.ifEmpty != null) {
+      result = PileAction.run(
+        originPileInfo.ifEmpty,
+        move.from,
+        table,
+        game,
+      );
+    } else {
+      if (cardsToPick.isEmpty) {
+        return MoveNotDone('No cards to pick', null, move.from);
+      }
+
+      if (!PileCheck.checkAll(
+          originPileInfo.pickable, move.from, null, cardsToPick, table)) {
+        return MoveForbidden('cannot pick the card(s) from ${move.from}', move);
+      }
+
+      if (!PileCheck.checkAll(
+          targetPileInfo.placeable, move.to, move.from, cardsToPick, table)) {
+        return MoveForbidden('cannot place the card(s) on ${move.to}', move);
+      }
+
+      result = PileAction.run(
+        originPileInfo.makeMove?.call(move) ??
+            [MoveNormally(from: move.from, to: move.to, cards: cardsToPick)],
+        move.from,
+        table,
+        game,
       );
     }
 
-    switch (move.from) {
-      case Draw():
-        if (move.to != const Discard()) {
-          return MoveForbidden(
-              'cannot move cards from draw pile to pile other than discard',
-              move);
-        }
-        final cardsInDrawPile = table.drawPile;
+    if (result is! PileActionSuccess) {
+      return MoveNotDone('Move result is not successful', null, move.from);
+    }
 
-        if (cardsInDrawPile.isEmpty) {
-          // Try to refresh draw pile
-          final cardsInDiscardPile = table.discardPile;
+    table = result.table;
+    targetMove = result.move;
 
-          if (cardsInDiscardPile.isEmpty) {
-            return MoveNotDone('No cards to refresh', null, move.from);
-          }
+    if (targetMove == null) {
+      return MoveNotDone('No moves was made', null, move.from);
+    }
 
-          targetMove = refreshDrawPile();
-        } else {
-          // Pick from draw pile
-          final cardsToPick = cardsInDrawPile.getLast(game.game.drawsPerTurn);
-          targetMove = Move(
-            [...cardsToPick.allFaceUp],
-            const Draw(),
-            const Discard(),
-          );
-        }
-      case Discard() || Foundation() || Tableau():
-        if (move.from == move.to) {
-          return MoveForbidden('cannot move cards back to its pile', move);
-        }
-
-        if (move.to == const Draw()) {
-          if (table.drawPile.isEmpty) {
-            targetMove = refreshDrawPile();
-          } else {
-            return MoveForbidden('cannot move cards back to draw pile', move);
-          }
-        } else {
-          final cardToMove = move.card;
-          final cardsInPile = table.get(move.from);
-
-          final List<PlayCard> cardsToPick;
-
-          if (cardToMove != null) {
-            cardsToPick = cardsInPile.getLastFromCard(cardToMove);
-          } else {
-            if (cardsInPile.isEmpty) {
-              return MoveNotDone('No cards in pile', null, move.from);
-            }
-            cardsToPick = [cardsInPile.last];
-          }
-
-          final originPileInfo =
-              game.game.piles.firstWhere((p) => p.kind == move.from);
-
-          if (!PileCheck.checkAll(
-              originPileInfo.pickable, move.from, cardsToPick, table)) {
-            return MoveForbidden(
-                'cannot pick the card(s) from ${move.from}', move);
-          }
-
-          final targetPileInfo =
-              game.game.piles.firstWhere((p) => p.kind == move.to);
-
-          if (!PileCheck.checkAll(
-              targetPileInfo.placeable, move.to, cardsToPick, table)) {
-            return MoveForbidden(
-                'cannot place the card(s) on ${move.to}', move);
-          }
-
-          targetMove = Move(cardsToPick, move.from, move.to);
-        }
+    if (originPileInfo.afterMove != null) {
+      result = PileAction.proceed(
+        result,
+        originPileInfo.afterMove,
+        move.from,
+        game,
+      );
+    }
+    if (targetPileInfo.onDrop != null) {
+      result = PileAction.proceed(
+        result,
+        targetPileInfo.onDrop,
+        move.to,
+        game,
+      );
     }
 
     if (doMove) {
-      _doMoveCards(targetMove, doPremove: doPreMove);
+      _doMoveCards(result, doPremove: doPreMove);
     }
-
     return MoveSuccess(targetMove);
   }
 
@@ -392,7 +392,10 @@ class GameController extends _$GameController {
     PlayTable table = PlayTable.fromGame(gameData.game);
 
     for (final pile in gameData.game.piles) {
-      table = PileAction.runAll(pile.onStart, pile.kind, table, gameData);
+      final result = PileAction.run(pile.onStart, pile.kind, table, gameData);
+      if (result is PileActionSuccess) {
+        table = result.table;
+      }
     }
 
     ref.read(playTableStateProvider.notifier).update(table);
@@ -403,7 +406,10 @@ class GameController extends _$GameController {
     PlayTable table = ref.read(playTableStateProvider);
 
     for (final pile in gameData.game.piles) {
-      table = PileAction.runAll(pile.onSetup, pile.kind, table, gameData);
+      final result = PileAction.run(pile.onSetup, pile.kind, table, gameData);
+      if (result is PileActionSuccess) {
+        table = result.table;
+      }
     }
 
     ref.read(playTableStateProvider.notifier).update(table);
@@ -442,39 +448,28 @@ class GameController extends _$GameController {
     }
   }
 
-  Move _doMoveCards(Move move, {bool doPremove = true}) {
-    final game = ref.read(currentGameProvider);
-    final table = ref.read(playTableStateProvider);
+  void _doMoveCards(
+    PileActionResult result, {
+    bool doPremove = true,
+  }) {
+    if (result is! PileActionSuccess) {
+      throw StateError('result is not successful');
+    }
 
-    final cardsInHand = move.cards;
-    final cardsOnTable = table.get(move.from);
-
-    // Check and remove cards from source pile to hand
-    final (remainingCards, cardsToPickUp) =
-        cardsOnTable.splitLast(cardsInHand.length);
-
-    // Check whether card picked is similar to what is on hand
-    // if (!const ListEquality().equals(cardsToPickUp, cardsInHand)) {
-    //   throw StateError("Cards picked up and in hand is not the same");
-    // }
-
-    // Move all cards on hand to target pile
-    PlayTable updatedTable = table.modifyMultiple({
-      move.from: remainingCards,
-      move.to: [...table.get(move.to), ...cardsInHand]
-    });
+    final updatedTable = result.table;
+    final move = result.move!;
+    final scoreGained = result.scoreGained;
 
     // Clear any hinted cards if any
     ref.read(hintedCardsProvider.notifier).clear();
 
-    final int score;
-    (updatedTable, score) = game.game.afterEachMove(move, updatedTable);
+    // Add in the new score for the move, if any
+    if (scoreGained != null) {
+      ref.read(scoreProvider.notifier).add(scoreGained);
+    }
 
     // Update cards on table with new version
     ref.read(playTableStateProvider.notifier).update(updatedTable);
-
-    // Add in the new score for the move, if any
-    ref.read(scoreProvider.notifier).add(score);
 
     // Add to move history
     ref.read(moveHistoryProvider.notifier).add(move);
@@ -490,7 +485,7 @@ class GameController extends _$GameController {
         state == GameStatus.started) {
       _doPremove();
     }
-    return move;
+    // return move;
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {

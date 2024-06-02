@@ -1,10 +1,8 @@
 import 'dart:ui';
 
-import '../action.dart';
 import '../direction.dart';
 import '../pile.dart';
-import '../pile_info.dart';
-import '../play_table.dart';
+import '../pile_property.dart';
 import 'solitaire.dart';
 
 class SolitaireDemo extends SolitaireGame {
@@ -26,10 +24,10 @@ class SolitaireDemo extends SolitaireGame {
   }
 
   @override
-  List<PileItem> get piles {
+  List<PileProperty> get piles {
     return [
       for (int i = 0; i < 2; i++)
-        PileItem(
+        PileProperty(
           kind: Foundation(i),
           layout: PileLayout(
             region: LayoutProperty(
@@ -39,7 +37,7 @@ class SolitaireDemo extends SolitaireGame {
           ),
         ),
       for (int i = 0; i < 4; i++)
-        PileItem(
+        PileProperty(
           kind: Tableau(i),
           layout: PileLayout(
             region: LayoutProperty(
@@ -49,7 +47,7 @@ class SolitaireDemo extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
         ),
-      PileItem(
+      PileProperty(
         kind: const Draw(),
         layout: const PileLayout(
           region: LayoutProperty(
@@ -58,7 +56,7 @@ class SolitaireDemo extends SolitaireGame {
           ),
         ),
       ),
-      PileItem(
+      PileProperty(
         kind: const Discard(),
         layout: const PileLayout(
           region: LayoutProperty(
@@ -68,11 +66,5 @@ class SolitaireDemo extends SolitaireGame {
         ),
       ),
     ];
-  }
-
-  @override
-  (PlayTable, int) afterEachMove(Move move, PlayTable table) {
-    // TODO: implement afterEachMove
-    throw UnimplementedError();
   }
 }

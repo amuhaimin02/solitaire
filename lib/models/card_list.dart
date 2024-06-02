@@ -61,7 +61,7 @@ extension PlayCardListExtension on List<PlayCard> {
 
     final startRange = indexOf(card);
     if (startRange < 0) {
-      throw RangeError('Card $card is not in list $this');
+      return [];
     }
     final endRange = length;
     return slice(startRange, endRange);

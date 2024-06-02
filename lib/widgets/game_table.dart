@@ -11,7 +11,7 @@ import '../models/card_list.dart';
 import '../models/direction.dart';
 import '../models/game/solitaire.dart';
 import '../models/pile.dart';
-import '../models/pile_info.dart';
+import '../models/pile_property.dart';
 import '../models/play_table.dart';
 import '../utils/types.dart';
 import 'card_view.dart';

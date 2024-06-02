@@ -68,7 +68,6 @@ class Redo extends Action {
 class MoveIntent {
   final Pile from;
   final Pile to;
-
   final PlayCard? card;
 
   const MoveIntent(this.from, this.to, [this.card]);

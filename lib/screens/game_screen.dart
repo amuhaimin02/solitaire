@@ -273,7 +273,6 @@ class _PlayArea extends ConsumerWidget {
               lastMovedCards: lastMovedCards,
               animateDistribute: status == GameStatus.preparing,
               onCardTap: (card, pile) {
-                print('tapping card $card on $pile');
                 final controller = ref.read(gameControllerProvider.notifier);
 
                 if (oneTapMove) {
@@ -288,7 +287,6 @@ class _PlayArea extends ConsumerWidget {
                 return null;
               },
               onPileTap: (pile) {
-                print('tapping pile $pile');
                 final controller = ref.read(gameControllerProvider.notifier);
                 switch (pile) {
                   case Draw():
@@ -310,10 +308,9 @@ class _PlayArea extends ConsumerWidget {
                     game.game.piles.firstWhere((p) => p.kind == from);
 
                 return PileCheck.checkAll(
-                    pileInfo.pickable, from, cards, table);
+                    pileInfo.pickable, from, null, cards, table);
               },
               onCardDrop: (card, from, to) {
-                print('dropping card $card from $from to $to');
                 final controller = ref.read(gameControllerProvider.notifier);
 
                 final result = controller.tryMove(

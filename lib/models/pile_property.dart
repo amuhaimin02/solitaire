@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 
+import 'action.dart';
 import 'direction.dart';
 import 'pile.dart';
 import 'pile_action.dart';
 import 'pile_check.dart';
 
-class PileItem {
-  PileItem({
+class PileProperty {
+  PileProperty({
     required this.kind,
     required this.layout,
     this.onStart,
     this.onSetup,
     this.pickable,
     this.placeable,
+    this.ifEmpty,
+    this.makeMove,
+    this.onDrop,
+    this.afterMove,
   });
 
   final Pile kind;
@@ -26,6 +31,14 @@ class PileItem {
   List<PileCheck>? pickable;
 
   List<PileCheck>? placeable;
+
+  List<PileAction>? ifEmpty;
+
+  List<PileAction>? onDrop;
+
+  List<PileAction>? afterMove;
+
+  List<PileAction> Function(MoveIntent move)? makeMove;
 }
 
 class PileLayout {
