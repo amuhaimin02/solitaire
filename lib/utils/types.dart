@@ -1,5 +1,15 @@
 import 'dart:ui';
 
+extension NonNullableGetMap<K, V> on Map<K, V> {
+  V get(K key) {
+    final value = this[key];
+    if (value == null) {
+      throw ArgumentError('Key $key does not exist in map');
+    }
+    return value;
+  }
+}
+
 extension PrintableDuration on Duration {
   static final maxDisplayableDuration = const Duration(minutes: 100).inSeconds;
 

@@ -8,7 +8,6 @@ import 'pile_check.dart';
 
 class PileProperty {
   PileProperty({
-    required this.kind,
     required this.layout,
     this.onStart,
     this.onSetup,
@@ -19,8 +18,6 @@ class PileProperty {
     this.onDrop,
     this.afterMove,
   });
-
-  final Pile kind;
 
   final PileLayout layout;
 

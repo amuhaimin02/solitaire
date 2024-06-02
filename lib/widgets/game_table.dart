@@ -78,9 +78,7 @@ class _GameTableState extends State<GameTable> {
 
   Timer? _touchDragTimer, _shakeCardTimer;
 
-  late List<Pile> _piles;
   late Map<Pile, Rect> _resolvedRegion;
-  late Map<Pile, PileLayout> _layoutMap;
 
   @override
   void didChangeDependencies() {
@@ -95,14 +93,8 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _resolvePiles() {
-    _piles = widget.game.piles.map((p) => p.kind).toList();
-    _resolvedRegion = {
-      for (final pile in widget.game.piles)
-        pile.kind: pile.layout.region.resolve(widget.orientation),
-    };
-    _layoutMap = {
-      for (final pile in widget.game.piles) pile.kind: pile.layout,
-    };
+    _resolvedRegion = widget.game.piles.map((pile, prop) =>
+        MapEntry(pile, prop.layout.region.resolve(widget.orientation)));
   }
 
   @override
@@ -145,8 +137,8 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildMarkerLayer(BuildContext context, Size gridUnit) {
     Rect computeMarkerPlacement(Pile pile) {
-      final layout = _layoutMap[pile]!;
-      final region = _resolvedRegion[pile]!;
+      final layout = widget.game.piles.get(pile).layout;
+      final region = _resolvedRegion.get(pile);
       final shiftStack =
           layout.shiftStack?.resolve(widget.orientation) ?? false;
       final stackDirection =
@@ -164,7 +156,7 @@ class _GameTableState extends State<GameTable> {
 
     return Stack(
       children: [
-        for (final pile in _piles)
+        for (final pile in widget.game.piles.keys)
           Positioned.fromRect(
             rect: computeMarkerPlacement(pile).scale(gridUnit),
             child: PileMarker(
@@ -201,8 +193,8 @@ class _GameTableState extends State<GameTable> {
     void onPointerUp(PointerUpEvent event) {
       final point = _convertToGrid(event.localPosition, gridUnit);
 
-      final dropPile = _piles
-          .firstWhereOrNull((pile) => _resolvedRegion[pile]!.contains(point));
+      final dropPile = widget.game.piles.keys.firstWhereOrNull(
+          (pile) => _resolvedRegion.get(pile).contains(point));
 
       if (dropPile != null) {
         if (_touchingCards != null &&
@@ -265,7 +257,8 @@ class _GameTableState extends State<GameTable> {
         children: [
           ...sortCardWidgets(
             [
-              for (final pile in _piles) ..._buildPile(context, gridUnit, pile),
+              for (final pile in widget.game.piles.keys)
+                ..._buildPile(context, gridUnit, pile),
             ],
           ),
         ],
@@ -276,14 +269,14 @@ class _GameTableState extends State<GameTable> {
   Widget _buildOverlayLayer(BuildContext context, Size gridUnit) {
     return Stack(
       children: [
-        for (final pile in _piles)
-          if (_layoutMap[pile]?.showCount?.resolve(widget.orientation) == true)
+        for (final item in widget.game.piles.entries)
+          if (item.value.layout.showCount?.resolve(widget.orientation) == true)
             Positioned.fromRect(
-              rect: Rect.fromLTWH(_resolvedRegion[pile]!.left,
-                      _resolvedRegion[pile]!.top, 1, 1)
+              rect: Rect.fromLTWH(_resolvedRegion.get(item.key).left,
+                      _resolvedRegion.get(item.key).top, 1, 1)
                   .scale(gridUnit),
               child: _CountIndicator(
-                count: widget.table.get(pile).length,
+                count: widget.table.get(item.key).length,
                 cardSize: gridUnit,
               ),
             ),
@@ -294,8 +287,8 @@ class _GameTableState extends State<GameTable> {
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
     final theme = SolitaireTheme.of(context);
 
-    final layout = _layoutMap[pile]!;
-    final region = _resolvedRegion[pile]!;
+    final layout = widget.game.piles.get(pile).layout;
+    final region = _resolvedRegion.get(pile);
     final stackDirection =
         layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
 
@@ -508,11 +501,9 @@ class _GameTableState extends State<GameTable> {
     var maxWidth = 0.0;
     var maxHeight = 0.0;
 
-    final theme = SolitaireTheme.of(context);
-
-    for (final pile in _piles) {
-      final layout = _layoutMap[pile]!;
-      final region = _resolvedRegion[pile]!;
+    for (final item in widget.game.piles.entries) {
+      final layout = item.value.layout;
+      final region = _resolvedRegion.get(item.key);
 
       final stackDirection =
           layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
@@ -524,7 +515,7 @@ class _GameTableState extends State<GameTable> {
         case _:
           final stackPositions = _computeStackGapPositions(
             context: context,
-            cards: widget.table.get(pile),
+            cards: widget.table.get(item.key),
             region: region,
             stackDirection: stackDirection,
             previewCards: layout.previewCards?.resolve(widget.orientation),

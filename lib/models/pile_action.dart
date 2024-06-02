@@ -95,7 +95,7 @@ class PileActionNoChange extends PileActionResult {
 }
 
 class If extends PileAction {
-  If({
+  const If({
     required this.conditions,
     required this.ifTrue,
     this.ifFalse,
@@ -205,16 +205,14 @@ class PickCardsFrom extends PileAction {
 }
 
 class MoveNormally extends PileAction {
-  const MoveNormally(
-      {required this.from, required this.to, required this.cards});
-  final Pile from;
+  const MoveNormally({required this.to, required this.cards});
   final Pile to;
   final List<PlayCard> cards;
 
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     final cardsInHand = cards;
-    final cardsOnTable = table.get(from);
+    final cardsOnTable = table.get(pile);
 
     // Check and remove cards from source pile to hand
     final (remainingCards, cardsToPickUp) =
@@ -228,28 +226,26 @@ class MoveNormally extends PileAction {
     // Move all cards on hand to target pile
     return PileActionSuccess(
       table: table.modifyMultiple({
-        from: remainingCards,
+        pile: remainingCards,
         to: [...table.get(to), ...cardsToPickUp]
       }),
-      move: Move(cardsToPickUp, from, to),
+      move: Move(cardsToPickUp, pile, to),
       scoreGained: 1,
     );
   }
 }
 
-class DrawCardsFromTop extends PileAction {
-  const DrawCardsFromTop({
-    required this.from,
+class MoveMultipleFromTop extends PileAction {
+  const MoveMultipleFromTop({
     required this.to,
     required this.count,
   });
-  final Pile from;
   final Pile to;
   final int count;
 
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
-    final cardsOnTable = table.get(from);
+    final cardsOnTable = table.get(pile);
 
     // Check and remove cards from source pile to hand
     final (remainingCards, cardsToPickUp) = cardsOnTable.splitLast(count);
@@ -262,10 +258,10 @@ class DrawCardsFromTop extends PileAction {
     // Move all cards on hand to target pile
     return PileActionSuccess(
       table: table.modifyMultiple({
-        from: remainingCards,
+        pile: remainingCards,
         to: [...table.get(to), ...cardsToPickUp]
       }),
-      move: Move(cardsToPickUp, from, to),
+      move: Move(cardsToPickUp, pile, to),
     );
   }
 }

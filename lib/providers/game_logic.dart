@@ -16,8 +16,8 @@ import '../models/pile_check.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/user_action.dart';
-import '../utils/iterators.dart';
 import '../utils/stopwatch.dart';
+import '../utils/types.dart';
 import 'game_selection.dart';
 import 'settings.dart';
 
@@ -227,10 +227,9 @@ class GameController extends _$GameController {
     final game = ref.read(currentGameProvider);
     PlayTable table = ref.read(playTableStateProvider);
 
-    final originPileInfo =
-        game.game.piles.firstWhere((p) => p.kind == move.from);
+    final originPileInfo = game.game.piles.get(move.from);
 
-    final targetPileInfo = game.game.piles.firstWhere((p) => p.kind == move.to);
+    final targetPileInfo = game.game.piles.get(move.to);
 
     if (move.from == move.to) {
       return MoveForbidden('cannot move cards back to its pile', move);
@@ -278,7 +277,7 @@ class GameController extends _$GameController {
 
       result = PileAction.run(
         originPileInfo.makeMove?.call(move) ??
-            [MoveNormally(from: move.from, to: move.to, cards: cardsToPick)],
+            [MoveNormally(to: move.to, cards: cardsToPick)],
         move.from,
         table,
         game,
@@ -320,35 +319,11 @@ class GameController extends _$GameController {
   }
 
   MoveResult tryQuickMove(PlayCard card, Pile from, {bool doMove = true}) {
-    final foundationIndexes = RollingIndexIterator(
-      count: 4,
-      start: 0,
-      direction: 1,
-    );
+    final game = ref.read(currentGameProvider);
+    final table = ref.read(playTableStateProvider);
 
-    final tableauIndexes = RollingIndexIterator(
-      count: 7,
-      start: from is Tableau ? from.index : 0,
-      direction: 1,
-      startInclusive: from is! Tableau,
-    );
-
-    // Try placing on foundation pile first
-    // For cards from foundation, no need to move to other foundations
-    if (from is! Foundation) {
-      for (final i in foundationIndexes) {
-        final result =
-            tryMove(MoveIntent(from, Foundation(i), card), doMove: doMove);
-        if (result is MoveSuccess) {
-          return result;
-        }
-      }
-    }
-
-    // Try placing on tableau next
-    for (final i in tableauIndexes) {
-      final result =
-          tryMove(MoveIntent(from, Tableau(i), card), doMove: doMove);
+    for (final move in game.game.quickMoveStrategy(from, card, table)) {
+      final result = tryMove(move);
       if (result is MoveSuccess) {
         return result;
       }
@@ -391,8 +366,9 @@ class GameController extends _$GameController {
     final gameData = ref.read(currentGameProvider);
     PlayTable table = PlayTable.fromGame(gameData.game);
 
-    for (final pile in gameData.game.piles) {
-      final result = PileAction.run(pile.onStart, pile.kind, table, gameData);
+    for (final item in gameData.game.piles.entries) {
+      final result =
+          PileAction.run(item.value.onStart, item.key, table, gameData);
       if (result is PileActionSuccess) {
         table = result.table;
       }
@@ -405,8 +381,9 @@ class GameController extends _$GameController {
     final gameData = ref.read(currentGameProvider);
     PlayTable table = ref.read(playTableStateProvider);
 
-    for (final pile in gameData.game.piles) {
-      final result = PileAction.run(pile.onSetup, pile.kind, table, gameData);
+    for (final item in gameData.game.piles.entries) {
+      final result =
+          PileAction.run(item.value.onSetup, item.key, table, gameData);
       if (result is PileActionSuccess) {
         table = result.table;
       }
@@ -427,7 +404,7 @@ class GameController extends _$GameController {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       final table = ref.read(playTableStateProvider);
-      for (final move in game.game.autoMoveStrategy(table)) {
+      for (final move in game.game.premoveStrategy(table)) {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
             lastAction.to == move.from &&

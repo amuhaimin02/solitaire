@@ -41,39 +41,38 @@ class Klondike extends SolitaireGame {
   final KlondikeScoring scoring;
 
   @override
-  TableLayout get tableSize {
-    return const TableLayout(
+  LayoutProperty get tableSize {
+    return const LayoutProperty(
       portrait: Size(7, 6),
       landscape: Size(10, 4),
     );
   }
 
   @override
-  List<PileProperty> get piles {
-    return [
+  Map<Pile, PileProperty> get piles {
+    return {
       for (int i = 0; i < 4; i++)
-        PileProperty(
-          kind: Foundation(i),
+        Foundation(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
               landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
             ),
           ),
-          pickable: [
-            const CardIsOnTop(),
+          pickable: const [
+            CardIsOnTop(),
           ],
-          placeable: [
-            const CardsNotComingFrom(Draw()),
-            const CardsAreFacingUp(),
-            const BuildupStartsWith(rank: Rank.ace),
-            const BuildupFollowsRankOrder(RankOrder.increasing),
-            const BuildupSameSuit(),
+          placeable: const [
+            CardsNotComingFrom(Draw()),
+            CardIsSingle(),
+            CardsAreFacingUp(),
+            BuildupStartsWith(rank: Rank.ace),
+            BuildupFollowsRankOrder(RankOrder.increasing),
+            BuildupSameSuit(),
           ],
         ),
       for (int i = 0; i < 7; i++)
-        PileProperty(
-          kind: Tableau(i),
+        Tableau(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
@@ -86,29 +85,28 @@ class Klondike extends SolitaireGame {
             const FlipAllCardsFaceDown(),
             const FlipTopmostCardFaceUp(),
           ],
-          pickable: [
-            const CardsAreFacingUp(),
-            const CardsFollowRankOrder(RankOrder.decreasing),
+          pickable: const [
+            CardsAreFacingUp(),
+            CardsFollowRankOrder(RankOrder.decreasing),
           ],
-          placeable: [
-            const CardsNotComingFrom(Draw()),
-            const CardsAreFacingUp(),
-            const BuildupStartsWith(rank: Rank.king),
-            const BuildupFollowsRankOrder(RankOrder.decreasing),
-            const BuildupAlternateColors(),
+          placeable: const [
+            CardsNotComingFrom(Draw()),
+            CardsAreFacingUp(),
+            BuildupStartsWith(rank: Rank.king),
+            BuildupFollowsRankOrder(RankOrder.decreasing),
+            BuildupAlternateColors(),
           ],
-          afterMove: [
+          afterMove: const [
             If(
-              conditions: [const PileOnTopIsFacingDown()],
+              conditions: [PileOnTopIsFacingDown()],
               ifTrue: [
-                const FlipTopCardFaceUp(),
-                const ObtainScore(score: 100),
+                FlipTopCardFaceUp(),
+                ObtainScore(score: 100),
               ],
             )
           ],
         ),
-      PileProperty(
-        kind: const Draw(),
+      const Draw(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(6, 0, 1, 1),
@@ -116,33 +114,28 @@ class Klondike extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
-        onStart: [
-          const SetupNewDeck(count: 1),
-          const FlipAllCardsFaceDown(),
+        onStart: const [
+          SetupNewDeck(count: 1),
+          FlipAllCardsFaceDown(),
         ],
-        pickable: [
-          const CardIsOnTop(),
+        pickable: const [
+          CardIsOnTop(),
         ],
-        placeable: [
-          const PileIsEmpty(),
-          const CardsComingFrom(Discard()),
+        placeable: const [
+          PileIsEmpty(),
+          CardsComingFrom(Discard()),
         ],
-        ifEmpty: [
-          const Redeal(takeFrom: Discard()),
+        ifEmpty: const [
+          Redeal(takeFrom: Discard()),
         ],
-        onDrop: [
-          const Redeal(takeFrom: Discard()),
+        onDrop: const [
+          Redeal(takeFrom: Discard()),
         ],
         makeMove: (move) => [
-          DrawCardsFromTop(
-            from: move.from,
-            to: move.to,
-            count: numberOfDraws,
-          ),
+          MoveMultipleFromTop(to: move.to, count: numberOfDraws),
         ],
       ),
-      PileProperty(
-        kind: const Discard(),
+      const Discard(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(4, 0, 2, 1),
@@ -158,17 +151,17 @@ class Klondike extends SolitaireGame {
           ),
           previewCards: LayoutProperty.all(3),
         ),
-        pickable: [
-          const CardIsOnTop(),
+        pickable: const [
+          CardIsOnTop(),
         ],
-        placeable: [
-          const CardsComingFrom(Draw()),
+        placeable: const [
+          CardsComingFrom(Draw()),
         ],
-        onDrop: [
-          const FlipAllCardsFaceUp(),
+        onDrop: const [
+          FlipAllCardsFaceUp(),
         ],
       ),
-    ];
+    };
   }
 
   @override
@@ -190,7 +183,24 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> autoMoveStrategy(PlayTable table) sync* {
+  Iterable<MoveIntent> quickMoveStrategy(
+      Pile from, PlayCard card, PlayTable table) sync* {
+    // Try placing on foundation pile first
+    // For cards from foundation, no need to move to other foundations
+    if (from is! Foundation) {
+      for (final f in table.allFoundationPiles.roll(from: from)) {
+        yield MoveIntent(from, f, card);
+      }
+    }
+
+    // Try placing on tableau next
+    for (final t in table.allTableauPiles.roll(from: from)) {
+      yield MoveIntent(from, t, card);
+    }
+  }
+
+  @override
+  Iterable<MoveIntent> premoveStrategy(PlayTable table) sync* {
     for (final f in table.allFoundationPiles) {
       yield MoveIntent(const Discard(), f);
     }

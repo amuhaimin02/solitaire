@@ -1,4 +1,6 @@
 import '../action.dart';
+import '../card.dart';
+import '../pile.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
 
@@ -11,15 +13,19 @@ abstract class SolitaireGame {
 
   String get tag;
 
-  TableLayout get tableSize;
+  LayoutProperty get tableSize;
 
-  List<PileProperty> get piles;
+  Map<Pile, PileProperty> get piles;
 
   bool winConditions(PlayTable table) => false;
 
   bool canAutoSolve(PlayTable table) => false;
 
-  Iterable<MoveIntent> autoMoveStrategy(PlayTable table) => [];
+  Iterable<MoveIntent> quickMoveStrategy(
+          Pile from, PlayCard card, PlayTable table) =>
+      [];
+
+  Iterable<MoveIntent> premoveStrategy(PlayTable table) => [];
 
   Iterable<MoveIntent> autoSolveStrategy(PlayTable table) => [];
 

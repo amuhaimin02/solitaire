@@ -26,6 +26,15 @@ class CardsAreFacingUp extends PileCheck {
   }
 }
 
+class CardIsSingle extends PileCheck {
+  const CardIsSingle();
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    return cards.isSingle;
+  }
+}
+
 class CardIsOnTop extends PileCheck {
   const CardIsOnTop();
 

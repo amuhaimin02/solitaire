@@ -304,8 +304,7 @@ class _PlayArea extends ConsumerWidget {
                 return null;
               },
               canDragCards: (cards, from) {
-                final pileInfo =
-                    game.game.piles.firstWhere((p) => p.kind == from);
+                final pileInfo = game.game.piles.get(from);
 
                 return PileCheck.checkAll(
                     pileInfo.pickable, from, null, cards, table);

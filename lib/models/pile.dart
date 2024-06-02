@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 sealed class Pile {
   const Pile();
 }
@@ -55,4 +57,36 @@ class Tableau extends Pile {
 
   @override
   String toString() => 'Tableau($index)';
+}
+
+extension PileIteration<T extends Pile> on Iterable<T> {
+  Iterable<T> roll({required Pile from}) {
+    switch (T) {
+      case const (Draw) || const (Discard):
+        // Return as is as there is nothing to iterate
+        return this;
+      case const (Foundation) || const (Tableau):
+        final sorted = switch (T) {
+          const (Foundation) =>
+            cast<Foundation>().sorted((a, b) => a.index - b.index),
+          const (Tableau) =>
+            cast<Tableau>().sorted((a, b) => a.index - b.index),
+          _ => throw AssertionError('Should not happen'),
+        };
+
+        int startIndex = 0;
+        if (from is T) {
+          startIndex = sorted.indexOf(from);
+        }
+
+        final rollingIteration = [
+          ...sorted.slice(startIndex, sorted.length),
+          ...sorted.slice(0, startIndex),
+        ].cast<T>();
+
+        return rollingIteration;
+      default:
+        throw AssertionError('T is not a pile type');
+    }
+  }
 }

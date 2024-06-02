@@ -16,19 +16,18 @@ class SolitaireDemo extends SolitaireGame {
   String get tag => 'demo';
 
   @override
-  TableLayout get tableSize {
-    return const TableLayout(
+  LayoutProperty get tableSize {
+    return const LayoutProperty(
       portrait: Size(4, 3),
       landscape: Size(4, 3),
     );
   }
 
   @override
-  List<PileProperty> get piles {
-    return [
+  Map<Pile, PileProperty> get piles {
+    return {
       for (int i = 0; i < 2; i++)
-        PileProperty(
-          kind: Foundation(i),
+        Foundation(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
@@ -37,8 +36,7 @@ class SolitaireDemo extends SolitaireGame {
           ),
         ),
       for (int i = 0; i < 4; i++)
-        PileProperty(
-          kind: Tableau(i),
+        Tableau(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
@@ -47,8 +45,7 @@ class SolitaireDemo extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
         ),
-      PileProperty(
-        kind: const Draw(),
+      const Draw(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(3, 0, 1, 1),
@@ -56,8 +53,7 @@ class SolitaireDemo extends SolitaireGame {
           ),
         ),
       ),
-      PileProperty(
-        kind: const Discard(),
+      const Discard(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(2, 0, 1, 1),
@@ -65,6 +61,6 @@ class SolitaireDemo extends SolitaireGame {
           ),
         ),
       ),
-    ];
+    };
   }
 }
