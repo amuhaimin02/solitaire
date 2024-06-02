@@ -46,7 +46,7 @@ class SolitaireDemo extends SolitaireGame {
               portrait: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
               landscape: Rect.fromLTWH(i.toDouble(), 1, 1, 3),
             ),
-            stackDirection: LayoutProperty.all(Direction.down),
+            stackDirection: const LayoutProperty.all(Direction.down),
           ),
         ),
       PileItem(

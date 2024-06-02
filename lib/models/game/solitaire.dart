@@ -19,10 +19,6 @@ abstract class SolitaireGame {
 
   bool winConditions(PlayTable table) => false;
 
-  // bool canPlace(
-  //         List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) =>
-  //     false;
-
   bool canAutoSolve(PlayTable table) => false;
 
   Iterable<MoveIntent> autoMoveStrategy(PlayTable table) => [];

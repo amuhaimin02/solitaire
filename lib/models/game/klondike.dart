@@ -92,10 +92,10 @@ class Klondike extends SolitaireGame {
             const CardsFollowRankOrder(RankOrder.decreasing),
           ],
           placeable: [
-            // const CardsAreFacingUp(),
-            // const BuildupStartsWith(rank: Rank.king),
-            // const BuildupFollowsRankOrder(RankOrder.decreasing),
-            // const BuildupAlternateColors(),
+            const CardsAreFacingUp(),
+            const BuildupStartsWith(rank: Rank.king),
+            const BuildupFollowsRankOrder(RankOrder.decreasing),
+            const BuildupAlternateColors(),
           ],
         ),
       PileItem(
@@ -145,49 +145,6 @@ class Klondike extends SolitaireGame {
         table.discardPile.isEmpty &&
         table.allTableauPiles.every((t) => table.get(t).isEmpty);
   }
-  //
-  // @override
-  // bool canPlace(List<PlayCard> cards, Pile target, List<PlayCard> cardsOnPile) {
-  //   switch (target) {
-  //     case Foundation():
-  //       // Cannot move more than one cards all at once to foundation pile
-  //       if (!cards.isSingle) {
-  //         return false;
-  //       }
-  //
-  //       final card = cards.single;
-  //
-  //       if (cardsOnPile.isEmpty) {
-  //         return card.rank == Rank.ace;
-  //       }
-  //
-  //       final topmostCard = cardsOnPile.last;
-  //
-  //       // Cards can be stacks as long as the suit are the same and they follow rank in increasing order
-  //       return card.isFacingUp &&
-  //           card.isSameSuitWith(topmostCard) &&
-  //           card.isOneRankOver(topmostCard);
-  //
-  //     case Tableau():
-  //       // If column is empty, only King or card group starting with King can be placed
-  //       if (cardsOnPile.isEmpty) {
-  //         return cards.first.rank == Rank.king;
-  //       }
-  //
-  //       final topmostCard = cardsOnPile.last;
-  //
-  //       // Card on top of each other should follow ranks in decreasing order,
-  //       // and colors must be alternating (Diamond, Heart) <-> (Club, Spade).
-  //       // In this case, we compare the suit "group" as they will be classified by color
-  //       return topmostCard.isFacingUp &&
-  //           cards.first.isOneRankUnder(topmostCard) &&
-  //           !cards.first.isSameColor(topmostCard);
-  //
-  //     case Draw() || Discard():
-  //       // Cannot return card back to these piles
-  //       return false;
-  //   }
-  // }
 
   @override
   bool canAutoSolve(PlayTable table) {
