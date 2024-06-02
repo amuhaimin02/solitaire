@@ -156,14 +156,17 @@ class _GameTableState extends State<GameTable> {
 
     return Stack(
       children: [
-        for (final pile in widget.game.piles.keys)
-          Positioned.fromRect(
-            rect: computeMarkerPlacement(pile).scale(gridUnit),
-            child: PileMarker(
-              pile: pile,
-              size: gridUnit,
+        for (final item in widget.game.piles.entries)
+          if (!item.value.virtual &&
+              item.value.layout.showMarker?.resolve(widget.orientation) !=
+                  false)
+            Positioned.fromRect(
+              rect: computeMarkerPlacement(item.key).scale(gridUnit),
+              child: PileMarker(
+                pile: item.key,
+                size: gridUnit,
+              ),
             ),
-          ),
       ],
     );
   }
@@ -541,6 +544,10 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
+    if (widget.game.piles.get(pile).virtual) {
+      return;
+    }
+
     final feedback = widget.onCardTap?.call(card, pile);
     if (feedback != null) {
       _shakeCard(feedback);
@@ -548,6 +555,10 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onCardDrop(BuildContext context, PlayCard card, Pile from, Pile to) {
+    if (widget.game.piles.get(to).virtual) {
+      return;
+    }
+
     final feedback = widget.onCardDrop?.call(card, from, to);
     if (feedback != null) {
       _shakeCard(feedback);
@@ -555,6 +566,9 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onPileTap(BuildContext context, Pile pile) {
+    if (widget.game.piles.get(pile).virtual) {
+      return;
+    }
     widget.onPileTap?.call(pile);
   }
 

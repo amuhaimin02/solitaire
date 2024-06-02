@@ -20,6 +20,7 @@ class PileMarker extends StatelessWidget {
       Discard() => MdiIcons.cardsPlaying,
       Foundation() => MdiIcons.circleOutline,
       Tableau() => MdiIcons.close,
+      Reserve() => MdiIcons.triangleOutline,
     };
 
     final borderOnly = theme.backgroundColor == Colors.black;

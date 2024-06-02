@@ -58,6 +58,10 @@ class PlayTable {
     return _allCards.keys.whereType<Foundation>();
   }
 
+  Iterable<Reserve> get alLReservePiles {
+    return _allCards.keys.whereType<Reserve>();
+  }
+
   PlayTable modify(Pile pile, List<PlayCard> cards) {
     return PlayTable._(
       UnmodifiableMapView({..._allCards, pile: cards}),

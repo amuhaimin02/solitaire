@@ -232,7 +232,8 @@ class PileSerializer implements Serializer<Pile> {
       Draw() => 'D0',
       Discard() => 'X0',
       Foundation(:final index) => 'F$index',
-      Tableau(:final index) => 'T$index'
+      Tableau(:final index) => 'T$index',
+      Reserve(:final index) => 'R$index'
     };
   }
 
@@ -246,6 +247,7 @@ class PileSerializer implements Serializer<Pile> {
       'X' => const Discard(),
       'F' => Foundation(index),
       'T' => Tableau(index),
+      'R' => Reserve(index),
       _ => throw ArgumentError('unknown pile token: $raw')
     };
   }

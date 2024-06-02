@@ -17,7 +17,9 @@ extension PlayCardListExtension on List<PlayCard> {
     for (final card in this) {
       // Ensure cards in hand follows their ranking order based on numbers (e.g. A > 2 > 3)
       if (lastRank != null) {
-        return card.rank.value == lastRank + 1;
+        if (card.rank.value != lastRank + 1) {
+          return false;
+        }
       }
       lastRank = card.rank.value;
     }
@@ -28,8 +30,11 @@ extension PlayCardListExtension on List<PlayCard> {
     int? lastRank;
     for (final card in this) {
       // Ensure cards in hand follows their ranking order based on numbers (e.g. A < 2 < 3)
+
       if (lastRank != null) {
-        return card.rank.value == lastRank - 1;
+        if (card.rank.value != lastRank - 1) {
+          return false;
+        }
       }
       lastRank = card.rank.value;
     }

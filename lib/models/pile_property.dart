@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'action.dart';
 import 'direction.dart';
-import 'pile.dart';
 import 'pile_action.dart';
 import 'pile_check.dart';
 
@@ -17,6 +16,7 @@ class PileProperty {
     this.makeMove,
     this.onDrop,
     this.afterMove,
+    this.virtual = false,
   });
 
   final PileLayout layout;
@@ -36,6 +36,8 @@ class PileProperty {
   List<PileAction>? afterMove;
 
   List<PileAction> Function(MoveIntent move)? makeMove;
+
+  final bool virtual;
 }
 
 class PileLayout {
@@ -45,6 +47,7 @@ class PileLayout {
     this.previewCards,
     this.showCount,
     this.shiftStack,
+    this.showMarker,
   });
 
   final LayoutProperty<Rect> region;
@@ -56,6 +59,8 @@ class PileLayout {
   final LayoutProperty<bool>? showCount;
 
   final LayoutProperty<bool>? shiftStack;
+
+  final LayoutProperty<bool>? showMarker;
 }
 
 class TableLayout {
