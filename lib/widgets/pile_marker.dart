@@ -18,9 +18,9 @@ class PileMarker extends StatelessWidget {
     final icon = switch (pile) {
       Draw() => MdiIcons.refresh,
       Discard() => MdiIcons.cardsPlaying,
-      Foundation() => MdiIcons.circleOutline,
-      Tableau() => MdiIcons.close,
-      Reserve() => MdiIcons.triangleOutline,
+      Foundation() => MdiIcons.alphaACircle,
+      Tableau() => MdiIcons.alphaKBox,
+      Reserve() => MdiIcons.star,
     };
 
     final borderOnly = theme.backgroundColor == Colors.black;

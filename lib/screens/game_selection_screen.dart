@@ -60,26 +60,23 @@ class _GameSelectionList extends ConsumerWidget {
         builder: (context) {
           return DefaultTabController(
             length: 2,
-            child: PageStorage(
-              bucket: PageStorageBucket(),
-              child: Column(
-                children: [
-                  const TabBar.secondary(
-                    tabs: [
-                      Tab(text: 'Favorites'),
-                      Tab(text: 'All games'),
+            child: Column(
+              children: [
+                const TabBar.secondary(
+                  tabs: [
+                    Tab(text: 'Favorites'),
+                    Tab(text: 'All games'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildFavoriteGameList(context, ref),
+                      _buildAllGamesList(context, ref),
                     ],
                   ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        _buildFavoriteGameList(context, ref),
-                        _buildAllGamesList(context, ref),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
@@ -121,7 +118,7 @@ class _GameSelectionList extends ConsumerWidget {
       children: [
         for (final group in allGamesMapped.entries)
           _GameListGroup(
-            key: const PageStorageKey('all'),
+            key: PageStorageKey('all-${group.key}'),
             groupName: group.key,
             children: [
               for (final game in group.value)

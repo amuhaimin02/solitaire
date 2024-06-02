@@ -24,7 +24,9 @@ void feedback(FeedbackRef ref) {
         HapticFeedback.heavyImpact();
       case Tableau():
         HapticFeedback.mediumImpact();
-      default:
+      case Reserve():
+        HapticFeedback.lightImpact();
+      case null:
     }
   }
 }

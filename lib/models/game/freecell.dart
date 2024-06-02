@@ -136,8 +136,14 @@ class FreeCell extends SolitaireGame {
       }
     }
 
-    for (final r in table.alLReservePiles.roll(from: from)) {
-      yield MoveIntent(from, r, card);
+    if (from is Tableau) {
+      for (final r in table.alLReservePiles.roll(from: from)) {
+        yield MoveIntent(from, r, card);
+      }
+    } else if (from is Reserve) {
+      for (final t in table.allTableauPiles.roll(from: from)) {
+        yield MoveIntent(from, t, card);
+      }
     }
   }
 

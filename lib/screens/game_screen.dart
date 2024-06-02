@@ -277,7 +277,7 @@ class _PlayArea extends ConsumerWidget {
 
                 if (oneTapMove) {
                   switch (pile) {
-                    case Tableau():
+                    case Tableau() || Reserve():
                       final result = controller.tryQuickMove(card, pile);
                       return result is MoveSuccess ? null : [card];
                     case _:
@@ -293,7 +293,7 @@ class _PlayArea extends ConsumerWidget {
                     controller.tryMove(const MoveIntent(Draw(), Discard()));
                     return null;
 
-                  case Discard() || Foundation():
+                  case Discard() || Foundation() || Reserve():
                     if (oneTapMove && table.get(pile).isNotEmpty) {
                       final cardToMove = table.get(pile).last;
                       final result = controller.tryQuickMove(cardToMove, pile);
