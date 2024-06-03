@@ -45,6 +45,7 @@ class ThemeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Customize'),
+        scrolledUnderElevation: 0,
       ),
       body: TwoPane(
         primaryBuilder: (context) => _buildTablePreview(context),

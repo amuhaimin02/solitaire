@@ -16,7 +16,11 @@ import '../pile_property.dart';
 import '../play_table.dart';
 
 class Spider extends SolitaireGame {
-  const Spider({required this.numberOfSuits});
+  const Spider({required this.numberOfSuits})
+      : assert(
+          numberOfSuits == 1 || numberOfSuits == 2 || numberOfSuits == 4,
+          'Number of suits can only be 1, 2 or 4',
+        );
 
   final int numberOfSuits;
 
@@ -44,7 +48,7 @@ class Spider extends SolitaireGame {
       1 => const SetupNewDeck(count: 8, onlySuit: [Suit.spade]),
       2 => const SetupNewDeck(count: 4, onlySuit: [Suit.spade, Suit.heart]),
       4 => const SetupNewDeck(count: 2),
-      _ => throw ArgumentError('Number of suits can only be 1, 2 or 4')
+      _ => throw AssertionError('Invalid number of suits')
     };
 
     return {
@@ -87,17 +91,18 @@ class Spider extends SolitaireGame {
           ],
           onDrop: [
             If(
-              conditions: [
+              condition: [
                 const PileHasFullSuit(RankOrder.decreasing),
               ],
               ifTrue: [
-                SendToAnyEmptyPile<Foundation>(count: Rank.values.length)
+                SendToAnyEmptyPile<Foundation>(count: Rank.values.length),
+                const FlipTopCardFaceUp(),
               ],
             ),
           ],
           afterMove: [
             const If(
-              conditions: [PileOnTopIsFacingDown()],
+              condition: [PileOnTopIsFacingDown()],
               ifTrue: [FlipTopCardFaceUp()],
             )
           ],
@@ -116,7 +121,7 @@ class Spider extends SolitaireGame {
         ],
         onTap: [
           const If(
-            conditions: [
+            condition: [
               PileIsNotEmpty(),
               AllPilesOfTypeAreNotEmpty<Tableau>(),
             ],
@@ -139,7 +144,7 @@ class Spider extends SolitaireGame {
 
     // Prioritize non-empty tableaus
     final (nonEmptyTableaus, emptyTableaus) =
-        tableau.partition((t) => table.get(t).isEmpty);
+        tableau.partition((t) => table.get(t).isNotEmpty);
 
     for (final t in [...nonEmptyTableaus, ...emptyTableaus]) {
       yield MoveIntent(from, t, card);

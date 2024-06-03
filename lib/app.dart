@@ -94,7 +94,6 @@ class SolitaireApp extends ConsumerWidget {
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         width: 400,
-        insetPadding: EdgeInsets.all(32),
       ),
     );
 

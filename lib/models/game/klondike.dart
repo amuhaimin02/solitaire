@@ -89,7 +89,7 @@ class Klondike extends SolitaireGame {
           ],
           afterMove: const [
             If(
-              conditions: [PileOnTopIsFacingDown()],
+              condition: [PileOnTopIsFacingDown()],
               ifTrue: [
                 FlipTopCardFaceUp(),
                 ObtainScore(score: 100),
@@ -117,7 +117,7 @@ class Klondike extends SolitaireGame {
         ],
         onTap: [
           If(
-            conditions: const [PileIsEmpty()],
+            condition: const [PileIsEmpty()],
             ifTrue: const [RecyclePile(takeFrom: Discard())],
             ifFalse: [DrawFromTop(to: const Discard(), count: numberOfDraws)],
           ),

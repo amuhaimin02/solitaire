@@ -81,7 +81,7 @@ class FreeCell extends SolitaireGame {
           ],
           afterMove: const [
             If(
-              conditions: [PileOnTopIsFacingDown()],
+              condition: [PileOnTopIsFacingDown()],
               ifTrue: [
                 FlipTopCardFaceUp(),
                 ObtainScore(score: 100),

@@ -147,7 +147,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
-                                        child: const _PlayArea(),
+                                        child: _PlayArea(
+                                          orientation: orientation,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -193,7 +195,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(
                                             maxWidth: 1000, maxHeight: 1000),
-                                        child: const _PlayArea(),
+                                        child: _PlayArea(
+                                          orientation: orientation,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -241,7 +245,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ),
         ],
       ),
-      showCloseIcon: true,
     ));
   }
 
@@ -264,7 +267,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
 }
 
 class _PlayArea extends ConsumerWidget {
-  const _PlayArea({super.key});
+  const _PlayArea({super.key, required this.orientation});
+
+  final Orientation orientation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -274,7 +279,7 @@ class _PlayArea extends ConsumerWidget {
     final highlightedCards = ref.watch(hintedCardsProvider);
 
     return OrientationBuilder(
-      builder: (context, orientation) {
+      builder: (context, localOrientation) {
         final showLastMoves = ref.watch(settingsShowLastMoveProvider);
 
         final showAutoSolveButton =
