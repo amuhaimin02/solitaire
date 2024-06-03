@@ -37,6 +37,7 @@ class GameTable extends StatefulWidget {
     this.animateMovement = true,
     this.fitEmptySpaces = false,
     this.orientation = Orientation.portrait,
+    this.debugHighlightPileRegion = false,
   });
 
   final SolitaireGame game;
@@ -64,6 +65,8 @@ class GameTable extends StatefulWidget {
   final bool fitEmptySpaces;
 
   final Orientation orientation;
+
+  final bool debugHighlightPileRegion;
 
   @override
   State<GameTable> createState() => _GameTableState();
@@ -129,6 +132,8 @@ class _GameTableState extends State<GameTable> {
                 _buildMarkerLayer(context, gridUnit),
                 _buildCardLayer(context, gridUnit),
                 if (widget.interactive) _buildOverlayLayer(context, gridUnit),
+                if (widget.debugHighlightPileRegion)
+                  _buildDebugLayer(context, gridUnit),
               ],
             );
           },
@@ -169,6 +174,37 @@ class _GameTableState extends State<GameTable> {
                 size: gridUnit,
               ),
             ),
+      ],
+    );
+  }
+
+  Widget _buildDebugLayer(BuildContext context, Size gridUnit) {
+    final tableSize = widget.game.tableSize.resolve(widget.orientation);
+    return Stack(
+      children: [
+        Positioned.fromRect(
+          rect: (Offset.zero & tableSize).scale(gridUnit),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.red,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+        for (final item in _allPiles.entries)
+          Positioned.fromRect(
+            rect: _resolvedRegion.get(item.key).scale(gridUnit),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.yellow,
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

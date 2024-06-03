@@ -30,10 +30,10 @@ class Spider extends SolitaireGame {
   String get tag => 'spider-$numberOfSuits-suit';
 
   @override
-  LayoutProperty get tableSize {
+  LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(10, 7),
-      landscape: Size(12, 4),
+      landscape: Size(12, 5),
     );
   }
 
@@ -45,12 +45,12 @@ class Spider extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(0, i.toDouble() * 0.4 + 0.3, 1, 1),
+              landscape: Rect.fromLTWH(0, i.toDouble() * 0.5 + 0.25, 1, 1),
             ),
-            showMarker: LayoutProperty(
-              portrait: true,
-              landscape: i == 0, // Only show marker on first foundation
-            ),
+            // showMarker: LayoutProperty(
+            //   portrait: true,
+            //   landscape: i == 0, // Only show marker on first foundation
+            // ),
           ),
         ),
       for (int i = 0; i < 10; i++)
@@ -58,7 +58,7 @@ class Spider extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 5.7),
-              landscape: Rect.fromLTWH(i.toDouble() + 1, 0, 1, 4),
+              landscape: Rect.fromLTWH(i.toDouble() + 1, 0, 1, 5),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
@@ -97,7 +97,7 @@ class Spider extends SolitaireGame {
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(9, 0, 1, 1),
-            landscape: Rect.fromLTWH(11, 1.5, 1, 1),
+            landscape: Rect.fromLTWH(11, 2, 1, 1),
           ),
           showCount: LayoutProperty.all(true),
         ),

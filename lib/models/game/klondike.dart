@@ -32,7 +32,7 @@ class Klondike extends SolitaireGame {
       'klondike-draw-$numberOfDraws${vegasScoring ? '-vegas' : ''}';
 
   @override
-  LayoutProperty get tableSize {
+  LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(7, 6),
       landscape: Size(10, 4),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import '../action.dart';
 import '../card.dart';
 import '../pile.dart';
@@ -13,7 +15,7 @@ abstract class SolitaireGame {
 
   String get tag;
 
-  LayoutProperty get tableSize;
+  LayoutProperty<Size> get tableSize;
 
   Map<Pile, PileProperty> get piles;
 

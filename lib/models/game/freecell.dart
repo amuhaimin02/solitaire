@@ -26,7 +26,7 @@ class FreeCell extends SolitaireGame {
   String get tag => 'freecell-classic';
 
   @override
-  LayoutProperty get tableSize {
+  LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(8, 6),
       landscape: Size(11, 4),

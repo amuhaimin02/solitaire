@@ -16,7 +16,7 @@ class SolitaireDemo extends SolitaireGame {
   String get tag => 'demo';
 
   @override
-  LayoutProperty get tableSize {
+  LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(4, 3),
       landscape: Size(4, 3),
