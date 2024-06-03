@@ -111,7 +111,7 @@ class FreeCell extends SolitaireGame {
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(0, 0, 1, 1),
-            landscape: Rect.fromLTWH(0, 0, 1, 1),
+            landscape: Rect.fromLTWH(10, 0, 1, 1),
           ),
         ),
         virtual: true,

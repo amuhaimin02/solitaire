@@ -86,7 +86,7 @@ class CardThemeData with _$CardThemeData {
       labelAccentColor: cardLabelAccentColor,
       coverColor: colorScheme.primary,
       unitSize: const Size(2.5, 3.5),
-      margin: 0.03,
+      margin: 0.05,
       coverBorderPadding: 0.02,
       stackGap: const Offset(0.3, 0.3),
       cornerRadius: 0.1,

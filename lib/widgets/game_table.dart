@@ -732,19 +732,19 @@ class _CountIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return FractionalTranslation(
-      translation: const Offset(0, -1),
-      child: Align(
-        alignment: Alignment.bottomCenter,
+      translation: const Offset(0, -0.7),
+      child: Center(
         child: Shrinkable(
           show: count > 0,
           alignment: Alignment.bottomCenter,
           child: Container(
-            width: cardSize.shortestSide * 0.45,
-            height: cardSize.shortestSide * 0.45,
+            width: cardSize.shortestSide * 0.5,
+            height: cardSize.shortestSide * 0.5,
             // margin: EdgeInsets.all(layout.cardPadding),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.7),
+              color: colorScheme.inverseSurface,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -753,7 +753,7 @@ class _CountIndicator extends StatelessWidget {
               duration: cardMoveAnimation.duration * 1.5,
               curve: cardMoveAnimation.curve,
               style: TextStyle(
-                color: Colors.black,
+                color: colorScheme.onInverseSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: cardSize.shortestSide * 0.25,
                 height: 1,

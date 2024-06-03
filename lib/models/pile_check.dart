@@ -65,6 +65,22 @@ class CardsFollowRankOrder extends PileCheck {
   }
 }
 
+class CardsAreSameSuit extends PileCheck {
+  const CardsAreSameSuit();
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    final cardsOnPile = table.get(pile);
+
+    if (cardsOnPile.isEmpty) {
+      return false;
+    }
+
+    final referenceSuit = cardsOnPile.first.suit;
+    return cardsOnPile.every((c) => c.suit == referenceSuit);
+  }
+}
+
 class BuildupStartsWith extends PileCheck {
   const BuildupStartsWith({this.rank, this.suit});
 

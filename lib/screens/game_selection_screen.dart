@@ -256,6 +256,9 @@ class _GameSelectionDetail extends ConsumerWidget {
                           selectedGame,
                           randomSeed,
                         ),
+                        orientation: isInModal
+                            ? Orientation.portrait
+                            : Orientation.landscape,
                         fitEmptySpaces: true,
                         animateDistribute: false,
                         animateMovement: false,

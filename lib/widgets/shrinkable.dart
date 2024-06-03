@@ -23,7 +23,7 @@ class Shrinkable extends StatelessWidget {
       curve: standardAnimation.curve,
       scale: show ? 1.0 : 0.0,
       alignment: alignment,
-      child: show ? child : null,
+      child: child,
     );
   }
 }

@@ -26,7 +26,7 @@ import '../widgets/route_observer.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
-import 'game_menu_button.dart';
+import 'game_menu.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -53,7 +53,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           // Wait for animation to end, also for context to be initialized with theme
           Future.delayed(
             themeChangeAnimation.duration,
-            () => _showContinueToast(context, gameData),
+            () => _showContinueSnackBar(context, gameData),
           );
         }
 
@@ -225,7 +225,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  void _showContinueToast(BuildContext context, GameData data) {
+  void _showContinueSnackBar(BuildContext context, GameData data) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 

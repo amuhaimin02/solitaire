@@ -33,6 +33,11 @@ class GameMenuButton extends StatelessWidget {
         onTap: (context) => Navigator.pushNamed(context, '/settings'),
       ),
       _GameMenuOptions(
+        icon: Icons.leaderboard,
+        label: 'Statistics',
+        onTap: (context) => Navigator.pushNamed(context, '/statistics'),
+      ),
+      _GameMenuOptions(
         icon: Icons.help,
         label: 'Help',
         onTap: (context) => Navigator.pushNamed(context, '/help'),

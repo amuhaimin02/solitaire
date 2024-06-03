@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -91,6 +93,8 @@ class SolitaireApp extends ConsumerWidget {
       tooltipTheme: const TooltipThemeData(preferBelow: false),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        width: 400,
+        insetPadding: EdgeInsets.all(32),
       ),
     );
 
@@ -111,7 +115,7 @@ class SolitaireApp extends ConsumerWidget {
           '/select': (context) => const GameSelectionScreen(),
           '/theme': (context) => const ThemeScreen(),
           '/settings': (context) => const SettingsScreen(),
-          '/stats': (context) => const StatisticsScreen(),
+          '/statistics': (context) => const StatisticsScreen(),
           '/help': (context) => const HelpScreen(),
           '/about': (context) => const AboutScreen(),
         },

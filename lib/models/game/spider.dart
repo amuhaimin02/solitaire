@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import '../../utils/lists.dart';
 import '../action.dart';
 import 'solitaire.dart';
 
@@ -33,24 +34,31 @@ class Spider extends SolitaireGame {
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(10, 7),
-      landscape: Size(12, 5),
+      landscape: Size(11.5, 4),
     );
   }
 
   @override
   Map<Pile, PileProperty> get piles {
+    final setupDeck = switch (numberOfSuits) {
+      1 => const SetupNewDeck(count: 8, onlySuit: [Suit.spade]),
+      2 => const SetupNewDeck(count: 4, onlySuit: [Suit.spade, Suit.heart]),
+      4 => const SetupNewDeck(count: 2),
+      _ => throw ArgumentError('Number of suits can only be 1, 2 or 4')
+    };
+
     return {
       for (int i = 0; i < 8; i++)
         Foundation(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(0, i.toDouble() * 0.5 + 0.25, 1, 1),
+              landscape: Rect.fromLTWH(10.5, i.toDouble() * 0.25, 1, 1),
             ),
-            // showMarker: LayoutProperty(
-            //   portrait: true,
-            //   landscape: i == 0, // Only show marker on first foundation
-            // ),
+            showMarker: LayoutProperty(
+              portrait: true,
+              landscape: i == 0, // Only show marker on first foundation
+            ),
           ),
         ),
       for (int i = 0; i < 10; i++)
@@ -58,7 +66,7 @@ class Spider extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 5.7),
-              landscape: Rect.fromLTWH(i.toDouble() + 1, 0, 1, 5),
+              landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 4),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
@@ -70,6 +78,7 @@ class Spider extends SolitaireGame {
           pickable: const [
             CardsAreFacingUp(),
             CardsFollowRankOrder(RankOrder.decreasing),
+            CardsAreSameSuit(),
           ],
           placeable: const [
             CardsAreFacingUp(),
@@ -97,23 +106,20 @@ class Spider extends SolitaireGame {
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(9, 0, 1, 1),
-            landscape: Rect.fromLTWH(11, 2, 1, 1),
+            landscape: Rect.fromLTWH(10.5, 3, 1, 1),
           ),
           showCount: LayoutProperty.all(true),
         ),
         onStart: [
-          switch (numberOfSuits) {
-            1 => const SetupNewDeck(count: 8, onlySuit: [Suit.spade]),
-            2 =>
-              const SetupNewDeck(count: 4, onlySuit: [Suit.spade, Suit.heart]),
-            4 => const SetupNewDeck(count: 2),
-            _ => throw ArgumentError('Number of suits can only be 1, 2 or 4')
-          },
+          setupDeck,
           const FlipAllCardsFaceDown(),
         ],
         onTap: [
           const If(
-            conditions: [AllPilesOfTypeAreNotEmpty<Tableau>()],
+            conditions: [
+              PileIsNotEmpty(),
+              AllPilesOfTypeAreNotEmpty<Tableau>(),
+            ],
             ifTrue: [DistributeEquallyToAll<Tableau>(count: 1)],
           ),
         ],
@@ -129,7 +135,13 @@ class Spider extends SolitaireGame {
   @override
   Iterable<MoveIntent> quickMoveStrategy(
       Pile from, PlayCard card, PlayTable table) sync* {
-    for (final t in table.allTableauPiles.roll(from: from)) {
+    final tableau = table.allTableauPiles.roll(from: from).toList();
+
+    // Prioritize non-empty tableaus
+    final (nonEmptyTableaus, emptyTableaus) =
+        tableau.partition((t) => table.get(t).isEmpty);
+
+    for (final t in [...nonEmptyTableaus, ...emptyTableaus]) {
       yield MoveIntent(from, t, card);
     }
   }
