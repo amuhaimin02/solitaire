@@ -50,7 +50,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
         final gameData =
             await ref.read(gameStorageProvider.notifier).restoreQuickSave();
         if (mounted) {
-          _showContinueToast(context, gameData);
+          // Wait for animation to end, also for context to be initialized with theme
+          Future.delayed(
+            themeChangeAnimation.duration,
+            () => _showContinueToast(context, gameData),
+          );
         }
 
         ref.read(gameControllerProvider.notifier).restore(gameData);
@@ -254,7 +258,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       final game = ref.read(currentGameProvider);
       ref.read(gameControllerProvider.notifier).startNew(game.game);
     } else {
-      Navigator.pop(context);
+      // Navigator.pop(context);
     }
   }
 }
@@ -315,7 +319,7 @@ class _PlayArea extends ConsumerWidget {
                 final controller = ref.read(gameControllerProvider.notifier);
                 switch (pile) {
                   case Draw():
-                    controller.tryMove(const MoveIntent(Draw(), Discard()));
+                    controller.tryMove(const MoveIntent(Draw(), Draw()));
                     return null;
 
                   case Discard() || Foundation() || Reserve():

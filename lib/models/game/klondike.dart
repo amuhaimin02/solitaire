@@ -1,4 +1,5 @@
 import 'package:change_case/change_case.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../action.dart';
@@ -15,6 +16,10 @@ import 'solitaire.dart';
 class Klondike extends SolitaireGame {
   const Klondike({required this.numberOfDraws, this.vegasScoring = false});
 
+  final int numberOfDraws;
+
+  final bool vegasScoring;
+
   @override
   String get name =>
       'Klondike Draw $numberOfDraws${vegasScoring ? ' (Vegas)' : ''}';
@@ -25,10 +30,6 @@ class Klondike extends SolitaireGame {
   @override
   String get tag =>
       'klondike-draw-$numberOfDraws${vegasScoring ? '-vegas' : ''}';
-
-  final int numberOfDraws;
-
-  final bool vegasScoring;
 
   @override
   LayoutProperty get tableSize {
@@ -73,7 +74,7 @@ class Klondike extends SolitaireGame {
           onSetup: [
             PickCardsFrom(const Draw(), count: i + 1),
             const FlipAllCardsFaceDown(),
-            const FlipTopmostCardFaceUp(),
+            const FlipTopCardFaceUp(),
           ],
           pickable: const [
             CardsAreFacingUp(),
@@ -114,15 +115,16 @@ class Klondike extends SolitaireGame {
         placeable: const [
           RejectAll(),
         ],
-        onTap: const [
+        onTap: [
           If(
-            conditions: [PileIsEmpty()],
-            ifTrue: [Redeal(takeFrom: Discard())],
+            conditions: const [PileIsEmpty()],
+            ifTrue: const [Redeal(takeFrom: Discard())],
+            ifFalse: [DrawFromTop(to: const Discard(), count: numberOfDraws)],
           ),
         ],
-        makeMove: (move) => [
-          MoveMultipleFromTop(to: move.to, count: numberOfDraws),
-        ],
+        // makeMove: (move) => [
+        //   MoveMultipleFromTop(to: move.to, count: numberOfDraws),
+        // ],
       ),
       const Discard(): PileProperty(
         layout: const PileLayout(
@@ -146,18 +148,14 @@ class Klondike extends SolitaireGame {
         placeable: const [
           CardsComingFrom(Draw()),
         ],
-        onDrop: const [
-          FlipAllCardsFaceUp(),
-        ],
       ),
     };
   }
 
   @override
   bool winConditions(PlayTable table) {
-    return table.drawPile.isEmpty &&
-        table.discardPile.isEmpty &&
-        table.allTableauPiles.every((t) => table.get(t).isEmpty);
+    return table.allFoundationPiles.map((f) => table.get(f).length).sum >=
+        PlayCard.numberOfCardsInDeck;
   }
 
   @override

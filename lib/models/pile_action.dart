@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:xrandom/xrandom.dart';
 
 import '../services/card_shuffler.dart';
+import '../utils/prng.dart';
 import 'action.dart';
 import 'card.dart';
 import 'card_list.dart';
@@ -122,15 +123,23 @@ class If extends PileAction {
 // -------------------------------------------------------
 
 class SetupNewDeck extends PileAction {
-  const SetupNewDeck({this.count = 1});
+  const SetupNewDeck({this.count = 1, this.onlySuit});
 
   final int count;
+
+  final List<Suit>? onlySuit;
 
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     final existingCards = table.get(pile);
-    final newCards = const CardShuffler()
-        .generateShuffledDeck(Xrandom(metadata.randomSeed.hashCode));
+
+    final newCards = const CardShuffler().generateShuffledDeck(
+      numberOfDecks: count,
+      CustomPRNG.create(metadata.randomSeed),
+      criteria:
+          onlySuit != null ? (card) => onlySuit!.contains(card.suit) : null,
+    );
+
     return PileActionSuccess(
       table: table.modify(pile, [...existingCards, ...newCards]),
     );
@@ -159,21 +168,6 @@ class FlipAllCardsFaceDown extends PileAction {
   }
 }
 
-class FlipTopmostCardFaceUp extends PileAction {
-  const FlipTopmostCardFaceUp();
-
-  @override
-  PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
-    final cardsOnPile = table.get(pile);
-    return PileActionSuccess(
-      table: table.modify(pile, [
-        ...cardsOnPile.slice(0, cardsOnPile.length - 1),
-        cardsOnPile.last.faceUp()
-      ]),
-    );
-  }
-}
-
 class PickCardsFrom extends PileAction {
   const PickCardsFrom(this.fromPile, {required this.count});
 
@@ -184,15 +178,7 @@ class PickCardsFrom extends PileAction {
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     final cardsFromPile = table.get(fromPile);
-    final List<PlayCard> cardsToPick, remainingCards;
-    if (cardsFromPile.length >= count) {
-      cardsToPick = cardsFromPile.slice(
-          cardsFromPile.length - count, cardsFromPile.length);
-      remainingCards = cardsFromPile.slice(0, cardsFromPile.length - count);
-    } else {
-      cardsToPick = cardsFromPile;
-      remainingCards = [];
-    }
+    final (remainingCards, cardsToPick) = cardsFromPile.splitLast(count);
 
     return PileActionSuccess(
       table: table.modifyMultiple({
@@ -234,8 +220,8 @@ class MoveNormally extends PileAction {
   }
 }
 
-class MoveMultipleFromTop extends PileAction {
-  const MoveMultipleFromTop({
+class DrawFromTop extends PileAction {
+  const DrawFromTop({
     required this.to,
     required this.count,
   });
@@ -258,7 +244,7 @@ class MoveMultipleFromTop extends PileAction {
     return PileActionSuccess(
       table: table.modifyMultiple({
         pile: remainingCards,
-        to: [...table.get(to), ...cardsToPickUp]
+        to: [...table.get(to), ...cardsToPickUp.allFaceUp]
       }),
       move: Move(cardsToPickUp, pile, to),
     );
@@ -315,5 +301,57 @@ class ObtainScore extends PileAction {
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     return PileActionSuccess(table: table, scoreGained: 100);
+  }
+}
+
+class DistributeEquallyToAll<T extends Pile> extends PileAction {
+  const DistributeEquallyToAll({required this.count});
+
+  final int count;
+
+  @override
+  PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
+    final allPilesOfType = table.allPilesOfType<T>().toList();
+    final (remainingCards, cardsToDistribute) =
+        table.get(pile).splitLast(allPilesOfType.length);
+
+    // TODO: Support count more than 1
+    return PileActionSuccess(
+      table: table.modifyMultiple({
+        pile: remainingCards,
+        for (final (i, p) in allPilesOfType.indexed)
+          p: [...table.get(p), cardsToDistribute[i].faceUp()]
+      }),
+      // TODO: Change this
+      move: const Move([], Draw(), Draw()),
+    );
+  }
+}
+
+class SendToAnyEmptyPile<T extends Pile> extends PileAction {
+  const SendToAnyEmptyPile({required this.count});
+
+  final int count;
+
+  @override
+  PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
+    final allPilesOfType = table.allPilesOfType<T>().toList();
+
+    final (remainingCards, cardsToSend) = table.get(pile).splitLast(count);
+
+    for (final targetPile in allPilesOfType) {
+      final cardsOnPile = table.get(targetPile);
+
+      if (cardsOnPile.isEmpty) {
+        return PileActionSuccess(
+          table: table.modifyMultiple({
+            pile: remainingCards,
+            targetPile: [...cardsOnPile, ...cardsToSend]
+          }),
+        );
+      }
+    }
+
+    return const PileActionNoChange();
   }
 }

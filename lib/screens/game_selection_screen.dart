@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:xrandom/xrandom.dart';
 
 import '../animations.dart';
 import '../models/game/solitaire.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
 import '../services/play_table_generator.dart';
+import '../utils/prng.dart';
 import '../utils/widgets.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
@@ -223,6 +225,7 @@ class _GameSelectionDetail extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final selectedGame = ref.watch(selectedGameProvider);
+    final randomSeed = CustomPRNG.generateSeed(length: 12);
 
     if (selectedGame == null) {
       return EmptyScreen(
@@ -250,7 +253,9 @@ class _GameSelectionDetail extends ConsumerWidget {
                         key: ValueKey(selectedGame),
                         game: selectedGame,
                         table: PlayTableGenerator.generateSampleSetup(
-                            selectedGame),
+                          selectedGame,
+                          randomSeed,
+                        ),
                         fitEmptySpaces: true,
                         animateDistribute: false,
                         animateMovement: false,

@@ -40,6 +40,10 @@ class PlayTable {
     return UnmodifiableListView(cards);
   }
 
+  Iterable<T> allPilesOfType<T extends Pile>() {
+    return _allCards.keys.whereType<T>();
+  }
+
   Map<Pile, List<PlayCard>> get allCards => UnmodifiableMapView(_allCards);
 
   List<PlayCard> get drawPile => get(const Draw());

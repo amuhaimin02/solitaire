@@ -199,6 +199,15 @@ class RejectAll extends PileCheck {
   }
 }
 
+class AllPilesOfTypeAreNotEmpty<T extends Pile> extends PileCheck {
+  const AllPilesOfTypeAreNotEmpty();
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    return table.allPilesOfType<T>().every((p) => table.get(p).isNotEmpty);
+  }
+}
+
 /// http://www.solitairecentral.com/articles/FreecellPowerMovesExplained.html
 class FreeCellPowermove extends PileCheck {
   const FreeCellPowermove();
@@ -213,5 +222,25 @@ class FreeCellPowermove extends PileCheck {
     final movableCardsLength =
         (1 + numberOfEmptyReserves) * pow(2, numberOfEmptyTableaus);
     return cards.length <= movableCardsLength;
+  }
+}
+
+class PileHasFullSuit extends PileCheck {
+  const PileHasFullSuit(this.rankOrder);
+
+  final RankOrder rankOrder;
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    final cardsOnPile = table.get(pile).getLast(Rank.values.length);
+
+    if (cardsOnPile.length != Rank.values.length) {
+      return false;
+    }
+
+    return switch (rankOrder) {
+      RankOrder.increasing => cardsOnPile.isSortedByRankIncreasingOrder,
+      RankOrder.decreasing => cardsOnPile.isSortedByRankDecreasingOrder,
+    };
   }
 }

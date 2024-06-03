@@ -236,7 +236,7 @@ class GameController extends _$GameController {
 
     final targetPileInfo = game.game.piles.get(move.to);
 
-    if (move.from == move.to) {
+    if (move.from is! Draw && move.from == move.to) {
       return MoveForbidden('cannot move cards back to its pile', move);
     }
 
@@ -258,7 +258,7 @@ class GameController extends _$GameController {
 
     PileActionResult? result;
 
-    if (cardsToPick.isEmpty && originPileInfo.onTap != null) {
+    if (originPileInfo.onTap != null) {
       result = PileAction.run(
         originPileInfo.onTap,
         move.from,

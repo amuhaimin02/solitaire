@@ -4,11 +4,11 @@ import '../models/play_data.dart';
 import '../models/play_table.dart';
 
 class PlayTableGenerator {
-  static PlayTable generateSampleSetup(SolitaireGame game) {
+  static PlayTable generateSampleSetup(SolitaireGame game, String randomSeed) {
     final sampleMetadata = GameMetadata(
       game: game,
       startedTime: DateTime.now(),
-      randomSeed: '1',
+      randomSeed: randomSeed,
     );
 
     PlayTable table = PlayTable.fromGame(game);

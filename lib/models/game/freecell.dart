@@ -1,7 +1,8 @@
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
-import 'package:solitaire/models/game/solitaire.dart';
+import 'solitaire.dart';
 
 import '../action.dart';
 import '../card.dart';
@@ -35,19 +36,6 @@ class FreeCell extends SolitaireGame {
   @override
   Map<Pile, PileProperty> get piles {
     return {
-      const Draw(): PileProperty(
-        layout: const PileLayout(
-          region: LayoutProperty(
-            portrait: Rect.fromLTWH(0, 0, 1, 1),
-            landscape: Rect.fromLTWH(0, 0, 1, 1),
-          ),
-        ),
-        virtual: true,
-        onStart: const [
-          SetupNewDeck(count: 1),
-          FlipAllCardsFaceDown(),
-        ],
-      ),
       for (int i = 0; i < 4; i++)
         Foundation(i): PileProperty(
           layout: PileLayout(
@@ -119,13 +107,26 @@ class FreeCell extends SolitaireGame {
             PileIsEmpty(),
           ],
         ),
+      const Draw(): PileProperty(
+        layout: const PileLayout(
+          region: LayoutProperty(
+            portrait: Rect.fromLTWH(0, 0, 1, 1),
+            landscape: Rect.fromLTWH(0, 0, 1, 1),
+          ),
+        ),
+        virtual: true,
+        onStart: const [
+          SetupNewDeck(count: 1),
+          FlipAllCardsFaceDown(),
+        ],
+      ),
     };
   }
 
   @override
   bool winConditions(PlayTable table) {
-    return table.allTableauPiles.every((t) => table.get(t).isEmpty) &&
-        table.alLReservePiles.every((t) => table.get(t).isEmpty);
+    return table.allFoundationPiles.map((f) => table.get(f).length).sum >=
+        PlayCard.numberOfCardsInDeck;
   }
 
   @override
