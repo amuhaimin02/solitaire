@@ -10,7 +10,8 @@ part 'feedback.g.dart';
 @riverpod
 void feedback(FeedbackRef ref) {
   final lastAction = ref.watch(lastActionProvider);
-  print(lastAction);
+  final gameStatus = ref.watch(gameControllerProvider);
+  print('Status: $gameStatus, Feedback: $lastAction');
 
   final target = lastAction.move?.to;
 

@@ -244,8 +244,6 @@ class GameController extends _$GameController {
     final cardsInPile = table.get(move.from);
 
     final List<PlayCard> cardsToPick;
-    final Move? targetMove;
-
     if (cardToMove != null) {
       cardsToPick = cardsInPile.getLastFromCard(cardToMove);
     } else {
@@ -267,7 +265,7 @@ class GameController extends _$GameController {
       );
     }
 
-    if (result is! PileActionSuccess || result.move == null) {
+    if (result is! PileActionSuccess || result.action == null) {
       if (cardsToPick.isEmpty) {
         return MoveNotDone('No cards to pick', null, move.from);
       }
@@ -294,21 +292,15 @@ class GameController extends _$GameController {
       return MoveNotDone('Move result is not successful', null, move.from);
     }
 
-    table = result.table;
-    targetMove = result.move;
+    Action? targetAction = result.action;
 
-    if (targetMove == null) {
+    if (targetAction == null) {
       return MoveNotDone('No moves was made', null, move.from);
     }
-
-    if (originPileInfo.afterMove != null) {
-      result = PileAction.proceed(
-        result,
-        originPileInfo.afterMove,
-        move.from,
-        game,
-      );
+    if (targetAction is Deal) {
+      targetAction = targetAction.move;
     }
+
     if (targetPileInfo.onDrop != null) {
       result = PileAction.proceed(
         result,
@@ -317,11 +309,19 @@ class GameController extends _$GameController {
         game,
       );
     }
+    if (originPileInfo.afterMove != null) {
+      result = PileAction.proceed(
+        result,
+        originPileInfo.afterMove,
+        move.from,
+        game,
+      );
+    }
 
     if (doMove) {
       _doMoveCards(result, doPremove: doPreMove);
     }
-    return MoveSuccess(targetMove);
+    return MoveSuccess(targetAction as Move);
   }
 
   MoveResult tryQuickMove(PlayCard card, Pile from, {bool doMove = true}) {
@@ -440,7 +440,7 @@ class GameController extends _$GameController {
     }
 
     final updatedTable = result.table;
-    final move = result.move!;
+    final action = result.action!;
     final scoreGained = result.scoreGained;
 
     // Clear any hinted cards if any
@@ -455,7 +455,7 @@ class GameController extends _$GameController {
     ref.read(playTableStateProvider.notifier).update(updatedTable);
 
     // Add to move history
-    ref.read(moveHistoryProvider.notifier).add(move);
+    ref.read(moveHistoryProvider.notifier).add(action);
 
     // Check if the game is winning
     if (ref.read(isGameFinishedProvider)) {
@@ -507,14 +507,14 @@ class MoveHistory extends _$MoveHistory {
 
   void set(List<MoveRecord> records) => state = records;
 
-  void add(Move move) {
+  void add(Action action) {
     final table = ref.read(playTableStateProvider);
     final moves = ref.read(moveCountProvider);
     ref.read(moveCountProvider.notifier).forward();
-    ref.read(lastActionProvider.notifier).send(move);
+    ref.read(lastActionProvider.notifier).send(action);
     state = [
       ...state.getRange(0, moves + 1),
-      MoveRecord(action: move, table: table),
+      MoveRecord(action: action, table: table),
     ];
   }
 
@@ -532,7 +532,7 @@ class MoveHistory extends _$MoveHistory {
     final moves = ref.read(moveCountProvider.notifier);
 
     if (canUndo()) {
-      final currentMove = state[moves.state].action as Move;
+      final currentMove = state[moves.state].action;
       ref.read(lastActionProvider.notifier).send(Undo(currentMove));
       moves.reverse();
       final record = state[moves.state];
@@ -546,7 +546,7 @@ class MoveHistory extends _$MoveHistory {
     if (canRedo()) {
       moves.forward();
       final record = state[moves.state];
-      ref.read(lastActionProvider.notifier).send(Undo(record.action as Move));
+      ref.read(lastActionProvider.notifier).send(Undo(record.action));
       ref.read(playTableStateProvider.notifier).update(record.table);
     }
   }

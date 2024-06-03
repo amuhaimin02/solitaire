@@ -143,6 +143,10 @@ class ActionSerializer implements Serializer<Action> {
         final toString = const PileSerializer().serialize(to);
         final cardsString = const PlayCardListSerializer().serialize(cards);
         return 'MV:$fromString:$toString:$cardsString';
+      case Deal(:final cards, :final pile):
+        final pileString = const PileSerializer().serialize(pile);
+        final cardsString = const PlayCardListSerializer().serialize(cards);
+        return 'DL:$pileString:$cardsString';
       default:
         throw ArgumentError('Cannot save this action: $action');
     }
@@ -159,6 +163,12 @@ class ActionSerializer implements Serializer<Action> {
           const PlayCardListSerializer().deserialize(cards),
           const PileSerializer().deserialize(from),
           const PileSerializer().deserialize(to),
+        );
+      case 'DL':
+        final [_, pile, cards] = raw.split(':');
+        return Deal(
+          const PlayCardListSerializer().deserialize(cards),
+          const PileSerializer().deserialize(pile),
         );
       default:
         throw ArgumentError('Invalid action token: $raw');

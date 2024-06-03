@@ -22,18 +22,18 @@ abstract class PileAction {
       return const PileActionNoChange();
     }
 
-    Move? move;
+    Action? action;
     int? score;
 
     for (final item in actions) {
       final result = item.action(pile, table, metadata);
       switch (result) {
         case (PileActionSuccess()):
-          if (result.move != null) {
-            if (move != null) {
+          if (result.action != null) {
+            if (action != null) {
               throw StateError('Move is already assigned');
             }
-            move = result.move;
+            action = result.action;
           }
           table = result.table;
           if (result.scoreGained != null) {
@@ -43,7 +43,7 @@ abstract class PileAction {
       }
     }
 
-    return PileActionSuccess(table: table, move: move, scoreGained: score);
+    return PileActionSuccess(table: table, action: action, scoreGained: score);
   }
 
   static PileActionResult proceed(PileActionResult pastResult,
@@ -53,18 +53,18 @@ abstract class PileAction {
     }
     PlayTable table = pastResult.table;
     int? scoreGained = pastResult.scoreGained;
-    Move? move = pastResult.move;
+    Action? action = pastResult.action;
 
     final currentResult = PileAction.run(actions, pile, table, metadata);
 
     if (currentResult is PileActionSuccess) {
       table = currentResult.table;
 
-      if (currentResult.move != null) {
-        if (move != null) {
-          throw StateError('Move is already assigned');
+      if (currentResult.action != null) {
+        if (action != null) {
+          throw StateError('Action is already assigned');
         }
-        move = currentResult.move;
+        action = currentResult.action;
       }
 
       if (currentResult.scoreGained != null) {
@@ -74,7 +74,7 @@ abstract class PileAction {
     return PileActionSuccess(
       table: table,
       scoreGained: scoreGained,
-      move: move,
+      action: action,
     );
   }
 }
@@ -84,10 +84,10 @@ sealed class PileActionResult {
 }
 
 class PileActionSuccess extends PileActionResult {
-  const PileActionSuccess({required this.table, this.move, this.scoreGained});
+  const PileActionSuccess({required this.table, this.action, this.scoreGained});
 
   final PlayTable table;
-  final Move? move;
+  final Action? action;
   final int? scoreGained;
 }
 
@@ -214,7 +214,7 @@ class MoveNormally extends PileAction {
         pile: remainingCards,
         to: [...table.get(to), ...cardsToPickUp]
       }),
-      move: Move(cardsToPickUp, pile, to),
+      action: Move(cardsToPickUp, pile, to),
       scoreGained: 1,
     );
   }
@@ -246,26 +246,27 @@ class DrawFromTop extends PileAction {
         pile: remainingCards,
         to: [...table.get(to), ...cardsToPickUp.allFaceUp]
       }),
-      move: Move(cardsToPickUp, pile, to),
+      action: Move(cardsToPickUp, pile, to),
     );
   }
 }
 
-class Redeal extends PileAction {
-  const Redeal({required this.takeFrom});
+class RecyclePile extends PileAction {
+  const RecyclePile({required this.takeFrom});
   final Pile takeFrom;
 
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
+    final cardsToRecycle = table.get(takeFrom).reversed.toList();
     return PileActionSuccess(
       table: table.modifyMultiple({
         takeFrom: [],
         pile: [
           ...table.get(pile),
-          ...table.get(takeFrom).reversed,
-        ].allFaceDown,
+          ...cardsToRecycle.allFaceDown,
+        ],
       }),
-      move: Move([], takeFrom, pile),
+      action: Deal(cardsToRecycle, pile),
     );
   }
 }
@@ -323,7 +324,7 @@ class DistributeEquallyToAll<T extends Pile> extends PileAction {
           p: [...table.get(p), cardsToDistribute[i].faceUp()]
       }),
       // TODO: Change this
-      move: const Move([], Draw(), Draw()),
+      action: Deal(cardsToDistribute, pile),
     );
   }
 }

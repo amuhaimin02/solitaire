@@ -118,7 +118,7 @@ class Klondike extends SolitaireGame {
         onTap: [
           If(
             conditions: const [PileIsEmpty()],
-            ifTrue: const [Redeal(takeFrom: Discard())],
+            ifTrue: const [RecyclePile(takeFrom: Discard())],
             ifFalse: [DrawFromTop(to: const Discard(), count: numberOfDraws)],
           ),
         ],
