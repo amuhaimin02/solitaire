@@ -240,6 +240,8 @@ class _GameSelectionDetail extends ConsumerWidget {
             children: [
               Builder(
                 builder: (context) {
+                  final isInModal = !TwoPane.of(context).isActive;
+
                   final gameTableWidget = Container(
                     color: SolitaireTheme.of(context).backgroundColor,
                     padding: const EdgeInsets.all(32),
@@ -256,10 +258,10 @@ class _GameSelectionDetail extends ConsumerWidget {
                       ),
                     ),
                   );
-                  if (TwoPane.of(context).isActive) {
-                    return Expanded(child: gameTableWidget);
-                  } else {
+                  if (isInModal) {
                     return gameTableWidget;
+                  } else {
+                    return Expanded(child: gameTableWidget);
                   }
                 },
               ),

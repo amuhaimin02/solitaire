@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/rendering.dart';
 import 'package:solitaire/models/game/solitaire.dart';
 
 import '../action.dart';
@@ -84,11 +85,11 @@ class FreeCell extends SolitaireGame {
             CardsFollowRankOrder(RankOrder.decreasing),
           ],
           placeable: const [
-            CardsNotComingFrom(Draw()),
             CardsAreFacingUp(),
             BuildupStartsWith(rank: Rank.king),
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupAlternateColors(),
+            FreeCellPowermove(),
           ],
           afterMove: const [
             If(
@@ -136,13 +137,13 @@ class FreeCell extends SolitaireGame {
       }
     }
 
-    if (from is Tableau) {
+    for (final t in table.allTableauPiles.roll(from: from)) {
+      yield MoveIntent(from, t, card);
+    }
+
+    if (from is! Reserve) {
       for (final r in table.alLReservePiles.roll(from: from)) {
         yield MoveIntent(from, r, card);
-      }
-    } else if (from is Reserve) {
-      for (final t in table.allTableauPiles.roll(from: from)) {
-        yield MoveIntent(from, t, card);
       }
     }
   }

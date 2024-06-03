@@ -8,6 +8,7 @@ import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
 import '../models/pile_check.dart';
+import '../models/play_data.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
@@ -45,11 +46,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _startGame() {
     Future.microtask(() async {
       if (await ref.read(gameStorageProvider.notifier).hasQuickSave()) {
+        // Continue with last opened game
         final gameData =
             await ref.read(gameStorageProvider.notifier).restoreQuickSave();
+        if (mounted) {
+          _showContinueToast(context, gameData);
+        }
+
         ref.read(gameControllerProvider.notifier).restore(gameData);
       } else {
-        // Continue with last opened game
         ref.read(gameControllerProvider.notifier).startNew(
               ref.read(allSolitaireGamesProvider).first,
             );
@@ -214,6 +219,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
         ),
       ),
     );
+  }
+
+  void _showContinueToast(BuildContext context, GameData data) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Continuing last game'),
+          Text(
+            data.metadata.game.name,
+            style: textTheme.titleMedium!
+                .copyWith(color: colorScheme.inversePrimary),
+          ),
+        ],
+      ),
+      showCloseIcon: true,
+    ));
   }
 
   Future<void> _showFinishDialog(BuildContext context) async {

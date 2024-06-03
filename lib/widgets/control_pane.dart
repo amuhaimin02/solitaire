@@ -35,7 +35,13 @@ class ControlPane extends ConsumerWidget {
       IconButton(
         tooltip: 'Hint',
         onPressed: () {
-          ref.read(gameControllerProvider.notifier).highlightHints();
+          final hasMoves =
+              ref.read(gameControllerProvider.notifier).highlightHints();
+          if (!hasMoves) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No moves available')),
+            );
+          }
         },
         icon: const Icon(Icons.lightbulb, size: 24),
       ),

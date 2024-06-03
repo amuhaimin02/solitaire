@@ -203,7 +203,7 @@ class GameController extends _$GameController {
     state = GameStatus.started;
   }
 
-  void highlightHints() {
+  bool highlightHints() {
     final table = ref.read(playTableStateProvider);
 
     final movableCards = <PlayCard>[];
@@ -219,7 +219,12 @@ class GameController extends _$GameController {
       }
     }
 
-    ref.read(hintedCardsProvider.notifier).highlight(movableCards);
+    if (movableCards.isNotEmpty) {
+      ref.read(hintedCardsProvider.notifier).highlight(movableCards);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   MoveResult tryMove(MoveIntent move,
@@ -251,16 +256,18 @@ class GameController extends _$GameController {
       }
     }
 
-    PileActionResult result;
+    PileActionResult? result;
 
-    if (cardsToPick.isEmpty && originPileInfo.ifEmpty != null) {
+    if (cardsToPick.isEmpty && originPileInfo.onTap != null) {
       result = PileAction.run(
-        originPileInfo.ifEmpty,
+        originPileInfo.onTap,
         move.from,
         table,
         game,
       );
-    } else {
+    }
+
+    if (result is! PileActionSuccess || result.move == null) {
       if (cardsToPick.isEmpty) {
         return MoveNotDone('No cards to pick', null, move.from);
       }
@@ -274,7 +281,6 @@ class GameController extends _$GameController {
           targetPileInfo.placeable, move.to, move.from, cardsToPick, table)) {
         return MoveForbidden('cannot place the card(s) on ${move.to}', move);
       }
-
       result = PileAction.run(
         originPileInfo.makeMove?.call(move) ??
             [MoveNormally(to: move.to, cards: cardsToPick)],
@@ -284,7 +290,7 @@ class GameController extends _$GameController {
       );
     }
 
-    if (result is! PileActionSuccess) {
+    if (result == null || result is! PileActionSuccess) {
       return MoveNotDone('Move result is not successful', null, move.from);
     }
 
@@ -323,7 +329,7 @@ class GameController extends _$GameController {
     final table = ref.read(playTableStateProvider);
 
     for (final move in game.game.quickMoveStrategy(from, card, table)) {
-      final result = tryMove(move);
+      final result = tryMove(move, doMove: doMove);
       if (result is MoveSuccess) {
         return result;
       }

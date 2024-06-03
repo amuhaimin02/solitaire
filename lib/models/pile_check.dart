@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import '../utils/lists.dart';
 import 'card.dart';
 import 'card_list.dart';
 import 'pile.dart';
@@ -184,5 +187,31 @@ class PileOnTopIsFacingDown extends PileCheck {
   bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
     return cardsOnPile.isNotEmpty && cardsOnPile.last.isFacingDown;
+  }
+}
+
+class RejectAll extends PileCheck {
+  const RejectAll();
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    return false;
+  }
+}
+
+/// http://www.solitairecentral.com/articles/FreecellPowerMovesExplained.html
+class FreeCellPowermove extends PileCheck {
+  const FreeCellPowermove();
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    final numberOfEmptyTableaus = table.allTableauPiles
+        .count((t) => t != pile && table.get(pile).isEmpty);
+    final numberOfEmptyReserves =
+        table.alLReservePiles.count((r) => table.get(r).isEmpty);
+
+    final movableCardsLength =
+        (1 + numberOfEmptyReserves) * pow(2, numberOfEmptyTableaus);
+    return cards.length <= movableCardsLength;
   }
 }

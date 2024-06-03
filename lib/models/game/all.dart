@@ -1,9 +1,10 @@
 import 'freecell.dart';
 import 'klondike.dart';
 
-final solitaireGamesList = [
-  for (final scoring in KlondikeScoring.values)
-    for (final draws in [1, 3])
-      Klondike(numberOfDraws: draws, scoring: scoring),
-  const FreeCell(),
+const solitaireGamesList = [
+  Klondike(numberOfDraws: 1, vegasScoring: false),
+  Klondike(numberOfDraws: 3, vegasScoring: false),
+  Klondike(numberOfDraws: 1, vegasScoring: true),
+  Klondike(numberOfDraws: 3, vegasScoring: true),
+  FreeCell(),
 ];

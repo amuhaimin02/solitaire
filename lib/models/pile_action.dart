@@ -97,25 +97,24 @@ class PileActionNoChange extends PileActionResult {
 class If extends PileAction {
   const If({
     required this.conditions,
-    required this.ifTrue,
+    this.ifTrue,
     this.ifFalse,
   });
 
   final List<PileCheck> conditions;
-  final List<PileAction> ifTrue;
+  final List<PileAction>? ifTrue;
   final List<PileAction>? ifFalse;
 
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     // TODO: Where to obtain the remaining param?
-    if (PileCheck.checkAll(conditions, pile, null, [], table)) {
+    final condition = PileCheck.checkAll(conditions, pile, null, [], table);
+    if (condition && ifTrue != null) {
       return PileAction.run(ifTrue, pile, table, metadata);
+    } else if (!condition && ifFalse != null) {
+      return PileAction.run(ifFalse, pile, table, metadata);
     } else {
-      if (ifFalse != null) {
-        return PileAction.run(ifFalse, pile, table, metadata);
-      } else {
-        return const PileActionNoChange();
-      }
+      return const PileActionNoChange();
     }
   }
 }

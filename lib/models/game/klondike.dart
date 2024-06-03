@@ -12,33 +12,23 @@ import '../pile_property.dart';
 import '../play_table.dart';
 import 'solitaire.dart';
 
-enum KlondikeScoring {
-  standard('Standard'),
-  vegas('Vegas'),
-  cumulativeVegas('Cumulative Vegas');
-
-  final String fullName;
-
-  const KlondikeScoring(this.fullName);
-}
-
 class Klondike extends SolitaireGame {
-  const Klondike({required this.numberOfDraws, required this.scoring});
+  const Klondike({required this.numberOfDraws, this.vegasScoring = false});
 
   @override
   String get name =>
-      'Klondike ${scoring.fullName}, $numberOfDraws draw${numberOfDraws != 1 ? 's' : ''}';
+      'Klondike Draw $numberOfDraws${vegasScoring ? ' (Vegas)' : ''}';
 
   @override
   String get family => 'Klondike';
 
   @override
   String get tag =>
-      'klondike-$numberOfDraws-draw-${scoring.name.toParamCase()}';
+      'klondike-draw-$numberOfDraws${vegasScoring ? '-vegas' : ''}';
 
   final int numberOfDraws;
 
-  final KlondikeScoring scoring;
+  final bool vegasScoring;
 
   @override
   LayoutProperty get tableSize {
@@ -122,14 +112,13 @@ class Klondike extends SolitaireGame {
           CardIsOnTop(),
         ],
         placeable: const [
-          PileIsEmpty(),
-          CardsComingFrom(Discard()),
+          RejectAll(),
         ],
-        ifEmpty: const [
-          Redeal(takeFrom: Discard()),
-        ],
-        onDrop: const [
-          Redeal(takeFrom: Discard()),
+        onTap: const [
+          If(
+            conditions: [PileIsEmpty()],
+            ifTrue: [Redeal(takeFrom: Discard())],
+          ),
         ],
         makeMove: (move) => [
           MoveMultipleFromTop(to: move.to, count: numberOfDraws),

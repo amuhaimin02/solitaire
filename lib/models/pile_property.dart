@@ -12,7 +12,7 @@ class PileProperty {
     this.onSetup,
     this.pickable,
     this.placeable,
-    this.ifEmpty,
+    this.onTap,
     this.makeMove,
     this.onDrop,
     this.afterMove,
@@ -29,7 +29,7 @@ class PileProperty {
 
   List<PileCheck>? placeable;
 
-  List<PileAction>? ifEmpty;
+  List<PileAction>? onTap;
 
   List<PileAction>? onDrop;
 

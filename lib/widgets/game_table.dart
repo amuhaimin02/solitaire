@@ -92,8 +92,10 @@ class _GameTableState extends State<GameTable> {
     _resolvePiles();
   }
 
+  Map<Pile, PileProperty> get _allPiles => widget.game.piles;
+
   void _resolvePiles() {
-    _resolvedRegion = widget.game.piles.map((pile, prop) =>
+    _resolvedRegion = _allPiles.map((pile, prop) =>
         MapEntry(pile, prop.layout.region.resolve(widget.orientation)));
   }
 
@@ -137,7 +139,7 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildMarkerLayer(BuildContext context, Size gridUnit) {
     Rect computeMarkerPlacement(Pile pile) {
-      final layout = widget.game.piles.get(pile).layout;
+      final layout = _allPiles.get(pile).layout;
       final region = _resolvedRegion.get(pile);
       final shiftStack =
           layout.shiftStack?.resolve(widget.orientation) ?? false;
@@ -156,7 +158,7 @@ class _GameTableState extends State<GameTable> {
 
     return Stack(
       children: [
-        for (final item in widget.game.piles.entries)
+        for (final item in _allPiles.entries)
           if (!item.value.virtual &&
               item.value.layout.showMarker?.resolve(widget.orientation) !=
                   false)
@@ -196,8 +198,12 @@ class _GameTableState extends State<GameTable> {
     void onPointerUp(PointerUpEvent event) {
       final point = _convertToGrid(event.localPosition, gridUnit);
 
-      final dropPile = widget.game.piles.keys.firstWhereOrNull(
-          (pile) => _resolvedRegion.get(pile).contains(point));
+      // Find pile belonging to the region, also ignore virtual ones
+      final dropPile = _allPiles.keys.firstWhereOrNull(
+        (pile) =>
+            !_allPiles.get(pile).virtual &&
+            _resolvedRegion.get(pile).contains(point),
+      );
 
       if (dropPile != null) {
         if (_touchingCards != null &&
@@ -260,7 +266,7 @@ class _GameTableState extends State<GameTable> {
         children: [
           ...sortCardWidgets(
             [
-              for (final pile in widget.game.piles.keys)
+              for (final pile in _allPiles.keys)
                 ..._buildPile(context, gridUnit, pile),
             ],
           ),
@@ -272,7 +278,7 @@ class _GameTableState extends State<GameTable> {
   Widget _buildOverlayLayer(BuildContext context, Size gridUnit) {
     return Stack(
       children: [
-        for (final item in widget.game.piles.entries)
+        for (final item in _allPiles.entries)
           if (item.value.layout.showCount?.resolve(widget.orientation) == true)
             Positioned.fromRect(
               rect: Rect.fromLTWH(_resolvedRegion.get(item.key).left,
@@ -290,7 +296,7 @@ class _GameTableState extends State<GameTable> {
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
     final theme = SolitaireTheme.of(context);
 
-    final layout = widget.game.piles.get(pile).layout;
+    final layout = _allPiles.get(pile).layout;
     final region = _resolvedRegion.get(pile);
     final stackDirection =
         layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
@@ -488,10 +494,12 @@ class _GameTableState extends State<GameTable> {
 
     // Adjust spacing to fill in the parent region
     final consumedSpace = points.last;
-    if (consumedSpace.dx > (region.width - 1) &&
+    if (consumedSpace.dx > (region.width - 1) ||
         consumedSpace.dy > (region.height - 1)) {
-      final ratioX = consumedSpace.dx / (region.width - 1);
-      final ratioY = consumedSpace.dy / (region.height - 1);
+      final ratioX =
+          consumedSpace.dx > 0 ? consumedSpace.dx / (region.width - 1) : 1;
+      final ratioY =
+          consumedSpace.dy > 0 ? consumedSpace.dy / (region.height - 1) : 1;
       final adjustedPoints =
           points.map((p) => p.scale(1 / ratioX, 1 / ratioY)).toList();
       return adjustedPoints;
@@ -504,7 +512,7 @@ class _GameTableState extends State<GameTable> {
     var maxWidth = 0.0;
     var maxHeight = 0.0;
 
-    for (final item in widget.game.piles.entries) {
+    for (final item in _allPiles.entries) {
       final layout = item.value.layout;
       final region = _resolvedRegion.get(item.key);
 
@@ -544,7 +552,7 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
-    if (widget.game.piles.get(pile).virtual) {
+    if (_allPiles.get(pile).virtual) {
       return;
     }
 
@@ -555,7 +563,7 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onCardDrop(BuildContext context, PlayCard card, Pile from, Pile to) {
-    if (widget.game.piles.get(to).virtual) {
+    if (_allPiles.get(to).virtual) {
       return;
     }
 
@@ -566,7 +574,7 @@ class _GameTableState extends State<GameTable> {
   }
 
   void _onPileTap(BuildContext context, Pile pile) {
-    if (widget.game.piles.get(pile).virtual) {
+    if (_allPiles.get(pile).virtual) {
       return;
     }
     widget.onPileTap?.call(pile);
