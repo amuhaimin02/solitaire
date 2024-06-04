@@ -133,7 +133,14 @@ class PlayTableState extends _$PlayTableState {
 @riverpod
 class GameController extends _$GameController {
   @override
-  GameStatus build() => GameStatus.ready;
+  GameStatus build() {
+    ref.listenSelf((_, newStatus) {
+      if (newStatus == GameStatus.finished) {
+        ref.read(playTimeProvider.notifier).pause();
+      }
+    });
+    return GameStatus.ready;
+  }
 
   Future<void> startNew(SolitaireGame game) async {
     // Prepare a new game to start
@@ -262,7 +269,7 @@ class GameController extends _$GameController {
       );
     } else {
       if (move.from == move.to) {
-        return MoveForbidden('cannot move cards back to its pile', move);
+        return MoveForbidden('Cannot move cards back to its pile', move);
       }
 
       if (result is! PileActionHandled || result.action == null) {
@@ -270,15 +277,21 @@ class GameController extends _$GameController {
           return MoveNotDone('No cards to pick', null, move.from);
         }
 
-        if (!PileCheck.checkAll(
-            originPileInfo.pickable, move.from, null, cardsToPick, table)) {
+        final canPickResult = PileCheck.checkAll(
+            originPileInfo.pickable, move.from, null, cardsToPick, table);
+        if (canPickResult is PileCheckFail) {
           return MoveForbidden(
-              'cannot pick the card(s) from ${move.from}', move);
+              'Cannot pick the card(s) from ${move.from}\n${canPickResult.reason.runtimeType}',
+              move);
         }
 
-        if (!PileCheck.checkAll(
-            targetPileInfo.placeable, move.to, move.from, cardsToPick, table)) {
-          return MoveForbidden('cannot place the card(s) on ${move.to}', move);
+        final canPlaceResult = PileCheck.checkAll(
+            targetPileInfo.placeable, move.to, move.from, cardsToPick, table);
+
+        if (canPlaceResult is PileCheckFail) {
+          return MoveForbidden(
+              'Cannot place the card(s) on ${move.to}\n${canPlaceResult.reason.runtimeType}',
+              move);
         }
 
         result = PileAction.run(

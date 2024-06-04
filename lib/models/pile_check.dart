@@ -13,11 +13,32 @@ abstract class PileCheck {
 
   bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table);
 
-  static bool checkAll(List<PileCheck>? checks, Pile pile, Pile? from,
-      List<PlayCard> cards, PlayTable table) {
-    return checks?.every((item) => item.check(pile, from, cards, table)) ==
-        true;
+  static PileCheckResult checkAll(List<PileCheck>? checks, Pile pile,
+      Pile? from, List<PlayCard> cards, PlayTable table) {
+    if (checks == null) {
+      return const PileCheckFail(reason: null);
+    }
+    for (final item in checks) {
+      if (!item.check(pile, from, cards, table)) {
+        return PileCheckFail(reason: item);
+      }
+    }
+    return const PileCheckOK();
   }
+}
+
+sealed class PileCheckResult {
+  const PileCheckResult();
+}
+
+class PileCheckOK extends PileCheckResult {
+  const PileCheckOK();
+}
+
+class PileCheckFail extends PileCheckResult {
+  const PileCheckFail({required this.reason});
+
+  final PileCheck? reason;
 }
 
 class CardsAreFacingUp extends PileCheck {
@@ -76,8 +97,8 @@ class CardsAreSameSuit extends PileCheck {
       return false;
     }
 
-    final referenceSuit = cardsOnPile.first.suit;
-    return cardsOnPile.every((c) => c.suit == referenceSuit);
+    final referenceSuit = cardsOnPile.last.suit;
+    return cards.every((c) => c.suit == referenceSuit);
   }
 }
 

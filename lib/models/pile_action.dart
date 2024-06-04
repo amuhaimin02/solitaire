@@ -119,9 +119,9 @@ class If extends PileAction {
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     // TODO: Where to obtain the remaining param?
     final cond = PileCheck.checkAll(condition, pile, null, [], table);
-    if (cond && ifTrue != null) {
+    if (cond is PileCheckOK && ifTrue != null) {
       return PileAction.run(ifTrue, pile, table, metadata);
-    } else if (!cond && ifFalse != null) {
+    } else if (cond is PileCheckFail && ifFalse != null) {
       return PileAction.run(ifFalse, pile, table, metadata);
     } else {
       return PileActionNoChange(table: table);

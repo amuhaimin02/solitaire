@@ -312,6 +312,7 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildOverlayLayer(BuildContext context, Size gridUnit) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         for (final item in _allPiles.entries)
           if (item.value.layout.showCount?.resolve(widget.orientation) == true)
@@ -731,8 +732,9 @@ class _CountIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return FractionalTranslation(
-      translation: const Offset(0, -0.7),
-      child: Center(
+      translation: const Offset(0, -1),
+      child: Align(
+        alignment: Alignment.bottomCenter,
         child: Shrinkable(
           show: count > 0,
           alignment: Alignment.bottomCenter,

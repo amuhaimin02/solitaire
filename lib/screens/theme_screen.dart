@@ -162,32 +162,23 @@ class _SettingsList extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Column(
                       children: [
-                        CheckboxListTile(
+                        SwitchListTile(
                           title: const Text('Random color'),
                           secondary: const Icon(Icons.shuffle),
                           subtitle: const Text(
-                              'Color changes every time new game starts'),
+                              'Change color when starting a new game'),
                           value: randomizeColor,
                           onChanged: (value) {
-                            if (value == true) {
-                              ref
-                                  .read(
-                                      themeBaseRandomizeColorProvider.notifier)
-                                  .set(true);
-                            }
+                            ref
+                                .read(themeBaseRandomizeColorProvider.notifier)
+                                .toggle();
                           },
                         ),
                         const SizedBox(height: 8),
                         _ColorSelectionTile(
-                          value: randomizeColor ? null : themeColor,
+                          value: themeColor,
                           options: themeColorPalette,
                           onTap: (color) {
-                            if (randomizeColor) {
-                              ref
-                                  .read(
-                                      themeBaseRandomizeColorProvider.notifier)
-                                  .set(false);
-                            }
                             ref
                                 .read(themeBaseColorProvider.notifier)
                                 .set(color);

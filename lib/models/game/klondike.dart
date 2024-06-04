@@ -54,7 +54,6 @@ class Klondike extends SolitaireGame {
             CardIsOnTop(),
           ],
           placeable: const [
-            CardsNotComingFrom(Draw()),
             CardIsSingle(),
             CardsAreFacingUp(),
             BuildupStartsWith(rank: Rank.ace),
@@ -81,7 +80,6 @@ class Klondike extends SolitaireGame {
             CardsFollowRankOrder(RankOrder.decreasing),
           ],
           placeable: const [
-            CardsNotComingFrom(Draw()),
             CardsAreFacingUp(),
             BuildupStartsWith(rank: Rank.king),
             BuildupFollowsRankOrder(RankOrder.decreasing),
@@ -109,12 +107,6 @@ class Klondike extends SolitaireGame {
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
         ],
-        pickable: const [
-          CardIsOnTop(),
-        ],
-        placeable: const [
-          RejectAll(),
-        ],
         onTap: [
           If(
             condition: const [PileIsEmpty()],
@@ -122,9 +114,6 @@ class Klondike extends SolitaireGame {
             ifFalse: [DrawFromTop(to: const Discard(), count: numberOfDraws)],
           ),
         ],
-        // makeMove: (move) => [
-        //   MoveMultipleFromTop(to: move.to, count: numberOfDraws),
-        // ],
       ),
       const Discard(): PileProperty(
         layout: const PileLayout(
@@ -144,9 +133,6 @@ class Klondike extends SolitaireGame {
         ),
         pickable: const [
           CardIsOnTop(),
-        ],
-        placeable: const [
-          CardsComingFrom(Draw()),
         ],
       ),
     };
@@ -214,6 +200,6 @@ class Klondike extends SolitaireGame {
         }
       }
     }
-    yield const MoveIntent(Draw(), Discard());
+    yield const MoveIntent(Draw(), Draw());
   }
 }

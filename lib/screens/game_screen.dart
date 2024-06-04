@@ -285,8 +285,6 @@ class _PlayArea extends ConsumerWidget {
         final showAutoSolveButton =
             ref.watch(settingsShowAutoSolveButtonProvider);
 
-        final oneTapMove = ref.watch(settingsUseOneTapMoveProvider);
-
         List<PlayCard>? lastMovedCards;
 
         if (showLastMoves) {
@@ -310,7 +308,7 @@ class _PlayArea extends ConsumerWidget {
                 final pileInfo = game.game.piles.get(from);
 
                 return PileCheck.checkAll(
-                    pileInfo.pickable, from, null, cards, table);
+                    pileInfo.pickable, from, null, cards, table) is PileCheckOK;
               },
               onCardTap: (card, pile) {
                 final controller = ref.read(gameControllerProvider.notifier);
@@ -318,6 +316,7 @@ class _PlayArea extends ConsumerWidget {
                 return result is MoveSuccess ? null : [card];
               },
               onPileTap: (pile) {
+                ScaffoldMessenger.of(context).clearSnackBars();
                 final controller = ref.read(gameControllerProvider.notifier);
                 final pileInfo = game.game.piles.get(pile);
 
@@ -329,9 +328,12 @@ class _PlayArea extends ConsumerWidget {
               onCardDrop: (card, from, to) {
                 final controller = ref.read(gameControllerProvider.notifier);
 
-                controller.tryMove(
-                  MoveIntent(from, to, card),
-                );
+                final result = controller.tryMove(MoveIntent(from, to, card));
+
+                ScaffoldMessenger.of(context).clearSnackBars();
+                if (result is MoveForbidden) {
+                  _showMoveForbiddenPopup(context, result);
+                }
                 return null;
               },
             ),
@@ -349,6 +351,18 @@ class _PlayArea extends ConsumerWidget {
         );
       },
     );
+  }
+
+  void _showMoveForbiddenPopup(BuildContext context, MoveForbidden move) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        move.reason,
+        style: TextStyle(color: colorScheme.onError),
+      ),
+      backgroundColor: colorScheme.error,
+    ));
   }
 }
 

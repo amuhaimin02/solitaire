@@ -35,8 +35,6 @@ class PopupButton extends StatelessWidget {
     final buttonPosition = context.globalPaintBounds!;
     HapticFeedback.mediumImpact();
 
-    final orientation = MediaQuery.of(context).orientation;
-
     final screenSize = MediaQuery.of(context).size;
     final screenCenter = screenSize.center(Offset.zero);
 
@@ -86,16 +84,20 @@ class PopupButton extends StatelessWidget {
                       vertical: buttonPosition.size.height / 2,
                       horizontal: buttonPosition.size.width / 2,
                     ),
-                    width: 240,
+                    width: 250,
                     alignment: popupAlignment,
                     child: Material(
                       elevation: 24,
                       borderRadius: BorderRadius.circular(16),
                       clipBehavior: Clip.antiAlias,
-                      child: ListView(
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        children: builder(context, dismiss),
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        child: ListView(
+                          primary: true,
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          children: builder(context, dismiss),
+                        ),
                       ),
                     ),
                   ),

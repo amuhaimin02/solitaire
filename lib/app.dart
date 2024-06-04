@@ -93,11 +93,9 @@ class SolitaireApp extends ConsumerWidget {
       tooltipTheme: const TooltipThemeData(preferBelow: false),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        width: 400,
+        // width: 400,
       ),
-      scrollbarTheme: ScrollbarThemeData(
-        thumbVisibility: WidgetStateProperty.all(true),
-      ),
+      scrollbarTheme: const ScrollbarThemeData(),
     );
 
     if (amoledDarkTheme && themeMode == ThemeMode.dark) {

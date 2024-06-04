@@ -273,32 +273,40 @@ class _GameSelectionDetail extends ConsumerWidget {
                   }
                 },
               ),
-              Container(
-                color: colorScheme.surfaceContainerLow,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      selectedGame.name,
-                      style: textTheme.headlineSmall!.copyWith(
-                        color: colorScheme.secondary,
+              ClipRect(
+                clipBehavior: Clip.hardEdge,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        selectedGame.name,
+                        style: textTheme.titleLarge!.copyWith(
+                          color: colorScheme.secondary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Details of gameplay will be available here',
-                      style: textTheme.bodyLarge!.copyWith(
-                        color: colorScheme.onSurface,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Details of gameplay will be available here. '
+                        'Details of gameplay will be available here. '
+                        'Details of gameplay will be available here. '
+                        'Details of gameplay will be available here. ',
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    )
-                  ],
+                      const SizedBox(height: 24),
+                      _GameSelectionOptions(
+                        singleLine: constraints.maxHeight <= 500,
+                        game: selectedGame,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _GameSelectionOptions(
-                singleLine: constraints.maxHeight <= 500,
-                game: selectedGame,
               ),
             ],
           ),
@@ -318,8 +326,6 @@ class _GameSelectionOptions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final playButtonWidget = FilledButton.icon(
       icon: const Icon(Icons.play_circle),
       label: const Text('Play game'),
@@ -360,35 +366,29 @@ class _GameSelectionOptions extends ConsumerWidget {
       ),
     ];
 
-    return ClipRect(
-      clipBehavior: Clip.hardEdge,
-      child: Container(
-        color: colorScheme.surfaceContainerLowest,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (!singleLine) ...[
-              SizedBox(
-                height: 56,
-                width: double.infinity,
-                child: playButtonWidget,
-              ),
-              const SizedBox(height: 12),
-            ],
-            SizedBox(
-              height: 48,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                clipBehavior: Clip.none,
-                children: [
-                  if (singleLine) playButtonWidget,
-                  ...miscButtonWidgets,
-                ].separatedBy(const SizedBox(width: 8)),
-              ),
-            )
-          ],
-        ),
-      ),
+    return Column(
+      children: [
+        if (!singleLine) ...[
+          SizedBox(
+            height: 48,
+            width: double.infinity,
+            child: playButtonWidget,
+          ),
+          const SizedBox(height: 12),
+        ],
+        SizedBox(
+          height: 48,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            padding: EdgeInsets.zero,
+            children: [
+              if (singleLine) playButtonWidget,
+              ...miscButtonWidgets,
+            ].separatedBy(const SizedBox(width: 8)),
+          ),
+        )
+      ],
     );
   }
 }
