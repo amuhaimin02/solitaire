@@ -196,8 +196,8 @@ class PileIsNotEmpty extends PileCheck {
   }
 }
 
-class PileOnTopIsFacingDown extends PileCheck {
-  const PileOnTopIsFacingDown();
+class PileTopCardIsFacingDown extends PileCheck {
+  const PileTopCardIsFacingDown();
 
   @override
   bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
@@ -257,6 +257,24 @@ class PileHasFullSuit extends PileCheck {
     return switch (rankOrder) {
       RankOrder.increasing => cardsOnPile.isSortedByRankIncreasingOrder,
       RankOrder.decreasing => cardsOnPile.isSortedByRankDecreasingOrder,
+    };
+  }
+}
+
+class CardsHasFullSuit extends PileCheck {
+  const CardsHasFullSuit(this.rankOrder);
+
+  final RankOrder rankOrder;
+
+  @override
+  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+    if (cards.length != Rank.values.length) {
+      return false;
+    }
+
+    return switch (rankOrder) {
+      RankOrder.increasing => cards.isSortedByRankIncreasingOrder,
+      RankOrder.decreasing => cards.isSortedByRankDecreasingOrder,
     };
   }
 }

@@ -44,6 +44,10 @@ class PlayTable {
     return _allCards.keys.whereType<T>();
   }
 
+  T? getEmptyPileOfType<T extends Pile>() {
+    return allPilesOfType<T>().firstWhereOrNull((p) => get(p).isEmpty);
+  }
+
   Map<Pile, List<PlayCard>> get allCards => UnmodifiableMapView(_allCards);
 
   List<PlayCard> get drawPile => get(const Draw());

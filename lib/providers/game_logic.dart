@@ -228,7 +228,7 @@ class GameController extends _$GameController {
   }
 
   MoveResult tryMove(MoveIntent move,
-      {bool doMove = true, bool doPreMove = true}) {
+      {bool doMove = true, bool doAfterMove = true}) {
     final game = ref.read(currentGameProvider);
     PlayTable table = ref.read(playTableStateProvider);
 
@@ -254,7 +254,7 @@ class GameController extends _$GameController {
       }
     }
 
-    PileActionResult? result;
+    PileActionResult result = PileActionNoChange(table: table);
 
     if (originPileInfo.onTap != null) {
       result = PileAction.run(
@@ -265,7 +265,7 @@ class GameController extends _$GameController {
       );
     }
 
-    if (result is! PileActionSuccess || result.action == null) {
+    if (result is! PileActionHandled || result.action == null) {
       if (cardsToPick.isEmpty) {
         return MoveNotDone('No cards to pick', null, move.from);
       }
@@ -279,6 +279,7 @@ class GameController extends _$GameController {
           targetPileInfo.placeable, move.to, move.from, cardsToPick, table)) {
         return MoveForbidden('cannot place the card(s) on ${move.to}', move);
       }
+
       result = PileAction.run(
         originPileInfo.makeMove?.call(move) ??
             [MoveNormally(to: move.to, cards: cardsToPick)],
@@ -287,8 +288,18 @@ class GameController extends _$GameController {
         game,
       );
     }
+    for (final item in game.game.piles.entries) {
+      if (item.value.afterMove != null) {
+        result = PileAction.chain(
+          result,
+          item.value.afterMove,
+          item.key,
+          game,
+        );
+      }
+    }
 
-    if (result == null || result is! PileActionSuccess) {
+    if (result is! PileActionHandled) {
       return MoveNotDone('Move result is not successful', null, move.from);
     }
 
@@ -301,25 +312,8 @@ class GameController extends _$GameController {
       targetAction = targetAction.move;
     }
 
-    if (targetPileInfo.onDrop != null) {
-      result = PileAction.proceed(
-        result,
-        targetPileInfo.onDrop,
-        move.to,
-        game,
-      );
-    }
-    if (originPileInfo.afterMove != null) {
-      result = PileAction.proceed(
-        result,
-        originPileInfo.afterMove,
-        move.from,
-        game,
-      );
-    }
-
     if (doMove) {
-      _doMoveCards(result, doPremove: doPreMove);
+      _doMoveCards(result, doAfterMove: doAfterMove);
     }
     return MoveSuccess(targetAction as Move);
   }
@@ -351,7 +345,7 @@ class GameController extends _$GameController {
       handled = false;
       final table = ref.read(playTableStateProvider);
       for (final move in game.game.autoSolveStrategy(table)) {
-        final result = tryMove(move, doPreMove: false);
+        final result = tryMove(move, doAfterMove: false);
         if (result is MoveSuccess) {
           handled = true;
           await Future.delayed(autoMoveDelay * timeDilation);
@@ -375,7 +369,7 @@ class GameController extends _$GameController {
     for (final item in gameData.game.piles.entries) {
       final result =
           PileAction.run(item.value.onStart, item.key, table, gameData);
-      if (result is PileActionSuccess) {
+      if (result is PileActionHandled) {
         table = result.table;
       }
     }
@@ -390,12 +384,37 @@ class GameController extends _$GameController {
     for (final item in gameData.game.piles.entries) {
       final result =
           PileAction.run(item.value.onSetup, item.key, table, gameData);
-      if (result is PileActionSuccess) {
+      if (result is PileActionHandled) {
         table = result.table;
       }
     }
 
     ref.read(playTableStateProvider.notifier).update(table);
+  }
+
+  Future<void> _doPostMove() async {
+    final game = ref.read(currentGameProvider);
+
+    ref.read(playTimeProvider.notifier).pause();
+
+    bool handled, isWinning;
+    do {
+      await Future.delayed(autoMoveDelay * timeDilation);
+      handled = false;
+      final table = ref.read(playTableStateProvider);
+      for (final move in game.game.postMoveStrategy(table)) {
+        final result = tryMove(move, doAfterMove: false);
+        if (result is MoveSuccess) {
+          handled = true;
+          break;
+        }
+      }
+      isWinning = ref.read(isGameFinishedProvider);
+    } while (handled && !isWinning);
+
+    if (!isWinning) {
+      ref.read(playTimeProvider.notifier).resume();
+    }
   }
 
   Future<void> _doPremove() async {
@@ -417,7 +436,7 @@ class GameController extends _$GameController {
             lastAction.to is! Discard) {
           continue;
         }
-        final result = tryMove(move, doPreMove: false);
+        final result = tryMove(move, doAfterMove: false);
         if (result is MoveSuccess) {
           handled = true;
           break;
@@ -433,14 +452,14 @@ class GameController extends _$GameController {
 
   void _doMoveCards(
     PileActionResult result, {
-    bool doPremove = true,
+    bool doAfterMove = true,
   }) {
-    if (result is! PileActionSuccess) {
-      throw StateError('result is not successful');
+    if (result is! PileActionHandled) {
+      throw StateError('result is not handled');
     }
 
-    final updatedTable = result.table;
-    final action = result.action!;
+    final action = result.action;
+    PlayTable updatedTable = result.table;
     final scoreGained = result.scoreGained;
 
     // Clear any hinted cards if any
@@ -454,21 +473,30 @@ class GameController extends _$GameController {
     // Update cards on table with new version
     ref.read(playTableStateProvider.notifier).update(updatedTable);
 
-    // Add to move history
-    ref.read(moveHistoryProvider.notifier).add(action);
+    if (action != null) {
+      _addToHistory(updatedTable, action);
+    }
 
     // Check if the game is winning
     if (ref.read(isGameFinishedProvider)) {
       state = GameStatus.finished;
+      return;
     }
 
-    // If possible and allowed to premove, do it
-    if (doPremove &&
-        ref.read(settingsUseAutoPremoveProvider) &&
-        state == GameStatus.started) {
-      _doPremove();
+    if (doAfterMove && state == GameStatus.started) {
+      // Post moves will always be made, if available
+      _doPostMove();
+
+      // If possible and allowed to premove, do it
+      if (ref.read(settingsUseAutoPremoveProvider)) {
+        _doPremove();
+      }
     }
-    // return move;
+  }
+
+  void _addToHistory(PlayTable table, Action action) {
+    ref.read(playTableStateProvider.notifier).update(table);
+    ref.read(moveHistoryProvider.notifier).add(action);
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {

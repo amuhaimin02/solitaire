@@ -64,6 +64,9 @@ class Spider extends SolitaireGame {
               landscape: i == 0, // Only show marker on first foundation
             ),
           ),
+          placeable: const [
+            CardsHasFullSuit(RankOrder.decreasing),
+          ],
         ),
       for (int i = 0; i < 10; i++)
         Tableau(i): PileProperty(
@@ -89,22 +92,17 @@ class Spider extends SolitaireGame {
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupSameSuit(),
           ],
-          onDrop: [
-            If(
-              condition: [
-                const PileHasFullSuit(RankOrder.decreasing),
-              ],
-              ifTrue: [
-                SendToAnyEmptyPile<Foundation>(count: Rank.values.length),
-                const FlipTopCardFaceUp(),
-              ],
-            ),
-          ],
           afterMove: [
+            // If(
+            //   condition: const [PileHasFullSuit(RankOrder.decreasing)],
+            //   ifTrue: [
+            //     SendToAnyEmptyPile<Foundation>(count: Rank.values.length)
+            //   ],
+            // ),
             const If(
-              condition: [PileOnTopIsFacingDown()],
+              condition: [PileTopCardIsFacingDown()],
               ifTrue: [FlipTopCardFaceUp()],
-            )
+            ),
           ],
         ),
       const Draw(): PileProperty(
@@ -138,8 +136,34 @@ class Spider extends SolitaireGame {
   }
 
   @override
+  Iterable<MoveIntent> postMoveStrategy(PlayTable table) sync* {
+    final fullSuitLength = Rank.values.length;
+
+    for (final t in table.allTableauPiles) {
+      final cardsOnTableau = table.get(t);
+      if (cardsOnTableau.length >= fullSuitLength) {
+        final cardToMove =
+            cardsOnTableau[cardsOnTableau.length - fullSuitLength];
+        // IF there is a full suit streak, try to move it to empty foundation
+        if (cardToMove.isFacingUp && cardToMove.rank == Rank.king) {
+          final nextEmptyFoundation = table.getEmptyPileOfType<Foundation>();
+          if (nextEmptyFoundation != null) {
+            yield MoveIntent(t, nextEmptyFoundation, cardToMove);
+          }
+        }
+      }
+    }
+  }
+
+  @override
   Iterable<MoveIntent> quickMoveStrategy(
       Pile from, PlayCard card, PlayTable table) sync* {
+    if (card.rank == Rank.king) {
+      for (final f in table.allFoundationPiles) {
+        yield MoveIntent(from, f, card);
+      }
+    }
+
     final tableau = table.allTableauPiles.roll(from: from).toList();
 
     // Prioritize non-empty tableaus

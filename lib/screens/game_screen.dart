@@ -68,8 +68,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   @override
   void onEnter() {
-    ref.read(playTimeProvider.notifier).resume();
-    print('resuming');
+    if (ref.read(gameControllerProvider) == GameStatus.started) {
+      ref.read(playTimeProvider.notifier).resume();
+      print('resuming');
+    }
   }
 
   @override

@@ -16,14 +16,14 @@ class PlayTableGenerator {
     for (final item in game.piles.entries) {
       final result =
           PileAction.run(item.value.onStart, item.key, table, sampleMetadata);
-      if (result is PileActionSuccess) {
+      if (result is PileActionHandled) {
         table = result.table;
       }
     }
     for (final item in game.piles.entries) {
       final result =
           PileAction.run(item.value.onSetup, item.key, table, sampleMetadata);
-      if (result is PileActionSuccess) {
+      if (result is PileActionHandled) {
         table = result.table;
       }
     }

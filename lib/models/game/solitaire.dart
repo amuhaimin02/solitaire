@@ -29,6 +29,8 @@ abstract class SolitaireGame {
 
   Iterable<MoveIntent> premoveStrategy(PlayTable table) => [];
 
+  Iterable<MoveIntent> postMoveStrategy(PlayTable table) => [];
+
   Iterable<MoveIntent> autoSolveStrategy(PlayTable table) => [];
 
   @override

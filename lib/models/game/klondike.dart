@@ -89,7 +89,7 @@ class Klondike extends SolitaireGame {
           ],
           afterMove: const [
             If(
-              condition: [PileOnTopIsFacingDown()],
+              condition: [PileTopCardIsFacingDown()],
               ifTrue: [
                 FlipTopCardFaceUp(),
                 ObtainScore(score: 100),
@@ -154,8 +154,11 @@ class Klondike extends SolitaireGame {
 
   @override
   bool winConditions(PlayTable table) {
-    return table.allFoundationPiles.map((f) => table.get(f).length).sum >=
-        PlayCard.numberOfCardsInDeck;
+    // return table.allFoundationPiles.map((f) => table.get(f).length).sum >=
+    //     PlayCard.numberOfCardsInDeck;
+    return table.drawPile.isEmpty &&
+        table.discardPile.isEmpty &&
+        table.allTableauPiles.every((t) => table.get(t).isEmpty);
   }
 
   @override

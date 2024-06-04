@@ -14,7 +14,6 @@ class PileProperty {
     this.placeable,
     this.onTap,
     this.makeMove,
-    this.onDrop,
     this.afterMove,
     this.virtual = false,
   });
@@ -30,8 +29,6 @@ class PileProperty {
   List<PileCheck>? placeable;
 
   List<PileAction>? onTap;
-
-  List<PileAction>? onDrop;
 
   List<PileAction>? afterMove;
 

@@ -681,13 +681,12 @@ class _CardWidget extends StatelessWidget {
     final cardIndex = cardsInPile.indexOf(card);
 
     final double elevation;
-    final bool hideFace;
 
     if (stackDirection == Direction.none) {
       elevation =
           cardIndex > cardPileLength - 1 - cardShowThreshold ? minElevation : 0;
-      hideFace = cardPileLength > cardShowThreshold &&
-          cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
+      // hideFace = cardPileLength > cardShowThreshold &&
+      //     cardPileLength - 1 - cardIndex - cardShowThreshold > 0;
     } else {
       final cardLimit = layout.previewCards?.resolve(orientation);
       if (cardLimit != null && cardIndex < cardPileLength - cardLimit) {
@@ -695,8 +694,8 @@ class _CardWidget extends StatelessWidget {
       } else {
         elevation = minElevation;
       }
-      hideFace = cardLimit != null &&
-          cardIndex < cardPileLength - cardLimit - cardShowThreshold;
+      // hideFace = cardLimit != null &&
+      //     cardIndex < cardPileLength - cardLimit - cardShowThreshold;
     }
 
     return GestureDetector(
@@ -711,7 +710,6 @@ class _CardWidget extends StatelessWidget {
           card: card,
           size: cardSize,
           elevation: isMoving ? hoverElevation : elevation,
-          hideFace: hideFace,
           highlightColor: highlightColor,
         ),
       ),
