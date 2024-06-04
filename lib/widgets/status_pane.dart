@@ -54,15 +54,18 @@ class TimeLabel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return StreamBuilder<Null>(
-      stream: ref.watch(playTimeIsRunningProvider)
-          ? Stream.periodic(const Duration(milliseconds: 200))
-          : const Stream.empty(),
-      builder: (context, snapshot) {
-        final playTime = ref.read(playTimeProvider);
-        ref.invalidate(playTimeProvider);
-        return Text(playTime.toMMSSString());
-      },
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: StreamBuilder<Null>(
+        stream: ref.watch(playTimeIsRunningProvider)
+            ? Stream.periodic(const Duration(milliseconds: 200))
+            : const Stream.empty(),
+        builder: (context, snapshot) {
+          final playTime = ref.read(playTimeProvider);
+          ref.invalidate(playTimeProvider);
+          return Text(playTime.toMMSSString());
+        },
+      ),
     );
   }
 }
@@ -76,12 +79,13 @@ class ScoreLabel extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final score = ref.watch(scoreProvider);
 
-    final textStyle =
-        score >= 10000 ? textTheme.displaySmall! : textTheme.displayMedium!;
-    return Text(
-      '$score',
-      style: textStyle.copyWith(color: colorScheme.onSurface),
-      textAlign: TextAlign.center,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        '$score',
+        style: textTheme.displayMedium!.copyWith(color: colorScheme.onSurface),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
@@ -93,14 +97,17 @@ class MoveLabel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final moves = ref.watch(moveCountProvider);
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('$moves'),
-        const SizedBox(width: 8),
-        Icon(MdiIcons.cards,
-            size: 18, color: DefaultTextStyle.of(context).style.color),
-      ],
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('$moves'),
+          const SizedBox(width: 8),
+          Icon(MdiIcons.cards,
+              size: 18, color: DefaultTextStyle.of(context).style.color),
+        ],
+      ),
     );
   }
 }

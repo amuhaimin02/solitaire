@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import '../animations.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
+import '../config.dart';
 import '../models/direction.dart';
 import '../models/game/solitaire.dart';
 import '../models/pile.dart';
@@ -37,7 +38,6 @@ class GameTable extends StatefulWidget {
     this.animateMovement = true,
     this.fitEmptySpaces = false,
     this.orientation = Orientation.portrait,
-    this.debugHighlightPileRegion = false,
   });
 
   final SolitaireGame game;
@@ -65,8 +65,6 @@ class GameTable extends StatefulWidget {
   final bool fitEmptySpaces;
 
   final Orientation orientation;
-
-  final bool debugHighlightPileRegion;
 
   @override
   State<GameTable> createState() => _GameTableState();
@@ -132,7 +130,7 @@ class _GameTableState extends State<GameTable> {
                 _buildMarkerLayer(context, gridUnit),
                 _buildCardLayer(context, gridUnit),
                 if (widget.interactive) _buildOverlayLayer(context, gridUnit),
-                if (widget.debugHighlightPileRegion)
+                if (debugHighlightPileRegion)
                   _buildDebugLayer(context, gridUnit),
               ],
             );
@@ -197,6 +195,7 @@ class _GameTableState extends State<GameTable> {
           Positioned.fromRect(
             rect: _resolvedRegion.get(item.key).scale(gridUnit),
             child: Container(
+              margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Colors.yellow,
@@ -740,21 +739,23 @@ class _CountIndicator extends StatelessWidget {
           child: Container(
             width: cardSize.shortestSide * 0.5,
             height: cardSize.shortestSide * 0.5,
-            // margin: EdgeInsets.all(layout.cardPadding),
             decoration: BoxDecoration(
               color: colorScheme.inverseSurface,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: TickingNumber(
-              count,
-              duration: cardMoveAnimation.duration * 1.5,
-              curve: cardMoveAnimation.curve,
-              style: TextStyle(
-                color: colorScheme.onInverseSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: cardSize.shortestSide * 0.25,
-                height: 1,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: TickingNumber(
+                count,
+                duration: cardMoveAnimation.duration * 1.5,
+                curve: cardMoveAnimation.curve,
+                style: TextStyle(
+                  color: colorScheme.onInverseSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: cardSize.shortestSide * 0.25,
+                  height: 1,
+                ),
               ),
             ),
           ),

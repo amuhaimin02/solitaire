@@ -16,6 +16,7 @@ import '../models/pile_check.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/user_action.dart';
+import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
 import '../utils/types.dart';
 import 'game_selection.dart';
@@ -139,7 +140,7 @@ class GameController extends _$GameController {
     final newPlayData = GameMetadata(
       game: game,
       startedTime: DateTime.now(),
-      randomSeed: DateTime.now().millisecondsSinceEpoch.toString(),
+      randomSeed: CustomPRNG.generateSeed(length: 12),
     );
     ref.read(lastActionProvider.notifier).send(const Idle());
     ref.read(currentGameProvider.notifier).start(newPlayData);
@@ -236,10 +237,6 @@ class GameController extends _$GameController {
 
     final targetPileInfo = game.game.piles.get(move.to);
 
-    if (move.from is! Draw && move.from == move.to) {
-      return MoveForbidden('cannot move cards back to its pile', move);
-    }
-
     final cardToMove = move.card;
     final cardsInPile = table.get(move.from);
 
@@ -256,37 +253,42 @@ class GameController extends _$GameController {
 
     PileActionResult result = PileActionNoChange(table: table);
 
-    if (originPileInfo.onTap != null) {
+    if (originPileInfo.onTap != null && move.from == move.to) {
       result = PileAction.run(
         originPileInfo.onTap,
         move.from,
         table,
         game,
       );
-    }
-
-    if (result is! PileActionHandled || result.action == null) {
-      if (cardsToPick.isEmpty) {
-        return MoveNotDone('No cards to pick', null, move.from);
+    } else {
+      if (move.from == move.to) {
+        return MoveForbidden('cannot move cards back to its pile', move);
       }
 
-      if (!PileCheck.checkAll(
-          originPileInfo.pickable, move.from, null, cardsToPick, table)) {
-        return MoveForbidden('cannot pick the card(s) from ${move.from}', move);
-      }
+      if (result is! PileActionHandled || result.action == null) {
+        if (cardsToPick.isEmpty) {
+          return MoveNotDone('No cards to pick', null, move.from);
+        }
 
-      if (!PileCheck.checkAll(
-          targetPileInfo.placeable, move.to, move.from, cardsToPick, table)) {
-        return MoveForbidden('cannot place the card(s) on ${move.to}', move);
-      }
+        if (!PileCheck.checkAll(
+            originPileInfo.pickable, move.from, null, cardsToPick, table)) {
+          return MoveForbidden(
+              'cannot pick the card(s) from ${move.from}', move);
+        }
 
-      result = PileAction.run(
-        originPileInfo.makeMove?.call(move) ??
-            [MoveNormally(to: move.to, cards: cardsToPick)],
-        move.from,
-        table,
-        game,
-      );
+        if (!PileCheck.checkAll(
+            targetPileInfo.placeable, move.to, move.from, cardsToPick, table)) {
+          return MoveForbidden('cannot place the card(s) on ${move.to}', move);
+        }
+
+        result = PileAction.run(
+          originPileInfo.makeMove?.call(move) ??
+              [MoveNormally(to: move.to, cards: cardsToPick)],
+          move.from,
+          table,
+          game,
+        );
+      }
     }
     for (final item in game.game.piles.entries) {
       if (item.value.afterMove != null) {

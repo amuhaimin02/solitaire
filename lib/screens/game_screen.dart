@@ -114,11 +114,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
             return LayoutBuilder(
               builder: (context, constraints) {
                 final colorScheme = Theme.of(context).colorScheme;
-                final isMobile = constraints.biggest.shortestSide < 600;
+                // final isMobile = constraints.biggest.shortestSide < 600;
 
-                final playAreaMargin = isMobile
-                    ? const EdgeInsets.all(8)
-                    : const EdgeInsets.all(40);
+                const playAreaMargin = EdgeInsets.all(8);
 
                 final divider = SizedBox(
                   width: 48,
@@ -308,50 +306,33 @@ class _PlayArea extends ConsumerWidget {
               highlightedCards: highlightedCards,
               lastMovedCards: lastMovedCards,
               animateDistribute: status == GameStatus.preparing,
-              onCardTap: (card, pile) {
-                final controller = ref.read(gameControllerProvider.notifier);
-
-                if (oneTapMove) {
-                  switch (pile) {
-                    case Tableau() || Reserve():
-                      final result = controller.tryQuickMove(card, pile);
-                      return result is MoveSuccess ? null : [card];
-                    case _:
-                      return [card];
-                  }
-                }
-                return null;
-              },
-              onPileTap: (pile) {
-                final controller = ref.read(gameControllerProvider.notifier);
-                switch (pile) {
-                  case Draw():
-                    controller.tryMove(const MoveIntent(Draw(), Draw()));
-                    return null;
-
-                  case Discard() || Foundation() || Reserve():
-                    if (oneTapMove && table.get(pile).isNotEmpty) {
-                      final cardToMove = table.get(pile).last;
-                      final result = controller.tryQuickMove(cardToMove, pile);
-                      return result is MoveSuccess ? null : null;
-                    }
-                  case _:
-                }
-                return null;
-              },
               canDragCards: (cards, from) {
                 final pileInfo = game.game.piles.get(from);
 
                 return PileCheck.checkAll(
                     pileInfo.pickable, from, null, cards, table);
               },
+              onCardTap: (card, pile) {
+                final controller = ref.read(gameControllerProvider.notifier);
+                final result = controller.tryQuickMove(card, pile);
+                return result is MoveSuccess ? null : [card];
+              },
+              onPileTap: (pile) {
+                final controller = ref.read(gameControllerProvider.notifier);
+                final pileInfo = game.game.piles.get(pile);
+
+                if (pileInfo.onTap != null) {
+                  controller.tryMove(MoveIntent(pile, pile));
+                }
+                return null;
+              },
               onCardDrop: (card, from, to) {
                 final controller = ref.read(gameControllerProvider.notifier);
 
-                final result = controller.tryMove(
+                controller.tryMove(
                   MoveIntent(from, to, card),
                 );
-                return result is MoveSuccess ? null : [card];
+                return null;
               },
             ),
             const Positioned.fill(
@@ -392,10 +373,13 @@ class _UserActionIndicator extends ConsumerWidget {
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(32),
-                color: colorScheme.secondary,
+                color: colorScheme.inverseSurface,
               ),
-              child: Icon(userActionIcon[userAction],
-                  size: 72, color: colorScheme.onSecondary),
+              child: Icon(
+                userActionIcon[userAction],
+                size: 72,
+                color: colorScheme.onInverseSurface,
+              ),
             )
           : null,
     );

@@ -121,7 +121,7 @@ class CardFace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacingFactor = size.shortestSide * 0.05;
-    final labelSizingFactor = size.shortestSide * 0.36;
+    final labelSizingFactor = size.shortestSide * 0.4;
     final iconSizingFactor = size.shortestSide * 0.25;
     final theme = SolitaireTheme.of(context);
 
@@ -151,20 +151,29 @@ class CardFace extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.only(
-                  left: spacingFactor * 1.2,
-                  right: spacingFactor * 1.6,
-                  top: spacingFactor * 0.2),
+                left: spacingFactor * 1.2,
+                right: spacingFactor * 1.2,
+                top: spacingFactor * 0.2,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    card.rank.symbol,
-                    style: GoogleFonts.dosis(
-                      fontSize: labelSizingFactor,
-                      height: 1.25,
-                      color: foregroundColor,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Align(
+                        child: Text(
+                          card.rank.symbol,
+                          style: GoogleFonts.dosis(
+                            fontSize: labelSizingFactor,
+                            height: 1.25,
+                            color: foregroundColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   // Icon(
@@ -188,9 +197,10 @@ class CardFace extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              bottom: -(size.height * 0.00),
-              left: -(size.width * 0.10),
+            Align(
+              alignment: const Alignment(-2, 1),
+              // bottom: -(size.height * 0.00),
+              // left: -(size.width * 0.10),
               // child: Icon(
               //   suitIcons[card.suit],
               //   size: iconSizingFactor * 3,

@@ -92,17 +92,8 @@ class Spider extends SolitaireGame {
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupSameSuit(),
           ],
-          afterMove: [
-            // If(
-            //   condition: const [PileHasFullSuit(RankOrder.decreasing)],
-            //   ifTrue: [
-            //     SendToAnyEmptyPile<Foundation>(count: Rank.values.length)
-            //   ],
-            // ),
-            const If(
-              condition: [PileTopCardIsFacingDown()],
-              ifTrue: [FlipTopCardFaceUp()],
-            ),
+          afterMove: const [
+            FlipTopCardFaceUp(),
           ],
         ),
       const Draw(): PileProperty(
