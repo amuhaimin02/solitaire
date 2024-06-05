@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-
+import '../utils/types.dart';
 import 'card.dart';
 import 'game/solitaire.dart';
 import 'pile.dart';
@@ -18,8 +18,7 @@ class PlayTable {
   factory PlayTable.fromMap(Map<Pile, List<PlayCard>> cards) {
     return PlayTable._(
       UnmodifiableMapView({
-        for (final item in cards.entries)
-          item.key: List.unmodifiable(item.value),
+        for (final (pile, c) in cards.items) pile: List.unmodifiable(c),
       }),
     );
   }
@@ -80,7 +79,7 @@ class PlayTable {
     return PlayTable._(
       UnmodifiableMapView({
         ..._allCards,
-        for (final item in updates.entries) item.key: item.value,
+        for (final (pile, cards) in updates.items) pile: cards,
       }),
     );
   }

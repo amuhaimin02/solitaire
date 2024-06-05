@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
-import 'solitaire.dart';
 
 import '../action.dart';
 import '../card.dart';
@@ -12,6 +11,8 @@ import '../pile_action.dart';
 import '../pile_check.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
+import '../rank_order.dart';
+import 'solitaire.dart';
 
 class FreeCell extends SolitaireGame {
   const FreeCell();
@@ -141,7 +142,7 @@ class FreeCell extends SolitaireGame {
       yield MoveIntent(from, t, card);
     }
 
-    if (from is! Reserve) {
+    if (from is! Reserve && from is! Foundation) {
       for (final r in table.alLReservePiles.roll(from: from)) {
         yield MoveIntent(from, r, card);
       }

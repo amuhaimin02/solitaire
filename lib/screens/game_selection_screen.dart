@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:xrandom/xrandom.dart';
 
 import '../animations.dart';
 import '../models/game/solitaire.dart';
@@ -9,6 +8,7 @@ import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
 import '../services/play_table_generator.dart';
 import '../utils/prng.dart';
+import '../utils/types.dart';
 import '../utils/widgets.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
@@ -118,12 +118,12 @@ class _GameSelectionList extends ConsumerWidget {
     return ListView(
       key: const PageStorageKey('all'),
       children: [
-        for (final group in allGamesMapped.entries)
+        for (final (group, gameList) in allGamesMapped.items)
           _GameListGroup(
-            key: PageStorageKey('all-${group.key}'),
-            groupName: group.key,
+            key: PageStorageKey('all-$group'),
+            groupName: group,
             children: [
-              for (final game in group.value)
+              for (final game in gameList)
                 _GameListTile(
                   selected:
                       TwoPane.of(context).isActive && selectedGame == game,

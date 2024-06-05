@@ -3,17 +3,19 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import '../../utils/lists.dart';
-import '../action.dart';
-import 'solitaire.dart';
 
+import '../../utils/types.dart';
+import '../action.dart';
 import '../card.dart';
+import '../card_list.dart';
 import '../direction.dart';
 import '../pile.dart';
 import '../pile_action.dart';
 import '../pile_check.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
+import '../rank_order.dart';
+import 'solitaire.dart';
 
 class Spider extends SolitaireGame {
   const Spider({required this.numberOfSuits})
@@ -157,11 +159,26 @@ class Spider extends SolitaireGame {
 
     final tableau = table.allTableauPiles.roll(from: from).toList();
 
-    // Prioritize non-empty tableaus
-    final (nonEmptyTableaus, emptyTableaus) =
-        tableau.partition((t) => table.get(t).isNotEmpty);
+    int determinePriority(Tableau t) {
+      final cardsOnPile = table.get(t);
 
-    for (final t in [...nonEmptyTableaus, ...emptyTableaus]) {
+      if (cardsOnPile.isEmpty) {
+        // Empty tableau will be considered last
+        return 0;
+      }
+
+      if (!cardsOnPile.last.isOneRankOver(card)) {
+        // Impossible to move here, this tableau will be discarded
+        return -1;
+      }
+
+      // Tableau with longer streaks will be prioritized
+      return cardsOnPile
+          .getSuitStreakFromLast(RankOrder.decreasing, sameSuit: true)
+          .length;
+    }
+
+    for (final t in tableau.sortedByPriority(determinePriority)) {
       yield MoveIntent(from, t, card);
     }
   }

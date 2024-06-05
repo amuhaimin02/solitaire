@@ -1,0 +1,1 @@
+enum RankOrder { increasing, decreasing }

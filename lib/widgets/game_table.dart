@@ -6,9 +6,9 @@ import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
 
 import '../animations.dart';
+import '../config.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
-import '../config.dart';
 import '../models/direction.dart';
 import '../models/game/solitaire.dart';
 import '../models/pile.dart';
@@ -158,14 +158,13 @@ class _GameTableState extends State<GameTable> {
 
     return Stack(
       children: [
-        for (final item in _allPiles.entries)
-          if (!item.value.virtual &&
-              item.value.layout.showMarker?.resolve(widget.orientation) !=
-                  false)
+        for (final (pile, props) in _allPiles.items)
+          if (!props.virtual &&
+              props.layout.showMarker?.resolve(widget.orientation) != false)
             Positioned.fromRect(
-              rect: computeMarkerPlacement(item.key).scale(gridUnit),
+              rect: computeMarkerPlacement(pile).scale(gridUnit),
               child: PileMarker(
-                pile: item.key,
+                pile: pile,
                 size: gridUnit,
               ),
             ),
@@ -188,9 +187,9 @@ class _GameTableState extends State<GameTable> {
             ),
           ),
         ),
-        for (final item in _allPiles.entries)
+        for (final pile in _allPiles.keys)
           Positioned.fromRect(
-            rect: _resolvedRegion.get(item.key).scale(gridUnit),
+            rect: _resolvedRegion.get(pile).scale(gridUnit),
             child: Container(
               margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -326,14 +325,14 @@ class _GameTableState extends State<GameTable> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        for (final item in _allPiles.entries)
-          if (item.value.layout.showCount?.resolve(widget.orientation) == true)
+        for (final (pile, props) in _allPiles.items)
+          if (props.layout.showCount?.resolve(widget.orientation) == true)
             Positioned.fromRect(
-              rect: Rect.fromLTWH(_resolvedRegion.get(item.key).left,
-                      _resolvedRegion.get(item.key).top, 1, 1)
+              rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
+                      _resolvedRegion.get(pile).top, 1, 1)
                   .scale(gridUnit),
               child: _CountIndicator(
-                count: widget.table.get(item.key).length,
+                count: widget.table.get(pile).length,
                 cardSize: gridUnit,
               ),
             ),
@@ -561,9 +560,9 @@ class _GameTableState extends State<GameTable> {
     var maxWidth = 0.0;
     var maxHeight = 0.0;
 
-    for (final item in _allPiles.entries) {
-      final layout = item.value.layout;
-      final region = _resolvedRegion.get(item.key);
+    for (final (pile, props) in _allPiles.items) {
+      final layout = props.layout;
+      final region = _resolvedRegion.get(pile);
 
       final stackDirection =
           layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
@@ -575,7 +574,7 @@ class _GameTableState extends State<GameTable> {
         case _:
           final stackPositions = _computeStackGapPositions(
             context: context,
-            cards: widget.table.get(item.key),
+            cards: widget.table.get(pile),
             region: region,
             stackDirection: stackDirection,
             previewCards: layout.previewCards?.resolve(widget.orientation),

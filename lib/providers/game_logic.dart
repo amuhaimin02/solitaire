@@ -303,12 +303,12 @@ class GameController extends _$GameController {
         );
       }
     }
-    for (final item in game.game.piles.entries) {
-      if (item.value.afterMove != null) {
+    for (final (pile, props) in game.game.piles.items) {
+      if (props.afterMove != null) {
         result = PileAction.chain(
           result,
-          item.value.afterMove,
-          item.key,
+          props.afterMove,
+          pile,
           game,
         );
       }
@@ -381,9 +381,8 @@ class GameController extends _$GameController {
     final gameData = ref.read(currentGameProvider);
     PlayTable table = PlayTable.fromGame(gameData.game);
 
-    for (final item in gameData.game.piles.entries) {
-      final result =
-          PileAction.run(item.value.onStart, item.key, table, gameData);
+    for (final (pile, props) in gameData.game.piles.items) {
+      final result = PileAction.run(props.onStart, pile, table, gameData);
       if (result is PileActionHandled) {
         table = result.table;
       }
@@ -396,9 +395,8 @@ class GameController extends _$GameController {
     final gameData = ref.read(currentGameProvider);
     PlayTable table = ref.read(playTableStateProvider);
 
-    for (final item in gameData.game.piles.entries) {
-      final result =
-          PileAction.run(item.value.onSetup, item.key, table, gameData);
+    for (final (pile, props) in gameData.game.piles.items) {
+      final result = PileAction.run(props.onSetup, pile, table, gameData);
       if (result is PileActionHandled) {
         table = result.table;
       }

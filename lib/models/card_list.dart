@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 
 import 'card.dart';
+import 'rank_order.dart';
 
 extension PlayCardListExtension on List<PlayCard> {
   List<PlayCard> get allFaceDown => map((e) => e.faceDown()).toList();
@@ -70,6 +71,47 @@ extension PlayCardListExtension on List<PlayCard> {
     }
     final endRange = length;
     return slice(startRange, endRange);
+  }
+
+  List<PlayCard> getSuitStreakFromLast(RankOrder order,
+      {bool sameSuit = false}) {
+    if (length == 0) {
+      return [];
+    } else if (length == 1) {
+      final onlyCard = single;
+      return onlyCard.isFacingUp ? [onlyCard] : [];
+    } else {
+      int fromIndex;
+      PlayCard? refCard;
+      for (fromIndex = length - 1; fromIndex >= 0; fromIndex--) {
+        if (refCard == null) {
+          refCard = this[fromIndex];
+          if (refCard.isFacingDown) {
+            return [];
+          }
+        } else {
+          final currentCard = this[fromIndex];
+          switch (order) {
+            case RankOrder.increasing:
+              if (!currentCard.isOneRankUnder(refCard)) {
+                break;
+              }
+            case RankOrder.decreasing:
+              if (!currentCard.isOneRankOver(refCard)) {
+                break;
+              }
+          }
+          if (currentCard.isFacingDown) {
+            break;
+          }
+          if (sameSuit && currentCard.suit != refCard.suit) {
+            break;
+          }
+        }
+      }
+
+      return slice(fromIndex + 1, length);
+    }
   }
 
   (List<PlayCard>, List<PlayCard>) splitLastFromCard(PlayCard card) {

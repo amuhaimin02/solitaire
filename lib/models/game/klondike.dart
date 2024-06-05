@@ -1,5 +1,3 @@
-import 'package:change_case/change_case.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../action.dart';
@@ -11,6 +9,7 @@ import '../pile_action.dart';
 import '../pile_check.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
+import '../rank_order.dart';
 import 'solitaire.dart';
 
 class Klondike extends SolitaireGame {

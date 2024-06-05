@@ -1,12 +1,11 @@
 import 'dart:math';
 
-import '../utils/lists.dart';
+import '../utils/types.dart';
 import 'card.dart';
 import 'card_list.dart';
 import 'pile.dart';
 import 'play_table.dart';
-
-enum RankOrder { increasing, decreasing }
+import 'rank_order.dart';
 
 abstract class PileCheck {
   const PileCheck();

@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:xrandom/xrandom.dart';
 
 import '../services/card_shuffler.dart';
 import '../utils/prng.dart';

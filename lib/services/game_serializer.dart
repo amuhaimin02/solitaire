@@ -183,10 +183,10 @@ class PlayTableSerializer implements Serializer<PlayTable> {
   String serialize(PlayTable table) {
     final buffer = StringBuffer();
 
-    for (final item in table.allCards.entries) {
-      buffer.write(const PileSerializer().serialize(item.key));
+    for (final (pile, cards) in table.allCards.items) {
+      buffer.write(const PileSerializer().serialize(pile));
       buffer.write(':');
-      buffer.write(const PlayCardListSerializer().serialize(item.value));
+      buffer.write(const PlayCardListSerializer().serialize(cards));
       buffer.write('\n');
     }
 

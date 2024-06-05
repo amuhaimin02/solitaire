@@ -1,12 +1,44 @@
 import 'dart:ui';
 
-extension NonNullableGetMap<K, V> on Map<K, V> {
+import 'package:collection/collection.dart';
+
+extension IterableExtension<T> on Iterable<T> {
+  int count(bool Function(T) test) {
+    return fold(0, (prev, item) => test(item) ? prev + 1 : prev);
+  }
+}
+
+extension ListExtension<T> on List<T> {
+  (List<T> a, List<T> b) partition(bool Function(T element) test) {
+    final List<T> a = [];
+    final List<T> b = [];
+
+    forEach((element) => test(element) ? a.add(element) : b.add(element));
+
+    return (a, b);
+  }
+
+  List<T> sortedByPriority(int Function(T element) getPriority) {
+    return mapIndexed(
+            (index, elem) => (index: index, priority: getPriority(elem)))
+        .where((item) => item.priority >= 0)
+        .sorted((a, b) => b.priority.compareTo(a.priority))
+        .map((item) => this[item.index])
+        .toList();
+  }
+}
+
+extension MapExtension<K, V> on Map<K, V> {
   V get(K key) {
     final value = this[key];
     if (value == null) {
       throw ArgumentError('Key $key does not exist in map');
     }
     return value;
+  }
+
+  Iterable<(K, V)> get items {
+    return entries.map((entry) => (entry.key, entry.value));
   }
 }
 
