@@ -9,21 +9,18 @@ class DebugPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      color: Colors.black.withOpacity(0.5),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Text(ref.watch(gameControllerProvider).name,
-          //     style: const TextStyle(color: Colors.white)),
-          IconButton(
-            onPressed: () {
-              ref.read(gameDebugProvider.notifier).debugTestCustomLayout();
-            },
-            icon: Icon(MdiIcons.cardsPlaying),
-          ),
-        ],
-      ),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        IconButton(
+          tooltip: 'Custom layout',
+          onPressed: () {
+            ref.read(gameDebugProvider.notifier).debugTestCustomLayout();
+          },
+          icon: Icon(MdiIcons.cardsPlaying),
+        ),
+      ],
     );
   }
 }

@@ -23,7 +23,7 @@ class ControlPane extends ConsumerWidget {
 
     final children = [
       IconButton(
-        tooltip: 'Start new game',
+        tooltip: 'Restart / new game',
         onPressed: () {
           showDialog(
             context: context,

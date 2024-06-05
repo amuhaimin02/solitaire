@@ -5,6 +5,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import '../providers/game_logic.dart';
 import '../providers/settings.dart';
 import '../services/system_window.dart';
+import '../widgets/debug_pane.dart';
 import '../widgets/popup_button.dart';
 
 class _GameMenuOptions {
@@ -75,6 +76,11 @@ class GameMenuButton extends StatelessWidget {
                 option.onTap(context);
               },
             ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: DebugPane(),
+          ),
         ];
       },
     );

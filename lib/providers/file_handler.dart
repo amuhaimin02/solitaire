@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -39,5 +40,13 @@ class FileHandler extends _$FileHandler {
     if (targetFile.existsSync()) {
       targetFile.deleteSync();
     }
+  }
+
+  Future<List<String>> list(String path) async {
+    final baseDir = await ref.read(appDataDirectoryProvider.future);
+    return Directory('${baseDir.path}/$path')
+        .listSync()
+        .map((entity) => basename(entity.path))
+        .toList();
   }
 }

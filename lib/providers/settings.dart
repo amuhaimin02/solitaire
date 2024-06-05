@@ -6,6 +6,19 @@ import '../services/system_window.dart';
 part 'settings.g.dart';
 
 @riverpod
+class SettingsLastPlayedGame extends _$SettingsLastPlayedGame
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_last_played_game';
+
+  @override
+  String get defaultValue => '';
+
+  @override
+  String build() => get();
+}
+
+@riverpod
 class SettingsScreenOrientation extends _$SettingsScreenOrientation
     with SharedPreferencesProviderMixin {
   @override

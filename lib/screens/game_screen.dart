@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,23 +45,34 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   void _startGame() {
     Future.microtask(() async {
-      if (await ref.read(gameStorageProvider.notifier).hasQuickSave()) {
-        // Continue with last opened game
-        final gameData =
-            await ref.read(gameStorageProvider.notifier).restoreQuickSave();
-        if (mounted) {
-          // Wait for animation to end, also for context to be initialized with theme
-          Future.delayed(
-            themeChangeAnimation.duration,
-            () => _showContinueSnackBar(context, gameData),
-          );
-        }
+      final continuableGames = await ref.read(continuableGamesProvider.future);
 
-        ref.read(gameControllerProvider.notifier).restore(gameData);
-      } else {
-        ref.read(gameControllerProvider.notifier).startNew(
-              ref.read(allSolitaireGamesProvider).first,
+      final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
+
+      final allGames = ref.read(allSolitaireGamesProvider);
+      final lastPlayedGame =
+          allGames.firstWhereOrNull((game) => game.tag == lastPlayedGameTag);
+
+      if (lastPlayedGame != null) {
+        if (continuableGames.contains(lastPlayedGame)) {
+          // Continue with last opened game
+          final gameData = await ref
+              .read(gameStorageProvider.notifier)
+              .restoreQuickSave(lastPlayedGame);
+          if (mounted) {
+            // Wait for animation to end, also for context to be initialized with theme
+            Future.delayed(
+              themeChangeAnimation.duration,
+              () => _showContinueSnackBar(context, gameData),
             );
+          }
+
+          ref.read(gameControllerProvider.notifier).restore(gameData);
+        } else {
+          ref.read(gameControllerProvider.notifier).startNew(lastPlayedGame);
+        }
+      } else {
+        ref.read(gameControllerProvider.notifier).startNew(allGames.first);
       }
     });
   }
@@ -92,7 +104,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     ref.listen(gameControllerProvider, (_, newStatus) {
       if (newStatus == GameStatus.finished) {
-        Future.microtask(() => _showFinishDialog(context));
+        Future.microtask(() async {
+          _showFinishDialog(context);
+          final game = ref.read(currentGameProvider);
+          ref.read(gameStorageProvider.notifier).deleteQuickSave(game.game);
+        });
       }
     });
 
@@ -213,10 +229,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
                             ),
                           ),
                       },
-                    ),
-                    const Align(
-                      alignment: Alignment.bottomLeft,
-                      child: DebugPane(),
                     ),
                   ],
                 );

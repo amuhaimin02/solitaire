@@ -6,6 +6,8 @@ import '../animations.dart';
 import '../models/game/solitaire.dart';
 import '../providers/game_logic.dart';
 import '../providers/game_selection.dart';
+import '../providers/game_storage.dart';
+import '../providers/settings.dart';
 import '../services/play_table_generator.dart';
 import '../utils/prng.dart';
 import '../utils/types.dart';
@@ -61,12 +63,13 @@ class _GameSelectionList extends ConsumerWidget {
       body: Builder(
         builder: (context) {
           return DefaultTabController(
-            length: 2,
+            length: 3,
             child: Column(
               children: [
                 const TabBar.secondary(
                   tabs: [
                     Tab(text: 'Favorites'),
+                    Tab(text: 'Continue'),
                     Tab(text: 'All games'),
                   ],
                 ),
@@ -74,6 +77,7 @@ class _GameSelectionList extends ConsumerWidget {
                   child: TabBarView(
                     children: [
                       _buildFavoriteGameList(context, ref),
+                      _buildContinueGameList(context, ref),
                       _buildAllGamesList(context, ref),
                     ],
                   ),
@@ -102,6 +106,39 @@ class _GameSelectionList extends ConsumerWidget {
         key: const PageStorageKey('favorite'),
         children: [
           for (final game in favoritedGames)
+            _GameListTile(
+              selected: TwoPane.of(context).isActive && selectedGame == game,
+              game: game,
+              onTap: () => _onListTap(context, ref, game),
+            ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildContinueGameList(BuildContext context, WidgetRef ref) {
+    final selectedGame = ref.watch(selectedGameProvider);
+    final continuableGames = ref.read(continuableGamesProvider);
+
+    if (continuableGames.isLoading) {
+      return const Align(
+        alignment: Alignment.topCenter,
+        child: LinearProgressIndicator(),
+      );
+    }
+
+    if (continuableGames.value == null || continuableGames.value!.isEmpty) {
+      return const EmptyScreen(
+        icon: Icon(Icons.favorite_border),
+        title: Text('No games to continue'),
+        body: Text(
+            'Play some games and you may continue your unfinished game here'),
+      );
+    } else {
+      return ListView(
+        key: const PageStorageKey('continue'),
+        children: [
+          for (final game in continuableGames.value!)
             _GameListTile(
               selected: TwoPane.of(context).isActive && selectedGame == game,
               game: game,
@@ -193,20 +230,20 @@ class _GameListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final currentGame = ref.watch(currentGameProvider);
+    final continuableGames = ref.watch(continuableGamesProvider).value;
 
     return ListTile(
       selected: selected,
       selectedColor: colorScheme.secondary,
       selectedTileColor: colorScheme.secondaryContainer,
-      leading: currentGame.game == game
-          ? const Icon(Icons.play_circle)
-          : Icon(MdiIcons.cardsPlayingSpadeOutline),
+      leading: Icon(MdiIcons.cardsPlayingSpadeOutline),
       title: Text(game.name),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       trailing: Wrap(
         spacing: 12,
         children: [
+          if (continuableGames != null && continuableGames.contains(game))
+            Icon(MdiIcons.motionPauseOutline),
           if (ref.watch(favoritedGamesProvider).contains(game))
             const Icon(Icons.favorite),
         ],
@@ -326,16 +363,46 @@ class _GameSelectionOptions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playButtonWidget = FilledButton.icon(
-      icon: const Icon(Icons.play_circle),
-      label: const Text('Play game'),
-      onPressed: () {
-        TwoPane.of(context).popSecondary();
-        Navigator.pop(context);
-        ref.read(selectedGameProvider.notifier).select(game);
-        ref.read(gameControllerProvider.notifier).startNew(game);
-      },
-    );
+    final continuableGames = ref.watch(continuableGamesProvider).value;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final canContinueGame =
+        continuableGames != null && continuableGames.contains(game);
+
+    final Widget playButtonWidget;
+
+    if (canContinueGame) {
+      playButtonWidget = FilledButton.icon(
+        style: FilledButton.styleFrom(
+          foregroundColor: colorScheme.onTertiary,
+          backgroundColor: colorScheme.tertiary,
+        ),
+        icon: const Icon(Icons.play_circle),
+        label: const Text('Continue last game'),
+        onPressed: () async {
+          TwoPane.of(context).popSecondary();
+          Navigator.pop(context);
+          ref.read(selectedGameProvider.notifier).select(game);
+          ref.read(settingsLastPlayedGameProvider.notifier).set(game.tag);
+          final gameData = await ref
+              .read(gameStorageProvider.notifier)
+              .restoreQuickSave(game);
+          ref.read(gameControllerProvider.notifier).restore(gameData);
+        },
+      );
+    } else {
+      playButtonWidget = FilledButton.icon(
+        icon: Icon(MdiIcons.cardsPlaying),
+        label: const Text('Play game'),
+        onPressed: () {
+          TwoPane.of(context).popSecondary();
+          Navigator.pop(context);
+          ref.read(selectedGameProvider.notifier).select(game);
+          ref.read(settingsLastPlayedGameProvider.notifier).set(game.tag);
+          ref.read(gameControllerProvider.notifier).startNew(game);
+        },
+      );
+    }
 
     final miscButtonWidgets = [
       if (ref.watch(favoritedGamesProvider).contains(game))
