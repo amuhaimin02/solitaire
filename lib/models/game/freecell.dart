@@ -40,7 +40,7 @@ class FreeCell extends SolitaireGame {
         Foundation(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(4 + i.toDouble(), 0, 1, 1),
+              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
               landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
             ),
           ),
@@ -74,7 +74,6 @@ class FreeCell extends SolitaireGame {
           ],
           placeable: const [
             CardsAreFacingUp(),
-            BuildupStartsWith(rank: Rank.king),
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupAlternateColors(),
             FreeCellPowermove(),
@@ -93,7 +92,7 @@ class FreeCell extends SolitaireGame {
         Reserve(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+              portrait: Rect.fromLTWH(4 + i.toDouble(), 0, 1, 1),
               landscape: Rect.fromLTWH(10, i.toDouble(), 1, 1),
             ),
           ),

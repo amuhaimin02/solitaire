@@ -311,17 +311,18 @@ class _PlayArea extends ConsumerWidget {
                     pileInfo.pickable, from, null, cards, table) is PileCheckOK;
               },
               onCardTap: (card, pile) {
-                final controller = ref.read(gameControllerProvider.notifier);
-                final result = controller.tryQuickMove(card, pile);
-                return result is MoveSuccess ? null : [card];
-              },
-              onPileTap: (pile) {
+                print('card tap $card $pile');
                 ScaffoldMessenger.of(context).clearSnackBars();
                 final controller = ref.read(gameControllerProvider.notifier);
-                final pileInfo = game.game.piles.get(pile);
 
+                final pileInfo = game.game.piles.get(pile);
                 if (pileInfo.onTap != null) {
                   controller.tryMove(MoveIntent(pile, pile));
+                  return null;
+                }
+                if (card != null) {
+                  final result = controller.tryQuickMove(card, pile);
+                  return result is MoveSuccess ? null : [card];
                 }
                 return null;
               },

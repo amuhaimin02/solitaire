@@ -30,7 +30,6 @@ class GameTable extends StatefulWidget {
     this.interactive = true,
     this.onCardTap,
     this.onCardDrop,
-    this.onPileTap,
     this.canDragCards,
     this.highlightedCards,
     this.lastMovedCards,
@@ -42,9 +41,7 @@ class GameTable extends StatefulWidget {
 
   final SolitaireGame game;
 
-  final List<PlayCard>? Function(PlayCard card, Pile pile)? onCardTap;
-
-  final List<PlayCard>? Function(Pile pile)? onPileTap;
+  final List<PlayCard>? Function(PlayCard? card, Pile pile)? onCardTap;
 
   final List<PlayCard>? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
@@ -73,7 +70,7 @@ class GameTable extends StatefulWidget {
 class _GameTableState extends State<GameTable> {
   List<PlayCard>? _shakingCards;
   List<PlayCard>? _touchingCards;
-  Pile? _touchingCardPile;
+  Pile? _touchingPile;
 
   Offset? _lastTouchPoint;
 
@@ -220,7 +217,7 @@ class _GameTableState extends State<GameTable> {
         if (mounted) {
           setState(() {
             _touchingCards = null;
-            _touchingCardPile = null;
+            _touchingPile = null;
           });
         }
       });
@@ -228,6 +225,17 @@ class _GameTableState extends State<GameTable> {
 
     void onPointerDown(PointerDownEvent event) {
       _touchDragTimer?.cancel();
+
+      final point = _convertToGrid(event.localPosition, gridUnit);
+
+      // Find pile belonging to the region, also ignore virtual ones
+      final touchPile = _allPiles.keys.firstWhereOrNull(
+        (pile) =>
+            !_allPiles.get(pile).virtual &&
+            _resolvedRegion.get(pile).contains(point),
+      );
+
+      _touchingPile = touchPile;
     }
 
     void onPointerUp(PointerUpEvent event) {
@@ -242,13 +250,17 @@ class _GameTableState extends State<GameTable> {
 
       if (dropPile != null) {
         if (_touchingCards != null &&
-            _touchingCardPile != null &&
-            _touchingCardPile != dropPile) {
-          _onCardDrop(
-              context, _touchingCards!.first, _touchingCardPile!, dropPile);
+            _touchingPile != null &&
+            _touchingPile != dropPile) {
+          _onCardDrop(context, _touchingCards!.first, _touchingPile!, dropPile);
         } else {
-          // Register as a normal tap (typically when user taps a tableau region not covered by cards)
-          _onPileTap(context, dropPile);
+          // Trigger touch for z-stack cards (if no cards in pile, also  trigger with null value)
+          if (_touchingPile == dropPile) {
+            final cardsOnPile = widget.table.get(dropPile);
+            if (cardsOnPile.isEmpty) {
+              _onCardTap(context, null, dropPile);
+            }
+          }
         }
       }
 
@@ -399,6 +411,7 @@ class _GameTableState extends State<GameTable> {
                   isMoving: _lastTouchPoint != null &&
                       _touchingCards?.contains(card) == true,
                   onTouch: () => _onCardTouch(context, card, pile),
+                  onTap: () => _onCardTap(context, card, pile),
                   card: card,
                   layout: layout,
                   stackDirection: stackDirection,
@@ -583,11 +596,10 @@ class _GameTableState extends State<GameTable> {
 
     if (widget.canDragCards?.call(cardsToPick, originPile) == true) {
       _touchingCards = cardsToPick;
-      _touchingCardPile = originPile;
     }
   }
 
-  void _onCardTap(BuildContext context, PlayCard card, Pile pile) {
+  void _onCardTap(BuildContext context, PlayCard? card, Pile pile) {
     if (_allPiles.get(pile).virtual) {
       return;
     }
@@ -607,13 +619,6 @@ class _GameTableState extends State<GameTable> {
     if (feedback != null) {
       _shakeCard(feedback);
     }
-  }
-
-  void _onPileTap(BuildContext context, Pile pile) {
-    if (_allPiles.get(pile).virtual) {
-      return;
-    }
-    widget.onPileTap?.call(pile);
   }
 
   void _shakeCard(List<PlayCard>? cards) {

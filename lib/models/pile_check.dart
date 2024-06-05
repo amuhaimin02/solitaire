@@ -91,13 +91,11 @@ class CardsAreSameSuit extends PileCheck {
 
   @override
   bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
-    final cardsOnPile = table.get(pile);
-
-    if (cardsOnPile.isEmpty) {
-      return false;
+    if (cards.isEmpty || cards.isSingle) {
+      return true;
     }
 
-    final referenceSuit = cardsOnPile.last.suit;
+    final referenceSuit = cards.first.suit;
     return cards.every((c) => c.suit == referenceSuit);
   }
 }
