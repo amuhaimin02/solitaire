@@ -5,6 +5,8 @@ import '../models/move_record.dart';
 import '../models/play_table.dart';
 part 'game_move_history.g.dart';
 
+enum MoveType { normal, undo, redo }
+
 @riverpod
 class MoveCursor extends _$MoveCursor {
   @override
@@ -38,10 +40,35 @@ class MoveRecordList extends _$MoveRecordList {
 }
 
 @riverpod
+class CurrentMoveType extends _$CurrentMoveType {
+  @override
+  MoveType build() {
+    return MoveType.normal;
+  }
+}
+
+@riverpod
 MoveRecord? currentMove(CurrentMoveRef ref) {
   final list = ref.watch(moveRecordListProvider);
   final cursor = ref.watch(moveCursorProvider);
-  return list.isNotEmpty ? list[cursor] : null;
+  if (list.isEmpty) {
+    return null;
+  }
+  return list[cursor];
+}
+
+@riverpod
+MoveRecord? lastMove(LastMoveRef ref) {
+  final list = ref.watch(moveRecordListProvider);
+  final cursor = ref.watch(moveCursorProvider);
+  final isUndo = ref.watch(currentMoveTypeProvider) == MoveType.undo;
+  if (list.isEmpty) {
+    return null;
+  } else if (isUndo) {
+    return list[cursor + 1];
+  } else {
+    return list[cursor];
+  }
 }
 
 @riverpod
@@ -70,6 +97,7 @@ class MoveHistory extends _$MoveHistory {
   void build() {}
 
   void createNew(PlayTable table, Action action) {
+    ref.read(currentMoveTypeProvider.notifier).state = MoveType.normal;
     ref.read(moveCursorProvider.notifier).reset();
     ref.read(moveRecordListProvider.notifier).set([
       MoveRecord(
@@ -101,6 +129,7 @@ class MoveHistory extends _$MoveHistory {
 
     int cursor = ref.read(moveCursorProvider);
 
+    ref.read(currentMoveTypeProvider.notifier).state = MoveType.normal;
     ref.read(moveRecordListProvider.notifier).add(newRecord, at: cursor + 1);
     ref.read(moveCursorProvider.notifier).shift();
   }
@@ -117,22 +146,26 @@ class MoveHistory extends _$MoveHistory {
 
   void undo() {
     if (canUndo()) {
+      ref.read(currentMoveTypeProvider.notifier).state = MoveType.undo;
       ref.read(moveCursorProvider.notifier).stepBack();
     }
   }
 
   void redo() {
     if (canRedo()) {
+      ref.read(currentMoveTypeProvider.notifier).state = MoveType.redo;
       ref.read(moveCursorProvider.notifier).shift();
     }
   }
 
   void restart() {
+    ref.read(currentMoveTypeProvider.notifier).state = MoveType.normal;
     ref.read(moveCursorProvider.notifier).set(1);
     ref.read(moveRecordListProvider.notifier).pruneLast(from: 2);
   }
 
   void restore(int moveCursor, List<MoveRecord> records) {
+    ref.read(currentMoveTypeProvider.notifier).state = MoveType.normal;
     ref.read(moveCursorProvider.notifier).set(moveCursor);
     ref.read(moveRecordListProvider.notifier).set(records);
   }

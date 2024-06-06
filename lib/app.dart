@@ -64,8 +64,12 @@ class SolitaireApp extends ConsumerWidget {
     ref.listen(settingsShowStatusBarProvider, (_, visible) {
       SystemWindow.setStatusBarVisibility(visible);
     });
-    ref.listen(themeBaseColorProvider, (_, color) {
-      SystemWindow.setStatusBarTheme(Brightness.dark, color);
+    ref.listen(themeBaseModeProvider, (_, themeMode) {
+      SystemWindow.setStatusBarTheme(switch (themeMode) {
+        ThemeMode.dark => Brightness.light,
+        ThemeMode.light => Brightness.dark,
+        ThemeMode.system => Brightness.dark,
+      });
     });
 
     ThemeMode themeMode = ref.watch(themeBaseModeProvider);

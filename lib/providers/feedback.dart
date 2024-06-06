@@ -10,11 +10,11 @@ part 'feedback.g.dart';
 
 @riverpod
 void feedback(FeedbackRef ref) {
-  final lastAction = ref.watch(currentActionProvider);
+  final lastMove = ref.watch(lastMoveProvider);
   final gameStatus = ref.watch(gameControllerProvider);
-  print('Status: $gameStatus, Feedback: $lastAction');
+  print('Status: $gameStatus, Feedback: $lastMove');
 
-  final target = lastAction?.move?.to;
+  final target = lastMove?.action.move?.to;
 
   if (ref.read(settingsEnableVibrationProvider)) {
     switch (target) {

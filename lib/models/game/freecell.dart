@@ -29,7 +29,7 @@ class FreeCell extends SolitaireGame {
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(8, 6),
+      portrait: Size(8, 7),
       landscape: Size(11, 4),
     );
   }

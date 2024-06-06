@@ -7,6 +7,7 @@ import '../models/game/demo.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
 import '../providers/themes.dart';
+import '../widgets/bottom_padded.dart';
 import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
@@ -99,7 +100,8 @@ class _SettingsList extends ConsumerWidget {
       child: SizedBox(
         width: 600,
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 24),
+          padding: const EdgeInsets.symmetric(vertical: 24) +
+              BottomPadded.getPadding(context),
           children: [
             const SectionTitle('Overall', first: true),
             ListTile(

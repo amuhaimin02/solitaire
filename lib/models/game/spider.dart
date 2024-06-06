@@ -39,7 +39,7 @@ class Spider extends SolitaireGame {
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(10, 7),
+      portrait: Size(10, 8),
       landscape: Size(11.5, 4),
     );
   }

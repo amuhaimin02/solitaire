@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -168,7 +169,7 @@ class GameController extends _$GameController {
     final table = ref.read(currentTableProvider);
 
     final movableCards = <PlayCard>[];
-    for (final (card, from) in _getAllVisibleCards()) {
+    for (final (card, from) in _getAllMovableCards()) {
       if (tryQuickMove(card, from, doMove: false) is MoveSuccess) {
         movableCards.add(card);
       }
@@ -282,8 +283,11 @@ class GameController extends _$GameController {
     }
 
     if (doMove) {
-      _doMoveCards(result,
-          doAfterMove: doAfterMove, retainMoveCount: retainMoveCount);
+      _doMoveCards(
+        result,
+        doAfterMove: doAfterMove,
+        retainMoveCount: retainMoveCount,
+      );
     }
     return MoveSuccess(targetAction);
   }
@@ -432,11 +436,17 @@ class GameController extends _$GameController {
     // Clear any hinted cards if any
     ref.read(hintedCardsProvider.notifier).clear();
 
+    // Detect if whole cards are just being relocated to another empty space
+    final isEmptyPileMoveTransfer = action is Move &&
+        action.from.runtimeType == action.to.runtimeType &&
+        updatedTable.get(action.from).isEmpty &&
+        updatedTable.get(action.to).length == action.cards.length;
+
     // Add to move records
     ref.read(moveHistoryProvider.notifier).add(
           updatedTable,
-          action ?? const Idle(),
-          retainMoveCount: retainMoveCount,
+          action ?? const Idle(), // TODO: Check not null
+          retainMoveCount: retainMoveCount || isEmptyPileMoveTransfer,
         );
 
     // Check if the game is winning
@@ -456,7 +466,8 @@ class GameController extends _$GameController {
     }
   }
 
-  Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {
+  Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {
+    // TODO: change this
     final table = ref.read(currentTableProvider);
     for (final t in table.allTableauPiles) {
       for (final c in table.get(t)) {
@@ -466,6 +477,11 @@ class GameController extends _$GameController {
     for (final f in table.allFoundationPiles) {
       if (table.get(f).isNotEmpty) {
         yield (table.get(f).last, f);
+      }
+    }
+    for (final r in table.alLReservePiles) {
+      if (table.get(r).isNotEmpty) {
+        yield (table.get(r).last, r);
       }
     }
 

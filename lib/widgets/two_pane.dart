@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'bottom_padded.dart';
+
 enum StackingStyle { topDown, bottomSheet, newPage }
 
 class TwoPane extends StatefulWidget {
@@ -110,7 +112,9 @@ class TwoPaneState extends State<TwoPane> {
                 children: [
                   _TwoPaneScope(
                     state: this,
-                    child: widget.secondaryBuilder(context),
+                    child: BottomPadded(
+                      child: widget.secondaryBuilder(context),
+                    ),
                   ),
                 ],
               ),

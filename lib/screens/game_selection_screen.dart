@@ -12,6 +12,7 @@ import '../services/play_table_generator.dart';
 import '../utils/prng.dart';
 import '../utils/types.dart';
 import '../utils/widgets.dart';
+import '../widgets/bottom_padded.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
 import '../widgets/solitaire_theme.dart';
@@ -104,6 +105,7 @@ class _GameSelectionList extends ConsumerWidget {
     } else {
       return ListView(
         key: const PageStorageKey('favorite'),
+        padding: BottomPadded.getPadding(context),
         children: [
           for (final game in favoritedGames)
             _GameListTile(
@@ -137,6 +139,7 @@ class _GameSelectionList extends ConsumerWidget {
     } else {
       return ListView(
         key: const PageStorageKey('continue'),
+        padding: BottomPadded.getPadding(context),
         children: [
           for (final game in continuableGames.value!)
             _GameListTile(
@@ -154,6 +157,7 @@ class _GameSelectionList extends ConsumerWidget {
     final selectedGame = ref.watch(selectedGameProvider);
     return ListView(
       key: const PageStorageKey('all'),
+      padding: BottomPadded.getPadding(context),
       children: [
         for (final (group, gameList) in allGamesMapped.items)
           _GameListGroup(

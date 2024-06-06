@@ -20,6 +20,7 @@ import '../providers/settings.dart';
 import '../services/shared_preferences.dart';
 import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
+import '../widgets/bottom_padded.dart';
 import '../widgets/control_pane.dart';
 import '../widgets/fixes.dart';
 import '../widgets/game_table.dart';
@@ -139,122 +140,129 @@ class _GameScreenState extends ConsumerState<GameScreen>
         decoration: isFinished
             ? BoxDecoration(color: theme.winningBackgroundColor)
             : BoxDecoration(color: theme.backgroundColor),
-        child: OrientationBuilder(
-          builder: (context, orientation) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final colorScheme = Theme.of(context).colorScheme;
-                // final isMobile = constraints.biggest.shortestSide < 600;
+        child: BottomPadded(
+          child: OrientationBuilder(
+            builder: (context, orientation) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final colorScheme = Theme.of(context).colorScheme;
+                  // final isMobile = constraints.biggest.shortestSide < 600;
 
-                const playAreaMargin = EdgeInsets.all(8);
+                  const playAreaMargin = EdgeInsets.all(8);
 
-                final divider = SizedBox(
-                  width: 48,
-                  child: Divider(height: 24, color: colorScheme.outline),
-                );
+                  final divider = SizedBox(
+                    width: 48,
+                    child: Divider(height: 24, color: colorScheme.outline),
+                  );
 
-                final gameStatus = ref.watch(gameControllerProvider);
-                final isPreparing = gameStatus == GameStatus.initializing ||
-                    gameStatus == GameStatus.preparing;
+                  final gameStatus = ref.watch(gameControllerProvider);
+                  final isPreparing = gameStatus == GameStatus.initializing ||
+                      gameStatus == GameStatus.preparing;
 
-                return AnimatedVisibility(
-                  visible: _isStarted,
-                  duration: themeChangeAnimation.duration,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: switch (orientation) {
-                          Orientation.landscape => Padding(
-                              padding: EdgeInsets.only(
-                                  left: viewPadding.left + 56,
-                                  right: viewPadding
-                                      .right), // Make room for the back button
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: IgnorePointer(
-                                      ignoring: isPreparing,
-                                      child: Padding(
-                                        padding: playAreaMargin,
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                              maxWidth: 1000, maxHeight: 1000),
-                                          child: _PlayArea(
-                                            orientation: orientation,
+                  return AnimatedVisibility(
+                    visible: _isStarted,
+                    duration: themeChangeAnimation.duration,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: switch (orientation) {
+                            Orientation.landscape => Padding(
+                                padding: EdgeInsets.only(
+                                    left: viewPadding.left + 56,
+                                    right: viewPadding
+                                        .right), // Make room for the back button
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Flexible(
+                                      child: IgnorePointer(
+                                        ignoring: isPreparing,
+                                        child: Padding(
+                                          padding: playAreaMargin,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                                maxWidth: 1000,
+                                                maxHeight: 1000),
+                                            child: _PlayArea(
+                                              orientation: orientation,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  AnimatedVisibility(
-                                    visible: !isPreparing,
-                                    child: Container(
-                                      width: 120,
-                                      margin:
-                                          const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          StatusPane(orientation: orientation),
-                                          divider,
-                                          ControlPane(orientation: orientation),
-                                        ],
+                                    AnimatedVisibility(
+                                      visible: !isPreparing,
+                                      child: Container(
+                                        width: 120,
+                                        margin: const EdgeInsets.fromLTRB(
+                                            8, 8, 8, 8),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            StatusPane(
+                                                orientation: orientation),
+                                            divider,
+                                            ControlPane(
+                                                orientation: orientation),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          Orientation.portrait => Padding(
-                              padding: const EdgeInsets.only(
-                                  top: 56), // Make room for the back button
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 32),
-                                    child: AnimatedVisibility(
-                                      visible: !isPreparing,
-                                      child:
-                                          StatusPane(orientation: orientation),
+                            Orientation.portrait => Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 56), // Make room for the back button
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 32),
+                                      child: AnimatedVisibility(
+                                        visible: !isPreparing,
+                                        child: StatusPane(
+                                            orientation: orientation),
+                                      ),
                                     ),
-                                  ),
-                                  Flexible(
-                                    child: IgnorePointer(
-                                      ignoring: isPreparing,
-                                      child: Padding(
-                                        padding: playAreaMargin,
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                              maxWidth: 1000, maxHeight: 1000),
-                                          child: _PlayArea(
-                                            orientation: orientation,
+                                    Flexible(
+                                      child: IgnorePointer(
+                                        ignoring: isPreparing,
+                                        child: Padding(
+                                          padding: playAreaMargin,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                                maxWidth: 1000,
+                                                maxHeight: 1000),
+                                            child: _PlayArea(
+                                              orientation: orientation,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 32),
-                                    child: AnimatedVisibility(
-                                      visible: !isPreparing,
-                                      child:
-                                          ControlPane(orientation: orientation),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 32),
+                                      child: AnimatedVisibility(
+                                        visible: !isPreparing,
+                                        child: ControlPane(
+                                            orientation: orientation),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -319,7 +327,7 @@ class _PlayArea extends ConsumerWidget {
         List<PlayCard>? lastMovedCards;
 
         if (showLastMoves) {
-          final lastMove = ref.watch(currentActionProvider)?.move;
+          final lastMove = ref.watch(lastMoveProvider)?.action.move;
           if (lastMove != null) {
             lastMovedCards = lastMove.cards;
           }

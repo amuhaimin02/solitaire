@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/settings.dart';
+import '../widgets/bottom_padded.dart';
 import '../widgets/section_title.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -18,7 +19,8 @@ class SettingsScreen extends ConsumerWidget {
         child: SizedBox(
           width: 600,
           child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16) +
+                BottomPadded.getPadding(context),
             children: [
               const SectionTitle('System', first: true),
               SwitchListTile(
