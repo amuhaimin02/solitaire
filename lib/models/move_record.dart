@@ -9,6 +9,15 @@ part 'move_record.freezed.dart';
 class MoveRecord with _$MoveRecord {
   factory MoveRecord({
     required Action action,
+    required MoveState state,
     required PlayTable table,
   }) = _MoveRecord;
+}
+
+@freezed
+class MoveState with _$MoveState {
+  factory MoveState({
+    required int moveNumber,
+    required int score,
+  }) = _MoveState;
 }

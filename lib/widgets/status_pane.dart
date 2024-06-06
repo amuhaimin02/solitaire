@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/game_logic.dart';
+import '../providers/game_move_history.dart';
 import '../providers/settings.dart';
 import '../utils/types.dart';
 import '../utils/widgets.dart';
@@ -77,7 +78,7 @@ class ScoreLabel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final score = ref.watch(scoreProvider);
+    final score = ref.watch(currentScoreProvider);
 
     return FittedBox(
       fit: BoxFit.scaleDown,
@@ -95,7 +96,7 @@ class MoveLabel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final moves = ref.watch(moveCountProvider);
+    final moves = ref.watch(currentMoveNumberProvider);
 
     return FittedBox(
       fit: BoxFit.scaleDown,

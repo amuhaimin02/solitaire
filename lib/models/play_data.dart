@@ -17,9 +17,8 @@ class GameMetadata with _$GameMetadata {
 @freezed
 class GameState with _$GameState {
   factory GameState({
-    required int moves,
-    required int score,
     required Duration playTime,
+    required int moveCursor,
   }) = _GameState;
 }
 

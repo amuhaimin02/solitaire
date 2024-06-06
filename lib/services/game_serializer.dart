@@ -81,17 +81,16 @@ class GameStateSerializer implements Serializer<GameState> {
 
   @override
   String serialize(GameState state) {
-    return '${state.playTime.inMilliseconds}:${state.score}:${state.moves}';
+    return '${state.playTime.inMilliseconds}:${state.moveCursor}';
   }
 
   @override
   GameState deserialize(String raw) {
-    final [val1, val2, val3] = raw.split(':');
+    final [val1, val2] = raw.split(':');
     final playTime = Duration(milliseconds: int.parse(val1));
-    final score = int.parse(val2);
-    final moves = int.parse(val3);
+    final moveCursor = int.parse(val2);
 
-    return GameState(moves: moves, score: score, playTime: playTime);
+    return GameState(playTime: playTime, moveCursor: moveCursor);
   }
 }
 
@@ -104,9 +103,8 @@ class MoveRecordListSerializer implements Serializer<List<MoveRecord>> {
 
     for (final record in records) {
       buffer.write('@');
-      buffer.write(const ActionSerializer().serialize(record.action));
-      buffer.write('\n');
-
+      buffer.writeln(const ActionSerializer().serialize(record.action));
+      buffer.writeln(const MoveStateSerializer().serialize(record.state));
       buffer.write(const PlayTableSerializer().serialize(record.table));
     }
 
@@ -120,10 +118,13 @@ class MoveRecordListSerializer implements Serializer<List<MoveRecord>> {
     // Skip first part as it will be empty from the split results
     return moveParts.skip(1).map((part) {
       final firstNewLine = part.indexOf('\n');
+      final secondNewLine = part.indexOf('\n', firstNewLine + 1);
       final actionString = part.substring(0, firstNewLine);
-      final playTableString = part.substring(firstNewLine + 1);
+      final stateString = part.substring(firstNewLine + 1, secondNewLine);
+      final playTableString = part.substring(secondNewLine + 1);
       return MoveRecord(
         action: const ActionSerializer().deserialize(actionString),
+        state: const MoveStateSerializer().deserialize(stateString),
         table: const PlayTableSerializer().deserialize(playTableString),
       );
     }).toList();
@@ -173,6 +174,24 @@ class ActionSerializer implements Serializer<Action> {
       default:
         throw ArgumentError('Invalid action token: $raw');
     }
+  }
+}
+
+class MoveStateSerializer implements Serializer<MoveState> {
+  const MoveStateSerializer();
+
+  @override
+  String serialize(MoveState state) {
+    return '${state.moveNumber}:${state.score}';
+  }
+
+  @override
+  MoveState deserialize(String raw) {
+    final [val1, val2] = raw.split(':');
+    final moveNumber = int.parse(val1);
+    final score = int.parse(val2);
+
+    return MoveState(moveNumber: moveNumber, score: score);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/user_action.dart';
 import '../providers/game_logic.dart';
+import '../providers/game_move_history.dart';
 import '../providers/themes.dart';
 import 'fixes.dart';
 import 'tap_hold_detector.dart';
@@ -19,7 +20,7 @@ class ControlPane extends ConsumerWidget {
 
     // Only watching so this widget can be updated whenever move count changes.
     // Mainly for undo/redo button
-    ref.watch(moveCountProvider);
+    ref.watch(currentMoveProvider);
 
     final children = [
       IconButton(

@@ -18,12 +18,12 @@ class MoveForbidden extends MoveResult {
 }
 
 class MoveSuccess extends MoveResult {
-  final Move move;
+  final Action action;
 
-  const MoveSuccess(this.move);
+  const MoveSuccess(this.action);
 
   @override
-  String toString() => 'MoveSuccess($move)';
+  String toString() => 'MoveSuccess($action)';
 }
 
 class MoveNotDone extends MoveResult {

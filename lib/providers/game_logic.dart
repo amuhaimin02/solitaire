@@ -19,26 +19,11 @@ import '../models/user_action.dart';
 import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
 import '../utils/types.dart';
+import 'game_move_history.dart';
 import 'game_selection.dart';
 import 'settings.dart';
 
 part 'game_logic.g.dart';
-
-@riverpod
-class Score extends _$Score {
-  @override
-  int build() {
-    return 0;
-  }
-
-  void set(int value) => state = value;
-
-  void reset() => state = 0;
-
-  void add(int value) {
-    state += value;
-  }
-}
 
 @Riverpod(keepAlive: true)
 SettableStopwatch stopwatch(StopwatchRef ref) {
@@ -88,22 +73,6 @@ bool playTimeIsRunning(PlayTimeIsRunningRef ref) {
 }
 
 @riverpod
-class MoveCount extends _$MoveCount {
-  @override
-  int build() {
-    return 0;
-  }
-
-  void set(int value) => state = value;
-
-  void reset() => state = 0;
-
-  void forward() => state++;
-
-  void reverse() => state--;
-}
-
-@riverpod
 class CurrentGame extends _$CurrentGame {
   // TODO: Make nullable
   @override
@@ -117,16 +86,6 @@ class CurrentGame extends _$CurrentGame {
 
   void start(GameMetadata game) {
     state = game;
-  }
-}
-
-@riverpod
-class PlayTableState extends _$PlayTableState {
-  @override
-  PlayTable build() => PlayTable.empty();
-
-  void update(PlayTable table) {
-    state = table;
   }
 }
 
@@ -149,23 +108,23 @@ class GameController extends _$GameController {
       startedTime: DateTime.now(),
       randomSeed: CustomPRNG.generateSeed(length: 12),
     );
-    ref.read(lastActionProvider.notifier).send(const Idle());
     ref.read(currentGameProvider.notifier).start(newPlayData);
-    ref.read(moveCountProvider.notifier).reset();
-    ref.read(scoreProvider.notifier).reset();
 
     // Setup draw piles for the new game
-    _setupPiles();
+    final initialTable = _setupPiles();
+    ref
+        .read(moveHistoryProvider.notifier)
+        .createNew(initialTable, const GameStart());
     state = GameStatus.initializing;
     await Future.delayed(cardMoveAnimation.duration * timeDilation * 2);
 
     // Start distribute cards according to game
-    _setupCards();
+    final setupTable = _setupCards(initialTable);
     state = GameStatus.preparing;
+    ref.read(moveHistoryProvider.notifier).add(setupTable, const GameStart());
     await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
 
     ref.read(playTimeProvider.notifier).restart();
-    ref.read(moveHistoryProvider.notifier).createNew();
     state = GameStatus.started;
 
     if (ref.read(settingsUseAutoPremoveProvider)) {
@@ -176,7 +135,6 @@ class GameController extends _$GameController {
   void restart() async {
     ref.read(moveHistoryProvider.notifier).restart();
     ref.read(playTimeProvider.notifier).restart();
-    ref.read(scoreProvider.notifier).reset();
   }
 
   GameData suspend() {
@@ -186,24 +144,19 @@ class GameController extends _$GameController {
     return GameData(
       metadata: ref.read(currentGameProvider),
       state: GameState(
-        moves: ref.read(moveCountProvider),
-        score: ref.read(scoreProvider),
         playTime: ref.read(playTimeProvider),
+        moveCursor: ref.read(moveCursorProvider),
       ),
-      history: ref.read(moveHistoryProvider),
+      history: ref.read(moveRecordListProvider),
     );
   }
 
   void restore(GameData gameData) {
-    ref.read(lastActionProvider.notifier).send(const Idle());
     ref.read(currentGameProvider.notifier).start(gameData.metadata);
-    ref.read(scoreProvider.notifier).set(gameData.state.score);
-    ref.read(moveCountProvider.notifier).set(gameData.state.moves);
     ref.read(playTimeProvider.notifier).set(gameData.state.playTime);
-    ref.read(moveHistoryProvider.notifier).set(gameData.history);
     ref
-        .read(playTableStateProvider.notifier)
-        .update(gameData.history[gameData.state.moves].table);
+        .read(moveHistoryProvider.notifier)
+        .restore(gameData.state.moveCursor, gameData.history);
 
     // Start timer immediately
     ref.read(playTimeProvider.notifier).resume();
@@ -212,7 +165,7 @@ class GameController extends _$GameController {
   }
 
   bool highlightHints() {
-    final table = ref.read(playTableStateProvider);
+    final table = ref.read(currentTableProvider);
 
     final movableCards = <PlayCard>[];
     for (final (card, from) in _getAllVisibleCards()) {
@@ -235,10 +188,14 @@ class GameController extends _$GameController {
     }
   }
 
-  MoveResult tryMove(MoveIntent move,
-      {bool doMove = true, bool doAfterMove = true}) {
+  MoveResult tryMove(
+    MoveIntent move, {
+    bool doMove = true,
+    bool doAfterMove = true,
+    bool retainMoveCount = false,
+  }) {
     final game = ref.read(currentGameProvider);
-    PlayTable table = ref.read(playTableStateProvider);
+    PlayTable table = ref.read(currentTableProvider);
 
     final originPileInfo = game.game.piles.get(move.from);
 
@@ -323,19 +280,17 @@ class GameController extends _$GameController {
     if (targetAction == null) {
       return MoveNotDone('No moves was made', null, move.from);
     }
-    if (targetAction is Deal) {
-      targetAction = targetAction.move;
-    }
 
     if (doMove) {
-      _doMoveCards(result, doAfterMove: doAfterMove);
+      _doMoveCards(result,
+          doAfterMove: doAfterMove, retainMoveCount: retainMoveCount);
     }
-    return MoveSuccess(targetAction as Move);
+    return MoveSuccess(targetAction);
   }
 
   MoveResult tryQuickMove(PlayCard card, Pile from, {bool doMove = true}) {
     final game = ref.read(currentGameProvider);
-    final table = ref.read(playTableStateProvider);
+    final table = ref.read(currentTableProvider);
 
     for (final move in game.game.quickMoveStrategy(from, card, table)) {
       final result = tryMove(move, doMove: doMove);
@@ -358,7 +313,7 @@ class GameController extends _$GameController {
 
     do {
       handled = false;
-      final table = ref.read(playTableStateProvider);
+      final table = ref.read(currentTableProvider);
       for (final move in game.game.autoSolveStrategy(table)) {
         final result = tryMove(move, doAfterMove: false);
         if (result is MoveSuccess) {
@@ -377,7 +332,7 @@ class GameController extends _$GameController {
 
   // ----------------------------------
 
-  void _setupPiles() {
+  PlayTable _setupPiles() {
     final gameData = ref.read(currentGameProvider);
     PlayTable table = PlayTable.fromGame(gameData.game);
 
@@ -388,12 +343,11 @@ class GameController extends _$GameController {
       }
     }
 
-    ref.read(playTableStateProvider.notifier).update(table);
+    return table;
   }
 
-  void _setupCards() {
+  PlayTable _setupCards(PlayTable table) {
     final gameData = ref.read(currentGameProvider);
-    PlayTable table = ref.read(playTableStateProvider);
 
     for (final (pile, props) in gameData.game.piles.items) {
       final result = PileAction.run(props.onSetup, pile, table, gameData);
@@ -402,7 +356,7 @@ class GameController extends _$GameController {
       }
     }
 
-    ref.read(playTableStateProvider.notifier).update(table);
+    return table;
   }
 
   Future<void> _doPostMove() async {
@@ -414,9 +368,9 @@ class GameController extends _$GameController {
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
-      final table = ref.read(playTableStateProvider);
+      final table = ref.read(currentTableProvider);
       for (final move in game.game.postMoveStrategy(table)) {
-        final result = tryMove(move, doAfterMove: false);
+        final result = tryMove(move, doAfterMove: false, retainMoveCount: true);
         if (result is MoveSuccess) {
           handled = true;
           break;
@@ -433,7 +387,7 @@ class GameController extends _$GameController {
   Future<void> _doPremove() async {
     final game = ref.read(currentGameProvider);
 
-    final Action lastAction = ref.read(lastActionProvider);
+    final lastAction = ref.read(currentActionProvider);
 
     ref.read(playTimeProvider.notifier).pause();
 
@@ -441,7 +395,7 @@ class GameController extends _$GameController {
     do {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
-      final table = ref.read(playTableStateProvider);
+      final table = ref.read(currentTableProvider);
       for (final move in game.game.premoveStrategy(table)) {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
@@ -466,6 +420,7 @@ class GameController extends _$GameController {
   void _doMoveCards(
     PileActionResult result, {
     bool doAfterMove = true,
+    bool retainMoveCount = false,
   }) {
     if (result is! PileActionHandled) {
       throw StateError('result is not handled');
@@ -473,22 +428,16 @@ class GameController extends _$GameController {
 
     final action = result.action;
     PlayTable updatedTable = result.table;
-    final scoreGained = result.scoreGained;
 
     // Clear any hinted cards if any
     ref.read(hintedCardsProvider.notifier).clear();
 
-    // Add in the new score for the move, if any
-    if (scoreGained != null) {
-      ref.read(scoreProvider.notifier).add(scoreGained);
-    }
-
-    // Update cards on table with new version
-    ref.read(playTableStateProvider.notifier).update(updatedTable);
-
-    if (action != null) {
-      _addToHistory(updatedTable, action);
-    }
+    // Add to move records
+    ref.read(moveHistoryProvider.notifier).add(
+          updatedTable,
+          action ?? const Idle(),
+          retainMoveCount: retainMoveCount,
+        );
 
     // Check if the game is winning
     if (ref.read(isGameFinishedProvider)) {
@@ -507,13 +456,8 @@ class GameController extends _$GameController {
     }
   }
 
-  void _addToHistory(PlayTable table, Action action) {
-    ref.read(playTableStateProvider.notifier).update(table);
-    ref.read(moveHistoryProvider.notifier).add(action);
-  }
-
   Iterable<(PlayCard card, Pile pile)> _getAllVisibleCards() sync* {
-    final table = ref.read(playTableStateProvider);
+    final table = ref.read(currentTableProvider);
     for (final t in table.allTableauPiles) {
       for (final c in table.get(t)) {
         yield (c, t);
@@ -532,88 +476,9 @@ class GameController extends _$GameController {
 }
 
 @riverpod
-class MoveHistory extends _$MoveHistory {
-  @override
-  List<MoveRecord> build() {
-    return [];
-  }
-
-  void createNew() {
-    final table = ref.read(playTableStateProvider);
-    ref.read(lastActionProvider.notifier).send(const GameStart());
-    state = [
-      MoveRecord(action: const GameStart(), table: table),
-    ];
-  }
-
-  void set(List<MoveRecord> records) => state = records;
-
-  void add(Action action) {
-    final table = ref.read(playTableStateProvider);
-    final moves = ref.read(moveCountProvider);
-    ref.read(moveCountProvider.notifier).forward();
-    ref.read(lastActionProvider.notifier).send(action);
-    state = [
-      ...state.getRange(0, moves + 1),
-      MoveRecord(action: action, table: table),
-    ];
-  }
-
-  bool canUndo() {
-    final moves = ref.read(moveCountProvider);
-    return moves > 0;
-  }
-
-  bool canRedo() {
-    final moves = ref.read(moveCountProvider);
-    return moves < state.length - 1;
-  }
-
-  void undo() {
-    final moves = ref.read(moveCountProvider.notifier);
-
-    if (canUndo()) {
-      final currentMove = state[moves.state].action;
-      ref.read(lastActionProvider.notifier).send(Undo(currentMove));
-      moves.reverse();
-      final record = state[moves.state];
-      ref.read(playTableStateProvider.notifier).update(record.table);
-    }
-  }
-
-  void redo() {
-    final moves = ref.read(moveCountProvider.notifier);
-
-    if (canRedo()) {
-      moves.forward();
-      final record = state[moves.state];
-      ref.read(lastActionProvider.notifier).send(Undo(record.action));
-      ref.read(playTableStateProvider.notifier).update(record.table);
-    }
-  }
-
-  void restart() {
-    ref.read(moveCountProvider.notifier).set(0);
-    ref.read(playTableStateProvider.notifier).update(state.first.table);
-    ref.read(lastActionProvider.notifier).send(const GameStart());
-    state = [state.first];
-  }
-}
-
-@riverpod
-class LastAction extends _$LastAction {
-  @override
-  Action build() => const Idle();
-
-  void send(Action newAction) {
-    state = newAction;
-  }
-}
-
-@riverpod
 bool isGameFinished(IsGameFinishedRef ref) {
   final game = ref.watch(currentGameProvider);
-  final table = ref.watch(playTableStateProvider);
+  final table = ref.watch(currentTableProvider);
 
   return game.game.winConditions(table);
 }
@@ -621,7 +486,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
 @riverpod
 bool autoSolvable(AutoSolvableRef ref) {
   final game = ref.watch(currentGameProvider);
-  final table = ref.watch(playTableStateProvider);
+  final table = ref.watch(currentTableProvider);
 
   return game.game.canAutoSolve(table);
 }
@@ -700,6 +565,6 @@ class GameDebug extends _$GameDebug {
       const Tableau(3): const [PlayCard(Suit.club, Rank.three)],
     });
 
-    ref.read(playTableStateProvider.notifier).update(presetCards);
+    ref.read(moveHistoryProvider.notifier).add(presetCards, const GameStart());
   }
 }

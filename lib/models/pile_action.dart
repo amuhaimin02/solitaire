@@ -336,31 +336,3 @@ class DistributeEquallyToAll<T extends Pile> extends PileAction {
     );
   }
 }
-
-class SendToAnyEmptyPile<T extends Pile> extends PileAction {
-  const SendToAnyEmptyPile({required this.count});
-
-  final int count;
-
-  @override
-  PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
-    final allPilesOfType = table.allPilesOfType<T>().toList();
-
-    final (remainingCards, cardsToSend) = table.get(pile).splitLast(count);
-
-    for (final targetPile in allPilesOfType) {
-      final cardsOnPile = table.get(targetPile);
-
-      if (cardsOnPile.isEmpty) {
-        return PileActionHandled(
-          table: table.modifyMultiple({
-            pile: remainingCards,
-            targetPile: [...cardsOnPile, ...cardsToSend]
-          }),
-        );
-      }
-    }
-
-    return PileActionNoChange(table: table);
-  }
-}

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
+import '../models/card_list.dart';
 import '../models/game_status.dart';
 import '../models/move_result.dart';
 import '../models/pile_check.dart';
@@ -12,9 +13,11 @@ import '../models/play_data.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
+import '../providers/game_move_history.dart';
 import '../providers/game_selection.dart';
 import '../providers/game_storage.dart';
 import '../providers/settings.dart';
+import '../services/shared_preferences.dart';
 import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
@@ -46,10 +49,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   void _startGame() {
     Future.microtask(() async {
-      final continuableGames = await ref.read(continuableGamesProvider.future);
-      final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
-
       final allGames = ref.read(allSolitaireGamesProvider);
+
+      final continuableGames = await ref.read(continuableGamesProvider.future);
+
+      // Wait for shared prefs to load first
+      await ref.read(sharedPreferenceProvider.future);
+      final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
 
       final lastPlayedGame =
           allGames.firstWhereOrNull((game) => game.tag == lastPlayedGameTag);
@@ -299,7 +305,7 @@ class _PlayArea extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final game = ref.watch(currentGameProvider);
-    final table = ref.watch(playTableStateProvider);
+    final table = ref.watch(currentTableProvider);
     final status = ref.watch(gameControllerProvider);
     final highlightedCards = ref.watch(hintedCardsProvider);
 
@@ -313,7 +319,7 @@ class _PlayArea extends ConsumerWidget {
         List<PlayCard>? lastMovedCards;
 
         if (showLastMoves) {
-          final lastMove = ref.watch(lastActionProvider).move;
+          final lastMove = ref.watch(currentActionProvider)?.move;
           if (lastMove != null) {
             lastMovedCards = lastMove.cards;
           }
@@ -330,10 +336,7 @@ class _PlayArea extends ConsumerWidget {
               lastMovedCards: lastMovedCards,
               animateDistribute: status == GameStatus.preparing,
               canDragCards: (cards, from) {
-                final pileInfo = game.game.piles.get(from);
-
-                return PileCheck.checkAll(
-                    pileInfo.pickable, from, null, cards, table) is PileCheckOK;
+                return cards.isAllFacingUp;
               },
               onCardTap: (card, pile) {
                 print('card tap $card $pile');
@@ -457,9 +460,9 @@ class _FinishDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final moves = ref.watch(moveCountProvider);
+    final moves = ref.watch(currentMoveNumberProvider);
     final playTime = ref.watch(playTimeProvider);
-    final score = ref.watch(scoreProvider);
+    final score = ref.watch(currentScoreProvider);
 
     return DialogThemeFix(
       child: AlertDialog(
