@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/game_logic.dart';
+import '../providers/game_selection.dart';
+import '../providers/game_storage.dart';
 
 class DebugPane extends ConsumerWidget {
   const DebugPane({super.key});
@@ -19,6 +21,15 @@ class DebugPane extends ConsumerWidget {
             ref.read(gameDebugProvider.notifier).debugTestCustomLayout();
           },
           icon: Icon(MdiIcons.cardsPlaying),
+        ),
+        IconButton(
+          tooltip: 'Delete all saves',
+          onPressed: () {
+            for (final game in ref.read(allSolitaireGamesProvider)) {
+              ref.read(gameStorageProvider.notifier).deleteQuickSave(game);
+            }
+          },
+          icon: Icon(MdiIcons.delete),
         ),
       ],
     );

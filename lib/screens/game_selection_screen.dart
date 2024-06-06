@@ -118,7 +118,7 @@ class _GameSelectionList extends ConsumerWidget {
 
   Widget _buildContinueGameList(BuildContext context, WidgetRef ref) {
     final selectedGame = ref.watch(selectedGameProvider);
-    final continuableGames = ref.read(continuableGamesProvider);
+    final continuableGames = ref.watch(continuableGamesProvider);
 
     if (continuableGames.isLoading) {
       return const Align(
@@ -364,7 +364,6 @@ class _GameSelectionOptions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final continuableGames = ref.watch(continuableGamesProvider).value;
-    final colorScheme = Theme.of(context).colorScheme;
 
     final canContinueGame =
         continuableGames != null && continuableGames.contains(game);
@@ -373,10 +372,6 @@ class _GameSelectionOptions extends ConsumerWidget {
 
     if (canContinueGame) {
       playButtonWidget = FilledButton.icon(
-        style: FilledButton.styleFrom(
-          foregroundColor: colorScheme.onTertiary,
-          backgroundColor: colorScheme.tertiary,
-        ),
         icon: const Icon(Icons.play_circle),
         label: const Text('Continue last game'),
         onPressed: () async {

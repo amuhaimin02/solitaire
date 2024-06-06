@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../providers/game_logic.dart';
@@ -26,27 +27,27 @@ class GameMenuButton extends StatelessWidget {
       _GameMenuOptions(
         icon: Icons.color_lens,
         label: 'Customize',
-        onTap: (context) => Navigator.pushNamed(context, '/theme'),
+        onTap: (context) => context.go('/theme'),
       ),
       _GameMenuOptions(
         icon: Icons.settings,
         label: 'Settings',
-        onTap: (context) => Navigator.pushNamed(context, '/settings'),
+        onTap: (context) => context.go('/settings'),
       ),
       _GameMenuOptions(
         icon: Icons.leaderboard,
         label: 'Statistics',
-        onTap: (context) => Navigator.pushNamed(context, '/statistics'),
+        onTap: (context) => context.go('/statistics'),
       ),
       _GameMenuOptions(
         icon: Icons.help,
         label: 'Help',
-        onTap: (context) => Navigator.pushNamed(context, '/help'),
+        onTap: (context) => context.go('/help'),
       ),
       _GameMenuOptions(
         icon: Icons.info,
         label: 'About',
-        onTap: (context) => Navigator.pushNamed(context, '/about'),
+        onTap: (context) => context.go('/about'),
       )
     ];
 
@@ -63,7 +64,7 @@ class GameMenuButton extends StatelessWidget {
             title: const Text('Change game'),
             onTap: () {
               dismiss();
-              Navigator.pushNamed(context, '/select');
+              context.go('/select');
             },
           ),
           const Divider(),

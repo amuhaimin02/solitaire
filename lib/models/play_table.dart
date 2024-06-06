@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
 import '../utils/types.dart';
 import 'card.dart';
 import 'game/solitaire.dart';

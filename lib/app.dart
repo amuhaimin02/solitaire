@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'models/theme.dart';
@@ -16,10 +17,45 @@ import 'services/system_window.dart';
 import 'widgets/route_observer.dart';
 import 'widgets/solitaire_theme.dart';
 
+final _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const GameScreen(),
+      routes: [
+        GoRoute(
+          path: 'select',
+          builder: (context, state) => const GameSelectionScreen(),
+        ),
+        GoRoute(
+          path: 'theme',
+          builder: (context, state) => const ThemeScreen(),
+        ),
+        GoRoute(
+          path: 'settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: 'statistics',
+          builder: (context, state) => const StatisticsScreen(),
+        ),
+        GoRoute(
+          path: 'help',
+          builder: (context, state) => const HelpScreen(),
+        ),
+        GoRoute(
+          path: 'about',
+          builder: (context, state) => const AboutScreen(),
+        ),
+      ],
+    ),
+  ],
+  observers: [routeObserver],
+);
+
 class SolitaireApp extends ConsumerWidget {
   const SolitaireApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(settingsScreenOrientationProvider, (_, orientation) {
@@ -27,6 +63,9 @@ class SolitaireApp extends ConsumerWidget {
     });
     ref.listen(settingsShowStatusBarProvider, (_, visible) {
       SystemWindow.setStatusBarVisibility(visible);
+    });
+    ref.listen(themeBaseColorProvider, (_, color) {
+      SystemWindow.setStatusBarTheme(Brightness.dark, color);
     });
 
     ThemeMode themeMode = ref.watch(themeBaseModeProvider);
@@ -103,21 +142,11 @@ class SolitaireApp extends ConsumerWidget {
 
     return SolitaireTheme(
       data: tableTheme,
-      child: MaterialApp(
+      child: MaterialApp.router(
+        routerConfig: _router,
         title: 'Solitaire',
         theme: appTheme,
         themeAnimationStyle: AnimationStyle.noAnimation,
-        initialRoute: '/game',
-        routes: {
-          '/game': (context) => const GameScreen(),
-          '/select': (context) => const GameSelectionScreen(),
-          '/theme': (context) => const ThemeScreen(),
-          '/settings': (context) => const SettingsScreen(),
-          '/statistics': (context) => const StatisticsScreen(),
-          '/help': (context) => const HelpScreen(),
-          '/about': (context) => const AboutScreen(),
-        },
-        navigatorObservers: [routeObserver],
       ),
     );
   }

@@ -18,7 +18,6 @@ import '../providers/settings.dart';
 import '../utils/types.dart';
 import '../widgets/animated_visibility.dart';
 import '../widgets/control_pane.dart';
-import '../widgets/debug_pane.dart';
 import '../widgets/fixes.dart';
 import '../widgets/game_table.dart';
 import '../widgets/ripple_background.dart';
@@ -37,6 +36,8 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen>
     with RouteAware, WidgetsBindingObserver, RouteObserved {
+  bool _isStarted = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,10 +47,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void _startGame() {
     Future.microtask(() async {
       final continuableGames = await ref.read(continuableGamesProvider.future);
-
       final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
 
       final allGames = ref.read(allSolitaireGamesProvider);
+
       final lastPlayedGame =
           allGames.firstWhereOrNull((game) => game.tag == lastPlayedGameTag);
 
@@ -59,13 +60,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
           final gameData = await ref
               .read(gameStorageProvider.notifier)
               .restoreQuickSave(lastPlayedGame);
-          if (mounted) {
-            // Wait for animation to end, also for context to be initialized with theme
-            Future.delayed(
-              themeChangeAnimation.duration,
-              () => _showContinueSnackBar(context, gameData),
-            );
-          }
+
+          // Wait for animation to end, also for context to be initialized with theme
+          Future.delayed(
+            themeChangeAnimation.duration,
+            () {
+              if (mounted) {
+                _showContinueSnackBar(context, gameData);
+              }
+            },
+          );
 
           ref.read(gameControllerProvider.notifier).restore(gameData);
         } else {
@@ -74,6 +78,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
       } else {
         ref.read(gameControllerProvider.notifier).startNew(allGames.first);
       }
+      Future.delayed(themeChangeAnimation.duration ~/ 2, () {
+        setState(() {
+          _isStarted = true;
+        });
+      });
     });
   }
 
@@ -142,95 +151,100 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 final isPreparing = gameStatus == GameStatus.initializing ||
                     gameStatus == GameStatus.preparing;
 
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: switch (orientation) {
-                        Orientation.landscape => Padding(
-                            padding: EdgeInsets.only(
-                                left: viewPadding.left + 56,
-                                right: viewPadding
-                                    .right), // Make room for the back button
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Flexible(
-                                  child: IgnorePointer(
-                                    ignoring: isPreparing,
-                                    child: Padding(
-                                      padding: playAreaMargin,
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                            maxWidth: 1000, maxHeight: 1000),
-                                        child: _PlayArea(
-                                          orientation: orientation,
+                return AnimatedVisibility(
+                  visible: _isStarted,
+                  duration: themeChangeAnimation.duration,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: switch (orientation) {
+                          Orientation.landscape => Padding(
+                              padding: EdgeInsets.only(
+                                  left: viewPadding.left + 56,
+                                  right: viewPadding
+                                      .right), // Make room for the back button
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: IgnorePointer(
+                                      ignoring: isPreparing,
+                                      child: Padding(
+                                        padding: playAreaMargin,
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 1000, maxHeight: 1000),
+                                          child: _PlayArea(
+                                            orientation: orientation,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                AnimatedVisibility(
-                                  visible: !isPreparing,
-                                  child: Container(
-                                    width: 120,
-                                    margin:
-                                        const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        StatusPane(orientation: orientation),
-                                        divider,
-                                        ControlPane(orientation: orientation),
-                                      ],
+                                  AnimatedVisibility(
+                                    visible: !isPreparing,
+                                    child: Container(
+                                      width: 120,
+                                      margin:
+                                          const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          StatusPane(orientation: orientation),
+                                          divider,
+                                          ControlPane(orientation: orientation),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        Orientation.portrait => Padding(
-                            padding: const EdgeInsets.only(
-                                top: 56), // Make room for the back button
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 32),
-                                  child: AnimatedVisibility(
-                                    visible: !isPreparing,
-                                    child: StatusPane(orientation: orientation),
+                          Orientation.portrait => Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 56), // Make room for the back button
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 32),
+                                    child: AnimatedVisibility(
+                                      visible: !isPreparing,
+                                      child:
+                                          StatusPane(orientation: orientation),
+                                    ),
                                   ),
-                                ),
-                                Flexible(
-                                  child: IgnorePointer(
-                                    ignoring: isPreparing,
-                                    child: Padding(
-                                      padding: playAreaMargin,
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                            maxWidth: 1000, maxHeight: 1000),
-                                        child: _PlayArea(
-                                          orientation: orientation,
+                                  Flexible(
+                                    child: IgnorePointer(
+                                      ignoring: isPreparing,
+                                      child: Padding(
+                                        padding: playAreaMargin,
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 1000, maxHeight: 1000),
+                                          child: _PlayArea(
+                                            orientation: orientation,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 32),
-                                  child: AnimatedVisibility(
-                                    visible: !isPreparing,
-                                    child:
-                                        ControlPane(orientation: orientation),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 32),
+                                    child: AnimatedVisibility(
+                                      visible: !isPreparing,
+                                      child:
+                                          ControlPane(orientation: orientation),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 );
               },
             );

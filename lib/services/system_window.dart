@@ -19,12 +19,22 @@ class SystemWindow {
     }
   }
 
+  static setStatusBarTheme(Brightness brightness, Color color) {
+    print('Set status color $brightness $color');
+    // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    //   statusBarBrightness: brightness,
+    //   statusBarIconBrightness: brightness,
+    //   systemNavigationBarColor: color,
+    //   statusBarColor: color,
+    // ));
+  }
+
   static setStatusBarVisibility(bool visible) {
     print('Set status bar $visible');
-    if (visible) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    }
+
+    SystemChrome.setEnabledSystemUIMode(
+      visible ? SystemUiMode.manual : SystemUiMode.immersiveSticky,
+      overlays: visible ? SystemUiOverlay.values : [],
+    );
   }
 }
