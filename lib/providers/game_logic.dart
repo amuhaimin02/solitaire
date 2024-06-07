@@ -238,7 +238,7 @@ class GameController extends _$GameController {
         }
 
         final canPickResult = PileCheck.checkAll(
-            originPileInfo.pickable, move.from, null, cardsToPick, table);
+            originPileInfo.pickable, move.from, cardsToPick, table);
         if (canPickResult is PileCheckFail) {
           return MoveForbidden(
               'Cannot pick the card(s) from ${move.from}\n${canPickResult.reason.runtimeType}',
@@ -246,7 +246,7 @@ class GameController extends _$GameController {
         }
 
         final canPlaceResult = PileCheck.checkAll(
-            targetPileInfo.placeable, move.to, move.from, cardsToPick, table);
+            targetPileInfo.placeable, move.to, cardsToPick, table);
 
         if (canPlaceResult is PileCheckFail) {
           return MoveForbidden(
@@ -498,7 +498,14 @@ bool isGameFinished(IsGameFinishedRef ref) {
   final game = ref.watch(currentGameProvider);
   final table = ref.watch(currentTableProvider);
 
-  return game.game.winConditions(table);
+  // TODO: Change "pile" parameter
+  final result = PileCheck.checkAll(
+    game.game.objectives,
+    const Stock(),
+    [],
+    table,
+  );
+  return result is PileCheckOK;
 }
 
 @riverpod

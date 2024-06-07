@@ -3,6 +3,7 @@ import 'dart:ui';
 import '../action.dart';
 import '../card.dart';
 import '../pile.dart';
+import '../pile_check.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
 
@@ -19,7 +20,7 @@ abstract class SolitaireGame {
 
   Map<Pile, PileProperty> get piles;
 
-  bool winConditions(PlayTable table) => false;
+  List<PileCheck> get objectives;
 
   bool canAutoSolve(PlayTable table) => false;
 

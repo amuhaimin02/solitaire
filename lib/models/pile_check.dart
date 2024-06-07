@@ -10,15 +10,19 @@ import 'rank_order.dart';
 abstract class PileCheck {
   const PileCheck();
 
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table);
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table);
 
-  static PileCheckResult checkAll(List<PileCheck>? checks, Pile pile,
-      Pile? from, List<PlayCard> cards, PlayTable table) {
+  static PileCheckResult checkAll(
+    List<PileCheck>? checks,
+    Pile pile,
+    List<PlayCard> cards,
+    PlayTable table,
+  ) {
     if (checks == null) {
       return const PileCheckFail(reason: null);
     }
     for (final item in checks) {
-      if (!item.check(pile, from, cards, table)) {
+      if (!item.check(pile, cards, table)) {
         return PileCheckFail(reason: item);
       }
     }
@@ -44,7 +48,7 @@ class CardsAreFacingUp extends PileCheck {
   const CardsAreFacingUp();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return cards.isAllFacingUp;
   }
 }
@@ -53,7 +57,7 @@ class CardIsSingle extends PileCheck {
   const CardIsSingle();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return cards.isSingle;
   }
 }
@@ -62,7 +66,7 @@ class CardIsOnTop extends PileCheck {
   const CardIsOnTop();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
 
     return cards.isSingle &&
@@ -77,7 +81,7 @@ class CardsFollowRankOrder extends PileCheck {
   final RankOrder rankOrder;
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return switch (rankOrder) {
       RankOrder.increasing => cards.isSortedByRankIncreasingOrder,
       RankOrder.decreasing => cards.isSortedByRankDecreasingOrder,
@@ -89,7 +93,7 @@ class CardsAreSameSuit extends PileCheck {
   const CardsAreSameSuit();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     if (cards.isEmpty || cards.isSingle) {
       return true;
     }
@@ -106,7 +110,7 @@ class BuildupStartsWith extends PileCheck {
   final Suit? suit;
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
 
     if (cardsOnPile.isNotEmpty) {
@@ -130,7 +134,7 @@ class BuildupFollowsRankOrder extends PileCheck {
   final RankOrder rankOrder;
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
 
     if (cardsOnPile.isEmpty || cards.isEmpty) {
@@ -148,7 +152,7 @@ class BuildupAlternateColors extends PileCheck {
   const BuildupAlternateColors();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
 
     if (cardsOnPile.isEmpty || cards.isEmpty) {
@@ -163,7 +167,7 @@ class BuildupSameSuit extends PileCheck {
   const BuildupSameSuit();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
 
     if (cardsOnPile.isEmpty || cards.isEmpty) {
@@ -173,34 +177,34 @@ class BuildupSameSuit extends PileCheck {
     return cardsOnPile.last.suit == cards.first.suit;
   }
 }
-
-class CardsComingFrom extends PileCheck {
-  const CardsComingFrom(this.originPile);
-
-  final Pile originPile;
-
-  @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
-    return from != null && from == originPile;
-  }
-}
-
-class CardsNotComingFrom extends PileCheck {
-  const CardsNotComingFrom(this.originPile);
-
-  final Pile originPile;
-
-  @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
-    return from != null && from != originPile;
-  }
-}
+//
+// class CardsComingFrom extends PileCheck {
+//   const CardsComingFrom(this.originPile);
+//
+//   final Pile originPile;
+//
+//   @override
+//   bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
+//     return from != null && from == originPile;
+//   }
+// }
+//
+// class CardsNotComingFrom extends PileCheck {
+//   const CardsNotComingFrom(this.originPile);
+//
+//   final Pile originPile;
+//
+//   @override
+//   bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
+//     return from != null && from != originPile;
+//   }
+// }
 
 class PileIsEmpty extends PileCheck {
   const PileIsEmpty();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return table.get(pile).isEmpty;
   }
 }
@@ -209,7 +213,7 @@ class PileIsNotEmpty extends PileCheck {
   const PileIsNotEmpty();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return table.get(pile).isNotEmpty;
   }
 }
@@ -218,7 +222,7 @@ class PileTopCardIsFacingDown extends PileCheck {
   const PileTopCardIsFacingDown();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile);
     return cardsOnPile.isNotEmpty && cardsOnPile.last.isFacingDown;
   }
@@ -228,7 +232,7 @@ class RejectAll extends PileCheck {
   const RejectAll();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return false;
   }
 }
@@ -237,8 +241,21 @@ class AllPilesOfTypeAreNotEmpty<T extends Pile> extends PileCheck {
   const AllPilesOfTypeAreNotEmpty();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return table.allPilesOfType<T>().every((p) => table.get(p).isNotEmpty);
+  }
+}
+
+class AllPilesOfTypeHaveFullSuit<T extends Pile> extends PileCheck {
+  const AllPilesOfTypeHaveFullSuit(this.rankOrder);
+
+  final RankOrder rankOrder;
+
+  @override
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
+    return table.allPilesOfType<T>().every((p) {
+      return PileHasFullSuit(rankOrder).check(p, cards, table);
+    });
   }
 }
 
@@ -247,7 +264,7 @@ class FreeCellPowermove extends PileCheck {
   const FreeCellPowermove();
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final numberOfEmptyTableaus = table
         .allPilesOfType<Tableau>()
         .count((t) => t != pile && table.get(t).isEmpty);
@@ -266,7 +283,7 @@ class PileHasFullSuit extends PileCheck {
   final RankOrder rankOrder;
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     final cardsOnPile = table.get(pile).getLast(Rank.values.length);
 
     if (cardsOnPile.length != Rank.values.length) {
@@ -286,7 +303,7 @@ class CardsHasFullSuit extends PileCheck {
   final RankOrder rankOrder;
 
   @override
-  bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     if (cards.length != Rank.values.length) {
       return false;
     }

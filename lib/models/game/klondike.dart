@@ -140,12 +140,10 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  bool winConditions(PlayTable table) {
-    return table
-            .allPilesOfType<Foundation>()
-            .map((f) => table.get(f).length)
-            .sum >=
-        PlayCard.numberOfCardsInDeck;
+  List<PileCheck> get objectives {
+    return [
+      const AllPilesOfTypeHaveFullSuit<Foundation>(RankOrder.decreasing),
+    ];
   }
 
   @override

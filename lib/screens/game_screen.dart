@@ -88,7 +88,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ref.read(gameControllerProvider.notifier).startNew(allGames.first);
         }
       } finally {
-        Future.delayed(themeChangeAnimation.duration, () {
+        Future.delayed(themeChangeAnimation.duration * 0.5, () {
           setState(() {
             _isStarted = true;
           });

@@ -117,7 +117,7 @@ class If extends PileAction {
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     // TODO: Where to obtain the remaining param?
-    final cond = PileCheck.checkAll(condition, pile, null, [], table);
+    final cond = PileCheck.checkAll(condition, pile, [], table);
     if (cond is PileCheckOK && ifTrue != null) {
       return PileAction.run(ifTrue, pile, table, metadata);
     } else if (cond is PileCheckFail && ifFalse != null) {
@@ -313,8 +313,8 @@ class ObtainScore extends PileAction {
   }
 }
 
-class DistributeEquallyToAll<T extends Pile> extends PileAction {
-  const DistributeEquallyToAll({required this.count});
+class DrawToAllPilesOfType<T extends Pile> extends PileAction {
+  const DrawToAllPilesOfType({required this.count});
 
   final int count;
 

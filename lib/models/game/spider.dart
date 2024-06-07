@@ -116,7 +116,7 @@ class Spider extends SolitaireGame {
               PileIsNotEmpty(),
               AllPilesOfTypeAreNotEmpty<Tableau>(),
             ],
-            ifTrue: [DistributeEquallyToAll<Tableau>(count: 1)],
+            ifTrue: [DrawToAllPilesOfType<Tableau>(count: 1)],
           ),
         ],
       ),
@@ -124,10 +124,10 @@ class Spider extends SolitaireGame {
   }
 
   @override
-  bool winConditions(PlayTable table) {
-    return table
-        .allPilesOfType<Foundation>()
-        .every((f) => table.get(f).isNotEmpty);
+  List<PileCheck> get objectives {
+    return [
+      const AllPilesOfTypeHaveFullSuit<Foundation>(RankOrder.decreasing),
+    ];
   }
 
   @override

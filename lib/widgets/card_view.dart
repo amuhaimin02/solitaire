@@ -258,7 +258,7 @@ class CardBack extends StatelessWidget {
           size.shortestSide * theme.cardTheme.cornerRadius),
       child: CustomPaint(
         painter: SimpleCardCover(
-          color: colorScheme.secondary,
+          color: colorScheme.primary,
         ),
       ),
     );
