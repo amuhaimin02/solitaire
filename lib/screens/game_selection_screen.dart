@@ -238,7 +238,7 @@ class _GameListTile extends ConsumerWidget {
 
     return ListTile(
       selected: selected,
-      selectedColor: colorScheme.secondary,
+      selectedColor: colorScheme.onSecondaryContainer,
       selectedTileColor: colorScheme.secondaryContainer,
       leading: Icon(MdiIcons.cardsPlayingSpadeOutline),
       title: Text(game.name),

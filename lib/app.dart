@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 
 import 'models/theme.dart';
 import 'providers/settings.dart';
@@ -77,8 +78,6 @@ class SolitaireApp extends ConsumerWidget {
     final coloredBackground = ref.watch(themeBackgroundColoredProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
 
-    ColorScheme colorScheme;
-
     if (themeMode == ThemeMode.system) {
       final systemThemeMode =
           WidgetsBinding.instance.platformDispatcher.platformBrightness;
@@ -93,11 +92,12 @@ class SolitaireApp extends ConsumerWidget {
       _ => throw UnimplementedError()
     };
 
-    colorScheme = ColorScheme.fromSeed(
+    final colorScheme = SeedColorScheme.fromSeeds(
       brightness: brightness,
-      seedColor: themeColor != Colors.transparent
+      primaryKey: themeColor != Colors.transparent
           ? themeColor
           : themeColorPalette.first,
+      variant: FlexSchemeVariant.candyPop,
     );
 
     CardThemeData cardTheme = CardThemeData.fromColorScheme(
