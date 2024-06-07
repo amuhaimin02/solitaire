@@ -16,8 +16,8 @@ class PileMarker extends StatelessWidget {
     final theme = SolitaireTheme.of(context);
 
     final icon = switch (pile) {
-      Draw() => MdiIcons.refresh,
-      Discard() => MdiIcons.cardsPlaying,
+      Stock() => MdiIcons.refresh,
+      Waste() => MdiIcons.cardsPlaying,
       Foundation() => MdiIcons.alphaACircle,
       Tableau() => MdiIcons.alphaKBox,
       Reserve() => MdiIcons.star,

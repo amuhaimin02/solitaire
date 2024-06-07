@@ -248,10 +248,11 @@ class FreeCellPowermove extends PileCheck {
 
   @override
   bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
-    final numberOfEmptyTableaus = table.allTableauPiles
+    final numberOfEmptyTableaus = table
+        .allPilesOfType<Tableau>()
         .count((t) => t != pile && table.get(pile).isEmpty);
     final numberOfEmptyReserves =
-        table.alLReservePiles.count((r) => table.get(r).isEmpty);
+        table.allPilesOfType<Reserve>().count((r) => table.get(r).isEmpty);
 
     final movableCardsLength =
         (1 + numberOfEmptyReserves) * pow(2, numberOfEmptyTableaus);

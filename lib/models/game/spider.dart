@@ -80,7 +80,7 @@ class Spider extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
           onSetup: [
-            PickCardsFrom(const Draw(), count: i >= 4 ? 5 : 6),
+            PickCardsFrom(const Stock(), count: i >= 4 ? 5 : 6),
             const FlipAllCardsFaceDown(),
             const FlipTopCardFaceUp(),
           ],
@@ -98,7 +98,7 @@ class Spider extends SolitaireGame {
             FlipTopCardFaceUp(),
           ],
         ),
-      const Draw(): PileProperty(
+      const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(9, 0, 1, 1),
@@ -125,14 +125,16 @@ class Spider extends SolitaireGame {
 
   @override
   bool winConditions(PlayTable table) {
-    return table.allFoundationPiles.every((f) => table.get(f).isNotEmpty);
+    return table
+        .allPilesOfType<Foundation>()
+        .every((f) => table.get(f).isNotEmpty);
   }
 
   @override
   Iterable<MoveIntent> postMoveStrategy(PlayTable table) sync* {
     final fullSuitLength = Rank.values.length;
 
-    for (final t in table.allTableauPiles) {
+    for (final t in table.allPilesOfType<Tableau>()) {
       final cardsOnTableau = table.get(t);
       if (cardsOnTableau.length >= fullSuitLength) {
         final cardToMove =
@@ -152,12 +154,12 @@ class Spider extends SolitaireGame {
   Iterable<MoveIntent> quickMoveStrategy(
       Pile from, PlayCard card, PlayTable table) sync* {
     if (card.rank == Rank.king) {
-      for (final f in table.allFoundationPiles) {
+      for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(from, f, card);
       }
     }
 
-    final tableau = table.allTableauPiles.roll(from: from).toList();
+    final tableau = table.allPilesOfType<Tableau>().roll(from: from).toList();
 
     int determinePriority(Tableau t) {
       final cardsOnPile = table.get(t);

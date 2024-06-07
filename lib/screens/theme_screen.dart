@@ -14,7 +14,7 @@ import '../widgets/solitaire_theme.dart';
 import '../widgets/two_pane.dart';
 
 final _samplePlayTable = PlayTable.fromMap({
-  const Draw(): const [
+  const Stock(): const [
     PlayCard(Suit.heart, Rank.eight, flipped: true),
     PlayCard(Suit.club, Rank.two, flipped: true),
   ],

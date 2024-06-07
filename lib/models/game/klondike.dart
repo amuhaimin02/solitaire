@@ -1,5 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
+import '../../utils/types.dart';
 import '../action.dart';
 import '../card.dart';
 import '../card_list.dart';
@@ -70,7 +72,7 @@ class Klondike extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
           onSetup: [
-            PickCardsFrom(const Draw(), count: i + 1),
+            PickCardsFrom(const Stock(), count: i + 1),
             const FlipAllCardsFaceDown(),
             const FlipTopCardFaceUp(),
           ],
@@ -94,7 +96,7 @@ class Klondike extends SolitaireGame {
             )
           ],
         ),
-      const Draw(): PileProperty(
+      const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(6, 0, 1, 1),
@@ -109,12 +111,12 @@ class Klondike extends SolitaireGame {
         onTap: [
           If(
             condition: const [PileIsEmpty()],
-            ifTrue: const [RecyclePile(takeFrom: Discard())],
-            ifFalse: [DrawFromTop(to: const Discard(), count: numberOfDraws)],
+            ifTrue: const [RecyclePile(takeFrom: Waste())],
+            ifFalse: [DrawFromTop(to: const Waste(), count: numberOfDraws)],
           ),
         ],
       ),
-      const Discard(): PileProperty(
+      const Waste(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(4, 0, 2, 1),
@@ -139,16 +141,16 @@ class Klondike extends SolitaireGame {
 
   @override
   bool winConditions(PlayTable table) {
-    // return table.allFoundationPiles.map((f) => table.get(f).length).sum >=
-    //     PlayCard.numberOfCardsInDeck;
-    return table.drawPile.isEmpty &&
-        table.discardPile.isEmpty &&
-        table.allTableauPiles.every((t) => table.get(t).isEmpty);
+    return table
+            .allPilesOfType<Foundation>()
+            .map((f) => table.get(f).length)
+            .sum >=
+        PlayCard.numberOfCardsInDeck;
   }
 
   @override
   bool canAutoSolve(PlayTable table) {
-    for (final t in table.allTableauPiles) {
+    for (final t in table.allPilesOfType<Tableau>()) {
       final tableau = table.get(t);
       if (tableau.isNotEmpty && !tableau.isAllFacingUp) {
         return false;
@@ -163,24 +165,24 @@ class Klondike extends SolitaireGame {
     // Try placing on foundation pile first
     // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
-      for (final f in table.allFoundationPiles.roll(from: from)) {
+      for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
         yield MoveIntent(from, f, card);
       }
     }
 
     // Try placing on tableau next
-    for (final t in table.allTableauPiles.roll(from: from)) {
+    for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
       yield MoveIntent(from, t, card);
     }
   }
 
   @override
   Iterable<MoveIntent> premoveStrategy(PlayTable table) sync* {
-    for (final f in table.allFoundationPiles) {
-      yield MoveIntent(const Discard(), f);
+    for (final f in table.allPilesOfType<Foundation>()) {
+      yield MoveIntent(const Waste(), f);
     }
-    for (final t in table.allTableauPiles) {
-      for (final f in table.allFoundationPiles) {
+    for (final t in table.allPilesOfType<Tableau>()) {
+      for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(t, f);
       }
     }
@@ -189,16 +191,17 @@ class Klondike extends SolitaireGame {
   @override
   Iterable<MoveIntent> autoSolveStrategy(PlayTable table) sync* {
     // Try moving cards from tableau to foundation
-    for (final t in table.allTableauPiles) {
-      for (final f in table.allFoundationPiles) {
+    for (final t in table.allPilesOfType<Tableau>()) {
+      for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(t, f);
-        final discard = table.discardPile;
-        if (discard.isNotEmpty) {
-          yield MoveIntent(const Discard(), f);
-          yield MoveIntent(const Discard(), t);
+        for (final w in table.allPilesOfType<Waste>()) {
+          final cardsOnWaste = table.get(w);
+          if (cardsOnWaste.isNotEmpty) {
+            yield MoveIntent(w, f);
+          }
         }
       }
     }
-    yield const MoveIntent(Draw(), Draw());
+    yield const MoveIntent(Stock(), Stock());
   }
 }

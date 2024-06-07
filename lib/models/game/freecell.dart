@@ -66,7 +66,7 @@ class FreeCell extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
           onSetup: [
-            PickCardsFrom(const Draw(), count: i >= 4 ? 6 : 7),
+            PickCardsFrom(const Stock(), count: i >= 4 ? 6 : 7),
             const FlipAllCardsFaceUp(),
           ],
           pickable: const [
@@ -107,7 +107,7 @@ class FreeCell extends SolitaireGame {
             PileIsEmpty(),
           ],
         ),
-      const Draw(): PileProperty(
+      const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(0, 0, 1, 1),
@@ -125,7 +125,10 @@ class FreeCell extends SolitaireGame {
 
   @override
   bool winConditions(PlayTable table) {
-    return table.allFoundationPiles.map((f) => table.get(f).length).sum >=
+    return table
+            .allPilesOfType<Foundation>()
+            .map((f) => table.get(f).length)
+            .sum >=
         PlayCard.numberOfCardsInDeck;
   }
 
@@ -133,17 +136,17 @@ class FreeCell extends SolitaireGame {
   Iterable<MoveIntent> quickMoveStrategy(
       Pile from, PlayCard card, PlayTable table) sync* {
     if (from is! Foundation) {
-      for (final f in table.allFoundationPiles.roll(from: from)) {
+      for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
         yield MoveIntent(from, f, card);
       }
     }
 
-    for (final t in table.allTableauPiles.roll(from: from)) {
+    for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
       yield MoveIntent(from, t, card);
     }
 
     if (from is! Reserve && from is! Foundation) {
-      for (final r in table.alLReservePiles.roll(from: from)) {
+      for (final r in table.allPilesOfType<Reserve>().roll(from: from)) {
         yield MoveIntent(from, r, card);
       }
     }
@@ -151,13 +154,13 @@ class FreeCell extends SolitaireGame {
 
   @override
   Iterable<MoveIntent> premoveStrategy(PlayTable table) sync* {
-    for (final t in table.allTableauPiles) {
-      for (final f in table.allFoundationPiles) {
+    for (final t in table.allPilesOfType<Tableau>()) {
+      for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(t, f);
       }
     }
-    for (final r in table.alLReservePiles) {
-      for (final f in table.allFoundationPiles) {
+    for (final r in table.allPilesOfType<Reserve>()) {
+      for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(r, f);
       }
     }

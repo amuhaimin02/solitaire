@@ -258,8 +258,8 @@ class PileSerializer implements Serializer<Pile> {
   @override
   String serialize(Pile pile) {
     return switch (pile) {
-      Draw() => 'D0',
-      Discard() => 'X0',
+      Stock() => 'S0',
+      Waste() => 'W0',
       Foundation(:final index) => 'F$index',
       Tableau(:final index) => 'T$index',
       Reserve(:final index) => 'R$index'
@@ -272,8 +272,8 @@ class PileSerializer implements Serializer<Pile> {
     final type = raw[0];
     final index = int.parse(raw[1], radix: _maxRadixSize);
     return switch (type) {
-      'D' => const Draw(),
-      'X' => const Discard(),
+      'S' => const Stock(),
+      'W' => const Waste(),
       'F' => Foundation(index),
       'T' => Tableau(index),
       'R' => Reserve(index),

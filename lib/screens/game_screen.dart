@@ -50,46 +50,50 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   void _startGame() {
     Future.microtask(() async {
-      final allGames = ref.read(allSolitaireGamesProvider);
+      try {
+        final allGames = ref.read(allSolitaireGamesProvider);
 
-      final continuableGames = await ref.read(continuableGamesProvider.future);
+        final continuableGames =
+            await ref.read(continuableGamesProvider.future);
 
-      // Wait for shared prefs to load first
-      await ref.read(sharedPreferenceProvider.future);
-      final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
+        // Wait for shared prefs to load first
+        await ref.read(sharedPreferenceProvider.future);
+        final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
 
-      final lastPlayedGame =
-          allGames.firstWhereOrNull((game) => game.tag == lastPlayedGameTag);
+        final lastPlayedGame =
+            allGames.firstWhereOrNull((game) => game.tag == lastPlayedGameTag);
 
-      if (lastPlayedGame != null) {
-        if (continuableGames.contains(lastPlayedGame)) {
-          // Continue with last opened game
-          final gameData = await ref
-              .read(gameStorageProvider.notifier)
-              .restoreQuickSave(lastPlayedGame);
+        if (lastPlayedGame != null) {
+          if (continuableGames.contains(lastPlayedGame)) {
+            // Continue with last opened game
+            final gameData = await ref
+                .read(gameStorageProvider.notifier)
+                .restoreQuickSave(lastPlayedGame);
 
-          // Wait for animation to end, also for context to be initialized with theme
-          Future.delayed(
-            themeChangeAnimation.duration,
-            () {
-              if (mounted) {
-                _showContinueSnackBar(context, gameData);
-              }
-            },
-          );
+            // Wait for animation to end, also for context to be initialized with theme
+            Future.delayed(
+              themeChangeAnimation.duration,
+              () {
+                if (mounted) {
+                  _showContinueSnackBar(context, gameData);
+                }
+              },
+            );
 
-          ref.read(gameControllerProvider.notifier).restore(gameData);
+            ref.read(gameControllerProvider.notifier).restore(gameData);
+          } else {
+            ref.read(gameControllerProvider.notifier).startNew(lastPlayedGame);
+          }
         } else {
-          ref.read(gameControllerProvider.notifier).startNew(lastPlayedGame);
+          ref.read(gameControllerProvider.notifier).startNew(allGames.first);
         }
-      } else {
-        ref.read(gameControllerProvider.notifier).startNew(allGames.first);
-      }
-      Future.delayed(themeChangeAnimation.duration ~/ 2, () {
-        setState(() {
-          _isStarted = true;
+      } finally {
+        Future.delayed(themeChangeAnimation.duration, () {
+          setState(() {
+            _isStarted = true;
+          });
         });
-      });
+      }
     });
   }
 

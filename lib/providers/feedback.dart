@@ -12,21 +12,19 @@ part 'feedback.g.dart';
 void feedback(FeedbackRef ref) {
   final lastMove = ref.watch(lastMoveProvider);
   final gameStatus = ref.watch(gameControllerProvider);
-  print('Status: $gameStatus, Feedback: $lastMove');
+  final moveType = ref.watch(currentMoveTypeProvider);
+
+  print('Status: $gameStatus, Feedback: $lastMove, Move: $moveType');
 
   final target = lastMove?.action.move?.to;
 
   if (ref.read(settingsEnableVibrationProvider)) {
     switch (target) {
-      case Draw():
-        HapticFeedback.heavyImpact();
-      case Discard():
-        HapticFeedback.lightImpact();
-      case Foundation():
+      case Stock() || Foundation():
         HapticFeedback.heavyImpact();
       case Tableau():
         HapticFeedback.mediumImpact();
-      case Reserve():
+      case Waste() || Reserve():
         HapticFeedback.lightImpact();
       case null:
     }

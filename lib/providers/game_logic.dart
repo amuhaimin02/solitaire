@@ -175,9 +175,11 @@ class GameController extends _$GameController {
       }
     }
     if (movableCards.isEmpty) {
-      final drawPile = table.drawPile;
-      if (drawPile.isNotEmpty) {
-        movableCards.add(drawPile.last);
+      for (final s in table.allPilesOfType<Stock>()) {
+        final cardsOnStock = table.get(s);
+        if (cardsOnStock.isNotEmpty) {
+          movableCards.add(cardsOnStock.last);
+        }
       }
     }
 
@@ -404,7 +406,7 @@ class GameController extends _$GameController {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
             lastAction.to == move.from &&
-            lastAction.to is! Discard) {
+            lastAction.to is! Waste) {
           continue;
         }
         final result = tryMove(move, doAfterMove: false);
@@ -469,24 +471,24 @@ class GameController extends _$GameController {
   Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {
     // TODO: change this
     final table = ref.read(currentTableProvider);
-    for (final t in table.allTableauPiles) {
+    for (final t in table.allPilesOfType<Tableau>()) {
       for (final c in table.get(t)) {
         yield (c, t);
       }
     }
-    for (final f in table.allFoundationPiles) {
+    for (final f in table.allPilesOfType<Foundation>()) {
       if (table.get(f).isNotEmpty) {
         yield (table.get(f).last, f);
       }
     }
-    for (final r in table.alLReservePiles) {
+    for (final r in table.allPilesOfType<Reserve>()) {
       if (table.get(r).isNotEmpty) {
         yield (table.get(r).last, r);
       }
     }
 
-    if (table.discardPile.isNotEmpty) {
-      yield (table.discardPile.last, const Discard());
+    for (final w in table.allPilesOfType<Waste>()) {
+      yield (table.get(w).last, const Waste());
     }
   }
 }
@@ -552,7 +554,7 @@ class GameDebug extends _$GameDebug {
     }
 
     final presetCards = PlayTable.fromMap({
-      const Draw(): [
+      const Stock(): [
         const PlayCard(Suit.club, Rank.four).faceDown(),
         const PlayCard(Suit.heart, Rank.four).faceDown(),
         const PlayCard(Suit.spade, Rank.four).faceDown(),
@@ -561,7 +563,7 @@ class GameDebug extends _$GameDebug {
         const PlayCard(Suit.club, Rank.six).faceDown(),
         const PlayCard(Suit.club, Rank.two).faceDown(),
       ],
-      const Discard(): const [],
+      const Waste(): const [],
       const Foundation(0): const [PlayCard(Suit.heart, Rank.ace)],
       const Foundation(1): const [PlayCard(Suit.diamond, Rank.ace)],
       const Foundation(2): const [PlayCard(Suit.club, Rank.ace)],

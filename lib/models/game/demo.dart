@@ -45,7 +45,7 @@ class SolitaireDemo extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
         ),
-      const Draw(): PileProperty(
+      const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(3, 0, 1, 1),
@@ -53,7 +53,7 @@ class SolitaireDemo extends SolitaireGame {
           ),
         ),
       ),
-      const Discard(): PileProperty(
+      const Waste(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(2, 0, 1, 1),

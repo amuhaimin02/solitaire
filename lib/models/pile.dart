@@ -4,26 +4,26 @@ sealed class Pile {
   const Pile();
 }
 
-class Draw extends Pile {
-  const Draw();
+class Stock extends Pile {
+  const Stock();
 
   @override
-  String toString() => 'Draw';
+  String toString() => 'Stock';
 
   @override
-  bool operator ==(Object other) => other is Draw;
+  bool operator ==(Object other) => other is Stock;
 
   @override
   int get hashCode => 0;
 }
 
-class Discard extends Pile {
-  const Discard();
+class Waste extends Pile {
+  const Waste();
   @override
-  String toString() => 'Discard';
+  String toString() => 'Waste';
 
   @override
-  bool operator ==(Object other) => other is Discard;
+  bool operator ==(Object other) => other is Waste;
 
   @override
   int get hashCode => 0;
@@ -77,7 +77,7 @@ class Reserve extends Pile {
 extension PileIteration<T extends Pile> on Iterable<T> {
   Iterable<T> roll({required Pile from}) {
     switch (T) {
-      case const (Draw) || const (Discard):
+      case const (Stock) || const (Waste):
         // Return as is as there is nothing to iterate
         return this;
       case const (Foundation) || const (Tableau) || const (Reserve):

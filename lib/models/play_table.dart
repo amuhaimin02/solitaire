@@ -50,25 +50,9 @@ class PlayTable {
 
   Map<Pile, List<PlayCard>> get allCards => UnmodifiableMapView(_allCards);
 
-  List<PlayCard> get drawPile => get(const Draw());
-
-  List<PlayCard> get discardPile => get(const Discard());
-
   List<PlayCard> foundationPile(int index) => get(Foundation(index));
 
   List<PlayCard> tableauPile(int index) => get(Tableau(index));
-
-  Iterable<Tableau> get allTableauPiles {
-    return _allCards.keys.whereType<Tableau>();
-  }
-
-  Iterable<Foundation> get allFoundationPiles {
-    return _allCards.keys.whereType<Foundation>();
-  }
-
-  Iterable<Reserve> get alLReservePiles {
-    return _allCards.keys.whereType<Reserve>();
-  }
 
   PlayTable modify(Pile pile, List<PlayCard> cards) {
     return PlayTable._(
