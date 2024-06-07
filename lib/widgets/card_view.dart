@@ -131,9 +131,7 @@ class CardFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spacingFactor = size.shortestSide * 0.05;
-    final labelSizingFactor = size.shortestSide * 0.4;
-    final iconSizingFactor = size.shortestSide * 0.25;
+    final cardShortestSide = size.shortestSide;
     final theme = SolitaireTheme.of(context);
 
     final iconPath = 'assets/${card.suit.name}.png';
@@ -148,6 +146,34 @@ class CardFace extends StatelessWidget {
         foregroundColor = theme.cardTheme.labelAccentColor;
     }
 
+    final numberAlignment = switch (labelAlignment) {
+      Alignment.center => Alignment.topLeft,
+      Alignment.topCenter => Alignment.topLeft,
+      Alignment.bottomCenter => Alignment.bottomLeft,
+      Alignment.centerLeft => Alignment.topLeft,
+      Alignment.centerRight => Alignment.topRight,
+      _ => throw ArgumentError('Label alignment is not valid: $labelAlignment'),
+    };
+
+    final iconAlignment = switch (labelAlignment) {
+      Alignment.center => Alignment.bottomRight,
+      Alignment.topCenter => Alignment.topRight,
+      Alignment.bottomCenter => Alignment.bottomRight,
+      Alignment.centerLeft => Alignment.bottomLeft,
+      Alignment.centerRight => Alignment.bottomRight,
+      _ => throw ArgumentError('Label alignment is not valid: $labelAlignment'),
+    };
+
+    final double labelSize, iconSize;
+
+    if (labelAlignment != Alignment.center) {
+      labelSize = cardShortestSide * 0.4;
+      iconSize = cardShortestSide * 0.35;
+    } else {
+      labelSize = cardShortestSide * 0.5;
+      iconSize = cardShortestSide * 0.6;
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -160,54 +186,56 @@ class CardFace extends StatelessWidget {
             size.shortestSide * theme.cardTheme.cornerRadius),
         child: Stack(
           children: [
-            Padding(
-              padding: EdgeInsets.only(
-                left: spacingFactor * 1.2,
-                right: spacingFactor * 1.2,
-                top: spacingFactor * 0.2,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Align(
-                        child: Text(
-                          card.rank.symbol,
-                          style: GoogleFonts.dosis(
-                            fontSize: labelSizingFactor,
-                            height: 1.25,
-                            color: foregroundColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+            AnimatedAlign(
+              duration: cardMoveAnimation.duration,
+              curve: cardMoveAnimation.curve,
+              alignment: numberAlignment,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Align(
+                  child: Padding(
+                    padding: EdgeInsets.all(cardShortestSide * 0.07),
+                    child: AnimatedDefaultTextStyle(
+                      duration: cardMoveAnimation.duration,
+                      curve: cardMoveAnimation.curve,
+                      style: GoogleFonts.dosis(
+                        fontSize: labelSize,
+                        height: 1,
+                        color: foregroundColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      child: Text(
+                        card.rank.symbol,
                       ),
                     ),
                   ),
-                  Image.asset(
-                    iconPath,
-                    width: labelSizingFactor * 0.8,
-                    height: labelSizingFactor * 0.8,
-                    color: foregroundColor,
-                  )
-                ],
+                ),
               ),
             ),
-            Align(
-              alignment: const Alignment(-2, 1),
-              child: Image.asset(
-                iconPath,
-                width: iconSizingFactor * 2.8,
-                height: iconSizingFactor * 2.8,
-                color: foregroundColor.withOpacity(0.3),
+            AnimatedAlign(
+              duration: cardMoveAnimation.duration,
+              curve: cardMoveAnimation.curve,
+              alignment: iconAlignment,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: cardShortestSide * 0.08,
+                  horizontal: cardShortestSide * 0.06,
+                ),
+                child: AnimatedContainer(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: AssetImage(iconPath),
+                        colorFilter: ColorFilter.mode(
+                            foregroundColor, BlendMode.srcATop)),
+                  ),
+                  duration: cardMoveAnimation.duration,
+                  curve: cardMoveAnimation.curve,
+                  width: iconSize,
+                  height: iconSize,
+                ),
               ),
             ),
-            Center(
-              child: Text(labelAlignment.toString()),
-            )
           ],
         ),
       ),

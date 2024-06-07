@@ -33,6 +33,7 @@ class GameTable extends StatefulWidget {
     this.canDragCards,
     this.highlightedCards,
     this.lastMovedCards,
+    this.showLastMovedCards = false,
     this.animateDistribute = false,
     this.animateMovement = true,
     this.fitEmptySpaces = false,
@@ -58,6 +59,8 @@ class GameTable extends StatefulWidget {
   final bool animateDistribute;
 
   final bool animateMovement;
+
+  final bool showLastMovedCards;
 
   final bool fitEmptySpaces;
 
@@ -387,7 +390,8 @@ class _GameTableState extends State<GameTable> {
     Color? highlightCardColor(PlayCard card) {
       if (widget.highlightedCards?.contains(card) == true) {
         return theme.hintHighlightColor;
-      } else if (widget.lastMovedCards?.contains(card) == true) {
+      } else if (widget.showLastMovedCards &&
+          widget.lastMovedCards?.contains(card) == true) {
         return theme.lastMoveHighlightColor;
       }
       return null;

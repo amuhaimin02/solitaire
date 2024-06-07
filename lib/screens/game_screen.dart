@@ -328,15 +328,6 @@ class _PlayArea extends ConsumerWidget {
         final showAutoSolveButton =
             ref.watch(settingsShowAutoSolveButtonProvider);
 
-        List<PlayCard>? lastMovedCards;
-
-        if (showLastMoves) {
-          final lastMove = ref.watch(lastMoveProvider)?.action.move;
-          if (lastMove != null) {
-            lastMovedCards = lastMove.cards;
-          }
-        }
-
         return Stack(
           alignment: Alignment.center,
           children: [
@@ -345,7 +336,8 @@ class _PlayArea extends ConsumerWidget {
               game: game.game,
               orientation: orientation,
               highlightedCards: highlightedCards,
-              lastMovedCards: lastMovedCards,
+              lastMovedCards: ref.watch(lastMoveProvider)?.action.move?.cards,
+              showLastMovedCards: showLastMoves,
               animateDistribute: status == GameStatus.preparing,
               canDragCards: (cards, from) {
                 return cards.isAllFacingUp;
