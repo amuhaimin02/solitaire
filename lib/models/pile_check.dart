@@ -250,7 +250,7 @@ class FreeCellPowermove extends PileCheck {
   bool check(Pile pile, Pile? from, List<PlayCard> cards, PlayTable table) {
     final numberOfEmptyTableaus = table
         .allPilesOfType<Tableau>()
-        .count((t) => t != pile && table.get(pile).isEmpty);
+        .count((t) => t != pile && table.get(t).isEmpty);
     final numberOfEmptyReserves =
         table.allPilesOfType<Reserve>().count((r) => table.get(r).isEmpty);
 

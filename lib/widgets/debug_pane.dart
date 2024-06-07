@@ -32,7 +32,7 @@ class DebugPane extends ConsumerWidget {
           icon: Icon(MdiIcons.delete),
         ),
         IconButton(
-          tooltip: 'Export',
+          tooltip: 'Import',
           onPressed: () async {
             final gameData =
                 await ref.read(gameStorageProvider.notifier).importQuickSave();

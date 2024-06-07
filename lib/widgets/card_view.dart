@@ -16,6 +16,7 @@ class CardView extends StatelessWidget {
     this.elevation,
     this.hideFace = false,
     this.highlightColor,
+    this.labelAlignment = Alignment.center,
   });
 
   final PlayCard card;
@@ -27,6 +28,8 @@ class CardView extends StatelessWidget {
   final Color? highlightColor;
 
   final Size size;
+
+  final Alignment labelAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +43,17 @@ class CardView extends StatelessWidget {
         borderRadius: BorderRadius.circular(
             size.shortestSide * theme.cardTheme.cornerRadius),
         elevation: elevation ?? 2,
-        child: CardFace(card: card, size: size),
+        child: CardFace(
+          card: card,
+          size: size,
+          labelAlignment: labelAlignment,
+        ),
       ),
       back: Material(
         borderRadius: BorderRadius.circular(
             size.shortestSide * theme.cardTheme.cornerRadius),
         elevation: elevation ?? 2,
-        child: CardCover(size: size),
+        child: CardBack(size: size),
       ),
       builder: (context, child) {
         return Stack(
@@ -70,11 +77,12 @@ class CardView extends StatelessWidget {
 }
 
 class CardHighlight extends StatelessWidget {
-  const CardHighlight(
-      {super.key,
-      required this.highlight,
-      required this.color,
-      required this.size});
+  const CardHighlight({
+    super.key,
+    required this.highlight,
+    required this.color,
+    required this.size,
+  });
 
   final Color color;
 
@@ -105,11 +113,14 @@ class CardFace extends StatelessWidget {
     super.key,
     required this.card,
     required this.size,
+    required this.labelAlignment,
   });
 
   final PlayCard card;
 
   final Size size;
+
+  final Alignment labelAlignment;
 
   static final suitIcons = {
     Suit.diamond: MdiIcons.cardsDiamond,
@@ -176,18 +187,6 @@ class CardFace extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Icon(
-                  //   suitIcons[card.suit],
-                  //   size: labelSizingFactor * 0.9,
-                  //   color: foregroundColor,
-                  // ),
-                  // SvgPicture.asset(
-                  //   iconPath,
-                  //   width: labelSizingFactor * 0.8,
-                  //   height: labelSizingFactor * 0.8,
-                  //   colorFilter:
-                  //       ColorFilter.mode(foregroundColor, BlendMode.srcIn),
-                  // ),
                   Image.asset(
                     iconPath,
                     width: labelSizingFactor * 0.8,
@@ -199,28 +198,15 @@ class CardFace extends StatelessWidget {
             ),
             Align(
               alignment: const Alignment(-2, 1),
-              // bottom: -(size.height * 0.00),
-              // left: -(size.width * 0.10),
-              // child: Icon(
-              //   suitIcons[card.suit],
-              //   size: iconSizingFactor * 3,
-              //   color: foregroundColor.withOpacity(0.3),
-              // ),
               child: Image.asset(
                 iconPath,
                 width: iconSizingFactor * 2.8,
                 height: iconSizingFactor * 2.8,
                 color: foregroundColor.withOpacity(0.3),
               ),
-              // child: SvgPicture.asset(
-              //   iconSvgPath,
-              //   width: iconSizingFactor * 2.8,
-              //   height: iconSizingFactor * 2.8,
-              //   colorFilter: ColorFilter.mode(
-              //     foregroundColor.withOpacity(0.3),
-              //     BlendMode.srcIn,
-              //   ),
-              // ),
+            ),
+            Center(
+              child: Text(labelAlignment.toString()),
             )
           ],
         ),
@@ -229,8 +215,8 @@ class CardFace extends StatelessWidget {
   }
 }
 
-class CardCover extends StatelessWidget {
-  const CardCover({super.key, required this.size});
+class CardBack extends StatelessWidget {
+  const CardBack({super.key, required this.size});
 
   final Size size;
 
@@ -244,7 +230,7 @@ class CardCover extends StatelessWidget {
           size.shortestSide * theme.cardTheme.cornerRadius),
       child: CustomPaint(
         painter: SimpleCardCover(
-          color: colorScheme.primary,
+          color: colorScheme.secondary,
         ),
       ),
     );

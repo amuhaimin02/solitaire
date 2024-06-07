@@ -68,7 +68,7 @@ class CardThemeData with _$CardThemeData {
     if (tintedCardFace && colorScheme.brightness == Brightness.dark) {
       cardLabelPlainColor = colorScheme.onSurfaceVariant;
       cardLabelAccentColor = colorScheme.onPrimaryContainer;
-      cardFacePlainColor = colorScheme.surfaceContainer;
+      cardFacePlainColor = colorScheme.surfaceContainerLowest;
       cardFaceAccentColor = colorScheme.onPrimary;
     }
 

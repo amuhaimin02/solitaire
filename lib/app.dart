@@ -97,7 +97,7 @@ class SolitaireApp extends ConsumerWidget {
       primaryKey: themeColor != Colors.transparent
           ? themeColor
           : themeColorPalette.first,
-      variant: FlexSchemeVariant.candyPop,
+      variant: FlexSchemeVariant.rainbow,
     );
 
     CardThemeData cardTheme = CardThemeData.fromColorScheme(
