@@ -73,7 +73,7 @@ class CardThemeData with _$CardThemeData {
     }
 
     if (useClassicColors) {
-      cardLabelPlainColor = Colors.grey.shade800;
+      cardLabelPlainColor = Colors.grey.shade900;
       cardLabelAccentColor = Colors.red.shade600;
       cardFacePlainColor = Colors.grey.shade50;
       cardFaceAccentColor = Colors.grey.shade50;

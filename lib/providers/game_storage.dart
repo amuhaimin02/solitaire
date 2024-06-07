@@ -65,9 +65,8 @@ class GameStorage extends _$GameStorage {
     final outputFilePath = await FilePicker.platform.saveFile(
       dialogTitle: 'Choose where to export save file',
       fileName: exportFileName(gameData.metadata.game),
-      type: FileType.custom,
+      type: FileType.any,
       bytes: Uint8List.fromList(bytes),
-      allowedExtensions: [saveFileExtension],
     );
 
     if (outputFilePath != null &&
@@ -79,8 +78,7 @@ class GameStorage extends _$GameStorage {
   Future<GameData?> importQuickSave() async {
     final result = await FilePicker.platform.pickFiles(
       dialogTitle: 'Choose save file to import',
-      type: FileType.custom,
-      allowedExtensions: [saveFileExtension],
+      type: FileType.any,
       withData: true,
     );
 

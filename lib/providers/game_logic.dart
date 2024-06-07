@@ -488,7 +488,9 @@ class GameController extends _$GameController {
     }
 
     for (final w in table.allPilesOfType<Waste>()) {
-      yield (table.get(w).last, const Waste());
+      if (table.get(w).isNotEmpty) {
+        yield (table.get(w).last, const Waste());
+      }
     }
   }
 }
@@ -529,7 +531,7 @@ class HintedCards extends _$HintedCards {
 
   void highlight(List<PlayCard> cards) {
     state = cards;
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       state = null;
     });
   }
