@@ -1,50 +1,93 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game/solitaire.dart';
 import '../models/play_data.dart';
 import '../services/game_serializer.dart';
 import '../utils/compress.dart';
+import '../utils/types.dart';
 import 'file_handler.dart';
 import 'game_selection.dart';
 
 part 'game_storage.g.dart';
 
-const saveFileExtension = '.save';
+const saveFileExtension = 'solitairesave';
 
 String quickSaveFileName(SolitaireGame game) =>
-    'continue-${game.tag}$saveFileExtension';
+    'continue-${game.tag}.$saveFileExtension';
+
+String exportFileName(SolitaireGame game) =>
+    '${game.tag}-${DateTime.now().toPathFriendlyString()}.$saveFileExtension';
 
 @riverpod
 class GameStorage extends _$GameStorage {
   @override
   DateTime build() => DateTime.now();
 
-  Future<void> quickSave(GameData gameData) async {
+  Future<List<int>> _convertToBytes(GameData gameData) async {
     final saveData = const GameDataSerializer().serialize(gameData);
     final compressedSaveData = await compressText(saveData);
+    return compressedSaveData;
+  }
 
+  Future<GameData> _convertFromBytes(List<int> bytes) async {
+    final decompressedSaveData = await decompressText(bytes);
+    return const GameDataSerializer().deserialize(decompressedSaveData);
+  }
+
+  Future<void> quickSave(GameData gameData) async {
     final fileHandler = ref.read(fileHandlerProvider.notifier);
+    final bytes = await _convertToBytes(gameData);
 
-    print(
-        'Stored ${saveData.length} bytes of save data (compressed: ${compressedSaveData.length} bytes)');
-
-    fileHandler.save(
-        quickSaveFileName(gameData.metadata.game), compressedSaveData);
+    fileHandler.save(quickSaveFileName(gameData.metadata.game), bytes);
     ref.invalidateSelf();
   }
 
   Future<GameData> restoreQuickSave(SolitaireGame game) async {
     final fileHandler = ref.read(fileHandlerProvider.notifier);
-    final saveData =
-        await decompressText(await fileHandler.load(quickSaveFileName(game)));
+    final saveData = await fileHandler.load(quickSaveFileName(game));
 
-    return const GameDataSerializer().deserialize(saveData);
+    return _convertFromBytes(saveData);
   }
 
   Future<void> deleteQuickSave(SolitaireGame game) async {
     final fileHandler = ref.read(fileHandlerProvider.notifier);
     await fileHandler.remove(quickSaveFileName(game));
     ref.invalidateSelf();
+  }
+
+  Future<void> exportQuickSave(GameData gameData) async {
+    final bytes = await _convertToBytes(gameData);
+
+    final outputFilePath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Choose where to export save file',
+      fileName: exportFileName(gameData.metadata.game),
+      type: FileType.custom,
+      bytes: Uint8List.fromList(bytes),
+      allowedExtensions: [saveFileExtension],
+    );
+
+    if (outputFilePath != null &&
+        (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+      File(outputFilePath).writeAsBytesSync(bytes);
+    }
+  }
+
+  Future<GameData?> importQuickSave() async {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Choose save file to import',
+      type: FileType.custom,
+      allowedExtensions: [saveFileExtension],
+      withData: true,
+    );
+
+    if (result != null && result.files.single.bytes != null) {
+      return _convertFromBytes(result.files.single.bytes!.toList());
+    }
+    return null;
   }
 }
 

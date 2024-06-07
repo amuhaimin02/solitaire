@@ -31,6 +31,26 @@ class DebugPane extends ConsumerWidget {
           },
           icon: Icon(MdiIcons.delete),
         ),
+        IconButton(
+          tooltip: 'Export',
+          onPressed: () async {
+            final gameData =
+                await ref.read(gameStorageProvider.notifier).importQuickSave();
+            if (gameData != null) {
+              ref.read(gameControllerProvider.notifier).restore(gameData);
+            }
+          },
+          icon: Icon(MdiIcons.import),
+        ),
+        IconButton(
+          tooltip: 'Export',
+          onPressed: () async {
+            final gameData =
+                ref.read(gameControllerProvider.notifier).suspend();
+            ref.read(gameStorageProvider.notifier).exportQuickSave(gameData);
+          },
+          icon: Icon(MdiIcons.export),
+        ),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
+import 'package:intl/intl.dart';
 
 extension IterableExtension<T> on Iterable<T> {
   int count(bool Function(T) test) {
@@ -79,5 +80,13 @@ extension RectExtension on Rect {
       width * scaleSize.width,
       height * scaleSize.height,
     );
+  }
+}
+
+extension DateTimeExtension on DateTime {
+  static final _pathFriendlyDateFormat = DateFormat('yyyy-MM-dd-HH-mm-ss');
+
+  String toPathFriendlyString() {
+    return _pathFriendlyDateFormat.format(this);
   }
 }

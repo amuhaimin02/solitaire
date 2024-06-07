@@ -25,7 +25,7 @@ import '../widgets/control_pane.dart';
 import '../widgets/fixes.dart';
 import '../widgets/game_table.dart';
 import '../widgets/ripple_background.dart';
-import '../widgets/route_observer.dart';
+import '../widgets/screen_visibility.dart';
 import '../widgets/shrinkable.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/status_pane.dart';
@@ -39,7 +39,7 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen>
-    with RouteAware, WidgetsBindingObserver, RouteObserved {
+    with RouteAware, WidgetsBindingObserver, ScreenVisibility {
   bool _isStarted = false;
 
   @override

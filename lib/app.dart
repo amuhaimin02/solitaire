@@ -14,7 +14,7 @@ import 'screens/settings_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'screens/theme_screen.dart';
 import 'services/system_window.dart';
-import 'widgets/route_observer.dart';
+import 'widgets/screen_visibility.dart';
 import 'widgets/solitaire_theme.dart';
 
 final _router = GoRouter(
@@ -50,7 +50,7 @@ final _router = GoRouter(
       ],
     ),
   ],
-  observers: [routeObserver],
+  observers: [screenVisibilityRouteObserver],
 );
 
 class SolitaireApp extends ConsumerWidget {

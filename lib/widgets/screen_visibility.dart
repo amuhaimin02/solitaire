@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-final routeObserver = RouteObserver<ModalRoute<void>>();
+final screenVisibilityRouteObserver = RouteObserver<ModalRoute<void>>();
 
-mixin RouteObserved<T extends StatefulWidget>
+mixin ScreenVisibility<T extends StatefulWidget>
     on State<T>, RouteAware, WidgetsBindingObserver {
   @override
   void initState() {
@@ -13,12 +13,12 @@ mixin RouteObserved<T extends StatefulWidget>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    screenVisibilityRouteObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
   void dispose() {
-    routeObserver.unsubscribe(this);
+    screenVisibilityRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
