@@ -56,8 +56,11 @@ abstract class PileAction {
     }
   }
 
-  static PileActionResult chain(PileActionResult pastResult,
-      List<PileAction>? actions, PileActionData data) {
+  static PileActionResult chain(
+    PileActionResult pastResult,
+    List<PileAction>? actions,
+    PileActionData data,
+  ) {
     if (pastResult is! PileActionHandled) {
       return pastResult;
     }
@@ -105,6 +108,15 @@ class PileActionData {
     return PileActionData(
       pile: pile,
       table: newTable,
+      metadata: metadata,
+      moveState: moveState,
+    );
+  }
+
+  PileActionData withPile(Pile newPile) {
+    return PileActionData(
+      pile: newPile,
+      table: table,
       metadata: metadata,
       moveState: moveState,
     );
@@ -214,27 +226,27 @@ class FlipAllCardsFaceDown extends PileAction {
     );
   }
 }
-
-class PickCardsFrom extends PileAction {
-  const PickCardsFrom(this.fromPile, {required this.count});
-
-  final Pile fromPile;
-
-  final int count;
-
-  @override
-  PileActionResult action(PileActionData data) {
-    final cardsFromPile = data.table.get(fromPile);
-    final (remainingCards, cardsToPick) = cardsFromPile.splitLast(count);
-
-    return PileActionHandled(
-      table: data.table.modifyMultiple({
-        fromPile: remainingCards,
-        data.pile: cardsToPick,
-      }),
-    );
-  }
-}
+//
+// class PickCardsFrom extends PileAction {
+//   const PickCardsFrom(this.fromPile, {required this.count});
+//
+//   final Pile fromPile;
+//
+//   final int count;
+//
+//   @override
+//   PileActionResult action(PileActionData data) {
+//     final cardsFromPile = data.table.get(fromPile);
+//     final (remainingCards, cardsToPick) = cardsFromPile.splitLast(count);
+//
+//     return PileActionHandled(
+//       table: data.table.modifyMultiple({
+//         fromPile: remainingCards,
+//         data.pile: cardsToPick,
+//       }),
+//     );
+//   }
+// }
 
 class MoveNormally extends PileAction {
   const MoveNormally({required this.to, required this.cards});
@@ -342,27 +354,70 @@ class FlipTopCardFaceUp extends PileAction {
   }
 }
 
-class DrawToAllPilesOfType<T extends Pile> extends PileAction {
-  const DrawToAllPilesOfType({required this.count});
+class DistributeTo<T extends Pile> extends PileAction {
+  const DistributeTo({required this.distribution, this.afterMove});
 
-  final int count;
+  final List<int> distribution;
+
+  final List<PileAction>? afterMove;
 
   @override
   PileActionResult action(PileActionData data) {
-    final allPilesOfType = data.table.allPilesOfType<T>().toList();
-    final (remainingCards, cardsToDistribute) =
-        data.table.get(data.pile).splitLast(allPilesOfType.length);
+    final targetPiles = data.table.allPilesOfType<T>().toList();
 
-    // TODO: Support count more than 1
-    return PileActionHandled(
+    if (targetPiles.length != distribution.length) {
+      throw ArgumentError(
+          'Distribution length must be equal to amount of piles of type $T');
+    }
+    final cardsOnOriginPile = data.table.get(data.pile);
+    final totalCardsToTake = distribution.sum;
+
+    if (totalCardsToTake > cardsOnOriginPile.length) {
+      throw ArgumentError(
+          'Insufficient cards to take. Want: $totalCardsToTake, have: ${cardsOnOriginPile.length}');
+    }
+
+    final (remainingCards, cardsToTake) =
+        cardsOnOriginPile.splitLast(totalCardsToTake);
+
+    // Reverse list for faster access
+    final cardsToDistribute = cardsToTake.reversed.toList();
+
+    final maxDistributionHeight = distribution.max;
+    final List<List<PlayCard>> cardSlots =
+        List.generate(targetPiles.length, (_) => []);
+
+    for (int d = 0; d < maxDistributionHeight; d++) {
+      for (int i = 0; i < targetPiles.length; i++) {
+        if (d < distribution[i]) {
+          cardSlots[i].add(cardsToDistribute.removeLast());
+        }
+      }
+    }
+
+    assert(cardsToDistribute.isEmpty,
+        'Leftover cards should be empty after distribution');
+
+    final result = PileActionHandled(
       table: data.table.modifyMultiple({
         data.pile: remainingCards,
-        for (final (i, p) in allPilesOfType.indexed)
-          p: [...data.table.get(p), cardsToDistribute[i].faceUp()]
+        // TODO: Check for index ordering
+        for (final (i, p) in targetPiles.indexed)
+          p: [...data.table.get(p), ...cardSlots[i].allFaceUp]
       }),
       // TODO: Change this
-      action: Deal(cardsToDistribute, data.pile),
+      action: Deal(cardsToTake, data.pile),
     );
+
+    if (afterMove != null) {
+      return targetPiles.fold(
+        result,
+        (result, pile) =>
+            PileAction.chain(result, afterMove, data.withPile(pile)),
+      );
+    } else {
+      return result;
+    }
   }
 }
 

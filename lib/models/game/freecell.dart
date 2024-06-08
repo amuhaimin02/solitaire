@@ -66,10 +66,6 @@ class FreeCell extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
-          onSetup: [
-            PickCardsFrom(const Stock(), count: i >= 4 ? 6 : 7),
-            const FlipAllCardsFaceUp(),
-          ],
           pickable: const [
             CardsAreFacingUp(),
             CardsFollowRankOrder(RankOrder.decreasing),
@@ -119,6 +115,14 @@ class FreeCell extends SolitaireGame {
         onStart: const [
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
+        ],
+        onSetup: const [
+          DistributeTo<Tableau>(
+            distribution: [7, 7, 7, 7, 6, 6, 6, 6],
+            afterMove: [
+              FlipAllCardsFaceUp(),
+            ],
+          ),
         ],
       ),
     };

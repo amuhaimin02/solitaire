@@ -80,11 +80,6 @@ class Spider extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
-          onSetup: [
-            PickCardsFrom(const Stock(), count: i >= 4 ? 5 : 6),
-            const FlipAllCardsFaceDown(),
-            const FlipTopCardFaceUp(),
-          ],
           pickable: const [
             CardsAreFacingUp(),
             CardsFollowRankOrder(RankOrder.decreasing),
@@ -112,12 +107,23 @@ class Spider extends SolitaireGame {
           setupDeck,
           const FlipAllCardsFaceDown(),
         ],
+        onSetup: const [
+          DistributeTo<Tableau>(
+            distribution: [6, 6, 6, 6, 5, 5, 5, 5, 5, 5],
+            afterMove: [
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(),
+            ],
+          ),
+        ],
         canTap: const [
           CanRecyclePile(limit: 1),
           AllPilesOfType<Tableau>([PileIsNotEmpty()]),
         ],
         onTap: const [
-          DrawToAllPilesOfType<Tableau>(count: 1),
+          DistributeTo<Tableau>(
+            distribution: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+          ),
         ],
       ),
     };
