@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../animations.dart';
@@ -15,6 +16,7 @@ import '../utils/widgets.dart';
 import '../widgets/bottom_padded.dart';
 import '../widgets/empty_screen.dart';
 import '../widgets/game_table.dart';
+import '../widgets/popup_button.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/two_pane.dart';
 
@@ -58,7 +60,8 @@ class _GameSelectionList extends ConsumerWidget {
             tooltip: 'Search',
             onPressed: () {},
             icon: const Icon(Icons.search),
-          )
+          ),
+          const _GameSelectionActions(),
         ],
       ),
       body: Builder(
@@ -427,6 +430,13 @@ class _GameSelectionOptions extends ConsumerWidget {
       ),
       FilledButton.tonalIcon(
         onPressed: () {},
+        icon: Icon(MdiIcons.stepForward2),
+        label: const Text('View demo'),
+      ),
+      FilledButton.tonalIcon(
+        onPressed: () {
+          context.go('/statistics');
+        },
         icon: const Icon(Icons.leaderboard),
         label: const Text('Statistics'),
       ),
@@ -455,6 +465,63 @@ class _GameSelectionOptions extends ConsumerWidget {
           ),
         )
       ],
+    );
+  }
+}
+
+class _GameSelectionActions extends ConsumerWidget {
+  const _GameSelectionActions({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupButton(
+      icon: const Icon(Icons.more_horiz),
+      builder: (popupContext) {
+        void dismiss() {
+          Navigator.pop(popupContext);
+        }
+
+        return [
+          ListTile(
+            leading: Icon(MdiIcons.trayArrowDown),
+            title: const Text('Import game'),
+            onTap: () async {
+              dismiss();
+
+              try {
+                final gameData = await ref
+                    .read(gameStorageProvider.notifier)
+                    .importQuickSave();
+                if (gameData != null) {
+                  ref.read(gameControllerProvider.notifier).restore(gameData);
+                }
+                // Go back to game screen once imported
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failure importing games.\n$e')),
+                  );
+                }
+              }
+            },
+          ),
+          ListTile(
+            leading: Icon(MdiIcons.trayArrowUp),
+            title: const Text('Export game'),
+            onTap: () async {
+              dismiss();
+              final gameData =
+                  ref.read(gameControllerProvider.notifier).suspend();
+              ref.read(gameStorageProvider.notifier).exportQuickSave(gameData);
+            },
+          ),
+        ];
+      },
     );
   }
 }

@@ -408,14 +408,8 @@ class _PlayArea extends ConsumerWidget {
   }
 
   void _showMoveForbiddenSnackbar(BuildContext context, MoveForbidden move) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        move.reason,
-        style: TextStyle(color: colorScheme.onError),
-      ),
-      backgroundColor: colorScheme.error,
+      content: Text(move.reason),
     ));
   }
 }

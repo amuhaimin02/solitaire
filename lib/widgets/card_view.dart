@@ -205,9 +205,7 @@ class CardFace extends StatelessWidget {
                         color: foregroundColor,
                         fontWeight: FontWeight.w600,
                       ),
-                      child: Text(
-                        card.rank.symbol,
-                      ),
+                      child: Text(card.rank.symbol),
                     ),
                   ),
                 ),

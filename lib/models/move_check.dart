@@ -395,13 +395,17 @@ class CardsHasFullSuit extends MoveCheck {
 class CanRecyclePile extends MoveCheck {
   const CanRecyclePile({required this.limit});
 
-  final int limit;
+  final int? limit;
 
   @override
   String get errorMessage => 'Cannot recycle pile anymore';
 
   @override
   bool check(MoveCheckData data) {
+    if (limit == null) {
+      return true;
+    }
+
     // Ignore if pile is not empty
     if (data.table.get(data.pile).isNotEmpty) {
       return true;
@@ -409,6 +413,6 @@ class CanRecyclePile extends MoveCheck {
 
     final currentCycle = data.moveState?.recycleCounts[data.pile] ?? 0;
 
-    return currentCycle < limit - 1;
+    return currentCycle < limit! - 1;
   }
 }

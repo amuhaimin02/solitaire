@@ -54,7 +54,11 @@ class GameMenuButton extends StatelessWidget {
     return PopupButton(
       tooltip: 'Menu',
       icon: const Icon(Icons.menu),
-      builder: (context, dismiss) {
+      builder: (context) {
+        void dismiss() {
+          Navigator.pop(context);
+        }
+
         return [
           const _ScreenOrientationToggle(),
           const Divider(),

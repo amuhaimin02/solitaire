@@ -15,8 +15,7 @@ class PopupButton extends StatelessWidget {
 
   final String? tooltip;
 
-  final List<Widget> Function(BuildContext context, VoidCallback dismiss)
-      builder;
+  final List<Widget> Function(BuildContext context) builder;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +27,6 @@ class PopupButton extends StatelessWidget {
   }
 
   Future<void> _onPressed(BuildContext context) async {
-    void dismiss() {
-      Navigator.pop(context);
-    }
-
     final buttonPosition = context.globalPaintBounds!;
     HapticFeedback.mediumImpact();
 
@@ -96,7 +91,7 @@ class PopupButton extends StatelessWidget {
                           primary: true,
                           shrinkWrap: true,
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          children: builder(context, dismiss),
+                          children: builder(context),
                         ),
                       ),
                     ),

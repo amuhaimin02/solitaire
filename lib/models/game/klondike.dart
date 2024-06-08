@@ -100,7 +100,7 @@ class Klondike extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
-        recycleLimit: 5,
+        recycleLimit: vegasScoring ? numberOfDraws : null,
         onStart: const [
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
@@ -117,7 +117,7 @@ class Klondike extends SolitaireGame {
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
         canTap: [
-          const CanRecyclePile(limit: 5),
+          CanRecyclePile(limit: vegasScoring ? numberOfDraws : null),
         ],
         onTap: [
           If(

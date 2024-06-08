@@ -133,7 +133,7 @@ class _GameTableState extends State<GameTable> {
               children: [
                 _buildMarkerLayer(context, gridUnit),
                 _buildCardLayer(context, gridUnit),
-                if (widget.interactive) _buildOverlayLayer(context, gridUnit),
+                _buildOverlayLayer(context, gridUnit),
                 if (debugHighlightPileRegion)
                   _buildDebugLayer(context, gridUnit),
               ],
