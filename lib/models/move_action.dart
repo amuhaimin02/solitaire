@@ -5,10 +5,10 @@ import '../utils/prng.dart';
 import 'action.dart';
 import 'card.dart';
 import 'card_list.dart';
+import 'move_check.dart';
 import 'move_event.dart';
 import 'move_record.dart';
 import 'pile.dart';
-import 'move_check.dart';
 import 'play_data.dart';
 import 'play_table.dart';
 
@@ -330,7 +330,9 @@ class RecyclePile extends MoveAction {
 }
 
 class FlipTopCardFaceUp extends MoveAction {
-  const FlipTopCardFaceUp();
+  const FlipTopCardFaceUp({this.count = 1});
+
+  final int count;
 
   @override
   MoveActionResult action(MoveActionData data) {
@@ -340,13 +342,12 @@ class FlipTopCardFaceUp extends MoveAction {
       return MoveActionNoChange(table: data.table);
     }
 
+    final (remainingCards, cardsToFlip) = cardsOnPile.splitLast(count);
+
     return MoveActionHandled(
       table: data.table.modify(
         data.pile,
-        [
-          ...cardsOnPile.slice(0, cardsOnPile.length - 1),
-          cardsOnPile.last.faceUp()
-        ],
+        [...remainingCards, ...cardsToFlip.allFaceUp],
       ),
     );
   }

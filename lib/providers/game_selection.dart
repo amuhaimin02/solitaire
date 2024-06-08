@@ -6,6 +6,7 @@ import '../models/game/golf.dart';
 import '../models/game/klondike.dart';
 import '../models/game/solitaire.dart';
 import '../models/game/spider.dart';
+import '../models/game/yukon.dart';
 import '../services/shared_preferences.dart';
 
 part 'game_selection.g.dart';
@@ -22,6 +23,7 @@ List<SolitaireGame> allSolitaireGames(AllSolitaireGamesRef ref) {
     Spider(numberOfSuits: 2),
     Spider(numberOfSuits: 4),
     Golf(),
+    Yukon(),
   ];
 }
 

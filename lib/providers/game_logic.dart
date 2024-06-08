@@ -122,7 +122,7 @@ class GameController extends _$GameController {
     final setupTable = _setupCards(initialTable);
     state = GameStatus.preparing;
     ref.read(moveHistoryProvider.notifier).add(setupTable, const GameStart());
-    await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
+    await Future.delayed(cardMoveAnimation.duration * timeDilation * 6);
 
     ref.read(playTimeProvider.notifier).restart();
     state = GameStatus.started;
@@ -196,8 +196,6 @@ class GameController extends _$GameController {
     bool doAfterMove = true,
     bool retainMoveCount = false,
   }) {
-    print("try move $move");
-
     final game = ref.read(currentGameProvider);
     final moveState = ref.read(currentMoveProvider)?.state;
     PlayTable table = ref.read(currentTableProvider);

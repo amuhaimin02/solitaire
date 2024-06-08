@@ -1,7 +1,6 @@
-import 'dart:ui';
+import 'package:flutter/material.dart';
 
-import 'package:flutter/rendering.dart';
-
+import '../../utils/types.dart';
 import '../action.dart';
 import '../card.dart';
 import '../direction.dart';
@@ -14,23 +13,23 @@ import '../play_table.dart';
 import '../rank_order.dart';
 import 'solitaire.dart';
 
-class FreeCell extends SolitaireGame {
-  const FreeCell();
+class Yukon extends SolitaireGame {
+  const Yukon();
 
   @override
-  String get name => 'Classic FreeCell';
+  String get name => 'Yukon';
 
   @override
-  String get family => 'FreeCell';
+  String get family => 'Yukon';
 
   @override
-  String get tag => 'freecell-classic';
+  String get tag => 'yukon';
 
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(8, 7),
-      landscape: Size(11, 4),
+      portrait: Size(7, 6),
+      landscape: Size(10, 4),
     );
   }
 
@@ -41,7 +40,7 @@ class FreeCell extends SolitaireGame {
         Foundation(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+              portrait: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 1),
               landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
             ),
           ),
@@ -57,7 +56,7 @@ class FreeCell extends SolitaireGame {
             BuildupSameSuit(),
           ],
         ),
-      for (int i = 0; i < 8; i++)
+      for (int i = 0; i < 7; i++)
         Tableau(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
@@ -66,15 +65,15 @@ class FreeCell extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
+          markerStartsWith: Rank.king,
           pickable: const [
             CardsAreFacingUp(),
-            CardsFollowRankOrder(RankOrder.decreasing),
           ],
           placeable: const [
             CardsAreFacingUp(),
+            BuildupStartsWith(rank: Rank.king),
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupAlternateColors(),
-            FreeCellPowermove(),
           ],
           afterMove: const [
             If(
@@ -86,29 +85,11 @@ class FreeCell extends SolitaireGame {
             )
           ],
         ),
-      for (int i = 0; i < 4; i++)
-        Reserve(i): PileProperty(
-          layout: PileLayout(
-            region: LayoutProperty(
-              portrait: Rect.fromLTWH(4 + i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(10, i.toDouble(), 1, 1),
-            ),
-          ),
-          pickable: const [
-            CardIsSingle(),
-            CardIsOnTop(),
-          ],
-          placeable: const [
-            CardIsSingle(),
-            CardsAreFacingUp(),
-            PileIsEmpty(),
-          ],
-        ),
       const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
-            portrait: Rect.fromLTWH(0, 0, 1, 1),
-            landscape: Rect.fromLTWH(10, 0, 1, 1),
+            portrait: Rect.fromLTWH(6, 0, 1, 1),
+            landscape: Rect.fromLTWH(9, 2.5, 1, 1),
           ),
         ),
         virtual: true,
@@ -118,9 +99,10 @@ class FreeCell extends SolitaireGame {
         ],
         onSetup: const [
           DistributeTo<Tableau>(
-            distribution: [7, 7, 7, 7, 6, 6, 6, 6],
+            distribution: [1, 6, 7, 8, 9, 10, 11],
             afterMove: [
-              FlipAllCardsFaceUp(),
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(count: 5),
             ],
           ),
         ],
@@ -142,20 +124,17 @@ class FreeCell extends SolitaireGame {
   @override
   Iterable<MoveIntent> quickMoveStrategy(
       Pile from, PlayCard card, PlayTable table) sync* {
+    // Try placing on foundation pile first
+    // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
       for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
         yield MoveIntent(from, f, card);
       }
     }
 
+    // Try placing on tableau next
     for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
       yield MoveIntent(from, t, card);
-    }
-
-    if (from is! Reserve && from is! Foundation) {
-      for (final r in table.allPilesOfType<Reserve>().roll(from: from)) {
-        yield MoveIntent(from, r, card);
-      }
     }
   }
 
@@ -164,11 +143,6 @@ class FreeCell extends SolitaireGame {
     for (final t in table.allPilesOfType<Tableau>()) {
       for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(t, f);
-      }
-    }
-    for (final r in table.allPilesOfType<Reserve>()) {
-      for (final f in table.allPilesOfType<Foundation>()) {
-        yield MoveIntent(r, f);
       }
     }
   }

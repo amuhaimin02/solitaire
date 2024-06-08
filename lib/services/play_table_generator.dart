@@ -1,5 +1,4 @@
 import '../models/game/solitaire.dart';
-import '../models/move_record.dart';
 import '../models/move_action.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
