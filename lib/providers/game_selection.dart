@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../models/game/forty_thieves.dart';
 import '../models/game/freecell.dart';
 import '../models/game/golf.dart';
 import '../models/game/klondike.dart';
@@ -24,6 +25,7 @@ List<SolitaireGame> allSolitaireGames(AllSolitaireGamesRef ref) {
     Spider(numberOfSuits: 4),
     Golf(),
     Yukon(),
+    FortyThieves(),
   ];
 }
 
