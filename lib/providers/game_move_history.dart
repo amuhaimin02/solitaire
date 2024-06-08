@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/action.dart';
 import '../models/move_record.dart';
 import '../models/play_table.dart';
+
 part 'game_move_history.g.dart';
 
 enum MoveType { normal, undo, redo }
@@ -108,13 +109,21 @@ class MoveHistory extends _$MoveHistory {
     ]);
   }
 
-  void add(PlayTable table, Action action, {bool retainMoveCount = false}) {
+  void add(
+    PlayTable table,
+    Action action, {
+    int score = 0,
+    bool retainMoveCount = false,
+  }) {
     final lastMove = ref.read(currentMoveProvider);
+    final lastMoveNumber = lastMove?.state.moveNumber ?? 0;
+    final lastScore = lastMove?.state.score ?? 0;
     final int newMoveNumber;
+
     if (action.countAsMove && !retainMoveCount) {
-      newMoveNumber = (lastMove?.state.moveNumber ?? 0) + 1;
+      newMoveNumber = lastMoveNumber + 1;
     } else {
-      newMoveNumber = (lastMove?.state.moveNumber ?? 0);
+      newMoveNumber = lastMoveNumber;
     }
 
     // Add to the point where move cursor is
@@ -122,7 +131,7 @@ class MoveHistory extends _$MoveHistory {
       action: action,
       state: MoveState(
         moveNumber: newMoveNumber,
-        score: (lastMove?.state.score ?? 0) + 10,
+        score: lastScore + score,
       ),
       table: table,
     );

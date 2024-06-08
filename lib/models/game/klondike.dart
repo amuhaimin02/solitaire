@@ -1,11 +1,10 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import '../../utils/types.dart';
 import '../action.dart';
 import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
+import '../move_event.dart';
 import '../pile.dart';
 import '../pile_action.dart';
 import '../pile_check.dart';
@@ -91,7 +90,7 @@ class Klondike extends SolitaireGame {
               condition: [PileTopCardIsFacingDown()],
               ifTrue: [
                 FlipTopCardFaceUp(),
-                ObtainScore(score: 100),
+                EmitEvent(TableauReveal()),
               ],
             )
           ],
@@ -107,6 +106,9 @@ class Klondike extends SolitaireGame {
         onStart: const [
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
+        ],
+        canTap: [
+          const PileIsNotEmpty() | const CanRecyclePile(),
         ],
         onTap: [
           If(
@@ -141,20 +143,34 @@ class Klondike extends SolitaireGame {
 
   @override
   List<PileCheck> get objectives {
-    return [
-      const AllPilesOfTypeHaveFullSuit<Foundation>(RankOrder.decreasing),
+    return const [
+      AllPilesOfType<Foundation>([
+        PileHasFullSuit(RankOrder.increasing),
+      ]),
     ];
   }
 
   @override
-  bool canAutoSolve(PlayTable table) {
-    for (final t in table.allPilesOfType<Tableau>()) {
-      final tableau = table.get(t);
-      if (tableau.isNotEmpty && !tableau.isAllFacingUp) {
-        return false;
-      }
-    }
-    return true;
+  List<PileCheck> get canAutoSolve {
+    return [
+      AllPilesOfType<Tableau>([
+        const PileIsEmpty() | const PileIsAllFacingUp(),
+      ]),
+    ];
+  }
+
+  @override
+  int determineScore(MoveEvent event) {
+    // Scoring according to https://en.wikipedia.org/wiki/Klondike_(solitaire)
+    return switch (event) {
+      MoveMade(from: Waste(), to: Tableau()) => 5,
+      MoveMade(from: Waste(), to: Foundation()) => 10,
+      MoveMade(from: Tableau(), to: Foundation()) => 10,
+      TableauReveal() => 5,
+      MoveMade(from: Foundation(), to: Tableau()) => -15,
+      RecycleMade() => -100,
+      _ => 0,
+    };
   }
 
   @override

@@ -12,6 +12,7 @@ class PileProperty {
     this.onSetup,
     this.pickable,
     this.placeable,
+    this.canTap,
     this.onTap,
     this.makeMove,
     this.afterMove,
@@ -27,6 +28,8 @@ class PileProperty {
   List<PileCheck>? pickable;
 
   List<PileCheck>? placeable;
+
+  List<PileCheck>? canTap;
 
   List<PileAction>? onTap;
 

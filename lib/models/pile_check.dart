@@ -28,6 +28,22 @@ abstract class PileCheck {
     }
     return const PileCheckOK();
   }
+
+  PileCheck operator |(PileCheck other) {
+    return _PileCheckOr(this, other);
+  }
+}
+
+class _PileCheckOr extends PileCheck {
+  const _PileCheckOr(this.check1, this.check2);
+
+  final PileCheck check1;
+  final PileCheck check2;
+
+  @override
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
+    return check1.check(pile, cards, table) || check2.check(pile, cards, table);
+  }
 }
 
 sealed class PileCheckResult {
@@ -177,28 +193,6 @@ class BuildupSameSuit extends PileCheck {
     return cardsOnPile.last.suit == cards.first.suit;
   }
 }
-//
-// class CardsComingFrom extends PileCheck {
-//   const CardsComingFrom(this.originPile);
-//
-//   final Pile originPile;
-//
-//   @override
-//   bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
-//     return from != null && from == originPile;
-//   }
-// }
-//
-// class CardsNotComingFrom extends PileCheck {
-//   const CardsNotComingFrom(this.originPile);
-//
-//   final Pile originPile;
-//
-//   @override
-//   bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
-//     return from != null && from != originPile;
-//   }
-// }
 
 class PileIsEmpty extends PileCheck {
   const PileIsEmpty();
@@ -215,6 +209,15 @@ class PileIsNotEmpty extends PileCheck {
   @override
   bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return table.get(pile).isNotEmpty;
+  }
+}
+
+class PileIsAllFacingUp extends PileCheck {
+  const PileIsAllFacingUp();
+
+  @override
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
+    return table.get(pile).isAllFacingUp;
   }
 }
 
@@ -237,24 +240,15 @@ class RejectAll extends PileCheck {
   }
 }
 
-class AllPilesOfTypeAreNotEmpty<T extends Pile> extends PileCheck {
-  const AllPilesOfTypeAreNotEmpty();
+class AllPilesOfType<T extends Pile> extends PileCheck {
+  const AllPilesOfType(this.checkPerPile);
 
-  @override
-  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
-    return table.allPilesOfType<T>().every((p) => table.get(p).isNotEmpty);
-  }
-}
-
-class AllPilesOfTypeHaveFullSuit<T extends Pile> extends PileCheck {
-  const AllPilesOfTypeHaveFullSuit(this.rankOrder);
-
-  final RankOrder rankOrder;
+  final List<PileCheck> checkPerPile;
 
   @override
   bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
     return table.allPilesOfType<T>().every((p) {
-      return PileHasFullSuit(rankOrder).check(p, cards, table);
+      return checkPerPile.every((c) => c.check(p, cards, table));
     });
   }
 }
@@ -312,5 +306,15 @@ class CardsHasFullSuit extends PileCheck {
       RankOrder.increasing => cards.isSortedByRankIncreasingOrder,
       RankOrder.decreasing => cards.isSortedByRankDecreasingOrder,
     };
+  }
+}
+
+class CanRecyclePile extends PileCheck {
+  const CanRecyclePile();
+
+  @override
+  bool check(Pile pile, List<PlayCard> cards, PlayTable table) {
+    // TODO: Implement
+    return true;
   }
 }

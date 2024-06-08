@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -6,16 +5,16 @@ import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
-import '../models/game/klondike.dart';
 import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
-import '../models/move_record.dart';
+import '../models/move_event.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
 import '../models/pile_action.dart';
 import '../models/pile_check.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
+import '../models/score_summary.dart';
 import '../models/user_action.dart';
 import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
@@ -221,6 +220,16 @@ class GameController extends _$GameController {
     PileActionResult result = PileActionNoChange(table: table);
 
     if (originPileInfo.onTap != null && move.from == move.to) {
+      if (originPileInfo.canTap != null) {
+        final canTapResult = PileCheck.checkAll(
+            originPileInfo.canTap, move.from, cardsToPick, table);
+        if (canTapResult is PileCheckFail) {
+          return MoveForbidden(
+              'Cannot tap ${move.from}\n${canTapResult.reason.runtimeType}',
+              move);
+        }
+      }
+
       result = PileAction.run(
         originPileInfo.onTap,
         move.from,
@@ -336,6 +345,14 @@ class GameController extends _$GameController {
     }
   }
 
+  ScoreSummary getScoreSummary() {
+    return ScoreSummary(
+      playTime: ref.read(playTimeProvider),
+      moves: ref.read(currentMoveNumberProvider) ?? 0,
+      obtainedScore: ref.read(currentScoreProvider) ?? 0,
+    );
+  }
+
   // ----------------------------------
 
   PlayTable _setupPiles() {
@@ -444,10 +461,13 @@ class GameController extends _$GameController {
         updatedTable.get(action.from).isEmpty &&
         updatedTable.get(action.to).length == action.cards.length;
 
+    final score = _calculateScore(result.events);
+
     // Add to move records
     ref.read(moveHistoryProvider.notifier).add(
           updatedTable,
           action ?? const Idle(), // TODO: Check not null
+          score: score,
           retainMoveCount: retainMoveCount || isEmptyPileMoveTransfer,
         );
 
@@ -466,6 +486,12 @@ class GameController extends _$GameController {
         _doPremove();
       }
     }
+  }
+
+  int _calculateScore(List<MoveEvent> events) {
+    final game = ref.read(currentGameProvider);
+    return events.fold(
+        0, (prev, event) => prev + game.game.determineScore(event));
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {
@@ -515,7 +541,18 @@ bool autoSolvable(AutoSolvableRef ref) {
   final game = ref.watch(currentGameProvider);
   final table = ref.watch(currentTableProvider);
 
-  return game.game.canAutoSolve(table);
+  if (game.game.canAutoSolve == null) {
+    return false;
+  }
+
+  // TODO: Change "pile" parameter
+  final result = PileCheck.checkAll(
+    game.game.canAutoSolve,
+    const Stock(),
+    [],
+    table,
+  );
+  return result is PileCheckOK;
 }
 
 @riverpod
@@ -545,53 +582,4 @@ class UserAction extends _$UserAction {
   void set(UserActionOptions action) => state = action;
 
   void clear() => state = null;
-}
-
-// --------------------------------------
-@riverpod
-class GameDebug extends _$GameDebug {
-  @override
-  void build() {
-    return;
-  }
-
-  void debugTestCustomLayout() {
-    final game = ref.read(currentGameProvider);
-
-    if (game.game is! Klondike) {
-      return;
-    }
-
-    final presetCards = PlayTable.fromMap({
-      const Stock(): [
-        const PlayCard(Suit.club, Rank.four).faceDown(),
-        const PlayCard(Suit.heart, Rank.four).faceDown(),
-        const PlayCard(Suit.spade, Rank.four).faceDown(),
-        const PlayCard(Suit.heart, Rank.five).faceDown(),
-        const PlayCard(Suit.club, Rank.five).faceDown(),
-        const PlayCard(Suit.club, Rank.six).faceDown(),
-        const PlayCard(Suit.club, Rank.two).faceDown(),
-      ],
-      const Waste(): const [],
-      const Foundation(0): const [PlayCard(Suit.heart, Rank.ace)],
-      const Foundation(1): const [PlayCard(Suit.diamond, Rank.ace)],
-      const Foundation(2): const [PlayCard(Suit.club, Rank.ace)],
-      const Foundation(3): const [PlayCard(Suit.spade, Rank.ace)],
-      const Tableau(0): const [
-        PlayCard(Suit.heart, Rank.three),
-        PlayCard(Suit.heart, Rank.two)
-      ],
-      const Tableau(1): const [
-        PlayCard(Suit.spade, Rank.three),
-        PlayCard(Suit.spade, Rank.two),
-      ],
-      const Tableau(2): const [
-        PlayCard(Suit.diamond, Rank.three),
-        PlayCard(Suit.diamond, Rank.two),
-      ],
-      const Tableau(3): const [PlayCard(Suit.club, Rank.three)],
-    });
-
-    ref.read(moveHistoryProvider.notifier).add(presetCards, const GameStart());
-  }
 }

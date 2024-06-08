@@ -5,6 +5,7 @@ import '../utils/prng.dart';
 import 'action.dart';
 import 'card.dart';
 import 'card_list.dart';
+import 'move_event.dart';
 import 'pile.dart';
 import 'pile_check.dart';
 import 'play_data.dart';
@@ -22,7 +23,7 @@ abstract class PileAction {
     }
 
     Action? action;
-    int? score;
+    List<MoveEvent> events = [];
     bool hasChange = false;
 
     for (final item in actions) {
@@ -37,16 +38,15 @@ abstract class PileAction {
             action = result.action;
           }
           table = result.table;
-          if (result.scoreGained != null) {
-            score = (score ?? 0) + result.scoreGained!;
+          if (result.events.isNotEmpty) {
+            events.addAll(result.events);
           }
         case PileActionNoChange():
       }
     }
 
     if (hasChange) {
-      return PileActionHandled(
-          table: table, action: action, scoreGained: score);
+      return PileActionHandled(table: table, action: action, events: events);
     } else {
       return PileActionNoChange(table: table);
     }
@@ -58,8 +58,8 @@ abstract class PileAction {
       return pastResult;
     }
     PlayTable table = pastResult.table;
-    int? scoreGained = pastResult.scoreGained;
     Action? action = pastResult.action;
+    List<MoveEvent> events = pastResult.events;
 
     final currentResult = PileAction.run(actions, pile, table, metadata);
 
@@ -72,15 +72,14 @@ abstract class PileAction {
         }
         action = currentResult.action;
       }
-
-      if (currentResult.scoreGained != null) {
-        scoreGained = (scoreGained ?? 0) + currentResult.scoreGained!;
+      if (currentResult.events.isNotEmpty) {
+        events.addAll(currentResult.events);
       }
     }
     return PileActionHandled(
       table: table,
-      scoreGained: scoreGained,
       action: action,
+      events: events,
     );
   }
 }
@@ -92,11 +91,14 @@ sealed class PileActionResult {
 }
 
 class PileActionHandled extends PileActionResult {
-  const PileActionHandled(
-      {required super.table, this.action, this.scoreGained});
+  const PileActionHandled({
+    required super.table,
+    this.action,
+    this.events = const [],
+  });
 
   final Action? action;
-  final int? scoreGained;
+  final List<MoveEvent> events;
 }
 
 class PileActionNoChange extends PileActionResult {
@@ -117,7 +119,7 @@ class If extends PileAction {
   @override
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     // TODO: Where to obtain the remaining param?
-    final cond = PileCheck.checkAll(condition, pile, [], table);
+    final cond = PileCheck.checkAll(condition, pile, const [], table);
     if (cond is PileCheckOK && ifTrue != null) {
       return PileAction.run(ifTrue, pile, table, metadata);
     } else if (cond is PileCheckFail && ifFalse != null) {
@@ -141,7 +143,7 @@ class SetupNewDeck extends PileAction {
   PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
     final existingCards = table.get(pile);
 
-    final newCards = const CardShuffler().generateShuffledDeck(
+    final newCards = const PlayCardGenerator().generateShuffledDeck(
       numberOfDecks: count,
       CustomPRNG.create(metadata.randomSeed),
       criteria:
@@ -223,7 +225,7 @@ class MoveNormally extends PileAction {
         to: [...table.get(to), ...cardsToPickUp]
       }),
       action: Move(cardsToPickUp, pile, to),
-      scoreGained: 1,
+      events: [MoveMade(from: pile, to: to)],
     );
   }
 }
@@ -275,6 +277,7 @@ class RecyclePile extends PileAction {
         ],
       }),
       action: Deal(cardsToRecycle, pile),
+      events: const [RecycleMade()],
     );
   }
 }
@@ -302,17 +305,6 @@ class FlipTopCardFaceUp extends PileAction {
   }
 }
 
-class ObtainScore extends PileAction {
-  const ObtainScore({required this.score});
-
-  final int score;
-
-  @override
-  PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
-    return PileActionHandled(table: table, scoreGained: 100);
-  }
-}
-
 class DrawToAllPilesOfType<T extends Pile> extends PileAction {
   const DrawToAllPilesOfType({required this.count});
 
@@ -333,6 +325,20 @@ class DrawToAllPilesOfType<T extends Pile> extends PileAction {
       }),
       // TODO: Change this
       action: Deal(cardsToDistribute, pile),
+    );
+  }
+}
+
+class EmitEvent extends PileAction {
+  const EmitEvent(this.event);
+
+  final MoveEvent event;
+
+  @override
+  PileActionResult action(Pile pile, PlayTable table, GameMetadata metadata) {
+    return PileActionHandled(
+      table: table,
+      events: [event],
     );
   }
 }

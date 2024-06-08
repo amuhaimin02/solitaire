@@ -1,15 +1,14 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../animations.dart';
 import '../models/action.dart';
-import '../models/card.dart';
 import '../models/card_list.dart';
+import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
 import '../models/move_result.dart';
-import '../models/pile_check.dart';
-import '../models/play_data.dart';
 import '../models/user_action.dart';
 import '../providers/feedback.dart';
 import '../providers/game_logic.dart';
@@ -50,6 +49,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   void _startGame() {
     Future.microtask(() async {
+      bool isContinueGame;
+      SolitaireGame startedGame;
+
       try {
         final allGames = ref.read(allSolitaireGamesProvider);
 
@@ -70,23 +72,28 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 .read(gameStorageProvider.notifier)
                 .restoreQuickSave(lastPlayedGame);
 
-            // Wait for animation to end, also for context to be initialized with theme
-            Future.delayed(
-              themeChangeAnimation.duration,
-              () {
-                if (mounted) {
-                  _showContinueSnackBar(context, gameData);
-                }
-              },
-            );
-
             ref.read(gameControllerProvider.notifier).restore(gameData);
+            isContinueGame = true;
+            startedGame = gameData.metadata.game;
           } else {
             ref.read(gameControllerProvider.notifier).startNew(lastPlayedGame);
+            isContinueGame = false;
+            startedGame = lastPlayedGame;
           }
         } else {
           ref.read(gameControllerProvider.notifier).startNew(allGames.first);
+          isContinueGame = false;
+          startedGame = allGames.first;
         }
+        // Wait for animation to end, also for context to be initialized with theme
+        Future.delayed(
+          themeChangeAnimation.duration,
+          () {
+            if (mounted) {
+              _showStartingSnackBar(context, startedGame, isContinueGame);
+            }
+          },
+        );
       } finally {
         Future.delayed(themeChangeAnimation.duration * 0.5, () {
           setState(() {
@@ -272,7 +279,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  void _showContinueSnackBar(BuildContext context, GameData data) {
+  void _showStartingSnackBar(
+      BuildContext context, SolitaireGame game, bool continueGame) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -280,13 +288,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Continuing last game'),
+          continueGame
+              ? const Text('Continuing last game')
+              : const Text('Starting game'),
           Text(
-            data.metadata.game.name,
+            game.name,
             style: textTheme.titleMedium!
                 .copyWith(color: colorScheme.inversePrimary),
           ),
         ],
+      ),
+      action: SnackBarAction(
+        label: 'Change',
+        onPressed: () {
+          context.go('/select');
+        },
       ),
     ));
   }
@@ -349,7 +365,10 @@ class _PlayArea extends ConsumerWidget {
 
                 final pileInfo = game.game.piles.get(pile);
                 if (pileInfo.onTap != null) {
-                  controller.tryMove(MoveIntent(pile, pile));
+                  final result = controller.tryMove(MoveIntent(pile, pile));
+                  if (result is MoveForbidden) {
+                    _showMoveForbiddenPopup(context, result);
+                  }
                   return null;
                 }
                 if (card != null) {
@@ -464,36 +483,67 @@ class _FinishDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final moves = ref.watch(currentMoveNumberProvider);
-    final playTime = ref.watch(playTimeProvider);
-    final score = ref.watch(currentScoreProvider);
+    final scoreSummary =
+        ref.watch(gameControllerProvider.notifier).getScoreSummary();
 
     return DialogThemeFix(
       child: AlertDialog(
-        title: const Text('You win!'),
+        title: const Text('You win'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Text('Moves: $moves'),
+                Text('Moves: ${scoreSummary.moves}'),
                 const Spacer(),
-                Text('Time: ${playTime.toMMSSString()}'),
+                Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
               ],
             ),
             const Divider(),
-            const Text('Base score'),
-            Text(
-              '$score',
-              style: textTheme.bodyLarge!
-                  .copyWith(color: colorScheme.onSurfaceVariant),
-              textAlign: TextAlign.end,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Obtained'),
+                Text(
+                  '${scoreSummary.obtainedScore}',
+                  style: textTheme.titleLarge!
+                      .copyWith(color: colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.end,
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Bonus'),
+                Text(
+                  '+${scoreSummary.bonusScore}',
+                  style: textTheme.titleLarge!
+                      .copyWith(color: colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.end,
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Penalty'),
+                Text(
+                  '-${scoreSummary.penaltyScore}',
+                  style:
+                      textTheme.titleLarge!.copyWith(color: colorScheme.error),
+                  textAlign: TextAlign.end,
+                ),
+              ],
             ),
             const Divider(),
             const Text('Final score'),
             Text(
-              '$score',
+              '${scoreSummary.finalScore}',
               style: textTheme.headlineMedium!
                   .copyWith(color: colorScheme.primary),
               textAlign: TextAlign.end,
@@ -505,7 +555,7 @@ class _FinishDialog extends ConsumerWidget {
             onPressed: () {
               Navigator.pop(context, false);
             },
-            child: const Text('Quit'),
+            child: const Text('Close'),
           ),
           FilledButton(
             onPressed: () {

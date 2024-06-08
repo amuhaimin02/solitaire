@@ -40,7 +40,7 @@ class Spider extends SolitaireGame {
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(10, 8),
-      landscape: Size(11.5, 4),
+      landscape: Size(11.5, 4.5),
     );
   }
 
@@ -59,7 +59,7 @@ class Spider extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(10.5, i.toDouble() * 0.25, 1, 1),
+              landscape: Rect.fromLTWH(10.5, i.toDouble() * 0.3, 1, 1),
             ),
             showMarker: LayoutProperty(
               portrait: true,
@@ -75,7 +75,7 @@ class Spider extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 5.7),
-              landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 4),
+              landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 4.5),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
@@ -102,7 +102,7 @@ class Spider extends SolitaireGame {
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(9, 0, 1, 1),
-            landscape: Rect.fromLTWH(10.5, 3, 1, 1),
+            landscape: Rect.fromLTWH(10.5, 3.5, 1, 1),
           ),
           showCount: LayoutProperty.all(true),
         ),
@@ -110,14 +110,12 @@ class Spider extends SolitaireGame {
           setupDeck,
           const FlipAllCardsFaceDown(),
         ],
-        onTap: [
-          const If(
-            condition: [
-              PileIsNotEmpty(),
-              AllPilesOfTypeAreNotEmpty<Tableau>(),
-            ],
-            ifTrue: [DrawToAllPilesOfType<Tableau>(count: 1)],
-          ),
+        canTap: const [
+          PileIsNotEmpty(),
+          AllPilesOfType<Tableau>([PileIsNotEmpty()]),
+        ],
+        onTap: const [
+          DrawToAllPilesOfType<Tableau>(count: 1),
         ],
       ),
     };
@@ -125,8 +123,10 @@ class Spider extends SolitaireGame {
 
   @override
   List<PileCheck> get objectives {
-    return [
-      const AllPilesOfTypeHaveFullSuit<Foundation>(RankOrder.decreasing),
+    return const [
+      AllPilesOfType<Foundation>([
+        PileHasFullSuit(RankOrder.decreasing),
+      ]),
     ];
   }
 

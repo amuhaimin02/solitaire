@@ -1,11 +1,11 @@
 import 'dart:ui';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
 
 import '../action.dart';
 import '../card.dart';
 import '../direction.dart';
+import '../move_event.dart';
 import '../pile.dart';
 import '../pile_action.dart';
 import '../pile_check.dart';
@@ -84,7 +84,7 @@ class FreeCell extends SolitaireGame {
               condition: [PileTopCardIsFacingDown()],
               ifTrue: [
                 FlipTopCardFaceUp(),
-                ObtainScore(score: 100),
+                EmitEvent(TableauReveal()),
               ],
             )
           ],
@@ -125,8 +125,10 @@ class FreeCell extends SolitaireGame {
 
   @override
   List<PileCheck> get objectives {
-    return [
-      const AllPilesOfTypeHaveFullSuit<Foundation>(RankOrder.decreasing),
+    return const [
+      AllPilesOfType<Foundation>([
+        PileHasFullSuit(RankOrder.increasing),
+      ]),
     ];
   }
 
