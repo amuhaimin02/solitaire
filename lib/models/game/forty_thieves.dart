@@ -65,8 +65,8 @@ class FortyThieves extends SolitaireGame {
         Tableau(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait:
-                  Rect.fromLTWH((i % 5).toDouble() + 1.5, i < 5 ? 4 : 0, 1, 4),
+              portrait: Rect.fromLTWH(
+                  (i % 5).toDouble() + 1.5, (i ~/ 5).toDouble() * 4, 1, 4),
               landscape: Rect.fromLTWH(i.toDouble() + 2.25, 0, 1, 5),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
@@ -105,8 +105,12 @@ class FortyThieves extends SolitaireGame {
             ],
           ),
         ],
-        canTap: const [CanRecyclePile(limit: 1, willTakeFrom: Waste())],
-        onTap: const [DrawFromTop(to: Waste(), count: 1)],
+        canTap: const [
+          CanRecyclePile(limit: 1, willTakeFrom: Waste()),
+        ],
+        onTap: const [
+          DrawFromTop(to: Waste(), count: 1),
+        ],
       ),
       const Waste(): PileProperty(
         layout: const PileLayout(

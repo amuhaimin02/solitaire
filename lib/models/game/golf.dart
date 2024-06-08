@@ -27,7 +27,7 @@ class Golf extends SolitaireGame {
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(7, 5),
+      portrait: Size(7, 5.5),
       landscape: Size(8.5, 4),
     );
   }
@@ -53,7 +53,7 @@ class Golf extends SolitaireGame {
       const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
-            portrait: Rect.fromLTWH(5, 3.5, 1, 1),
+            portrait: Rect.fromLTWH(3, 4.5, 1, 1),
             landscape: Rect.fromLTWH(7.5, 2.5, 1, 1),
           ),
           showCount: LayoutProperty.all(true),
@@ -72,17 +72,17 @@ class Golf extends SolitaireGame {
         ],
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
-        canTap: [
-          const PileIsNotEmpty(),
+        canTap: const [
+          CanRecyclePile(willTakeFrom: Waste(), limit: 1),
         ],
-        onTap: [
-          const DrawFromTop(to: Waste(), count: 1),
+        onTap: const [
+          DrawFromTop(to: Waste(), count: 1),
         ],
       ),
       const Waste(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
-            portrait: Rect.fromLTWH(3, 3.5, 1, 1),
+            portrait: Rect.fromLTWH(3, 3, 1, 1),
             landscape: Rect.fromLTWH(3, 3, 1, 1),
           ),
         ),

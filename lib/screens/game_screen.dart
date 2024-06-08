@@ -350,7 +350,7 @@ class _PlayArea extends ConsumerWidget {
             GameTable(
               table: table,
               game: game.game,
-              orientation: orientation,
+              orientation: localOrientation,
               highlightedCards: highlightedCards,
               lastMovedCards: ref.watch(lastMoveProvider)?.action.move?.cards,
               showLastMovedCards: showLastMoves,

@@ -119,7 +119,7 @@ class Spider extends SolitaireGame {
           ),
         ],
         canTap: const [
-          PileIsNotEmpty(),
+          CanRecyclePile(willTakeFrom: Stock(), limit: 1),
           AllPilesOfType<Tableau>([PileIsNotEmpty()]),
         ],
         onTap: const [
