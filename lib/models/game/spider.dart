@@ -59,7 +59,7 @@ class Spider extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(10.5, i.toDouble() * 0.3, 1, 1),
+              landscape: Rect.fromLTWH(10.5, i.toDouble() * 0.25, 1, 1),
             ),
             showMarker: LayoutProperty(
               portrait: true,
@@ -67,6 +67,7 @@ class Spider extends SolitaireGame {
             ),
           ),
           markerStartsWith: Rank.king,
+          pickable: const [NotAllowed()],
           placeable: const [
             CardsHasFullSuit(RankOrder.decreasing),
           ],
@@ -98,11 +99,13 @@ class Spider extends SolitaireGame {
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(9, 0, 1, 1),
-            landscape: Rect.fromLTWH(10.5, 3.5, 1, 1),
+            landscape: Rect.fromLTWH(10.5, 3, 1, 1),
           ),
           showCount: LayoutProperty.all(true),
         ),
         recycleLimit: 1,
+        pickable: const [NotAllowed()],
+        placeable: const [NotAllowed()],
         onStart: [
           setupDeck,
           const FlipAllCardsFaceDown(),

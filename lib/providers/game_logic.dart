@@ -233,8 +233,8 @@ class GameController extends _$GameController {
         );
         if (canTapResult is PileCheckFail) {
           return MoveForbidden(
-              'Cannot tap ${move.from}\n${canTapResult.reason.runtimeType}',
-              move);
+            'Cannot make the move. ${move.from}\n${canTapResult.reason?.errorMessage}',
+          );
         }
       }
 
@@ -249,7 +249,7 @@ class GameController extends _$GameController {
       );
     } else {
       if (move.from == move.to) {
-        return MoveForbidden('Cannot move cards back to its pile', move);
+        return const MoveForbidden('Cannot move cards back to its pile');
       }
 
       if (result is! PileActionHandled || result.action == null) {
@@ -268,8 +268,8 @@ class GameController extends _$GameController {
         );
         if (canPickResult is PileCheckFail) {
           return MoveForbidden(
-              'Cannot pick the card(s) from ${move.from}\n${canPickResult.reason.runtimeType}',
-              move);
+            'Cannot pick the card(s) there.\n${canPickResult.reason?.errorMessage}',
+          );
         }
 
         final canPlaceResult = PileCheck.checkAll(
@@ -284,8 +284,7 @@ class GameController extends _$GameController {
 
         if (canPlaceResult is PileCheckFail) {
           return MoveForbidden(
-              'Cannot place the card(s) on ${move.to}\n${canPlaceResult.reason.runtimeType}',
-              move);
+              'Cannot place the card(s) here.\n${canPlaceResult.reason?.errorMessage}');
         }
 
         result = PileAction.run(

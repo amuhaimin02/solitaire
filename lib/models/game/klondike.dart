@@ -114,6 +114,8 @@ class Klondike extends SolitaireGame {
             ],
           ),
         ],
+        pickable: const [NotAllowed()],
+        placeable: const [NotAllowed()],
         canTap: [
           const CanRecyclePile(limit: 5),
         ],
@@ -143,6 +145,9 @@ class Klondike extends SolitaireGame {
         ),
         pickable: const [
           CardIsOnTop(),
+        ],
+        placeable: const [
+          NotAllowed(),
         ],
       ),
     };

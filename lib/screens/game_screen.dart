@@ -369,7 +369,7 @@ class _PlayArea extends ConsumerWidget {
                 if (pileInfo.onTap != null) {
                   final result = controller.tryMove(MoveIntent(pile, pile));
                   if (result is MoveForbidden) {
-                    _showMoveForbiddenPopup(context, result);
+                    _showMoveForbiddenSnackbar(context, result);
                   }
                   return null;
                 }
@@ -386,7 +386,7 @@ class _PlayArea extends ConsumerWidget {
 
                 ScaffoldMessenger.of(context).clearSnackBars();
                 if (result is MoveForbidden) {
-                  _showMoveForbiddenPopup(context, result);
+                  _showMoveForbiddenSnackbar(context, result);
                 }
                 return null;
               },
@@ -407,7 +407,7 @@ class _PlayArea extends ConsumerWidget {
     );
   }
 
-  void _showMoveForbiddenPopup(BuildContext context, MoveForbidden move) {
+  void _showMoveForbiddenSnackbar(BuildContext context, MoveForbidden move) {
     final colorScheme = Theme.of(context).colorScheme;
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -492,63 +492,66 @@ class _FinishDialog extends ConsumerWidget {
       child: AlertDialog(
         title: const Text('You win'),
         content: SizedBox(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Text('Moves: ${scoreSummary.moves}'),
-                  const Spacer(),
-                  Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
-                ],
-              ),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Obtained'),
-                subtitle: const Text('Score during play'),
-                trailing: Text(
-                  '${scoreSummary.obtainedScore}',
-                  style: textTheme.titleLarge!
-                      .copyWith(color: colorScheme.onSurfaceVariant),
-                  textAlign: TextAlign.end,
+          width: 300,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Text('Moves: ${scoreSummary.moves}'),
+                    const Spacer(),
+                    Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
+                  ],
                 ),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Bonus'),
-                subtitle: const Text('700,000 ÷ play seconds'),
-                trailing: Text(
-                  '+${scoreSummary.bonusScore}',
-                  style: textTheme.titleLarge!
-                      .copyWith(color: colorScheme.onSurfaceVariant),
-                  textAlign: TextAlign.end,
+                const Divider(),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Obtained'),
+                  subtitle: const Text('Score during play'),
+                  trailing: Text(
+                    '${scoreSummary.obtainedScore}',
+                    style: textTheme.titleLarge!
+                        .copyWith(color: colorScheme.onSurfaceVariant),
+                    textAlign: TextAlign.end,
+                  ),
                 ),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Penalty'),
-                subtitle: const Text('2 points every 10 seconds'),
-                trailing: Text(
-                  '-${scoreSummary.penaltyScore}',
-                  style:
-                      textTheme.titleLarge!.copyWith(color: colorScheme.error),
-                  textAlign: TextAlign.end,
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Bonus'),
+                  subtitle: const Text('700,000 / play seconds'),
+                  trailing: Text(
+                    '+${scoreSummary.bonusScore}',
+                    style: textTheme.titleLarge!
+                        .copyWith(color: colorScheme.onSurfaceVariant),
+                    textAlign: TextAlign.end,
+                  ),
                 ),
-              ),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Final score'),
-                trailing: Text(
-                  '-${scoreSummary.finalScore}',
-                  style: textTheme.headlineMedium!
-                      .copyWith(color: colorScheme.primary),
-                  textAlign: TextAlign.end,
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Penalty'),
+                  subtitle: const Text('2 points every 10 seconds'),
+                  trailing: Text(
+                    '-${scoreSummary.penaltyScore}',
+                    style: textTheme.titleLarge!
+                        .copyWith(color: colorScheme.error),
+                    textAlign: TextAlign.end,
+                  ),
                 ),
-              ),
-            ],
+                const Divider(),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Final score'),
+                  trailing: Text(
+                    '${scoreSummary.finalScore}',
+                    style: textTheme.headlineMedium!
+                        .copyWith(color: colorScheme.primary),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [

@@ -124,6 +124,8 @@ class FreeCell extends SolitaireGame {
             ],
           ),
         ],
+        pickable: const [NotAllowed()],
+        placeable: const [NotAllowed()],
       ),
     };
   }

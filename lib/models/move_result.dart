@@ -9,9 +9,7 @@ sealed class MoveResult {
 class MoveForbidden extends MoveResult {
   final String reason;
 
-  final MoveIntent move;
-
-  const MoveForbidden(this.reason, this.move);
+  const MoveForbidden(this.reason);
 
   @override
   String toString() => 'MoveForbidden($reason)';

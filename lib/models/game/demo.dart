@@ -35,6 +35,8 @@ class SolitaireDemo extends SolitaireGame {
               landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
             ),
           ),
+          pickable: const [NotAllowed()],
+          placeable: const [NotAllowed()],
         ),
       for (int i = 0; i < 4; i++)
         Tableau(i): PileProperty(
@@ -45,6 +47,8 @@ class SolitaireDemo extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
+          pickable: const [NotAllowed()],
+          placeable: const [NotAllowed()],
         ),
       const Stock(): PileProperty(
         layout: const PileLayout(
@@ -53,6 +57,8 @@ class SolitaireDemo extends SolitaireGame {
             landscape: Rect.fromLTWH(3, 0, 1, 1),
           ),
         ),
+        pickable: const [NotAllowed()],
+        placeable: const [NotAllowed()],
       ),
       const Waste(): PileProperty(
         layout: const PileLayout(
@@ -61,6 +67,8 @@ class SolitaireDemo extends SolitaireGame {
             landscape: Rect.fromLTWH(2, 0, 1, 1),
           ),
         ),
+        pickable: const [NotAllowed()],
+        placeable: const [NotAllowed()],
       ),
     };
   }
