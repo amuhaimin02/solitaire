@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/action.dart';
 import '../models/move_record.dart';
+import '../models/pile.dart';
 import '../models/play_table.dart';
 
 part 'game_move_history.g.dart';
@@ -103,7 +104,11 @@ class MoveHistory extends _$MoveHistory {
     ref.read(moveRecordListProvider.notifier).set([
       MoveRecord(
         action: action,
-        state: MoveState(moveNumber: 0, score: 0),
+        state: MoveState(
+          moveNumber: 0,
+          score: 0,
+          recycleCounts: {},
+        ),
         table: table,
       )
     ]);
@@ -113,11 +118,14 @@ class MoveHistory extends _$MoveHistory {
     PlayTable table,
     Action action, {
     int score = 0,
+    List<Pile>? recycledPiles,
     bool retainMoveCount = false,
   }) {
     final lastMove = ref.read(currentMoveProvider);
     final lastMoveNumber = lastMove?.state.moveNumber ?? 0;
     final lastScore = lastMove?.state.score ?? 0;
+    final lastRecycleCounts = lastMove?.state.recycleCounts ?? {};
+
     final int newMoveNumber;
 
     if (action.countAsMove && !retainMoveCount) {
@@ -126,11 +134,24 @@ class MoveHistory extends _$MoveHistory {
       newMoveNumber = lastMoveNumber;
     }
 
+    final Map<Pile, int> newRecycleCounts;
+
+    if (recycledPiles != null) {
+      newRecycleCounts = {
+        ...lastRecycleCounts,
+        for (final pile in recycledPiles)
+          pile: (lastRecycleCounts[pile] ?? 0) + 1
+      };
+    } else {
+      newRecycleCounts = lastRecycleCounts;
+    }
+
     // Add to the point where move cursor is
     final newRecord = MoveRecord(
       action: action,
       state: MoveState(
         moveNumber: newMoveNumber,
+        recycleCounts: newRecycleCounts,
         score: lastScore + score,
       ),
       table: table,

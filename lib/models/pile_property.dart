@@ -14,8 +14,8 @@ class PileProperty {
     this.placeable,
     this.canTap,
     this.onTap,
-    this.makeMove,
     this.afterMove,
+    this.recycleLimit,
     this.virtual = false,
   });
 
@@ -35,7 +35,7 @@ class PileProperty {
 
   List<PileAction>? afterMove;
 
-  List<PileAction> Function(MoveIntent move)? makeMove;
+  int? recycleLimit;
 
   final bool virtual;
 }

@@ -197,6 +197,7 @@ class GameController extends _$GameController {
     bool retainMoveCount = false,
   }) {
     final game = ref.read(currentGameProvider);
+    final moveState = ref.read(currentMoveProvider)?.state;
     PlayTable table = ref.read(currentTableProvider);
 
     final originPileInfo = game.game.piles.get(move.from);
@@ -222,7 +223,14 @@ class GameController extends _$GameController {
     if (originPileInfo.onTap != null && move.from == move.to) {
       if (originPileInfo.canTap != null) {
         final canTapResult = PileCheck.checkAll(
-            originPileInfo.canTap, move.from, cardsToPick, table);
+          originPileInfo.canTap,
+          PileCheckData(
+            pile: move.from,
+            cards: cardsToPick,
+            table: table,
+            moveState: moveState,
+          ),
+        );
         if (canTapResult is PileCheckFail) {
           return MoveForbidden(
               'Cannot tap ${move.from}\n${canTapResult.reason.runtimeType}',
@@ -232,9 +240,12 @@ class GameController extends _$GameController {
 
       result = PileAction.run(
         originPileInfo.onTap,
-        move.from,
-        table,
-        game,
+        PileActionData(
+          pile: move.from,
+          table: table,
+          metadata: game,
+          moveState: moveState,
+        ),
       );
     } else {
       if (move.from == move.to) {
@@ -247,7 +258,14 @@ class GameController extends _$GameController {
         }
 
         final canPickResult = PileCheck.checkAll(
-            originPileInfo.pickable, move.from, cardsToPick, table);
+          originPileInfo.pickable,
+          PileCheckData(
+            pile: move.from,
+            cards: cardsToPick,
+            table: table,
+            moveState: moveState,
+          ),
+        );
         if (canPickResult is PileCheckFail) {
           return MoveForbidden(
               'Cannot pick the card(s) from ${move.from}\n${canPickResult.reason.runtimeType}',
@@ -255,7 +273,14 @@ class GameController extends _$GameController {
         }
 
         final canPlaceResult = PileCheck.checkAll(
-            targetPileInfo.placeable, move.to, cardsToPick, table);
+          targetPileInfo.placeable,
+          PileCheckData(
+            pile: move.to,
+            cards: cardsToPick,
+            table: table,
+            moveState: moveState,
+          ),
+        );
 
         if (canPlaceResult is PileCheckFail) {
           return MoveForbidden(
@@ -264,11 +289,13 @@ class GameController extends _$GameController {
         }
 
         result = PileAction.run(
-          originPileInfo.makeMove?.call(move) ??
-              [MoveNormally(to: move.to, cards: cardsToPick)],
-          move.from,
-          table,
-          game,
+          [MoveNormally(to: move.to, cards: cardsToPick)],
+          PileActionData(
+            pile: move.from,
+            table: table,
+            metadata: game,
+            moveState: moveState,
+          ),
         );
       }
     }
@@ -277,8 +304,12 @@ class GameController extends _$GameController {
         result = PileAction.chain(
           result,
           props.afterMove,
-          pile,
-          game,
+          PileActionData(
+            pile: pile,
+            table: table,
+            metadata: game,
+            moveState: moveState,
+          ),
         );
       }
     }
@@ -358,9 +389,18 @@ class GameController extends _$GameController {
   PlayTable _setupPiles() {
     final gameData = ref.read(currentGameProvider);
     PlayTable table = PlayTable.fromGame(gameData.game);
+    final moveState = ref.read(currentMoveProvider)?.state;
 
     for (final (pile, props) in gameData.game.piles.items) {
-      final result = PileAction.run(props.onStart, pile, table, gameData);
+      final result = PileAction.run(
+        props.onStart,
+        PileActionData(
+          pile: pile,
+          table: table,
+          metadata: gameData,
+          moveState: moveState,
+        ),
+      );
       if (result is PileActionHandled) {
         table = result.table;
       }
@@ -371,9 +411,18 @@ class GameController extends _$GameController {
 
   PlayTable _setupCards(PlayTable table) {
     final gameData = ref.read(currentGameProvider);
+    final moveState = ref.read(currentMoveProvider)?.state;
 
     for (final (pile, props) in gameData.game.piles.items) {
-      final result = PileAction.run(props.onSetup, pile, table, gameData);
+      final result = PileAction.run(
+        props.onSetup,
+        PileActionData(
+          pile: pile,
+          table: table,
+          metadata: gameData,
+          moveState: moveState,
+        ),
+      );
       if (result is PileActionHandled) {
         table = result.table;
       }
@@ -463,12 +512,18 @@ class GameController extends _$GameController {
 
     final score = _calculateScore(result.events);
 
+    final recycledPiles = result.events
+        .whereType<RecycleMade>()
+        .map((e) => e.recycledPile)
+        .toList();
+
     // Add to move records
     ref.read(moveHistoryProvider.notifier).add(
           updatedTable,
           action ?? const Idle(), // TODO: Check not null
           score: score,
           retainMoveCount: retainMoveCount || isEmptyPileMoveTransfer,
+          recycledPiles: recycledPiles,
         );
 
     // Check if the game is winning
@@ -525,13 +580,17 @@ class GameController extends _$GameController {
 bool isGameFinished(IsGameFinishedRef ref) {
   final game = ref.watch(currentGameProvider);
   final table = ref.watch(currentTableProvider);
+  final moveState = ref.watch(currentMoveProvider)?.state;
 
   // TODO: Change "pile" parameter
   final result = PileCheck.checkAll(
     game.game.objectives,
-    const Stock(),
-    [],
-    table,
+    PileCheckData(
+      pile: const Stock(),
+      cards: [],
+      table: table,
+      moveState: moveState,
+    ),
   );
   return result is PileCheckOK;
 }
@@ -540,6 +599,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
 bool autoSolvable(AutoSolvableRef ref) {
   final game = ref.watch(currentGameProvider);
   final table = ref.watch(currentTableProvider);
+  final moveState = ref.watch(currentMoveProvider)?.state;
 
   if (game.game.canAutoSolve == null) {
     return false;
@@ -548,9 +608,12 @@ bool autoSolvable(AutoSolvableRef ref) {
   // TODO: Change "pile" parameter
   final result = PileCheck.checkAll(
     game.game.canAutoSolve,
-    const Stock(),
-    [],
-    table,
+    PileCheckData(
+      pile: const Stock(),
+      cards: [],
+      table: table,
+      moveState: moveState,
+    ),
   );
   return result is PileCheckOK;
 }

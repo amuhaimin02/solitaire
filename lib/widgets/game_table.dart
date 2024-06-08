@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../animations.dart';
 import '../config.dart';
@@ -11,6 +12,7 @@ import '../models/card.dart';
 import '../models/card_list.dart';
 import '../models/direction.dart';
 import '../models/game/solitaire.dart';
+import '../models/move_record.dart';
 import '../models/pile.dart';
 import '../models/pile_property.dart';
 import '../models/play_table.dart';
@@ -38,6 +40,7 @@ class GameTable extends StatefulWidget {
     this.animateMovement = true,
     this.fitEmptySpaces = false,
     this.orientation = Orientation.portrait,
+    this.currentMoveState,
   });
 
   final SolitaireGame game;
@@ -65,6 +68,8 @@ class GameTable extends StatefulWidget {
   final bool fitEmptySpaces;
 
   final Orientation orientation;
+
+  final MoveState? currentMoveState;
 
   @override
   State<GameTable> createState() => _GameTableState();
@@ -159,6 +164,23 @@ class _GameTableState extends State<GameTable> {
       return rect;
     }
 
+    bool canRecycle(Pile pile) {
+      final recycleLimit = _allPiles.get(pile).recycleLimit;
+      final currentCycle = widget.currentMoveState?.recycleCounts[pile] ?? 0;
+
+      return recycleLimit == null || currentCycle < recycleLimit - 1;
+    }
+
+    IconData getIcon(Pile pile) {
+      return switch (pile) {
+        Stock() => canRecycle(pile) ? MdiIcons.refresh : Icons.close,
+        Waste() => MdiIcons.cardsPlaying,
+        Foundation() => MdiIcons.alphaACircle,
+        Tableau() => MdiIcons.alphaKBox,
+        Reserve() => MdiIcons.star,
+      };
+    }
+
     return Stack(
       children: [
         for (final (pile, props) in _allPiles.items)
@@ -167,7 +189,7 @@ class _GameTableState extends State<GameTable> {
             Positioned.fromRect(
               rect: computeMarkerPlacement(pile).scale(gridUnit),
               child: PileMarker(
-                pile: pile,
+                icon: getIcon(pile),
                 size: gridUnit,
               ),
             ),
@@ -328,17 +350,30 @@ class _GameTableState extends State<GameTable> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        for (final (pile, props) in _allPiles.items)
+        for (final (pile, props) in _allPiles.items) ...[
           if (props.layout.showCount?.resolve(widget.orientation) == true)
             Positioned.fromRect(
               rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
                       _resolvedRegion.get(pile).top, 1, 1)
                   .scale(gridUnit),
-              child: _CountIndicator(
+              child: _CardCountIndicator(
                 count: widget.table.get(pile).length,
-                cardSize: gridUnit,
+                size: gridUnit,
               ),
             ),
+          if (props.recycleLimit != null)
+            Positioned.fromRect(
+              rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
+                      _resolvedRegion.get(pile).top, 1, 1)
+                  .scale(gridUnit),
+              child: _PileCycleIndicator(
+                cycleCount:
+                    ((widget.currentMoveState?.recycleCounts[pile] ?? 0) + 1),
+                cycleLimit: props.recycleLimit!,
+                size: gridUnit,
+              ),
+            ),
+        ],
       ],
     );
   }
@@ -736,16 +771,16 @@ class _CardWidget extends StatelessWidget {
   }
 }
 
-class _CountIndicator extends StatelessWidget {
-  const _CountIndicator({
+class _CardCountIndicator extends StatelessWidget {
+  const _CardCountIndicator({
     super.key,
     required this.count,
-    required this.cardSize,
+    required this.size,
   });
 
   final int count;
 
-  final Size cardSize;
+  final Size size;
 
   @override
   Widget build(BuildContext context) {
@@ -758,8 +793,8 @@ class _CountIndicator extends StatelessWidget {
           show: count > 0,
           alignment: Alignment.bottomCenter,
           child: Container(
-            width: cardSize.shortestSide * 0.5,
-            height: cardSize.shortestSide * 0.5,
+            width: size.shortestSide * 0.5,
+            height: size.shortestSide * 0.5,
             decoration: BoxDecoration(
               color: colorScheme.inverseSurface,
               shape: BoxShape.circle,
@@ -774,9 +809,52 @@ class _CountIndicator extends StatelessWidget {
                 style: TextStyle(
                   color: colorScheme.onInverseSurface,
                   fontWeight: FontWeight.bold,
-                  fontSize: cardSize.shortestSide * 0.25,
+                  fontSize: size.shortestSide * 0.25,
                   height: 1,
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PileCycleIndicator extends StatelessWidget {
+  const _PileCycleIndicator({
+    super.key,
+    required this.cycleCount,
+    required this.cycleLimit,
+    required this.size,
+  });
+
+  final int cycleCount;
+  final int cycleLimit;
+  final Size size;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return FractionalTranslation(
+      translation: const Offset(0, 1),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          decoration: ShapeDecoration(
+            color: colorScheme.secondaryContainer,
+            shape: const StadiumBorder(),
+          ),
+          padding: EdgeInsets.all(size.shortestSide * 0.1),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '$cycleCount / $cycleLimit',
+              style: TextStyle(
+                color: colorScheme.onSecondaryContainer,
+                fontWeight: FontWeight.bold,
+                fontSize: size.shortestSide * 0.2,
+                height: 1,
               ),
             ),
           ),

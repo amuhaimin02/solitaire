@@ -16,12 +16,16 @@ class MoveMade extends MoveEvent {
 
 class TableauReveal extends MoveEvent {
   const TableauReveal();
+
   @override
   String toString() => 'TableauReveal';
 }
 
 class RecycleMade extends MoveEvent {
-  const RecycleMade();
+  const RecycleMade(this.recycledPile);
+
+  final Pile recycledPile;
+
   @override
-  String toString() => 'RecycleMade';
+  String toString() => 'RecycleMade($recycledPile)';
 }

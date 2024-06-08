@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'action.dart';
+import 'pile.dart';
 import 'play_table.dart';
 
 part 'move_record.freezed.dart';
@@ -18,6 +19,7 @@ class MoveRecord with _$MoveRecord {
 class MoveState with _$MoveState {
   factory MoveState({
     required int moveNumber,
+    required Map<Pile, int> recycleCounts,
     required int score,
   }) = _MoveState;
 }

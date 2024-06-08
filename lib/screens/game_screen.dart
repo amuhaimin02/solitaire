@@ -355,6 +355,7 @@ class _PlayArea extends ConsumerWidget {
               lastMovedCards: ref.watch(lastMoveProvider)?.action.move?.cards,
               showLastMovedCards: showLastMoves,
               animateDistribute: status == GameStatus.preparing,
+              currentMoveState: ref.watch(currentMoveProvider)?.state,
               canDragCards: (cards, from) {
                 return cards.isAllFacingUp;
               },

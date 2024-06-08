@@ -182,16 +182,39 @@ class MoveStateSerializer implements Serializer<MoveState> {
 
   @override
   String serialize(MoveState state) {
-    return '${state.moveNumber}:${state.score}';
+    final recycleCountString = state.recycleCounts.entries.map(
+      (item) {
+        final pileString = const PileSerializer().serialize(item.key);
+        final countString = item.value.toRadixString(_maxRadixSize);
+        return '$pileString$countString';
+      },
+    ).join(',');
+
+    return '${state.moveNumber}:${state.score}:$recycleCountString';
   }
 
   @override
   MoveState deserialize(String raw) {
-    final [val1, val2] = raw.split(':');
+    final [val1, val2, val3] = raw.split(':');
+
     final moveNumber = int.parse(val1);
     final score = int.parse(val2);
 
-    return MoveState(moveNumber: moveNumber, score: score);
+    final recycleCounts = <Pile, int>{};
+
+    for (final item in val3.split(',')) {
+      if (item.isNotEmpty) {
+        final pile = const PileSerializer().deserialize(item.substring(0, 2));
+        final count = int.parse(item.substring(2), radix: _maxRadixSize);
+        recycleCounts[pile] = count;
+      }
+    }
+
+    return MoveState(
+      moveNumber: moveNumber,
+      score: score,
+      recycleCounts: recycleCounts,
+    );
   }
 }
 

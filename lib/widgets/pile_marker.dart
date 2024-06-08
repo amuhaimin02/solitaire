@@ -5,23 +5,15 @@ import '../models/pile.dart';
 import 'solitaire_theme.dart';
 
 class PileMarker extends StatelessWidget {
-  const PileMarker({super.key, required this.pile, required this.size});
+  const PileMarker({super.key, required this.icon, required this.size});
 
-  final Pile pile;
+  final IconData icon;
 
   final Size size;
 
   @override
   Widget build(BuildContext context) {
     final theme = SolitaireTheme.of(context);
-
-    final icon = switch (pile) {
-      Stock() => MdiIcons.refresh,
-      Waste() => MdiIcons.cardsPlaying,
-      Foundation() => MdiIcons.alphaACircle,
-      Tableau() => MdiIcons.alphaKBox,
-      Reserve() => MdiIcons.star,
-    };
 
     final borderOnly = theme.backgroundColor == Colors.black;
 

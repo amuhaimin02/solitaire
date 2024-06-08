@@ -106,12 +106,13 @@ class Spider extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
+        recycleLimit: 1,
         onStart: [
           setupDeck,
           const FlipAllCardsFaceDown(),
         ],
         canTap: const [
-          PileIsNotEmpty(),
+          CanRecyclePile(limit: 1),
           AllPilesOfType<Tableau>([PileIsNotEmpty()]),
         ],
         onTap: const [

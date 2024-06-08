@@ -103,12 +103,13 @@ class Klondike extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
+        recycleLimit: 3,
         onStart: const [
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
         ],
         canTap: [
-          const PileIsNotEmpty() | const CanRecyclePile(),
+          const CanRecyclePile(limit: 3),
         ],
         onTap: [
           If(
