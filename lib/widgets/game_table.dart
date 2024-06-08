@@ -18,7 +18,6 @@ import '../models/pile_property.dart';
 import '../models/play_table.dart';
 import '../utils/types.dart';
 import 'card_view.dart';
-import 'pile_marker.dart';
 import 'shakeable.dart';
 import 'shrinkable.dart';
 import 'solitaire_theme.dart';
@@ -171,16 +170,6 @@ class _GameTableState extends State<GameTable> {
       return recycleLimit == null || currentCycle < recycleLimit - 1;
     }
 
-    IconData getIcon(Pile pile) {
-      return switch (pile) {
-        Stock() => canRecycle(pile) ? MdiIcons.refresh : Icons.close,
-        Waste() => MdiIcons.cardsPlaying,
-        Foundation() => MdiIcons.alphaACircle,
-        Tableau() => MdiIcons.alphaKBox,
-        Reserve() => MdiIcons.star,
-      };
-    }
-
     return Stack(
       children: [
         for (final (pile, props) in _allPiles.items)
@@ -188,8 +177,10 @@ class _GameTableState extends State<GameTable> {
               props.layout.showMarker?.resolve(widget.orientation) != false)
             Positioned.fromRect(
               rect: computeMarkerPlacement(pile).scale(gridUnit),
-              child: PileMarker(
-                icon: getIcon(pile),
+              child: _PileMarker(
+                pile: pile,
+                startsWith: props.markerStartsWith,
+                canRecycle: canRecycle(pile),
                 size: gridUnit,
               ),
             ),
@@ -858,6 +849,107 @@ class _PileCycleIndicator extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PileMarker extends StatelessWidget {
+  const _PileMarker({
+    super.key,
+    required this.pile,
+    required this.startsWith,
+    required this.canRecycle,
+    required this.size,
+  });
+
+  final Pile pile;
+
+  final Rank? startsWith;
+
+  final bool? canRecycle;
+
+  final Size size;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = SolitaireTheme.of(context);
+
+    final borderOnly = theme.backgroundColor == Colors.black;
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    IconData getStockIcon() {
+      if (canRecycle == null) {
+        throw ArgumentError(
+            'Stock pile must have canRecycle property for pile marker');
+      }
+      return canRecycle == true ? MdiIcons.refresh : Icons.close;
+    }
+
+    IconData getFoundationIcon() {
+      return switch (startsWith) {
+        Rank.ace => MdiIcons.alphaACircle,
+        Rank.two => MdiIcons.numeric2Circle,
+        Rank.three => MdiIcons.numeric3Circle,
+        Rank.four => MdiIcons.numeric4Circle,
+        Rank.five => MdiIcons.numeric5Circle,
+        Rank.six => MdiIcons.numeric6Circle,
+        Rank.seven => MdiIcons.numeric7Circle,
+        Rank.eight => MdiIcons.numeric8Circle,
+        Rank.nine => MdiIcons.numeric9Circle,
+        Rank.ten => MdiIcons.numeric10Circle,
+        Rank.jack => MdiIcons.alphaJCircle,
+        Rank.queen => MdiIcons.alphaQCircle,
+        Rank.king => MdiIcons.alphaKCircle,
+        null => MdiIcons.starCircle,
+      };
+    }
+
+    IconData getTableauIcon() {
+      return switch (startsWith) {
+        Rank.ace => MdiIcons.alphaABox,
+        Rank.two => MdiIcons.numeric2Box,
+        Rank.three => MdiIcons.numeric3Box,
+        Rank.four => MdiIcons.numeric4Box,
+        Rank.five => MdiIcons.numeric5Box,
+        Rank.six => MdiIcons.numeric6Box,
+        Rank.seven => MdiIcons.numeric7Box,
+        Rank.eight => MdiIcons.numeric8Box,
+        Rank.nine => MdiIcons.numeric9Box,
+        Rank.ten => MdiIcons.numeric10Box,
+        Rank.jack => MdiIcons.alphaJBox,
+        Rank.queen => MdiIcons.alphaQBox,
+        Rank.king => MdiIcons.alphaKBox,
+        null => MdiIcons.starBox,
+      };
+    }
+
+    final icon = switch (pile) {
+      Stock() => getStockIcon(),
+      Waste() => MdiIcons.cardsPlaying,
+      Foundation() => getFoundationIcon(),
+      Tableau() => getTableauIcon(),
+      Reserve() => MdiIcons.circleOutline,
+    };
+
+    return Container(
+      padding: EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
+      child: Container(
+        decoration: BoxDecoration(
+          color: borderOnly ? null : colorScheme.outline.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(
+              size.shortestSide * theme.cardTheme.cornerRadius),
+          border: borderOnly
+              ? Border.all(
+                  color: colorScheme.outline.withOpacity(0.2), width: 2)
+              : null,
+        ),
+        child: Icon(
+          icon,
+          size: size.shortestSide * 0.5,
+          color: colorScheme.outline.withOpacity(0.2),
         ),
       ),
     );

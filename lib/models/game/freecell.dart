@@ -45,6 +45,7 @@ class FreeCell extends SolitaireGame {
               landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
             ),
           ),
+          markerStartsWith: Rank.ace,
           pickable: const [
             CardIsOnTop(),
           ],

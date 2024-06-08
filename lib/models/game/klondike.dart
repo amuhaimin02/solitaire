@@ -50,6 +50,7 @@ class Klondike extends SolitaireGame {
               landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
             ),
           ),
+          markerStartsWith: Rank.ace,
           pickable: const [
             CardIsOnTop(),
           ],
@@ -70,6 +71,7 @@ class Klondike extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
+          markerStartsWith: Rank.king,
           onSetup: [
             PickCardsFrom(const Stock(), count: i + 1),
             const FlipAllCardsFaceDown(),
@@ -103,13 +105,13 @@ class Klondike extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
-        recycleLimit: 3,
+        recycleLimit: 5,
         onStart: const [
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
         ],
         canTap: [
-          const CanRecyclePile(limit: 3),
+          const CanRecyclePile(limit: 5),
         ],
         onTap: [
           If(

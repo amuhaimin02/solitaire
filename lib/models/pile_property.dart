@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'action.dart';
+import 'card.dart';
 import 'direction.dart';
 import 'pile_action.dart';
 import 'pile_check.dart';
@@ -16,6 +17,7 @@ class PileProperty {
     this.onTap,
     this.afterMove,
     this.recycleLimit,
+    this.markerStartsWith,
     this.virtual = false,
   });
 
@@ -36,6 +38,8 @@ class PileProperty {
   List<PileAction>? afterMove;
 
   int? recycleLimit;
+
+  Rank? markerStartsWith;
 
   final bool virtual;
 }
