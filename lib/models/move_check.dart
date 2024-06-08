@@ -10,64 +10,64 @@ import 'pile.dart';
 import 'play_table.dart';
 import 'rank_order.dart';
 
-abstract class PileCheck {
-  const PileCheck();
+abstract class MoveCheck {
+  const MoveCheck();
 
-  bool check(PileCheckData data);
+  bool check(MoveCheckData data);
 
   String get errorMessage;
 
-  static PileCheckResult checkAll(
-    List<PileCheck>? checks,
-    PileCheckData data,
+  static MoveCheckResult checkAll(
+    List<MoveCheck>? checks,
+    MoveCheckData data,
   ) {
     if (checks == null) {
-      return const PileCheckFail(reason: null);
+      return const MoveCheckFail(reason: null);
     }
     for (final item in checks) {
       if (!item.check(data)) {
-        return PileCheckFail(reason: item);
+        return MoveCheckFail(reason: item);
       }
     }
-    return const PileCheckOK();
+    return const MoveCheckOK();
   }
 
-  PileCheck operator |(PileCheck other) {
-    return _PileCheckOr(this, other);
+  MoveCheck operator |(MoveCheck other) {
+    return _MoveCheckOr(this, other);
   }
 }
 
-class _PileCheckOr extends PileCheck {
-  const _PileCheckOr(this.check1, this.check2);
+class _MoveCheckOr extends MoveCheck {
+  const _MoveCheckOr(this.check1, this.check2);
 
-  final PileCheck check1;
-  final PileCheck check2;
+  final MoveCheck check1;
+  final MoveCheck check2;
 
   @override
   String get errorMessage =>
       '${check1.errorMessage}, or ${check2.errorMessage}';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return check1.check(data) || check2.check(data);
   }
 }
 
-class PileCheckData {
+class MoveCheckData {
   final Pile pile;
   final List<PlayCard> cards;
   final PlayTable table;
   final MoveState? moveState;
 
-  PileCheckData({
+  MoveCheckData({
     required this.pile,
     this.cards = const [],
     required this.table,
     this.moveState,
   });
 
-  PileCheckData withPile(Pile newPile) {
-    return PileCheckData(
+  MoveCheckData withPile(Pile newPile) {
+    return MoveCheckData(
       pile: newPile,
       cards: cards,
       table: table,
@@ -76,51 +76,51 @@ class PileCheckData {
   }
 }
 
-sealed class PileCheckResult {
-  const PileCheckResult();
+sealed class MoveCheckResult {
+  const MoveCheckResult();
 }
 
-class PileCheckOK extends PileCheckResult {
-  const PileCheckOK();
+class MoveCheckOK extends MoveCheckResult {
+  const MoveCheckOK();
 }
 
-class PileCheckFail extends PileCheckResult {
-  const PileCheckFail({required this.reason});
+class MoveCheckFail extends MoveCheckResult {
+  const MoveCheckFail({required this.reason});
 
-  final PileCheck? reason;
+  final MoveCheck? reason;
 }
 
-class CardsAreFacingUp extends PileCheck {
+class CardsAreFacingUp extends MoveCheck {
   const CardsAreFacingUp();
 
   @override
   String get errorMessage => 'Cards must all be facing up';
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return data.cards.isAllFacingUp;
   }
 }
 
-class CardIsSingle extends PileCheck {
+class CardIsSingle extends MoveCheck {
   const CardIsSingle();
 
   @override
   String get errorMessage => 'Only a single card is allowed';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return data.cards.isSingle;
   }
 }
 
-class CardIsOnTop extends PileCheck {
+class CardIsOnTop extends MoveCheck {
   const CardIsOnTop();
 
   @override
   String get errorMessage => 'Card is not on top';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile);
 
     return data.cards.isSingle &&
@@ -129,7 +129,7 @@ class CardIsOnTop extends PileCheck {
   }
 }
 
-class CardsFollowRankOrder extends PileCheck {
+class CardsFollowRankOrder extends MoveCheck {
   const CardsFollowRankOrder(this.rankOrder);
 
   final RankOrder rankOrder;
@@ -138,7 +138,7 @@ class CardsFollowRankOrder extends PileCheck {
   String get errorMessage => 'Cards must follow rank order, ${rankOrder.name}';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return switch (rankOrder) {
       RankOrder.increasing => data.cards.isSortedByRankIncreasingOrder,
       RankOrder.decreasing => data.cards.isSortedByRankDecreasingOrder,
@@ -146,14 +146,14 @@ class CardsFollowRankOrder extends PileCheck {
   }
 }
 
-class CardsAreSameSuit extends PileCheck {
+class CardsAreSameSuit extends MoveCheck {
   const CardsAreSameSuit();
 
   @override
   String get errorMessage => 'Cards must all be in same suit';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     if (data.cards.isEmpty || data.cards.isSingle) {
       return true;
     }
@@ -163,7 +163,7 @@ class CardsAreSameSuit extends PileCheck {
   }
 }
 
-class BuildupStartsWith extends PileCheck {
+class BuildupStartsWith extends MoveCheck {
   const BuildupStartsWith({required this.rank});
 
   final Rank rank;
@@ -173,7 +173,7 @@ class BuildupStartsWith extends PileCheck {
       'Buildup must start with ${rank.name.toCapitalCase()}';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile);
 
     if (cardsOnPile.isNotEmpty) {
@@ -188,7 +188,7 @@ class BuildupStartsWith extends PileCheck {
   }
 }
 
-class BuildupFollowsRankOrder extends PileCheck {
+class BuildupFollowsRankOrder extends MoveCheck {
   const BuildupFollowsRankOrder(this.rankOrder);
 
   final RankOrder rankOrder;
@@ -198,7 +198,7 @@ class BuildupFollowsRankOrder extends PileCheck {
       'Buildup must follow rank order, ${rankOrder.name}';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile);
 
     if (cardsOnPile.isEmpty || data.cards.isEmpty) {
@@ -212,14 +212,14 @@ class BuildupFollowsRankOrder extends PileCheck {
   }
 }
 
-class BuildupAlternateColors extends PileCheck {
+class BuildupAlternateColors extends MoveCheck {
   const BuildupAlternateColors();
 
   @override
   String get errorMessage => 'Buildup must alternate between colors';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile);
 
     if (cardsOnPile.isEmpty || data.cards.isEmpty) {
@@ -230,14 +230,14 @@ class BuildupAlternateColors extends PileCheck {
   }
 }
 
-class BuildupSameSuit extends PileCheck {
+class BuildupSameSuit extends MoveCheck {
   const BuildupSameSuit();
 
   @override
   String get errorMessage => 'Buildup must be in same suit';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile);
 
     if (cardsOnPile.isEmpty || data.cards.isEmpty) {
@@ -248,78 +248,78 @@ class BuildupSameSuit extends PileCheck {
   }
 }
 
-class PileIsEmpty extends PileCheck {
+class PileIsEmpty extends MoveCheck {
   const PileIsEmpty();
 
   @override
   String get errorMessage => 'Pile must be empty';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return data.table.get(data.pile).isEmpty;
   }
 }
 
-class PileIsNotEmpty extends PileCheck {
+class PileIsNotEmpty extends MoveCheck {
   const PileIsNotEmpty();
 
   @override
   String get errorMessage => 'Pile must not be empty';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return data.table.get(data.pile).isNotEmpty;
   }
 }
 
-class PileIsAllFacingUp extends PileCheck {
+class PileIsAllFacingUp extends MoveCheck {
   const PileIsAllFacingUp();
 
   @override
   String get errorMessage => 'Cards on pile must all be facing up';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return data.table.get(data.pile).isAllFacingUp;
   }
 }
 
-class PileTopCardIsFacingDown extends PileCheck {
+class PileTopCardIsFacingDown extends MoveCheck {
   const PileTopCardIsFacingDown();
 
   @override
   String get errorMessage => 'Cards on pile must all be facing down';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile);
     return cardsOnPile.isNotEmpty && cardsOnPile.last.isFacingDown;
   }
 }
 
-class NotAllowed extends PileCheck {
+class NotAllowed extends MoveCheck {
   const NotAllowed();
 
   @override
   String get errorMessage => 'Move is not allowed';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return false;
   }
 }
 
-class AllPilesOfType<T extends Pile> extends PileCheck {
+class AllPilesOfType<T extends Pile> extends MoveCheck {
   const AllPilesOfType(this.checkPerPile);
 
-  final List<PileCheck> checkPerPile;
+  final List<MoveCheck> checkPerPile;
 
   // TODO: Implement
   @override
   String get errorMessage => '';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     return data.table.allPilesOfType<T>().every((p) {
       return checkPerPile.every((c) => c.check(data.withPile(p)));
     });
@@ -327,14 +327,14 @@ class AllPilesOfType<T extends Pile> extends PileCheck {
 }
 
 /// http://www.solitairecentral.com/articles/FreecellPowerMovesExplained.html
-class FreeCellPowermove extends PileCheck {
+class FreeCellPowermove extends MoveCheck {
   const FreeCellPowermove();
 
   @override
   String get errorMessage => 'Not enough free cells to move the cards';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final numberOfEmptyTableaus = data.table
         .allPilesOfType<Tableau>()
         .count((t) => t != data.pile && data.table.get(t).isEmpty);
@@ -348,7 +348,7 @@ class FreeCellPowermove extends PileCheck {
   }
 }
 
-class PileHasFullSuit extends PileCheck {
+class PileHasFullSuit extends MoveCheck {
   const PileHasFullSuit(this.rankOrder);
 
   final RankOrder rankOrder;
@@ -357,7 +357,7 @@ class PileHasFullSuit extends PileCheck {
   String get errorMessage => 'Pile must have full set of suits';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     final cardsOnPile = data.table.get(data.pile).getLast(Rank.values.length);
 
     if (cardsOnPile.length != Rank.values.length) {
@@ -371,7 +371,7 @@ class PileHasFullSuit extends PileCheck {
   }
 }
 
-class CardsHasFullSuit extends PileCheck {
+class CardsHasFullSuit extends MoveCheck {
   const CardsHasFullSuit(this.rankOrder);
 
   final RankOrder rankOrder;
@@ -380,7 +380,7 @@ class CardsHasFullSuit extends PileCheck {
   String get errorMessage => 'Cards must have full set of suits';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     if (data.cards.length != Rank.values.length) {
       return false;
     }
@@ -392,7 +392,7 @@ class CardsHasFullSuit extends PileCheck {
   }
 }
 
-class CanRecyclePile extends PileCheck {
+class CanRecyclePile extends MoveCheck {
   const CanRecyclePile({required this.limit});
 
   final int limit;
@@ -401,7 +401,7 @@ class CanRecyclePile extends PileCheck {
   String get errorMessage => 'Cannot recycle pile anymore';
 
   @override
-  bool check(PileCheckData data) {
+  bool check(MoveCheckData data) {
     // Ignore if pile is not empty
     if (data.table.get(data.pile).isNotEmpty) {
       return true;

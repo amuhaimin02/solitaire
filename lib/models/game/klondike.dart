@@ -6,8 +6,8 @@ import '../card_list.dart';
 import '../direction.dart';
 import '../move_event.dart';
 import '../pile.dart';
-import '../pile_action.dart';
-import '../pile_check.dart';
+import '../move_action.dart';
+import '../move_check.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
 import '../rank_order.dart';
@@ -154,7 +154,7 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  List<PileCheck> get objectives {
+  List<MoveCheck> get objectives {
     return const [
       AllPilesOfType<Foundation>([
         PileHasFullSuit(RankOrder.increasing),
@@ -163,7 +163,7 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  List<PileCheck> get canAutoSolve {
+  List<MoveCheck> get canAutoSolve {
     return [
       AllPilesOfType<Tableau>([
         const PileIsEmpty() | const PileIsAllFacingUp(),

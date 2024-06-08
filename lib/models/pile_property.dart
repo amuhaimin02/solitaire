@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'action.dart';
 import 'card.dart';
 import 'direction.dart';
-import 'pile_action.dart';
-import 'pile_check.dart';
+import 'move_action.dart';
+import 'move_check.dart';
 
 class PileProperty {
   PileProperty({
@@ -23,19 +23,19 @@ class PileProperty {
 
   final PileLayout layout;
 
-  List<PileAction>? onStart;
+  List<MoveAction>? onStart;
 
-  List<PileAction>? onSetup;
+  List<MoveAction>? onSetup;
 
-  List<PileCheck> pickable;
+  List<MoveCheck> pickable;
 
-  List<PileCheck> placeable;
+  List<MoveCheck> placeable;
 
-  List<PileCheck>? canTap;
+  List<MoveCheck>? canTap;
 
-  List<PileAction>? onTap;
+  List<MoveAction>? onTap;
 
-  List<PileAction>? afterMove;
+  List<MoveAction>? afterMove;
 
   int? recycleLimit;
 

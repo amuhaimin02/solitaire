@@ -8,21 +8,21 @@ import 'card_list.dart';
 import 'move_event.dart';
 import 'move_record.dart';
 import 'pile.dart';
-import 'pile_check.dart';
+import 'move_check.dart';
 import 'play_data.dart';
 import 'play_table.dart';
 
-abstract class PileAction {
-  const PileAction();
+abstract class MoveAction {
+  const MoveAction();
 
-  PileActionResult action(PileActionData data);
+  MoveActionResult action(MoveActionData data);
 
-  static PileActionResult run(
-    List<PileAction>? actions,
-    PileActionData data,
+  static MoveActionResult run(
+    List<MoveAction>? actions,
+    MoveActionData data,
   ) {
     if (actions == null) {
-      return PileActionNoChange(table: data.table);
+      return MoveActionNoChange(table: data.table);
     }
 
     Action? action;
@@ -33,7 +33,7 @@ abstract class PileAction {
     for (final item in actions) {
       final result = item.action(data.withTable(table));
       switch (result) {
-        case (PileActionHandled()):
+        case (MoveActionHandled()):
           hasChange = true;
           if (result.action != null) {
             if (action != null) {
@@ -45,32 +45,32 @@ abstract class PileAction {
           if (result.events.isNotEmpty) {
             events.addAll(result.events);
           }
-        case PileActionNoChange():
+        case MoveActionNoChange():
       }
     }
 
     if (hasChange) {
-      return PileActionHandled(table: table, action: action, events: events);
+      return MoveActionHandled(table: table, action: action, events: events);
     } else {
-      return PileActionNoChange(table: table);
+      return MoveActionNoChange(table: table);
     }
   }
 
-  static PileActionResult chain(
-    PileActionResult pastResult,
-    List<PileAction>? actions,
-    PileActionData data,
+  static MoveActionResult chain(
+    MoveActionResult pastResult,
+    List<MoveAction>? actions,
+    MoveActionData data,
   ) {
-    if (pastResult is! PileActionHandled) {
+    if (pastResult is! MoveActionHandled) {
       return pastResult;
     }
     PlayTable table = pastResult.table;
     Action? action = pastResult.action;
     List<MoveEvent> events = pastResult.events;
 
-    final currentResult = PileAction.run(actions, data.withTable(table));
+    final currentResult = MoveAction.run(actions, data.withTable(table));
 
-    if (currentResult is PileActionHandled) {
+    if (currentResult is MoveActionHandled) {
       table = currentResult.table;
 
       if (currentResult.action != null) {
@@ -83,7 +83,7 @@ abstract class PileAction {
         events.addAll(currentResult.events);
       }
     }
-    return PileActionHandled(
+    return MoveActionHandled(
       table: table,
       action: action,
       events: events,
@@ -91,8 +91,8 @@ abstract class PileAction {
   }
 }
 
-class PileActionData {
-  PileActionData({
+class MoveActionData {
+  MoveActionData({
     required this.pile,
     required this.table,
     this.metadata,
@@ -104,8 +104,8 @@ class PileActionData {
   final GameMetadata? metadata;
   final MoveState? moveState;
 
-  PileActionData withTable(PlayTable newTable) {
-    return PileActionData(
+  MoveActionData withTable(PlayTable newTable) {
+    return MoveActionData(
       pile: pile,
       table: newTable,
       metadata: metadata,
@@ -113,8 +113,8 @@ class PileActionData {
     );
   }
 
-  PileActionData withPile(Pile newPile) {
-    return PileActionData(
+  MoveActionData withPile(Pile newPile) {
+    return MoveActionData(
       pile: newPile,
       table: table,
       metadata: metadata,
@@ -123,14 +123,14 @@ class PileActionData {
   }
 }
 
-sealed class PileActionResult {
+sealed class MoveActionResult {
   final PlayTable table;
 
-  const PileActionResult({required this.table});
+  const MoveActionResult({required this.table});
 }
 
-class PileActionHandled extends PileActionResult {
-  const PileActionHandled({
+class MoveActionHandled extends MoveActionResult {
+  const MoveActionHandled({
     required super.table,
     this.action,
     this.events = const [],
@@ -140,47 +140,45 @@ class PileActionHandled extends PileActionResult {
   final List<MoveEvent> events;
 }
 
-class PileActionNoChange extends PileActionResult {
-  const PileActionNoChange({required super.table});
+class MoveActionNoChange extends MoveActionResult {
+  const MoveActionNoChange({required super.table});
 }
 
-class If extends PileAction {
+class If extends MoveAction {
   const If({
     required this.condition,
     this.ifTrue,
     this.ifFalse,
   });
 
-  final List<PileCheck> condition;
-  final List<PileAction>? ifTrue;
-  final List<PileAction>? ifFalse;
+  final List<MoveCheck> condition;
+  final List<MoveAction>? ifTrue;
+  final List<MoveAction>? ifFalse;
 
   @override
-  PileActionResult action(PileActionData data) {
-    // TODO: Where to obtain the remaining param?
-    final cond = PileCheck.checkAll(
+  MoveActionResult action(MoveActionData data) {
+    final cond = MoveCheck.checkAll(
       condition,
-      PileCheckData(
+      MoveCheckData(
         pile: data.pile,
-        cards: [],
         table: data.table,
         moveState: data.moveState,
       ),
     );
 
-    if (cond is PileCheckOK && ifTrue != null) {
-      return PileAction.run(ifTrue, data);
-    } else if (cond is PileCheckFail && ifFalse != null) {
-      return PileAction.run(ifFalse, data);
+    if (cond is MoveCheckOK && ifTrue != null) {
+      return MoveAction.run(ifTrue, data);
+    } else if (cond is MoveCheckFail && ifFalse != null) {
+      return MoveAction.run(ifFalse, data);
     } else {
-      return PileActionNoChange(table: data.table);
+      return MoveActionNoChange(table: data.table);
     }
   }
 }
 
 // -------------------------------------------------------
 
-class SetupNewDeck extends PileAction {
+class SetupNewDeck extends MoveAction {
   const SetupNewDeck({this.count = 1, this.onlySuit});
 
   final int count;
@@ -188,7 +186,7 @@ class SetupNewDeck extends PileAction {
   final List<Suit>? onlySuit;
 
   @override
-  PileActionResult action(PileActionData data) {
+  MoveActionResult action(MoveActionData data) {
     final existingCards = data.table.get(data.pile);
 
     final newCards = const PlayCardGenerator().generateShuffledDeck(
@@ -198,29 +196,29 @@ class SetupNewDeck extends PileAction {
           onlySuit != null ? (card) => onlySuit!.contains(card.suit) : null,
     );
 
-    return PileActionHandled(
+    return MoveActionHandled(
       table: data.table.modify(data.pile, [...existingCards, ...newCards]),
     );
   }
 }
 
-class FlipAllCardsFaceUp extends PileAction {
+class FlipAllCardsFaceUp extends MoveAction {
   const FlipAllCardsFaceUp();
 
   @override
-  PileActionResult action(PileActionData data) {
-    return PileActionHandled(
+  MoveActionResult action(MoveActionData data) {
+    return MoveActionHandled(
       table: data.table.modify(data.pile, data.table.get(data.pile).allFaceUp),
     );
   }
 }
 
-class FlipAllCardsFaceDown extends PileAction {
+class FlipAllCardsFaceDown extends MoveAction {
   const FlipAllCardsFaceDown();
 
   @override
-  PileActionResult action(PileActionData data) {
-    return PileActionHandled(
+  MoveActionResult action(MoveActionData data) {
+    return MoveActionHandled(
       table:
           data.table.modify(data.pile, data.table.get(data.pile).allFaceDown),
     );
@@ -248,13 +246,13 @@ class FlipAllCardsFaceDown extends PileAction {
 //   }
 // }
 
-class MoveNormally extends PileAction {
+class MoveNormally extends MoveAction {
   const MoveNormally({required this.to, required this.cards});
   final Pile to;
   final List<PlayCard> cards;
 
   @override
-  PileActionResult action(PileActionData data) {
+  MoveActionResult action(MoveActionData data) {
     final cardsInHand = cards;
     final cardsOnTable = data.table.get(data.pile);
 
@@ -268,7 +266,7 @@ class MoveNormally extends PileAction {
     // }
 
     // Move all cards on hand to target pile
-    return PileActionHandled(
+    return MoveActionHandled(
       table: data.table.modifyMultiple({
         data.pile: remainingCards,
         to: [...data.table.get(to), ...cardsToPickUp]
@@ -279,7 +277,7 @@ class MoveNormally extends PileAction {
   }
 }
 
-class DrawFromTop extends PileAction {
+class DrawFromTop extends MoveAction {
   const DrawFromTop({
     required this.to,
     required this.count,
@@ -288,7 +286,7 @@ class DrawFromTop extends PileAction {
   final int count;
 
   @override
-  PileActionResult action(PileActionData data) {
+  MoveActionResult action(MoveActionData data) {
     final cardsOnTable = data.table.get(data.pile);
 
     // Check and remove cards from source pile to hand
@@ -300,7 +298,7 @@ class DrawFromTop extends PileAction {
     // }
 
     // Move all cards on hand to target pile
-    return PileActionHandled(
+    return MoveActionHandled(
       table: data.table.modifyMultiple({
         data.pile: remainingCards,
         to: [...data.table.get(to), ...cardsToPickUp.allFaceUp]
@@ -310,14 +308,14 @@ class DrawFromTop extends PileAction {
   }
 }
 
-class RecyclePile extends PileAction {
+class RecyclePile extends MoveAction {
   const RecyclePile({required this.takeFrom});
   final Pile takeFrom;
 
   @override
-  PileActionResult action(PileActionData data) {
+  MoveActionResult action(MoveActionData data) {
     final cardsToRecycle = data.table.get(takeFrom).reversed.toList();
-    return PileActionHandled(
+    return MoveActionHandled(
       table: data.table.modifyMultiple({
         takeFrom: [],
         data.pile: [
@@ -331,18 +329,18 @@ class RecyclePile extends PileAction {
   }
 }
 
-class FlipTopCardFaceUp extends PileAction {
+class FlipTopCardFaceUp extends MoveAction {
   const FlipTopCardFaceUp();
 
   @override
-  PileActionResult action(PileActionData data) {
+  MoveActionResult action(MoveActionData data) {
     final cardsOnPile = data.table.get(data.pile);
 
     if (cardsOnPile.isEmpty || cardsOnPile.last.isFacingUp) {
-      return PileActionNoChange(table: data.table);
+      return MoveActionNoChange(table: data.table);
     }
 
-    return PileActionHandled(
+    return MoveActionHandled(
       table: data.table.modify(
         data.pile,
         [
@@ -354,15 +352,15 @@ class FlipTopCardFaceUp extends PileAction {
   }
 }
 
-class DistributeTo<T extends Pile> extends PileAction {
+class DistributeTo<T extends Pile> extends MoveAction {
   const DistributeTo({required this.distribution, this.afterMove});
 
   final List<int> distribution;
 
-  final List<PileAction>? afterMove;
+  final List<MoveAction>? afterMove;
 
   @override
-  PileActionResult action(PileActionData data) {
+  MoveActionResult action(MoveActionData data) {
     final targetPiles = data.table.allPilesOfType<T>().toList();
 
     if (targetPiles.length != distribution.length) {
@@ -398,7 +396,7 @@ class DistributeTo<T extends Pile> extends PileAction {
     assert(cardsToDistribute.isEmpty,
         'Leftover cards should be empty after distribution');
 
-    final result = PileActionHandled(
+    final result = MoveActionHandled(
       table: data.table.modifyMultiple({
         data.pile: remainingCards,
         // TODO: Check for index ordering
@@ -413,7 +411,7 @@ class DistributeTo<T extends Pile> extends PileAction {
       return targetPiles.fold(
         result,
         (result, pile) =>
-            PileAction.chain(result, afterMove, data.withPile(pile)),
+            MoveAction.chain(result, afterMove, data.withPile(pile)),
       );
     } else {
       return result;
@@ -421,14 +419,14 @@ class DistributeTo<T extends Pile> extends PileAction {
   }
 }
 
-class EmitEvent extends PileAction {
+class EmitEvent extends MoveAction {
   const EmitEvent(this.event);
 
   final MoveEvent event;
 
   @override
-  PileActionResult action(PileActionData data) {
-    return PileActionHandled(
+  MoveActionResult action(MoveActionData data) {
+    return MoveActionHandled(
       table: data.table,
       events: [event],
     );

@@ -1,6 +1,6 @@
 import '../models/game/solitaire.dart';
 import '../models/move_record.dart';
-import '../models/pile_action.dart';
+import '../models/move_action.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../utils/types.dart';
@@ -16,28 +16,28 @@ class PlayTableGenerator {
     PlayTable table = PlayTable.fromGame(game);
 
     for (final (pile, props) in game.piles.items) {
-      final result = PileAction.run(
+      final result = MoveAction.run(
         props.onStart,
-        PileActionData(
+        MoveActionData(
           pile: pile,
           table: table,
           metadata: sampleMetadata,
         ),
       );
-      if (result is PileActionHandled) {
+      if (result is MoveActionHandled) {
         table = result.table;
       }
     }
     for (final (pile, props) in game.piles.items) {
-      final result = PileAction.run(
+      final result = MoveAction.run(
         props.onSetup,
-        PileActionData(
+        MoveActionData(
           pile: pile,
           table: table,
           metadata: sampleMetadata,
         ),
       );
-      if (result is PileActionHandled) {
+      if (result is MoveActionHandled) {
         table = result.table;
       }
     }

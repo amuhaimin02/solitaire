@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import '../direction.dart';
 import '../pile.dart';
-import '../pile_check.dart';
+import '../move_check.dart';
 import '../pile_property.dart';
 import 'solitaire.dart';
 
@@ -74,5 +74,5 @@ class SolitaireDemo extends SolitaireGame {
   }
 
   @override
-  List<PileCheck> get objectives => [];
+  List<MoveCheck> get objectives => [];
 }

@@ -4,7 +4,7 @@ import '../action.dart';
 import '../card.dart';
 import '../move_event.dart';
 import '../pile.dart';
-import '../pile_check.dart';
+import '../move_check.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
 
@@ -21,11 +21,11 @@ abstract class SolitaireGame {
 
   Map<Pile, PileProperty> get piles;
 
-  List<PileCheck> get objectives;
+  List<MoveCheck> get objectives;
 
   int determineScore(MoveEvent event) => 0;
 
-  List<PileCheck>? get canAutoSolve => null;
+  List<MoveCheck>? get canAutoSolve => null;
 
   Iterable<MoveIntent> quickMoveStrategy(
           Pile from, PlayCard card, PlayTable table) =>

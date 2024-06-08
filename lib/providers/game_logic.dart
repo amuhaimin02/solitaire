@@ -10,8 +10,8 @@ import '../models/game_status.dart';
 import '../models/move_event.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/pile_action.dart';
-import '../models/pile_check.dart';
+import '../models/move_action.dart';
+import '../models/move_check.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/score_summary.dart';
@@ -218,29 +218,29 @@ class GameController extends _$GameController {
       }
     }
 
-    PileActionResult result = PileActionNoChange(table: table);
+    MoveActionResult result = MoveActionNoChange(table: table);
 
     if (originPileInfo.onTap != null && move.from == move.to) {
       if (originPileInfo.canTap != null) {
-        final canTapResult = PileCheck.checkAll(
+        final canTapResult = MoveCheck.checkAll(
           originPileInfo.canTap,
-          PileCheckData(
+          MoveCheckData(
             pile: move.from,
             cards: cardsToPick,
             table: table,
             moveState: moveState,
           ),
         );
-        if (canTapResult is PileCheckFail) {
+        if (canTapResult is MoveCheckFail) {
           return MoveForbidden(
             'Cannot make the move. ${move.from}\n${canTapResult.reason?.errorMessage}',
           );
         }
       }
 
-      result = PileAction.run(
+      result = MoveAction.run(
         originPileInfo.onTap,
-        PileActionData(
+        MoveActionData(
           pile: move.from,
           table: table,
           metadata: game,
@@ -252,29 +252,29 @@ class GameController extends _$GameController {
         return const MoveForbidden('Cannot move cards back to its pile');
       }
 
-      if (result is! PileActionHandled || result.action == null) {
+      if (result is! MoveActionHandled || result.action == null) {
         if (cardsToPick.isEmpty) {
           return MoveNotDone('No cards to pick', null, move.from);
         }
 
-        final canPickResult = PileCheck.checkAll(
+        final canPickResult = MoveCheck.checkAll(
           originPileInfo.pickable,
-          PileCheckData(
+          MoveCheckData(
             pile: move.from,
             cards: cardsToPick,
             table: table,
             moveState: moveState,
           ),
         );
-        if (canPickResult is PileCheckFail) {
+        if (canPickResult is MoveCheckFail) {
           return MoveForbidden(
             'Cannot pick the card(s) there.\n${canPickResult.reason?.errorMessage}',
           );
         }
 
-        final canPlaceResult = PileCheck.checkAll(
+        final canPlaceResult = MoveCheck.checkAll(
           targetPileInfo.placeable,
-          PileCheckData(
+          MoveCheckData(
             pile: move.to,
             cards: cardsToPick,
             table: table,
@@ -282,14 +282,14 @@ class GameController extends _$GameController {
           ),
         );
 
-        if (canPlaceResult is PileCheckFail) {
+        if (canPlaceResult is MoveCheckFail) {
           return MoveForbidden(
               'Cannot place the card(s) here.\n${canPlaceResult.reason?.errorMessage}');
         }
 
-        result = PileAction.run(
+        result = MoveAction.run(
           [MoveNormally(to: move.to, cards: cardsToPick)],
-          PileActionData(
+          MoveActionData(
             pile: move.from,
             table: table,
             metadata: game,
@@ -300,10 +300,10 @@ class GameController extends _$GameController {
     }
     for (final (pile, props) in game.game.piles.items) {
       if (props.afterMove != null) {
-        result = PileAction.chain(
+        result = MoveAction.chain(
           result,
           props.afterMove,
-          PileActionData(
+          MoveActionData(
             pile: pile,
             table: table,
             metadata: game,
@@ -313,7 +313,7 @@ class GameController extends _$GameController {
       }
     }
 
-    if (result is! PileActionHandled) {
+    if (result is! MoveActionHandled) {
       return MoveNotDone('Move result is not successful', null, move.from);
     }
 
@@ -391,16 +391,16 @@ class GameController extends _$GameController {
     final moveState = ref.read(currentMoveProvider)?.state;
 
     for (final (pile, props) in gameData.game.piles.items) {
-      final result = PileAction.run(
+      final result = MoveAction.run(
         props.onStart,
-        PileActionData(
+        MoveActionData(
           pile: pile,
           table: table,
           metadata: gameData,
           moveState: moveState,
         ),
       );
-      if (result is PileActionHandled) {
+      if (result is MoveActionHandled) {
         table = result.table;
       }
     }
@@ -413,16 +413,16 @@ class GameController extends _$GameController {
     final moveState = ref.read(currentMoveProvider)?.state;
 
     for (final (pile, props) in gameData.game.piles.items) {
-      final result = PileAction.run(
+      final result = MoveAction.run(
         props.onSetup,
-        PileActionData(
+        MoveActionData(
           pile: pile,
           table: table,
           metadata: gameData,
           moveState: moveState,
         ),
       );
-      if (result is PileActionHandled) {
+      if (result is MoveActionHandled) {
         table = result.table;
       }
     }
@@ -489,11 +489,11 @@ class GameController extends _$GameController {
   }
 
   void _doMoveCards(
-    PileActionResult result, {
+    MoveActionResult result, {
     bool doAfterMove = true,
     bool retainMoveCount = false,
   }) {
-    if (result is! PileActionHandled) {
+    if (result is! MoveActionHandled) {
       throw StateError('result is not handled');
     }
 
@@ -582,16 +582,16 @@ bool isGameFinished(IsGameFinishedRef ref) {
   final moveState = ref.watch(currentMoveProvider)?.state;
 
   // TODO: Change "pile" parameter
-  final result = PileCheck.checkAll(
+  final result = MoveCheck.checkAll(
     game.game.objectives,
-    PileCheckData(
+    MoveCheckData(
       pile: const Stock(),
       cards: [],
       table: table,
       moveState: moveState,
     ),
   );
-  return result is PileCheckOK;
+  return result is MoveCheckOK;
 }
 
 @riverpod
@@ -605,16 +605,16 @@ bool autoSolvable(AutoSolvableRef ref) {
   }
 
   // TODO: Change "pile" parameter
-  final result = PileCheck.checkAll(
+  final result = MoveCheck.checkAll(
     game.game.canAutoSolve,
-    PileCheckData(
+    MoveCheckData(
       pile: const Stock(),
       cards: [],
       table: table,
       moveState: moveState,
     ),
   );
-  return result is PileCheckOK;
+  return result is MoveCheckOK;
 }
 
 @riverpod
