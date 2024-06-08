@@ -50,7 +50,10 @@ mixin ScreenVisibility<T extends StatefulWidget>
       case AppLifecycleState.hidden:
         onLeave();
       case AppLifecycleState.resumed:
-        onEnter();
+        // Ensure no popup or any overlay is showing
+        if (ModalRoute.of(context)?.isCurrent == true) {
+          onEnter();
+        }
       default:
     }
   }
