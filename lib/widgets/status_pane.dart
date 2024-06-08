@@ -42,7 +42,7 @@ class StatusPane extends ConsumerWidget {
               if (showMoves) const Expanded(child: Center(child: MoveLabel())),
             ].separatedBy(SizedBox(
               height: 24,
-              child: VerticalDivider(color: colorScheme.outline),
+              child: VerticalDivider(color: colorScheme.onSurface),
             )),
           ),
       },

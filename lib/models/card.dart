@@ -102,4 +102,8 @@ class PlayCard {
   bool isOneRankUnder(PlayCard other) {
     return rank.value == other.rank.value - 1;
   }
+
+  bool isOneRankNearer(PlayCard other) {
+    return (rank.value - other.rank.value).abs() == 1;
+  }
 }

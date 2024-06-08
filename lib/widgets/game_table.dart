@@ -167,7 +167,7 @@ class _GameTableState extends State<GameTable> {
       final recycleLimit = _allPiles.get(pile).recycleLimit;
       final currentCycle = widget.currentMoveState?.recycleCounts[pile] ?? 0;
 
-      return recycleLimit == null || currentCycle < recycleLimit - 1;
+      return recycleLimit != null && currentCycle + 1 < recycleLimit;
     }
 
     return Stack(
@@ -190,33 +190,36 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildDebugLayer(BuildContext context, Size gridUnit) {
     final tableSize = widget.game.tableSize.resolve(widget.orientation);
-    return Stack(
-      children: [
-        Positioned.fromRect(
-          rect: (Offset.zero & tableSize).scale(gridUnit),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.red,
-                width: 2,
-              ),
-            ),
-          ),
-        ),
-        for (final pile in _allPiles.keys)
+    return IgnorePointer(
+      ignoring: true,
+      child: Stack(
+        children: [
           Positioned.fromRect(
-            rect: _resolvedRegion.get(pile).scale(gridUnit),
+            rect: (Offset.zero & tableSize).scale(gridUnit),
             child: Container(
-              margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.yellow,
+                  color: Colors.red,
                   width: 2,
                 ),
               ),
             ),
           ),
-      ],
+          for (final pile in _allPiles.keys)
+            Positioned.fromRect(
+              rect: _resolvedRegion.get(pile).scale(gridUnit),
+              child: Container(
+                margin: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.yellow,
+                    width: 2,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -352,7 +355,7 @@ class _GameTableState extends State<GameTable> {
                 size: gridUnit,
               ),
             ),
-          if (props.recycleLimit != null)
+          if (props.recycleLimit != null && props.recycleLimit != intMaxValue)
             Positioned.fromRect(
               rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
                       _resolvedRegion.get(pile).top, 1, 1)
@@ -885,7 +888,7 @@ class _PileMarker extends StatelessWidget {
         throw ArgumentError(
             'Stock pile must have canRecycle property for pile marker');
       }
-      return canRecycle == true ? MdiIcons.refresh : Icons.close;
+      return canRecycle == true ? MdiIcons.refresh : Icons.block;
     }
 
     IconData getFoundationIcon() {
@@ -938,18 +941,20 @@ class _PileMarker extends StatelessWidget {
       padding: EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
       child: Container(
         decoration: BoxDecoration(
-          color: borderOnly ? null : colorScheme.outline.withOpacity(0.1),
+          color: borderOnly ? null : colorScheme.onSurface.withOpacity(0.15),
           borderRadius: BorderRadius.circular(
               size.shortestSide * theme.cardTheme.cornerRadius),
           border: borderOnly
               ? Border.all(
-                  color: colorScheme.outline.withOpacity(0.2), width: 2)
+                  color: colorScheme.onSurface.withOpacity(0.3),
+                  width: 2,
+                )
               : null,
         ),
         child: Icon(
           icon,
           size: size.shortestSide * 0.5,
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.onSurface.withOpacity(0.3),
         ),
       ),
     );

@@ -7,11 +7,11 @@ import '../models/card.dart';
 import '../models/card_list.dart';
 import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
+import '../models/move_action.dart';
+import '../models/move_check.dart';
 import '../models/move_event.dart';
 import '../models/move_result.dart';
 import '../models/pile.dart';
-import '../models/move_action.dart';
-import '../models/move_check.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/score_summary.dart';
@@ -196,6 +196,8 @@ class GameController extends _$GameController {
     bool doAfterMove = true,
     bool retainMoveCount = false,
   }) {
+    print("try move $move");
+
     final game = ref.read(currentGameProvider);
     final moveState = ref.read(currentMoveProvider)?.state;
     PlayTable table = ref.read(currentTableProvider);
@@ -233,7 +235,7 @@ class GameController extends _$GameController {
         );
         if (canTapResult is MoveCheckFail) {
           return MoveForbidden(
-            'Cannot make the move. ${move.from}\n${canTapResult.reason?.errorMessage}',
+            'Cannot make the move.\n${canTapResult.reason?.errorMessage}',
           );
         }
       }

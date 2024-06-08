@@ -163,7 +163,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
                   final divider = SizedBox(
                     width: 48,
-                    child: Divider(height: 24, color: colorScheme.outline),
+                    child: Divider(height: 24, color: colorScheme.onSurface),
                   );
 
                   final gameStatus = ref.watch(gameControllerProvider);

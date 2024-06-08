@@ -1,8 +1,9 @@
 import 'dart:ui';
 
 import '../direction.dart';
-import '../pile.dart';
+import '../move_action.dart';
 import '../move_check.dart';
+import '../pile.dart';
 import '../pile_property.dart';
 import 'solitaire.dart';
 
@@ -57,6 +58,19 @@ class SolitaireDemo extends SolitaireGame {
             landscape: Rect.fromLTWH(3, 0, 1, 1),
           ),
         ),
+        onStart: const [
+          SetupNewDeck(count: 1),
+          FlipAllCardsFaceDown(),
+        ],
+        onSetup: const [
+          DistributeTo<Tableau>(
+            distribution: [1, 2, 3, 4],
+            afterMove: [
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(),
+            ],
+          )
+        ],
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
       ),

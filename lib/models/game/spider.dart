@@ -9,9 +9,9 @@ import '../action.dart';
 import '../card.dart';
 import '../card_list.dart';
 import '../direction.dart';
-import '../pile.dart';
 import '../move_action.dart';
 import '../move_check.dart';
+import '../pile.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
 import '../rank_order.dart';
@@ -103,7 +103,6 @@ class Spider extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
-        recycleLimit: 1,
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
         onStart: [
@@ -120,7 +119,7 @@ class Spider extends SolitaireGame {
           ),
         ],
         canTap: const [
-          CanRecyclePile(limit: 1),
+          PileIsNotEmpty(),
           AllPilesOfType<Tableau>([PileIsNotEmpty()]),
         ],
         onTap: const [

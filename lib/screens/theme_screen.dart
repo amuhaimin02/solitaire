@@ -2,41 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../animations.dart';
-import '../models/card.dart';
 import '../models/game/demo.dart';
-import '../models/pile.dart';
-import '../models/play_table.dart';
 import '../providers/themes.dart';
+import '../services/play_table_generator.dart';
 import '../widgets/bottom_padded.dart';
 import '../widgets/game_table.dart';
 import '../widgets/section_title.dart';
 import '../widgets/solitaire_theme.dart';
 import '../widgets/two_pane.dart';
-
-final _samplePlayTable = PlayTable.fromMap({
-  const Stock(): const [
-    PlayCard(Suit.heart, Rank.eight, flipped: true),
-    PlayCard(Suit.club, Rank.two, flipped: true),
-  ],
-  const Tableau(0): const [
-    PlayCard(Suit.spade, Rank.ace),
-  ],
-  const Tableau(1): const [
-    PlayCard(Suit.diamond, Rank.four, flipped: true),
-    PlayCard(Suit.heart, Rank.five),
-  ],
-  const Tableau(2): const [
-    PlayCard(Suit.diamond, Rank.seven, flipped: true),
-    PlayCard(Suit.club, Rank.six, flipped: true),
-    PlayCard(Suit.club, Rank.queen),
-  ],
-  const Tableau(3): const [
-    PlayCard(Suit.heart, Rank.three, flipped: true),
-    PlayCard(Suit.diamond, Rank.ten, flipped: true),
-    PlayCard(Suit.spade, Rank.eight, flipped: true),
-    PlayCard(Suit.diamond, Rank.king),
-  ],
-});
 
 class ThemeScreen extends ConsumerWidget {
   const ThemeScreen({super.key});
@@ -59,6 +32,10 @@ class ThemeScreen extends ConsumerWidget {
   Widget _buildTablePreview(BuildContext context) {
     final theme = SolitaireTheme.of(context);
 
+    // Using any random source we could find, but consistent across states
+    // i.e., only changing when going in or out of this screen
+    final randomSeed = context.hashCode.toString();
+
     return AnimatedContainer(
       duration: themeChangeAnimation.duration,
       curve: themeChangeAnimation.curve,
@@ -72,7 +49,8 @@ class ThemeScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
           child: GameTable(
             game: SolitaireDemo(),
-            table: _samplePlayTable,
+            table: PlayTableGenerator.generateSampleSetup(
+                SolitaireDemo(), randomSeed),
             interactive: false,
             animateMovement: true,
           ),

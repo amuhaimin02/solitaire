@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/types.dart';
 import '../action.dart';
 import '../card.dart';
-import '../card_list.dart';
 import '../direction.dart';
-import '../move_event.dart';
-import '../pile.dart';
 import '../move_action.dart';
 import '../move_check.dart';
+import '../move_event.dart';
+import '../pile.dart';
 import '../pile_property.dart';
 import '../play_table.dart';
 import '../rank_order.dart';
@@ -100,7 +100,7 @@ class Klondike extends SolitaireGame {
           ),
           showCount: LayoutProperty.all(true),
         ),
-        recycleLimit: vegasScoring ? numberOfDraws : null,
+        recycleLimit: vegasScoring ? numberOfDraws : intMaxValue,
         onStart: const [
           SetupNewDeck(count: 1),
           FlipAllCardsFaceDown(),
@@ -117,7 +117,10 @@ class Klondike extends SolitaireGame {
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
         canTap: [
-          CanRecyclePile(limit: vegasScoring ? numberOfDraws : null),
+          CanRecyclePile(
+            limit: vegasScoring ? numberOfDraws : intMaxValue,
+            willTakeFrom: const Waste(),
+          ),
         ],
         onTap: [
           If(

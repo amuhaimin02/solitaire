@@ -379,7 +379,7 @@ class _GameSelectionOptions extends ConsumerWidget {
 
     if (canContinueGame) {
       playButtonWidget = FilledButton.icon(
-        icon: const Icon(Icons.play_circle),
+        icon: Icon(MdiIcons.motionPlayOutline),
         label: const Text('Continue last game'),
         onPressed: () async {
           TwoPane.of(context).popSecondary();
@@ -394,7 +394,7 @@ class _GameSelectionOptions extends ConsumerWidget {
       );
     } else {
       playButtonWidget = FilledButton.icon(
-        icon: Icon(MdiIcons.cardsPlaying),
+        icon: const Icon(Icons.play_circle_fill),
         label: const Text('Play game'),
         onPressed: () {
           TwoPane.of(context).popSecondary();

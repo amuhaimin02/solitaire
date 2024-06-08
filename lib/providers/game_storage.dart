@@ -27,15 +27,23 @@ class GameStorage extends _$GameStorage {
   @override
   DateTime build() => DateTime.now();
 
+  SolitaireGame _resolveGameTag(String tag) {
+    return ref
+        .read(allSolitaireGamesProvider)
+        .firstWhere((game) => game.tag == tag);
+  }
+
   Future<List<int>> _convertToBytes(GameData gameData) async {
-    final saveData = const GameDataSerializer().serialize(gameData);
+    final saveData =
+        GameDataSerializer(resolveGameTag: _resolveGameTag).serialize(gameData);
     final compressedSaveData = await compressText(saveData);
     return compressedSaveData;
   }
 
   Future<GameData> _convertFromBytes(List<int> bytes) async {
     final decompressedSaveData = await decompressText(bytes);
-    return const GameDataSerializer().deserialize(decompressedSaveData);
+    return GameDataSerializer(resolveGameTag: _resolveGameTag)
+        .deserialize(decompressedSaveData);
   }
 
   Future<void> quickSave(GameData gameData) async {

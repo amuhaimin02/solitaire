@@ -212,6 +212,28 @@ class BuildupFollowsRankOrder extends MoveCheck {
   }
 }
 
+class BuildupOneRankNearer extends MoveCheck {
+  // TODO: Support wrapping
+  const BuildupOneRankNearer();
+
+  @override
+  String get errorMessage => 'Buildup must be one rank higher or lower';
+
+  @override
+  bool check(MoveCheckData data) {
+    final cardsOnPile = data.table.get(data.pile);
+
+    if (cardsOnPile.isEmpty || data.cards.isEmpty) {
+      return true;
+    }
+
+    print(cardsOnPile.last);
+    print(data.cards.first);
+
+    return cardsOnPile.last.isOneRankNearer(data.cards.first);
+  }
+}
+
 class BuildupAlternateColors extends MoveCheck {
   const BuildupAlternateColors();
 
@@ -393,9 +415,11 @@ class CardsHasFullSuit extends MoveCheck {
 }
 
 class CanRecyclePile extends MoveCheck {
-  const CanRecyclePile({required this.limit});
+  const CanRecyclePile({this.limit, required this.willTakeFrom});
 
   final int? limit;
+
+  final Pile willTakeFrom;
 
   @override
   String get errorMessage => 'Cannot recycle pile anymore';
@@ -409,6 +433,10 @@ class CanRecyclePile extends MoveCheck {
     // Ignore if pile is not empty
     if (data.table.get(data.pile).isNotEmpty) {
       return true;
+    }
+
+    if (data.table.get(willTakeFrom).isEmpty) {
+      return false;
     }
 
     final currentCycle = data.moveState?.recycleCounts[data.pile] ?? 0;
