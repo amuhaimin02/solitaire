@@ -489,66 +489,65 @@ class _FinishDialog extends ConsumerWidget {
     return DialogThemeFix(
       child: AlertDialog(
         title: const Text('You win'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Text('Moves: ${scoreSummary.moves}'),
-                const Spacer(),
-                Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
-              ],
-            ),
-            const Divider(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Obtained'),
-                Text(
+        content: SizedBox(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Text('Moves: ${scoreSummary.moves}'),
+                  const Spacer(),
+                  Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
+                ],
+              ),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Obtained'),
+                subtitle: const Text('Score during play'),
+                trailing: Text(
                   '${scoreSummary.obtainedScore}',
                   style: textTheme.titleLarge!
                       .copyWith(color: colorScheme.onSurfaceVariant),
                   textAlign: TextAlign.end,
                 ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Bonus'),
-                Text(
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Bonus'),
+                subtitle: const Text('700,000 ÷ play seconds'),
+                trailing: Text(
                   '+${scoreSummary.bonusScore}',
                   style: textTheme.titleLarge!
                       .copyWith(color: colorScheme.onSurfaceVariant),
                   textAlign: TextAlign.end,
                 ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Penalty'),
-                Text(
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Penalty'),
+                subtitle: const Text('2 points every 10 seconds'),
+                trailing: Text(
                   '-${scoreSummary.penaltyScore}',
                   style:
                       textTheme.titleLarge!.copyWith(color: colorScheme.error),
                   textAlign: TextAlign.end,
                 ),
-              ],
-            ),
-            const Divider(),
-            const Text('Final score'),
-            Text(
-              '${scoreSummary.finalScore}',
-              style: textTheme.headlineMedium!
-                  .copyWith(color: colorScheme.primary),
-              textAlign: TextAlign.end,
-            ),
-          ],
+              ),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Final score'),
+                trailing: Text(
+                  '-${scoreSummary.finalScore}',
+                  style: textTheme.headlineMedium!
+                      .copyWith(color: colorScheme.primary),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           FilledButton.tonal(
