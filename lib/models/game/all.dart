@@ -1,11 +1,11 @@
-import 'canfield.dart';
-import 'forty_thieves.dart';
-import 'freecell.dart';
-import 'golf.dart';
-import 'klondike.dart';
-import 'penguin.dart';
-import 'spider.dart';
-import 'yukon.dart';
+import 'impl/canfield.dart';
+import 'impl/forty_thieves.dart';
+import 'impl/freecell.dart';
+import 'impl/golf.dart';
+import 'impl/klondike.dart';
+import 'impl/penguin.dart';
+import 'impl/spider.dart';
+import 'impl/yukon.dart';
 
 const allGamesList = [
   Klondike(numberOfDraws: 1, vegasScoring: false),

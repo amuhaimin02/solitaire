@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../action.dart';
-import '../card.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../move_event.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import '../rank_order.dart';
-import 'solitaire.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_attempt.dart';
+import '../../move_check.dart';
+import '../../move_event.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../../rank_order.dart';
+import '../solitaire.dart';
 
 class Yukon extends SolitaireGame {
   const Yukon();
@@ -82,7 +83,7 @@ class Yukon extends SolitaireGame {
             )
           ],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(6, 0, 1, 1),
@@ -117,28 +118,15 @@ class Yukon extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> quickMoveStrategy(
-      Pile from, PlayCard card, PlayTable table) sync* {
-    // Try placing on foundation pile first
-    // For cards from foundation, no need to move to other foundations
-    if (from is! Foundation) {
-      for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
-        yield MoveIntent(from, f, card);
-      }
-    }
-
-    // Try placing on tableau next
-    for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
-      yield MoveIntent(from, t, card);
-    }
+  List<MoveAttemptTo> get quickMove {
+    return const [
+      MoveAttemptTo<Foundation>(),
+      MoveAttemptTo<Tableau>(roll: true),
+    ];
   }
 
   @override
-  Iterable<MoveIntent> premoveStrategy(PlayTable table) sync* {
-    for (final t in table.allPilesOfType<Tableau>()) {
-      for (final f in table.allPilesOfType<Foundation>()) {
-        yield MoveIntent(t, f);
-      }
-    }
+  List<MoveAttempt> get premove {
+    return const [MoveAttempt<Tableau, Foundation>()];
   }
 }

@@ -2,15 +2,16 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../action.dart';
-import '../card.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import 'solitaire.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_attempt.dart';
+import '../../move_check.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../solitaire.dart';
 
 class Golf extends SolitaireGame {
   const Golf();
@@ -49,7 +50,7 @@ class Golf extends SolitaireGame {
           ],
           placeable: const [NotAllowed()],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(3, 4.5, 1, 1),
@@ -72,13 +73,13 @@ class Golf extends SolitaireGame {
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
         canTap: const [
-          CanRecyclePile(willTakeFrom: Waste(), limit: 1),
+          CanRecyclePile(willTakeFrom: Waste(0), limit: 1),
         ],
         onTap: const [
-          DrawFromTop(to: Waste(), count: 1),
+          DrawFromTop(to: Waste(0), count: 1),
         ],
       ),
-      const Waste(): PileProperty(
+      const Waste(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(3, 3, 1, 1),
@@ -103,10 +104,9 @@ class Golf extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> quickMoveStrategy(
-      Pile from, PlayCard card, PlayTable table) sync* {
-    if (from is Tableau) {
-      yield MoveIntent(from, const Waste(), card);
-    }
+  List<MoveAttemptTo> get quickMove {
+    return const [
+      MoveAttemptTo<Waste>(),
+    ];
   }
 }

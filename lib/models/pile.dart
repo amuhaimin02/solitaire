@@ -1,77 +1,40 @@
 import 'package:collection/collection.dart';
 
 sealed class Pile {
-  const Pile();
+  final String name;
+  final int index;
+
+  const Pile(this.name, this.index);
+
+  @override
+  String toString() => '$name($index)';
+
+  @override
+  bool operator ==(Object other) =>
+      other is Pile && name == other.name && index == other.index;
+
+  @override
+  int get hashCode => Object.hash(name, index);
 }
 
 class Stock extends Pile {
-  const Stock();
-
-  @override
-  String toString() => 'Stock';
-
-  @override
-  bool operator ==(Object other) => other is Stock;
-
-  @override
-  int get hashCode => 0;
+  const Stock(int index) : super('Stock', index);
 }
 
 class Waste extends Pile {
-  const Waste();
-  @override
-  String toString() => 'Waste';
-
-  @override
-  bool operator ==(Object other) => other is Waste;
-
-  @override
-  int get hashCode => 0;
+  const Waste(int index) : super('Waste', index);
 }
 
 class Foundation extends Pile {
-  final int index;
-
-  const Foundation(this.index);
-
-  @override
-  bool operator ==(Object other) => other is Foundation && other.index == index;
-
-  @override
-  int get hashCode => Object.hash(index, null);
-
-  @override
-  String toString() => 'Foundation($index)';
+  const Foundation(int index) : super('Foundation', index);
 }
 
 class Tableau extends Pile {
-  final int index;
-
-  const Tableau(this.index);
-
-  @override
-  bool operator ==(Object other) => other is Tableau && other.index == index;
-
-  @override
-  int get hashCode => Object.hash(index, null);
-
-  @override
-  String toString() => 'Tableau($index)';
+  const Tableau(int index) : super('Tableau', index);
 }
 
 class Reserve extends Pile {
-  final int index;
-
-  const Reserve(this.index);
-
-  @override
-  bool operator ==(Object other) => other is Reserve && other.index == index;
-
-  @override
-  int get hashCode => Object.hash(index, null);
-
-  @override
-  String toString() => 'Reserve($index)';
+  const Reserve(int index) : super('Reserve', index);
 }
 
 extension PileIteration<T extends Pile> on Iterable<T> {

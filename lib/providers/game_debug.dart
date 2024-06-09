@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/action.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
-import '../models/game/klondike.dart';
+import '../models/game/impl/klondike.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
 import '../services/card_shuffler.dart';
@@ -28,11 +28,11 @@ class GameDebug extends _$GameDebug {
     const generator = PlayCardGenerator();
 
     final presetCards = PlayTable.fromMap({
-      const Stock(): [
+      const Stock(0): [
         const PlayCard(Suit.spade, Rank.jack),
         const PlayCard(Suit.club, Rank.jack),
       ].allFaceDown,
-      const Waste(): const [
+      const Waste(0): const [
         PlayCard(Suit.heart, Rank.jack),
         PlayCard(Suit.diamond, Rank.jack),
         PlayCard(Suit.diamond, Rank.queen),

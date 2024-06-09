@@ -4,18 +4,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../utils/types.dart';
-import '../action.dart';
-import '../card.dart';
-import '../card_list.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import '../rank_order.dart';
-import 'solitaire.dart';
+import '../../../utils/types.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../card_list.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_attempt.dart';
+import '../../move_check.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../../rank_order.dart';
+import '../solitaire.dart';
 
 class Spider extends SolitaireGame {
   const Spider({required this.numberOfSuits})
@@ -70,6 +71,7 @@ class Spider extends SolitaireGame {
           placeable: const [
             BuildupStartsWith(Rank.king),
             CardsHasFullSuit(RankOrder.decreasing),
+            PileIsEmpty(),
           ],
         ),
       for (int i = 0; i < 10; i++)
@@ -95,7 +97,7 @@ class Spider extends SolitaireGame {
             FlipTopCardFaceUp(),
           ],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(9, 0, 1, 1),
@@ -119,7 +121,7 @@ class Spider extends SolitaireGame {
           ),
         ],
         canTap: const [
-          CanRecyclePile(willTakeFrom: Stock(), limit: 1),
+          CanRecyclePile(willTakeFrom: Stock(0), limit: 1),
           AllPilesOfType<Tableau>([PileIsNotEmpty()]),
         ],
         onTap: const [
@@ -140,57 +142,16 @@ class Spider extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> postMoveStrategy(PlayTable table) sync* {
-    final fullSuitLength = Rank.values.length;
-
-    for (final t in table.allPilesOfType<Tableau>()) {
-      final cardsOnTableau = table.get(t);
-      if (cardsOnTableau.length >= fullSuitLength) {
-        final cardToMove =
-            cardsOnTableau[cardsOnTableau.length - fullSuitLength];
-        // IF there is a full suit streak, try to move it to empty foundation
-        if (cardToMove.isFacingUp && cardToMove.rank == Rank.king) {
-          final nextEmptyFoundation = table.getEmptyPileOfType<Foundation>();
-          if (nextEmptyFoundation != null) {
-            yield MoveIntent(t, nextEmptyFoundation, cardToMove);
-          }
-        }
-      }
-    }
+  List<MoveAttemptTo> get quickMove {
+    return [
+      const MoveAttemptTo<Tableau>(roll: true, prioritizeNonEmptySpaces: true),
+    ];
   }
 
   @override
-  Iterable<MoveIntent> quickMoveStrategy(
-      Pile from, PlayCard card, PlayTable table) sync* {
-    if (card.rank == Rank.king) {
-      for (final f in table.allPilesOfType<Foundation>()) {
-        yield MoveIntent(from, f, card);
-      }
-    }
-
-    final tableau = table.allPilesOfType<Tableau>().roll(from: from).toList();
-
-    int determinePriority(Tableau t) {
-      final cardsOnPile = table.get(t);
-
-      if (cardsOnPile.isEmpty) {
-        // Empty tableau will be considered last
-        return 0;
-      }
-
-      if (!cardsOnPile.last.isOneRankOver(card)) {
-        // Impossible to move here, this tableau will be discarded
-        return -1;
-      }
-
-      // Tableau with longer streaks will be prioritized
-      return cardsOnPile
-          .getSuitStreakFromLast(RankOrder.decreasing, sameSuit: true)
-          .length;
-    }
-
-    for (final t in tableau.sortedByPriority(determinePriority)) {
-      yield MoveIntent(from, t, card);
-    }
+  List<MoveAttempt> get postMove {
+    return [
+      MoveAttempt<Tableau, Foundation>(cardLength: Rank.values.length),
+    ];
   }
 }

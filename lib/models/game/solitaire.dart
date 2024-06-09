@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import '../action.dart';
 import '../card.dart';
+import '../move_attempt.dart';
 import '../move_check.dart';
 import '../move_event.dart';
 import '../pile.dart';
@@ -27,15 +28,13 @@ abstract class SolitaireGame {
 
   List<MoveCheck>? get canAutoSolve => null;
 
-  Iterable<MoveIntent> quickMoveStrategy(
-          Pile from, PlayCard card, PlayTable table) =>
-      [];
+  List<MoveAttemptTo> get quickMove => const [];
 
-  Iterable<MoveIntent> premoveStrategy(PlayTable table) => [];
+  List<MoveAttempt> get premove => const [];
 
-  Iterable<MoveIntent> postMoveStrategy(PlayTable table) => [];
+  List<MoveAttempt> get postMove => const [];
 
-  Iterable<MoveIntent> autoSolveStrategy(PlayTable table) => [];
+  List<MoveAttempt> get autoSolve => const [];
 
   @override
   String toString() => name;

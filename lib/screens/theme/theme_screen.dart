@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../animations.dart';
-import '../../models/game/demo.dart';
+import '../../models/game/impl/demo.dart';
 import '../../providers/themes.dart';
 import '../../services/play_table_generator.dart';
 import '../../widgets/bottom_padded.dart';

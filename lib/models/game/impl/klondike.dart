@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/types.dart';
-import '../action.dart';
-import '../card.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../move_event.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import '../rank_order.dart';
-import 'solitaire.dart';
+import '../../../utils/types.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_attempt.dart';
+import '../../move_check.dart';
+import '../../move_event.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../../rank_order.dart';
+import '../solitaire.dart';
 
 class Klondike extends SolitaireGame {
   const Klondike({required this.numberOfDraws, this.vegasScoring = false});
@@ -91,7 +92,7 @@ class Klondike extends SolitaireGame {
             )
           ],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(6, 0, 1, 1),
@@ -117,18 +118,18 @@ class Klondike extends SolitaireGame {
         canTap: [
           CanRecyclePile(
             limit: vegasScoring ? numberOfDraws : intMaxValue,
-            willTakeFrom: const Waste(),
+            willTakeFrom: const Waste(0),
           ),
         ],
         onTap: [
           If(
             condition: const [PileIsEmpty()],
-            ifTrue: const [RecyclePile(takeFrom: Waste())],
-            ifFalse: [DrawFromTop(to: const Waste(), count: numberOfDraws)],
+            ifTrue: const [RecyclePile(takeFrom: Waste(0))],
+            ifFalse: [DrawFromTop(to: const Waste(0), count: numberOfDraws)],
           ),
         ],
       ),
-      const Waste(): PileProperty(
+      const Waste(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(4, 0, 2, 1),
@@ -185,48 +186,29 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> quickMoveStrategy(
-      Pile from, PlayCard card, PlayTable table) sync* {
-    // Try placing on foundation pile first
-    // For cards from foundation, no need to move to other foundations
-    if (from is! Foundation) {
-      for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
-        yield MoveIntent(from, f, card);
-      }
-    }
-
-    // Try placing on tableau next
-    for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
-      yield MoveIntent(from, t, card);
-    }
+  List<MoveAttemptTo> get quickMove {
+    return [
+      MoveAttemptTo<Foundation>(
+        onlyIf: (table, from, to) => from is! Foundation,
+      ),
+      const MoveAttemptTo<Tableau>(roll: true),
+    ];
   }
 
   @override
-  Iterable<MoveIntent> premoveStrategy(PlayTable table) sync* {
-    for (final f in table.allPilesOfType<Foundation>()) {
-      yield MoveIntent(const Waste(), f);
-    }
-    for (final t in table.allPilesOfType<Tableau>()) {
-      for (final f in table.allPilesOfType<Foundation>()) {
-        yield MoveIntent(t, f);
-      }
-    }
+  List<MoveAttempt> get premove {
+    return [
+      const MoveAttempt<Waste, Foundation>(),
+      const MoveAttempt<Tableau, Foundation>(),
+    ];
   }
 
   @override
-  Iterable<MoveIntent> autoSolveStrategy(PlayTable table) sync* {
-    // Try moving cards from tableau to foundation
-    for (final t in table.allPilesOfType<Tableau>()) {
-      for (final f in table.allPilesOfType<Foundation>()) {
-        yield MoveIntent(t, f);
-        for (final w in table.allPilesOfType<Waste>()) {
-          final cardsOnWaste = table.get(w);
-          if (cardsOnWaste.isNotEmpty) {
-            yield MoveIntent(w, f);
-          }
-        }
-      }
-    }
-    yield const MoveIntent(Stock(), Stock());
+  List<MoveAttempt> get autoSolve {
+    return [
+      const MoveAttempt<Tableau, Foundation>(),
+      const MoveAttempt<Waste, Foundation>(),
+      const MoveAttempt<Stock, Stock>(),
+    ];
   }
 }

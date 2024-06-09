@@ -2,35 +2,35 @@ import 'dart:ui';
 
 import 'package:flutter/rendering.dart';
 
-import '../action.dart';
-import '../card.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../move_event.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import '../rank_order.dart';
-import 'solitaire.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_check.dart';
+import '../../move_event.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../../rank_order.dart';
+import '../solitaire.dart';
 
-class FreeCell extends SolitaireGame {
-  const FreeCell();
+class Penguin extends SolitaireGame {
+  const Penguin();
 
   @override
-  String get name => 'FreeCell';
+  String get name => 'Penguin';
 
   @override
   String get family => 'FreeCell';
 
   @override
-  String get tag => 'freecell';
+  String get tag => 'penguin';
 
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(8, 7),
-      landscape: Size(11, 4),
+      portrait: Size(7, 7),
+      landscape: Size(8.5, 4.5),
     );
   }
 
@@ -41,8 +41,8 @@ class FreeCell extends SolitaireGame {
         Foundation(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+              portrait: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 1),
+              landscape: Rect.fromLTWH(0, i.toDouble() + 0.25, 1, 1),
             ),
           ),
           pickable: const [
@@ -50,28 +50,38 @@ class FreeCell extends SolitaireGame {
           ],
           placeable: const [
             CardIsSingle(),
-            BuildupStartsWith(Rank.ace),
-            BuildupFollowsRankOrder(RankOrder.increasing),
+            BuildupStartsWith.relativeTo([
+              Foundation(0),
+              Foundation(1),
+              Foundation(2),
+              Foundation(3),
+            ]),
+            BuildupFollowsRankOrder(RankOrder.increasing, wrapping: true),
             BuildupSameSuit(),
           ],
         ),
-      for (int i = 0; i < 8; i++)
+      for (int i = 0; i < 7; i++)
         Tableau(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+              portrait: Rect.fromLTWH(i.toDouble(), 2.3, 1, 4.7),
+              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 1, 1, 3.5),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
           pickable: const [
             CardsFollowRankOrder(RankOrder.decreasing),
-            CardsAreAlternatingColors(),
+            CardsAreSameSuit(),
           ],
           placeable: const [
+            BuildupStartsWith.relativeTo([
+              Foundation(0),
+              Foundation(1),
+              Foundation(2),
+              Foundation(3),
+            ], rankDifference: -1),
             BuildupFollowsRankOrder(RankOrder.decreasing),
-            BuildupAlternatingColors(),
-            FreeCellPowermove(),
+            BuildupSameSuit(),
           ],
           afterMove: const [
             If(
@@ -83,12 +93,12 @@ class FreeCell extends SolitaireGame {
             )
           ],
         ),
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 7; i++)
         Reserve(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(4 + i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(10, i.toDouble(), 1, 1),
+              portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 1),
+              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 1),
             ),
           ),
           pickable: const [
@@ -101,11 +111,11 @@ class FreeCell extends SolitaireGame {
             PileIsEmpty(),
           ],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
-            portrait: Rect.fromLTWH(0, 0, 1, 1),
-            landscape: Rect.fromLTWH(10, 0, 1, 1),
+            portrait: Rect.fromLTWH(6, 0, 1, 1),
+            landscape: Rect.fromLTWH(7.5, 0, 1, 1),
           ),
         ),
         virtual: true,
@@ -114,8 +124,11 @@ class FreeCell extends SolitaireGame {
           FlipAllCardsFaceDown(),
         ],
         onSetup: const [
+          ArrangePenguinFoundations(
+              firstCardGoesTo: Tableau(0),
+              relatedCardsGoTo: [Foundation(0), Foundation(1), Foundation(2)]),
           DistributeTo<Tableau>(
-            distribution: [7, 7, 7, 7, 6, 6, 6, 6],
+            distribution: [6, 7, 7, 7, 7, 7, 7],
             afterMove: [
               FlipAllCardsFaceUp(),
             ],

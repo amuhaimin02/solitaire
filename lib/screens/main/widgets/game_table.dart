@@ -438,12 +438,12 @@ class _GameTableState extends State<GameTable> {
         return DurationCurve.zero;
       } else if (_lastTouchPoint != null) {
         return cardDragAnimation;
-      } else if (widget.animateDistribute && pile is Tableau) {
-        final tableau = pile;
-        final delayFactor = cardMoveAnimation.duration * 0.3;
+      } else if (widget.animateDistribute &&
+          (pile is Tableau || pile is Reserve)) {
+        final delayFactor = cardMoveAnimation.duration * 0.25;
 
         return cardMoveAnimation
-            .delayed(delayFactor * (tableau.index + cardIndex));
+            .delayed(delayFactor * (pile.index + cardIndex));
       } else {
         return cardMoveAnimation;
       }

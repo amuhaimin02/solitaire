@@ -4,16 +4,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../action.dart';
-import '../card.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import '../rank_order.dart';
-import 'solitaire.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_attempt.dart';
+import '../../move_check.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../../rank_order.dart';
+import '../solitaire.dart';
 
 class FortyThieves extends SolitaireGame {
   const FortyThieves();
@@ -79,7 +80,7 @@ class FortyThieves extends SolitaireGame {
             FreeCellPowermove(),
           ],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(7, 4, 1, 1),
@@ -102,13 +103,13 @@ class FortyThieves extends SolitaireGame {
           ),
         ],
         canTap: const [
-          CanRecyclePile(limit: 1, willTakeFrom: Waste()),
+          CanRecyclePile(limit: 1, willTakeFrom: Waste(0)),
         ],
         onTap: const [
-          DrawFromTop(to: Waste(), count: 1),
+          DrawFromTop(to: Waste(0), count: 1),
         ],
       ),
-      const Waste(): PileProperty(
+      const Waste(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(7, 1.5, 1, 2),
@@ -135,31 +136,20 @@ class FortyThieves extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> quickMoveStrategy(
-      Pile from, PlayCard card, PlayTable table) sync* {
-    // Try placing on foundation pile first
-    // For cards from foundation, no need to move to other foundations
-    if (from is! Foundation) {
-      for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
-        yield MoveIntent(from, f, card);
-      }
-    }
-
-    // Try placing on tableau next
-    for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
-      yield MoveIntent(from, t, card);
-    }
+  List<MoveAttemptTo> get quickMove {
+    return [
+      MoveAttemptTo<Foundation>(
+        onlyIf: (table, from, to) => from is! Foundation,
+      ),
+      const MoveAttemptTo<Tableau>(roll: true),
+    ];
   }
 
   @override
-  Iterable<MoveIntent> premoveStrategy(PlayTable table) sync* {
-    for (final f in table.allPilesOfType<Foundation>()) {
-      yield MoveIntent(const Waste(), f);
-    }
-    for (final t in table.allPilesOfType<Tableau>()) {
-      for (final f in table.allPilesOfType<Foundation>()) {
-        yield MoveIntent(t, f);
-      }
-    }
+  List<MoveAttempt> get premove {
+    return const [
+      MoveAttempt<Waste, Foundation>(),
+      MoveAttempt<Tableau, Foundation>(),
+    ];
   }
 }

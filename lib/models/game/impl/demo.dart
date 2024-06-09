@@ -1,11 +1,11 @@
 import 'dart:ui';
 
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import 'solitaire.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_check.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../solitaire.dart';
 
 class SolitaireDemo extends SolitaireGame {
   @override
@@ -51,7 +51,7 @@ class SolitaireDemo extends SolitaireGame {
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],
         ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(3, 0, 1, 1),
@@ -74,7 +74,7 @@ class SolitaireDemo extends SolitaireGame {
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
       ),
-      const Waste(): PileProperty(
+      const Waste(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(2, 0, 1, 1),

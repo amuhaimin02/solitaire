@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -8,6 +10,7 @@ import '../models/card_list.dart';
 import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
 import '../models/move_action.dart';
+import '../models/move_attempt.dart';
 import '../models/move_check.dart';
 import '../models/move_event.dart';
 import '../models/move_result.dart';
@@ -122,7 +125,9 @@ class GameController extends _$GameController {
     final setupTable = _setupCards(initialTable);
     state = GameStatus.preparing;
     ref.read(moveHistoryProvider.notifier).add(setupTable, const GameStart());
-    await Future.delayed(cardMoveAnimation.duration * timeDilation * 6);
+
+    // TODO: Time delayed is just an estimate
+    await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
 
     ref.read(playTimeProvider.notifier).restart();
     state = GameStatus.started;
@@ -339,7 +344,8 @@ class GameController extends _$GameController {
     final game = ref.read(currentGameProvider);
     final table = ref.read(currentTableProvider);
 
-    for (final move in game.game.quickMoveStrategy(from, card, table)) {
+    for (final move
+        in MoveAttemptTo.getAttempts(game.game.quickMove, table, card, from)) {
       final result = tryMove(move, doMove: doMove);
       if (result is MoveSuccess) {
         return result;
@@ -361,7 +367,7 @@ class GameController extends _$GameController {
     do {
       handled = false;
       final table = ref.read(currentTableProvider);
-      for (final move in game.game.autoSolveStrategy(table)) {
+      for (final move in MoveAttempt.getAttempts(game.game.autoSolve, table)) {
         final result = tryMove(move, doAfterMove: false);
         if (result is MoveSuccess) {
           handled = true;
@@ -442,7 +448,7 @@ class GameController extends _$GameController {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       final table = ref.read(currentTableProvider);
-      for (final move in game.game.postMoveStrategy(table)) {
+      for (final move in MoveAttempt.getAttempts(game.game.postMove, table)) {
         final result = tryMove(
           move,
           doAfterMove: false,
@@ -474,7 +480,7 @@ class GameController extends _$GameController {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       final table = ref.read(currentTableProvider);
-      for (final move in game.game.premoveStrategy(table)) {
+      for (final move in MoveAttempt.getAttempts(game.game.premove, table)) {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
             lastAction.to == move.from &&
@@ -558,27 +564,29 @@ class GameController extends _$GameController {
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {
-    // TODO: change this
     final table = ref.read(currentTableProvider);
-    for (final t in table.allPilesOfType<Tableau>()) {
-      for (final c in table.get(t)) {
-        yield (c, t);
-      }
-    }
-    for (final f in table.allPilesOfType<Foundation>()) {
-      if (table.get(f).isNotEmpty) {
-        yield (table.get(f).last, f);
-      }
-    }
-    for (final r in table.allPilesOfType<Reserve>()) {
-      if (table.get(r).isNotEmpty) {
-        yield (table.get(r).last, r);
-      }
-    }
+    final game = ref.read(currentGameProvider);
 
-    for (final w in table.allPilesOfType<Waste>()) {
-      if (table.get(w).isNotEmpty) {
-        yield (table.get(w).last, const Waste());
+    for (final (pile, props) in game.game.piles.items) {
+      final canOnlyMoveTop = props.pickable.findRule<CardIsOnTop>() != null;
+      final canOnlyTap = props.onTap != null;
+
+      if (canOnlyTap) {
+        continue;
+      }
+      final cardsOnPile = table.get(pile);
+      if (cardsOnPile.isEmpty) {
+        continue;
+      }
+
+      if (canOnlyMoveTop) {
+        yield (cardsOnPile.last, pile);
+      } else {
+        for (final c in cardsOnPile) {
+          if (c.isFacingUp) {
+            yield (c, pile);
+          }
+        }
       }
     }
   }
@@ -594,7 +602,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
   final result = MoveCheck.checkAll(
     game.game.objectives,
     MoveCheckData(
-      pile: const Stock(),
+      pile: const Stock(0),
       cards: [],
       table: table,
       moveState: moveState,
@@ -617,7 +625,7 @@ bool autoSolvable(AutoSolvableRef ref) {
   final result = MoveCheck.checkAll(
     game.game.canAutoSolve,
     MoveCheckData(
-      pile: const Stock(),
+      pile: const Stock(0),
       cards: [],
       table: table,
       moveState: moveState,

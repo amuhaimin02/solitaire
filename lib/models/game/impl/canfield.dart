@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/types.dart';
-import '../action.dart';
-import '../card.dart';
-import '../direction.dart';
-import '../move_action.dart';
-import '../move_check.dart';
-import '../pile.dart';
-import '../pile_property.dart';
-import '../play_table.dart';
-import '../rank_order.dart';
-import 'solitaire.dart';
+import '../../../utils/types.dart';
+import '../../action.dart';
+import '../../card.dart';
+import '../../direction.dart';
+import '../../move_action.dart';
+import '../../move_attempt.dart';
+import '../../move_check.dart';
+import '../../pile.dart';
+import '../../pile_property.dart';
+import '../../play_table.dart';
+import '../../rank_order.dart';
+import '../solitaire.dart';
 
 class Canfield extends SolitaireGame {
   const Canfield({required this.numberOfDraws});
@@ -99,7 +100,7 @@ class Canfield extends SolitaireGame {
           FlipTopCardFaceUp(),
         ],
       ),
-      const Stock(): PileProperty(
+      const Stock(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(6, 0, 1, 1),
@@ -137,19 +138,19 @@ class Canfield extends SolitaireGame {
         placeable: const [NotAllowed()],
         canTap: [
           const CanRecyclePile(
-            willTakeFrom: Waste(),
+            willTakeFrom: Waste(0),
             limit: intMaxValue,
           ),
         ],
         onTap: [
           If(
             condition: const [PileIsEmpty()],
-            ifTrue: const [RecyclePile(takeFrom: Waste())],
-            ifFalse: [DrawFromTop(to: const Waste(), count: numberOfDraws)],
+            ifTrue: const [RecyclePile(takeFrom: Waste(0))],
+            ifFalse: [DrawFromTop(to: const Waste(0), count: numberOfDraws)],
           ),
         ],
       ),
-      const Waste(): PileProperty(
+      const Waste(0): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(4, 0, 2, 1),
@@ -183,28 +184,30 @@ class Canfield extends SolitaireGame {
   }
 
   @override
-  Iterable<MoveIntent> postMoveStrategy(PlayTable table) sync* {
-    for (final t in table.allPilesOfType<Tableau>()) {
-      if (table.get(t).isEmpty) {
-        yield MoveIntent(const Reserve(0), t);
-      }
-    }
+  List<MoveAttemptTo> get quickMove {
+    return [
+      MoveAttemptTo<Foundation>(
+        onlyIf: (table, from, to) => from is! Foundation,
+      ),
+      const MoveAttemptTo<Tableau>(roll: true),
+    ];
   }
 
   @override
-  Iterable<MoveIntent> quickMoveStrategy(
-      Pile from, PlayCard card, PlayTable table) sync* {
-    // Try placing on foundation pile first
-    // For cards from foundation, no need to move to other foundations
-    if (from is! Foundation) {
-      for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
-        yield MoveIntent(from, f, card);
-      }
-    }
+  List<MoveAttempt> get premove {
+    return const [
+      MoveAttempt<Waste, Foundation>(),
+      MoveAttempt<Tableau, Foundation>(),
+      MoveAttempt<Reserve, Foundation>(),
+    ];
+  }
 
-    // Try placing on tableau next
-    for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
-      yield MoveIntent(from, t, card);
-    }
+  @override
+  List<MoveAttempt> get postMove {
+    return [
+      MoveAttempt<Reserve, Tableau>(
+        onlyIf: (table, from, to) => table.get(to).isEmpty,
+      ),
+    ];
   }
 }
