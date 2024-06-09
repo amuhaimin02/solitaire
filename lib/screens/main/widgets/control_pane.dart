@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/user_action.dart';
-import '../providers/game_logic.dart';
-import '../providers/game_move_history.dart';
-import '../providers/themes.dart';
-import 'fixes.dart';
-import 'tap_hold_detector.dart';
+import '../../../models/user_action.dart';
+import '../../../providers/game_logic.dart';
+import '../../../providers/game_move_history.dart';
+import '../../../providers/themes.dart';
+import '../../../widgets/fixes.dart';
+import '../../../widgets/tap_hold_detector.dart';
 
 class ControlPane extends ConsumerWidget {
   const ControlPane({super.key, required this.orientation});

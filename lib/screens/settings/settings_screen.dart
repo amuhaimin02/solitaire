@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-import '../providers/settings.dart';
-import '../widgets/bottom_padded.dart';
-import '../widgets/section_title.dart';
+import '../../providers/settings.dart';
+import '../../widgets/bottom_padded.dart';
+import '../../widgets/section_title.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});

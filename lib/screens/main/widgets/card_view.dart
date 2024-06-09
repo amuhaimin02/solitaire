@@ -2,11 +2,11 @@ import 'package:flutter/material.dart' hide Action;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-import '../animations.dart';
-import '../models/card.dart';
-import '../utils/canvas.dart';
-import 'flippable.dart';
-import 'solitaire_theme.dart';
+import '../../../animations.dart';
+import '../../../models/card.dart';
+import '../../../utils/canvas.dart';
+import '../../../widgets/flippable.dart';
+import '../../../widgets/solitaire_theme.dart';
 
 class CardView extends StatelessWidget {
   const CardView({

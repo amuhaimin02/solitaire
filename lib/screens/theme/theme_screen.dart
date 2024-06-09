@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../animations.dart';
-import '../models/game/demo.dart';
-import '../providers/themes.dart';
-import '../services/play_table_generator.dart';
-import '../widgets/bottom_padded.dart';
-import '../widgets/game_table.dart';
-import '../widgets/section_title.dart';
-import '../widgets/solitaire_theme.dart';
-import '../widgets/two_pane.dart';
+import '../../animations.dart';
+import '../../models/game/demo.dart';
+import '../../providers/themes.dart';
+import '../../services/play_table_generator.dart';
+import '../../widgets/bottom_padded.dart';
+import '../../widgets/section_title.dart';
+import '../../widgets/solitaire_theme.dart';
+import '../../widgets/two_pane.dart';
+import '../main/widgets/game_table.dart';
+import 'widgets/color_selection_tile.dart';
 
 class ThemeScreen extends ConsumerWidget {
   const ThemeScreen({super.key});
@@ -155,7 +156,7 @@ class _SettingsList extends ConsumerWidget {
                           },
                         ),
                         const SizedBox(height: 8),
-                        _ColorSelectionTile(
+                        ColorSelectionTile(
                           value: themeColor,
                           options: themeColorPalette,
                           onTap: (color) {
@@ -212,42 +213,6 @@ class _SettingsList extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ColorSelectionTile extends StatelessWidget {
-  const _ColorSelectionTile({
-    super.key,
-    required this.value,
-    required this.options,
-    required this.onTap,
-  });
-
-  final Color? value;
-
-  final List<Color> options;
-
-  final Function(Color) onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        children: [
-          for (final color in themeColorPalette)
-            IconButton(
-              onPressed: () => onTap(color),
-              isSelected: color.value == value?.value,
-              iconSize: 32,
-              icon: const Icon(Icons.circle_outlined),
-              selectedIcon: const Icon(Icons.circle),
-              color: color,
-            ),
-        ],
       ),
     );
   }

@@ -6,23 +6,23 @@ import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-import '../animations.dart';
-import '../config.dart';
-import '../models/card.dart';
-import '../models/card_list.dart';
-import '../models/direction.dart';
-import '../models/game/solitaire.dart';
-import '../models/move_check.dart';
-import '../models/move_record.dart';
-import '../models/pile.dart';
-import '../models/pile_property.dart';
-import '../models/play_table.dart';
-import '../utils/types.dart';
+import '../../../animations.dart';
+import '../../../config.dart';
+import '../../../models/card.dart';
+import '../../../models/card_list.dart';
+import '../../../models/direction.dart';
+import '../../../models/game/solitaire.dart';
+import '../../../models/move_check.dart';
+import '../../../models/move_record.dart';
+import '../../../models/pile.dart';
+import '../../../models/pile_property.dart';
+import '../../../models/play_table.dart';
+import '../../../utils/types.dart';
+import '../../../widgets/shakeable.dart';
+import '../../../widgets/shrinkable.dart';
+import '../../../widgets/solitaire_theme.dart';
+import '../../../widgets/ticking_number.dart';
 import 'card_view.dart';
-import 'shakeable.dart';
-import 'shrinkable.dart';
-import 'solitaire_theme.dart';
-import 'ticking_number.dart';
 
 class GameTable extends StatefulWidget {
   const GameTable({

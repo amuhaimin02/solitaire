@@ -66,7 +66,7 @@ class Canfield extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble() + 2.5, 1.3, 1, 4.7),
-              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+              landscape: Rect.fromLTWH(i.toDouble() + 3, 0, 1, 4),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
@@ -85,7 +85,7 @@ class Canfield extends SolitaireGame {
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(0.5, 1.3, 1, 3.7),
-            landscape: Rect.fromLTWH(6, 0, 1, 3.5),
+            landscape: Rect.fromLTWH(1.5, 0, 1, 3.5),
           ),
           stackDirection: LayoutProperty.all(Direction.down),
         ),
