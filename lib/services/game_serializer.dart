@@ -4,6 +4,7 @@ import 'package:quiver/collection.dart';
 
 import '../models/action.dart';
 import '../models/card.dart';
+import '../models/game/all.dart';
 import '../models/game/solitaire.dart';
 import '../models/move_record.dart';
 import '../models/pile.dart';
@@ -15,15 +16,12 @@ import '../utils/types.dart';
 const _maxRadixSize = 36;
 
 class GameDataSerializer implements Serializer<GameData> {
-  const GameDataSerializer({required this.resolveGameTag});
-
-  final SolitaireGame Function(String tag) resolveGameTag;
+  const GameDataSerializer();
 
   @override
   String serialize(GameData gameData) {
     final buffer = StringBuffer();
-    buffer.writeln(GameMetadataSerializer(resolveGameTag: resolveGameTag)
-        .serialize(gameData.metadata));
+    buffer.writeln(const GameMetadataSerializer().serialize(gameData.metadata));
     buffer.writeln(const GameStateSerializer().serialize(gameData.state));
     buffer
         .writeln(const MoveRecordListSerializer().serialize(gameData.history));
@@ -36,8 +34,7 @@ class GameDataSerializer implements Serializer<GameData> {
     final lines = LineSplitter.split(raw).iterator;
 
     lines.moveNext();
-    final metadata = GameMetadataSerializer(resolveGameTag: resolveGameTag)
-        .deserialize(lines.current);
+    final metadata = const GameMetadataSerializer().deserialize(lines.current);
     lines.moveNext();
     final state = const GameStateSerializer().deserialize(lines.current);
 
@@ -58,9 +55,7 @@ class GameDataSerializer implements Serializer<GameData> {
 }
 
 class GameMetadataSerializer implements Serializer<GameMetadata> {
-  const GameMetadataSerializer({required this.resolveGameTag});
-
-  final SolitaireGame Function(String tag) resolveGameTag;
+  const GameMetadataSerializer();
 
   @override
   String serialize(GameMetadata metadata) {
@@ -70,7 +65,7 @@ class GameMetadataSerializer implements Serializer<GameMetadata> {
   @override
   GameMetadata deserialize(String raw) {
     final [val1, val2, val3] = raw.split(':');
-    final game = resolveGameTag(val1);
+    final game = allGamesList.firstWhere((game) => game.tag == val1);
     final randomSeed = val2;
     final startedTime = DateTime.fromMillisecondsSinceEpoch(int.parse(val3));
 

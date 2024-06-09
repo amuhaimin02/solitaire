@@ -170,6 +170,26 @@ class _GameTableState extends State<GameTable> {
       return recycleLimit != null && currentCycle + 1 < recycleLimit;
     }
 
+    Rank? computeRankStartingMarker(Pile pile, PileProperty props) {
+      if (props.markerStartsWith != null) {
+        return props.markerStartsWith;
+      } else if (props.markerStartsWithRelativeTo != null) {
+        final startingCard =
+            widget.table.get(props.markerStartsWithRelativeTo!).firstOrNull;
+        if (startingCard == null) {
+          return null;
+        }
+        if (props.markerStartsWithRankDifference != 0) {
+          return startingCard.rank
+              .next(wrapping: true, gap: props.markerStartsWithRankDifference);
+        } else {
+          return startingCard.rank;
+        }
+      } else {
+        return null;
+      }
+    }
+
     return Stack(
       children: [
         for (final (pile, props) in _allPiles.items)
@@ -179,7 +199,7 @@ class _GameTableState extends State<GameTable> {
               rect: computeMarkerPlacement(pile).scale(gridUnit),
               child: _PileMarker(
                 pile: pile,
-                startsWith: props.markerStartsWith,
+                startsWith: computeRankStartingMarker(pile, props),
                 canRecycle: canRecycle(pile),
                 size: gridUnit,
               ),

@@ -6,12 +6,12 @@ import 'card.dart';
 import 'rank_order.dart';
 
 extension PlayCardListExtension on List<PlayCard> {
-  List<PlayCard> get allFaceDown => map((e) => e.faceDown()).toList();
+  List<PlayCard> get allFaceDown => map((e) => e.faceDown).toList();
 
-  List<PlayCard> get allFaceUp => map((e) => e.faceUp()).toList();
+  List<PlayCard> get allFaceUp => map((e) => e.faceUp).toList();
 
   List<PlayCard> get topmostFaceUp =>
-      mapIndexed((i, c) => i == length - 1 ? c.faceUp() : c).toList();
+      mapIndexed((i, c) => i == length - 1 ? c.faceUp : c).toList();
 
   bool get isSortedByRankIncreasingOrder {
     int? lastRank;
@@ -125,5 +125,19 @@ extension PlayCardListExtension on List<PlayCard> {
     }
     final endRange = length;
     return (slice(0, startRange), slice(startRange, endRange));
+  }
+
+  (List<PlayCard>, List<PlayCard>) splitWhere(bool Function(PlayCard) test) {
+    final List<PlayCard> passedCards = [];
+    final List<PlayCard> failedCards = [];
+
+    for (final card in this) {
+      if (test(card)) {
+        passedCards.add(card);
+      } else {
+        failedCards.add(card);
+      }
+    }
+    return (failedCards, passedCards);
   }
 }

@@ -79,7 +79,7 @@ class PopupButton extends StatelessWidget {
                       vertical: buttonPosition.size.height / 2,
                       horizontal: buttonPosition.size.width / 2,
                     ),
-                    width: 250,
+                    width: 224,
                     alignment: popupAlignment,
                     child: Material(
                       elevation: 24,

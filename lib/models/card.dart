@@ -35,6 +35,36 @@ enum Rank {
   final int value;
 
   const Rank(this.symbol, this.value);
+
+  int _wrapValue(int value) {
+    return (value - 1) % Rank.king.value + 1;
+  }
+
+  bool _isRankInBounds(int value) {
+    return value >= Rank.ace.value && value <= Rank.king.value;
+  }
+
+  Rank? next({bool wrapping = false, int gap = 1}) {
+    int nextValue = value + gap;
+
+    if (!_isRankInBounds(nextValue) && !wrapping) {
+      return null;
+    }
+    nextValue = _wrapValue(nextValue);
+
+    return values.firstWhere((rank) => nextValue == rank.value);
+  }
+
+  Rank? previous({bool wrapping = false, int gap = 1}) {
+    int previousValue = value - 1;
+
+    if (!_isRankInBounds(previousValue) && !wrapping) {
+      return null;
+    }
+    previousValue = _wrapValue(previousValue);
+
+    return values.firstWhere((rank) => previousValue == rank.value);
+  }
 }
 
 class PlayCard {
@@ -73,12 +103,12 @@ class PlayCard {
 
   bool get isFacingDown => flipped == true;
 
-  PlayCard faceDown() {
+  PlayCard get faceDown {
     if (flipped == true) return this;
     return PlayCard(suit, rank, deck: deck, flipped: true);
   }
 
-  PlayCard faceUp() {
+  PlayCard get faceUp {
     if (flipped == false) return this;
     return PlayCard(suit, rank, deck: deck, flipped: false);
   }
@@ -96,14 +126,14 @@ class PlayCard {
   }
 
   bool isOneRankOver(PlayCard other) {
-    return rank.value == other.rank.value + 1;
+    return rank == other.rank.next();
   }
 
   bool isOneRankUnder(PlayCard other) {
-    return rank.value == other.rank.value - 1;
+    return rank == other.rank.previous();
   }
 
   bool isOneRankNearer(PlayCard other) {
-    return (rank.value - other.rank.value).abs() == 1;
+    return isOneRankOver(other) || isOneRankUnder(other);
   }
 }

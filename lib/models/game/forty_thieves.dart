@@ -134,9 +134,7 @@ class FortyThieves extends SolitaireGame {
   @override
   List<MoveCheck> get objectives {
     return const [
-      AllPilesOfType<Foundation>([
-        PileHasFullSuit(RankOrder.increasing),
-      ]),
+      AllPilesOfType<Foundation>([PileHasFullSuit()]),
     ];
   }
 

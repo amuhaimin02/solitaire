@@ -4,6 +4,7 @@ import 'card.dart';
 import 'direction.dart';
 import 'move_action.dart';
 import 'move_check.dart';
+import 'pile.dart';
 
 class PileProperty {
   PileProperty({
@@ -17,6 +18,8 @@ class PileProperty {
     this.afterMove,
     this.recycleLimit,
     this.markerStartsWith,
+    this.markerStartsWithRelativeTo,
+    this.markerStartsWithRankDifference = 0,
     this.virtual = false,
   });
 
@@ -39,6 +42,10 @@ class PileProperty {
   int? recycleLimit;
 
   Rank? markerStartsWith;
+
+  Pile? markerStartsWithRelativeTo;
+
+  int markerStartsWithRankDifference;
 
   final bool virtual;
 }

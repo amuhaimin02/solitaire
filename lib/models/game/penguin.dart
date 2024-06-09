@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
-import '../../utils/types.dart';
+import 'package:flutter/rendering.dart';
+
 import '../action.dart';
 import '../card.dart';
 import '../direction.dart';
@@ -13,23 +14,23 @@ import '../play_table.dart';
 import '../rank_order.dart';
 import 'solitaire.dart';
 
-class Yukon extends SolitaireGame {
-  const Yukon();
+class Penguin extends SolitaireGame {
+  const Penguin();
 
   @override
-  String get name => 'Yukon';
+  String get name => 'Penguin';
 
   @override
-  String get family => 'Yukon';
+  String get family => 'FreeCell';
 
   @override
-  String get tag => 'yukon';
+  String get tag => 'penguin';
 
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(7, 6),
-      landscape: Size(10, 4),
+      portrait: Size(7, 7),
+      landscape: Size(8.5, 4.5),
     );
   }
 
@@ -41,17 +42,16 @@ class Yukon extends SolitaireGame {
           layout: PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 1),
-              landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+              landscape: Rect.fromLTWH(0, i.toDouble() + 0.25, 1, 1),
             ),
           ),
-          markerStartsWith: Rank.ace,
+          markerStartsWithRelativeTo: const Foundation(0),
           pickable: const [
             CardIsOnTop(),
           ],
           placeable: const [
             CardIsSingle(),
-            CardsAreFacingUp(),
-            BuildupStartsWith(rank: Rank.ace),
+            BuildupStartsWithRelativeTo(Foundation(0)),
             BuildupFollowsRankOrder(RankOrder.increasing),
             BuildupSameSuit(),
           ],
@@ -60,20 +60,21 @@ class Yukon extends SolitaireGame {
         Tableau(i): PileProperty(
           layout: PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+              portrait: Rect.fromLTWH(i.toDouble(), 2.3, 1, 4.7),
+              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 1, 1, 3.5),
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
-          markerStartsWith: Rank.king,
+          markerStartsWithRelativeTo: const Foundation(0),
+          markerStartsWithRankDifference: -1,
           pickable: const [
-            CardsAreFacingUp(),
+            CardsFollowRankOrder(RankOrder.decreasing),
+            CardsAreSameSuit(),
           ],
           placeable: const [
-            CardsAreFacingUp(),
-            BuildupStartsWith(rank: Rank.king),
+            BuildupStartsWithRelativeTo(Foundation(0), rankDifference: -1),
             BuildupFollowsRankOrder(RankOrder.decreasing),
-            BuildupAlternatingColors(),
+            BuildupSameSuit(),
           ],
           afterMove: const [
             If(
@@ -85,11 +86,29 @@ class Yukon extends SolitaireGame {
             )
           ],
         ),
+      for (int i = 0; i < 7; i++)
+        Reserve(i): PileProperty(
+          layout: PileLayout(
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 1),
+              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 1),
+            ),
+          ),
+          pickable: const [
+            CardIsSingle(),
+            CardIsOnTop(),
+          ],
+          placeable: const [
+            CardIsSingle(),
+            CardsAreFacingUp(),
+            PileIsEmpty(),
+          ],
+        ),
       const Stock(): PileProperty(
         layout: const PileLayout(
           region: LayoutProperty(
             portrait: Rect.fromLTWH(6, 0, 1, 1),
-            landscape: Rect.fromLTWH(9, 2.5, 1, 1),
+            landscape: Rect.fromLTWH(7.5, 0, 1, 1),
           ),
         ),
         virtual: true,
@@ -98,11 +117,13 @@ class Yukon extends SolitaireGame {
           FlipAllCardsFaceDown(),
         ],
         onSetup: const [
+          ArrangePenguinFoundations(
+              firstCardGoesTo: Tableau(0),
+              relatedCardsGoTo: [Foundation(0), Foundation(1), Foundation(2)]),
           DistributeTo<Tableau>(
-            distribution: [1, 6, 7, 8, 9, 10, 11],
+            distribution: [6, 7, 7, 7, 7, 7, 7],
             afterMove: [
-              FlipAllCardsFaceDown(),
-              FlipTopCardFaceUp(count: 5),
+              FlipAllCardsFaceUp(),
             ],
           ),
         ],
@@ -122,17 +143,20 @@ class Yukon extends SolitaireGame {
   @override
   Iterable<MoveIntent> quickMoveStrategy(
       Pile from, PlayCard card, PlayTable table) sync* {
-    // Try placing on foundation pile first
-    // For cards from foundation, no need to move to other foundations
     if (from is! Foundation) {
       for (final f in table.allPilesOfType<Foundation>().roll(from: from)) {
         yield MoveIntent(from, f, card);
       }
     }
 
-    // Try placing on tableau next
     for (final t in table.allPilesOfType<Tableau>().roll(from: from)) {
       yield MoveIntent(from, t, card);
+    }
+
+    if (from is! Reserve && from is! Foundation) {
+      for (final r in table.allPilesOfType<Reserve>().roll(from: from)) {
+        yield MoveIntent(from, r, card);
+      }
     }
   }
 
@@ -141,6 +165,11 @@ class Yukon extends SolitaireGame {
     for (final t in table.allPilesOfType<Tableau>()) {
       for (final f in table.allPilesOfType<Foundation>()) {
         yield MoveIntent(t, f);
+      }
+    }
+    for (final r in table.allPilesOfType<Reserve>()) {
+      for (final f in table.allPilesOfType<Foundation>()) {
+        yield MoveIntent(r, f);
       }
     }
   }

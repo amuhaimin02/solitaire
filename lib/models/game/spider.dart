@@ -134,9 +134,7 @@ class Spider extends SolitaireGame {
   @override
   List<MoveCheck> get objectives {
     return const [
-      AllPilesOfType<Foundation>([
-        PileHasFullSuit(RankOrder.decreasing),
-      ]),
+      AllPilesOfType<Foundation>([PileHasFullSuit()]),
     ];
   }
 

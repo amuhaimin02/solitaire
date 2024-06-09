@@ -72,16 +72,16 @@ class _GameSelectionList extends ConsumerWidget {
               children: [
                 const TabBar.secondary(
                   tabs: [
-                    Tab(text: 'Favorites'),
                     Tab(text: 'Continue'),
+                    Tab(text: 'Favorites'),
                     Tab(text: 'All games'),
                   ],
                 ),
                 Expanded(
                   child: TabBarView(
                     children: [
-                      _buildFavoriteGameList(context, ref),
                       _buildContinueGameList(context, ref),
+                      _buildFavoriteGameList(context, ref),
                       _buildAllGamesList(context, ref),
                     ],
                   ),
@@ -474,10 +474,8 @@ class _GameSelectionActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return PopupButton(
-      icon: const Icon(Icons.more_horiz),
+      icon: const Icon(Icons.more_vert),
       builder: (popupContext) {
         void dismiss() {
           Navigator.pop(popupContext);

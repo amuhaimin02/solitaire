@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -27,23 +28,15 @@ class GameStorage extends _$GameStorage {
   @override
   DateTime build() => DateTime.now();
 
-  SolitaireGame _resolveGameTag(String tag) {
-    return ref
-        .read(allSolitaireGamesProvider)
-        .firstWhere((game) => game.tag == tag);
-  }
-
   Future<List<int>> _convertToBytes(GameData gameData) async {
-    final saveData =
-        GameDataSerializer(resolveGameTag: _resolveGameTag).serialize(gameData);
+    final saveData = const GameDataSerializer().serialize(gameData);
     final compressedSaveData = await compressText(saveData);
     return compressedSaveData;
   }
 
   Future<GameData> _convertFromBytes(List<int> bytes) async {
     final decompressedSaveData = await decompressText(bytes);
-    return GameDataSerializer(resolveGameTag: _resolveGameTag)
-        .deserialize(decompressedSaveData);
+    return const GameDataSerializer().deserialize(decompressedSaveData);
   }
 
   Future<void> quickSave(GameData gameData) async {
@@ -101,8 +94,10 @@ class GameStorage extends _$GameStorage {
 Future<List<SolitaireGame>> continuableGames(ContinuableGamesRef ref) async {
   ref.watch(gameStorageProvider);
   final saveFiles = await ref.read(fileHandlerProvider.notifier).list('');
-  return ref
-      .watch(allSolitaireGamesProvider)
-      .where((game) => saveFiles.contains(quickSaveFileName(game)))
+  final allGames = ref.watch(allSolitaireGamesProvider);
+  return saveFiles
+      .map((file) =>
+          allGames.firstWhereOrNull((game) => quickSaveFileName(game) == file))
+      .whereNotNull()
       .toList();
 }

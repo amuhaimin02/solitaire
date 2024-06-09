@@ -163,6 +163,29 @@ class CardsAreSameSuit extends MoveCheck {
   }
 }
 
+class CardsAreAlternatingColors extends MoveCheck {
+  const CardsAreAlternatingColors();
+
+  @override
+  String get errorMessage => 'Cards must all be in alternating colors';
+
+  @override
+  bool check(MoveCheckData data) {
+    final cardsInHand = data.cards;
+
+    if (cardsInHand.isEmpty || cardsInHand.isSingle) {
+      return true;
+    }
+
+    for (int i = 1; i < cardsInHand.length; i++) {
+      if (cardsInHand[i].suit.color == cardsInHand[i - 1].suit.color) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 class BuildupStartsWith extends MoveCheck {
   const BuildupStartsWith({required this.rank});
 
@@ -181,10 +204,35 @@ class BuildupStartsWith extends MoveCheck {
     }
 
     final firstCardInHand = data.cards.first;
-    if (firstCardInHand.rank != rank) {
-      return false;
+    return firstCardInHand.rank == rank;
+  }
+}
+
+/// Used by Penguin and the like
+class BuildupStartsWithRelativeTo extends MoveCheck {
+  const BuildupStartsWithRelativeTo(this.refPile, {this.rankDifference = 0});
+
+  final Pile refPile;
+  final int rankDifference;
+
+  @override
+  String get errorMessage => 'Buildup must start with the indicated rank';
+
+  @override
+  bool check(MoveCheckData data) {
+    final cardsOnPile = data.table.get(data.pile);
+    final cardsOnRefPile = data.table.get(refPile);
+
+    if (cardsOnPile.isNotEmpty) {
+      return true;
     }
-    return true;
+    if (cardsOnRefPile.isEmpty) {
+      return true;
+    }
+
+    final firstCardInHand = data.cards.first;
+    return firstCardInHand.rank ==
+        cardsOnRefPile.first.rank.next(gap: rankDifference);
   }
 }
 
@@ -227,15 +275,12 @@ class BuildupOneRankNearer extends MoveCheck {
       return true;
     }
 
-    print(cardsOnPile.last);
-    print(data.cards.first);
-
     return cardsOnPile.last.isOneRankNearer(data.cards.first);
   }
 }
 
-class BuildupAlternateColors extends MoveCheck {
-  const BuildupAlternateColors();
+class BuildupAlternatingColors extends MoveCheck {
+  const BuildupAlternatingColors();
 
   @override
   String get errorMessage => 'Buildup must alternate between colors';
@@ -371,9 +416,9 @@ class FreeCellPowermove extends MoveCheck {
 }
 
 class PileHasFullSuit extends MoveCheck {
-  const PileHasFullSuit(this.rankOrder);
+  const PileHasFullSuit({this.rankOrder});
 
-  final RankOrder rankOrder;
+  final RankOrder? rankOrder;
 
   @override
   String get errorMessage => 'Pile must have full set of suits';
@@ -386,10 +431,13 @@ class PileHasFullSuit extends MoveCheck {
       return false;
     }
 
-    return switch (rankOrder) {
-      RankOrder.increasing => cardsOnPile.isSortedByRankIncreasingOrder,
-      RankOrder.decreasing => cardsOnPile.isSortedByRankDecreasingOrder,
-    };
+    if (rankOrder != null) {
+      return switch (rankOrder!) {
+        RankOrder.increasing => cardsOnPile.isSortedByRankIncreasingOrder,
+        RankOrder.decreasing => cardsOnPile.isSortedByRankDecreasingOrder,
+      };
+    }
+    return true;
   }
 }
 

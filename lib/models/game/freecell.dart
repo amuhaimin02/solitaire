@@ -18,13 +18,13 @@ class FreeCell extends SolitaireGame {
   const FreeCell();
 
   @override
-  String get name => 'Classic FreeCell';
+  String get name => 'FreeCell';
 
   @override
   String get family => 'FreeCell';
 
   @override
-  String get tag => 'freecell-classic';
+  String get tag => 'freecell';
 
   @override
   LayoutProperty<Size> get tableSize {
@@ -51,7 +51,6 @@ class FreeCell extends SolitaireGame {
           ],
           placeable: const [
             CardIsSingle(),
-            CardsAreFacingUp(),
             BuildupStartsWith(rank: Rank.ace),
             BuildupFollowsRankOrder(RankOrder.increasing),
             BuildupSameSuit(),
@@ -67,13 +66,12 @@ class FreeCell extends SolitaireGame {
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
           pickable: const [
-            CardsAreFacingUp(),
             CardsFollowRankOrder(RankOrder.decreasing),
+            CardsAreAlternatingColors(),
           ],
           placeable: const [
-            CardsAreFacingUp(),
             BuildupFollowsRankOrder(RankOrder.decreasing),
-            BuildupAlternateColors(),
+            BuildupAlternatingColors(),
             FreeCellPowermove(),
           ],
           afterMove: const [
@@ -133,9 +131,7 @@ class FreeCell extends SolitaireGame {
   @override
   List<MoveCheck> get objectives {
     return const [
-      AllPilesOfType<Foundation>([
-        PileHasFullSuit(RankOrder.increasing),
-      ]),
+      AllPilesOfType<Foundation>([PileHasFullSuit()]),
     ];
   }
 

@@ -1,10 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../models/game/all.dart';
 import '../models/game/forty_thieves.dart';
 import '../models/game/freecell.dart';
 import '../models/game/golf.dart';
 import '../models/game/klondike.dart';
+import '../models/game/penguin.dart';
 import '../models/game/solitaire.dart';
 import '../models/game/spider.dart';
 import '../models/game/yukon.dart';
@@ -14,19 +16,7 @@ part 'game_selection.g.dart';
 
 @Riverpod(keepAlive: true)
 List<SolitaireGame> allSolitaireGames(AllSolitaireGamesRef ref) {
-  return const [
-    Klondike(numberOfDraws: 1, vegasScoring: false),
-    Klondike(numberOfDraws: 3, vegasScoring: false),
-    Klondike(numberOfDraws: 1, vegasScoring: true),
-    Klondike(numberOfDraws: 3, vegasScoring: true),
-    FreeCell(),
-    Spider(numberOfSuits: 1),
-    Spider(numberOfSuits: 2),
-    Spider(numberOfSuits: 4),
-    Golf(),
-    Yukon(),
-    FortyThieves(),
-  ];
+  return allGamesList;
 }
 
 @Riverpod(keepAlive: true)

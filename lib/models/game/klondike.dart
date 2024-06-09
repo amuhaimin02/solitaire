@@ -75,12 +75,13 @@ class Klondike extends SolitaireGame {
           pickable: const [
             CardsAreFacingUp(),
             CardsFollowRankOrder(RankOrder.decreasing),
+            CardsAreAlternatingColors(),
           ],
           placeable: const [
             CardsAreFacingUp(),
             BuildupStartsWith(rank: Rank.king),
             BuildupFollowsRankOrder(RankOrder.decreasing),
-            BuildupAlternateColors(),
+            BuildupAlternatingColors(),
           ],
           afterMove: const [
             If(
@@ -159,9 +160,7 @@ class Klondike extends SolitaireGame {
   @override
   List<MoveCheck> get objectives {
     return const [
-      AllPilesOfType<Foundation>([
-        PileHasFullSuit(RankOrder.increasing),
-      ]),
+      AllPilesOfType<Foundation>([PileHasFullSuit()]),
     ];
   }
 

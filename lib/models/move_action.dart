@@ -433,3 +433,32 @@ class EmitEvent extends MoveAction {
     );
   }
 }
+
+class ArrangePenguinFoundations extends MoveAction {
+  const ArrangePenguinFoundations({
+    required this.firstCardGoesTo,
+    required this.relatedCardsGoTo,
+  });
+
+  final Pile firstCardGoesTo;
+
+  final List<Pile> relatedCardsGoTo;
+
+  @override
+  MoveActionResult action(MoveActionData data) {
+    final cardsInStock = data.table.get(data.pile);
+    final firstCard = cardsInStock.first;
+
+    final (remainingCards, relatedCards) =
+        cardsInStock.splitWhere((card) => card.rank == firstCard.rank);
+
+    return MoveActionHandled(
+      table: data.table.modifyMultiple({
+        data.pile: remainingCards,
+        firstCardGoesTo: [relatedCards.first.faceUp],
+        for (final (index, pile) in relatedCardsGoTo.indexed)
+          pile: [relatedCards[index + 1].faceUp],
+      }),
+    );
+  }
+}
