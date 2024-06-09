@@ -29,6 +29,8 @@ class GameSelectionScreen extends ConsumerStatefulWidget {
 }
 
 class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,16 +41,35 @@ class _GameSelectionScreenState extends ConsumerState<GameSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return TwoPane(
-      primaryBuilder: (context) => const _GameSelectionList(),
-      secondaryBuilder: (context) => const _GameSelectionDetail(),
-      stackingStyleOnPortrait: StackingStyle.bottomSheet,
+    return PopScope(
+      canPop: !_isSearching,
+      child: TwoPane(
+        primaryBuilder: (context) {
+          if (_isSearching) {
+            return _GameSelectionSearch(
+              onCancel: () {
+                setState(() => _isSearching = false);
+              },
+            );
+          } else {
+            return _GameSelectionList(
+              onSearchButtonPressed: () {
+                setState(() => _isSearching = true);
+              },
+            );
+          }
+        },
+        secondaryBuilder: (context) => const _GameSelectionDetail(),
+        stackingStyleOnPortrait: StackingStyle.bottomSheet,
+      ),
     );
   }
 }
 
 class _GameSelectionList extends ConsumerWidget {
-  const _GameSelectionList({super.key});
+  const _GameSelectionList({super.key, required this.onSearchButtonPressed});
+
+  final VoidCallback onSearchButtonPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,7 +79,7 @@ class _GameSelectionList extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Search',
-            onPressed: () {},
+            onPressed: onSearchButtonPressed,
             icon: const Icon(Icons.search),
           ),
           const _GameSelectionActions(),
@@ -95,7 +116,6 @@ class _GameSelectionList extends ConsumerWidget {
   }
 
   Widget _buildFavoriteGameList(BuildContext context, WidgetRef ref) {
-    final selectedGame = ref.watch(selectedGameProvider);
     final favoritedGames = ref.watch(favoritedGamesProvider);
 
     if (favoritedGames.isEmpty) {
@@ -112,7 +132,6 @@ class _GameSelectionList extends ConsumerWidget {
         children: [
           for (final game in favoritedGames)
             _GameListTile(
-              selected: TwoPane.of(context).isActive && selectedGame == game,
               game: game,
               onTap: () => _onListTap(context, ref, game),
             ),
@@ -122,7 +141,6 @@ class _GameSelectionList extends ConsumerWidget {
   }
 
   Widget _buildContinueGameList(BuildContext context, WidgetRef ref) {
-    final selectedGame = ref.watch(selectedGameProvider);
     final continuableGames = ref.watch(continuableGamesProvider);
 
     if (continuableGames.isLoading) {
@@ -146,7 +164,6 @@ class _GameSelectionList extends ConsumerWidget {
         children: [
           for (final game in continuableGames.value!)
             _GameListTile(
-              selected: TwoPane.of(context).isActive && selectedGame == game,
               game: game,
               onTap: () => _onListTap(context, ref, game),
             ),
@@ -157,7 +174,6 @@ class _GameSelectionList extends ConsumerWidget {
 
   Widget _buildAllGamesList(BuildContext context, WidgetRef ref) {
     final allGamesMapped = ref.watch(allSolitaireGamesMappedProvider);
-    final selectedGame = ref.watch(selectedGameProvider);
     return ListView(
       key: const PageStorageKey('all'),
       padding: BottomPadded.getPadding(context),
@@ -169,8 +185,6 @@ class _GameSelectionList extends ConsumerWidget {
             children: [
               for (final game in gameList)
                 _GameListTile(
-                  selected:
-                      TwoPane.of(context).isActive && selectedGame == game,
                   game: game,
                   onTap: () => _onListTap(context, ref, game),
                 )
@@ -225,22 +239,20 @@ class _GameListTile extends ConsumerWidget {
     super.key,
     required this.game,
     this.onTap,
-    this.selected = false,
   });
 
   final SolitaireGame game;
 
   final VoidCallback? onTap;
 
-  final bool selected;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final continuableGames = ref.watch(continuableGamesProvider).value;
+    final selectedGame = ref.watch(selectedGameProvider);
 
     return ListTile(
-      selected: selected,
+      selected: TwoPane.of(context).isActive ? selectedGame == game : false,
       selectedColor: colorScheme.onSecondaryContainer,
       selectedTileColor: colorScheme.secondaryContainer,
       leading: Icon(MdiIcons.cardsPlayingSpadeOutline),
@@ -257,6 +269,86 @@ class _GameListTile extends ConsumerWidget {
       ),
       onTap: onTap,
     );
+  }
+}
+
+class _GameSelectionSearch extends ConsumerStatefulWidget {
+  const _GameSelectionSearch({
+    super.key,
+    required this.onCancel,
+  });
+
+  final VoidCallback onCancel;
+
+  @override
+  ConsumerState<_GameSelectionSearch> createState() =>
+      _GameSelectionSearchState();
+}
+
+class _GameSelectionSearchState extends ConsumerState<_GameSelectionSearch> {
+  late final _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(
+        leading: BackButton(
+          onPressed: widget.onCancel,
+        ),
+        title: TextField(
+          controller: _textController,
+          decoration: const InputDecoration(
+            hintText: 'Search games...',
+          ),
+          autofocus: true,
+          style: TextStyle(color: colorScheme.onSurface),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => setState(() => _textController.clear()),
+            icon: const Icon(Icons.close),
+          )
+        ],
+      ),
+      body: ValueListenableBuilder(
+        valueListenable: _textController,
+        builder: (context, searchQuery, child) {
+          if (searchQuery.text.isEmpty) {
+            return Container();
+          }
+
+          final matchedGame = ref
+              .read(allSolitaireGamesProvider)
+              .where((game) => game.name.containsIgnoreCase(searchQuery.text))
+              .toList();
+
+          return ListView.builder(
+            key: const PageStorageKey('search'),
+            padding: BottomPadded.getPadding(context),
+            itemCount: matchedGame.length,
+            itemBuilder: (context, index) {
+              final game = matchedGame[index];
+              return _GameListTile(
+                game: game,
+                onTap: () => _onListTap(context, ref, game),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _onListTap(BuildContext context, WidgetRef ref, SolitaireGame game) {
+    ref.read(selectedGameProvider.notifier).select(game);
+    TwoPane.of(context).pushSecondary();
   }
 }
 
