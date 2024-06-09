@@ -89,7 +89,6 @@ class FortyThieves extends SolitaireGame {
         ),
         pickable: const [NotAllowed()],
         placeable: const [NotAllowed()],
-        recycleLimit: 1,
         onStart: [
           const SetupNewDeck(count: 2),
           const FlipAllCardsFaceDown(),

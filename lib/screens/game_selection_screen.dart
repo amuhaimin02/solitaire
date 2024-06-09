@@ -312,7 +312,13 @@ class _GameSelectionSearchState extends ConsumerState<_GameSelectionSearch> {
         ),
         actions: [
           IconButton(
-            onPressed: () => setState(() => _textController.clear()),
+            onPressed: () {
+              if (_textController.text.isNotEmpty) {
+                setState(() => _textController.clear());
+              } else {
+                widget.onCancel();
+              }
+            },
             icon: const Icon(Icons.close),
           )
         ],

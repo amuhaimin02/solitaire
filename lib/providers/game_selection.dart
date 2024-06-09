@@ -2,14 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game/all.dart';
-import '../models/game/forty_thieves.dart';
-import '../models/game/freecell.dart';
-import '../models/game/golf.dart';
-import '../models/game/klondike.dart';
-import '../models/game/penguin.dart';
 import '../models/game/solitaire.dart';
-import '../models/game/spider.dart';
-import '../models/game/yukon.dart';
 import '../services/shared_preferences.dart';
 
 part 'game_selection.g.dart';

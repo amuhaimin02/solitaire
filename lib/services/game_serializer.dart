@@ -5,7 +5,6 @@ import 'package:quiver/collection.dart';
 import '../models/action.dart';
 import '../models/card.dart';
 import '../models/game/all.dart';
-import '../models/game/solitaire.dart';
 import '../models/move_record.dart';
 import '../models/pile.dart';
 import '../models/play_data.dart';

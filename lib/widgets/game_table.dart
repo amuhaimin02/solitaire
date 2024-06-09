@@ -164,17 +164,17 @@ class _GameTableState extends State<GameTable> {
       return rect;
     }
 
-    bool canRecycle(Pile pile) {
-      final recycleLimit = _allPiles.get(pile).recycleLimit;
+    bool canRecycle(Pile pile, PileProperty props) {
+      final canRecyclePile = props.canTap?.findRule<CanRecyclePile>();
+
+      final recycleLimit = canRecyclePile?.limit;
       final currentCycle = widget.currentMoveState?.recycleCounts[pile] ?? 0;
 
       return recycleLimit != null && currentCycle + 1 < recycleLimit;
     }
 
     Rank? buildRankStartingMarker(Pile pile, PileProperty props) {
-      final buildupStartsWith =
-          props.placeable.firstWhereOrNull((p) => p is BuildupStartsWith)
-              as BuildupStartsWith?;
+      final buildupStartsWith = props.placeable.findRule<BuildupStartsWith>();
 
       if (buildupStartsWith != null) {
         if (buildupStartsWith.isRelative) {
@@ -205,7 +205,7 @@ class _GameTableState extends State<GameTable> {
               child: _PileMarker(
                 pile: pile,
                 startsWith: buildRankStartingMarker(pile, props),
-                canRecycle: canRecycle(pile),
+                canRecycle: canRecycle(pile, props),
                 size: gridUnit,
               ),
             ),
@@ -380,18 +380,26 @@ class _GameTableState extends State<GameTable> {
                 size: gridUnit,
               ),
             ),
-          if (props.recycleLimit != null && props.recycleLimit != intMaxValue)
-            Positioned.fromRect(
-              rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
-                      _resolvedRegion.get(pile).top, 1, 1)
-                  .scale(gridUnit),
-              child: _PileCycleIndicator(
-                cycleCount:
-                    ((widget.currentMoveState?.recycleCounts[pile] ?? 0) + 1),
-                cycleLimit: props.recycleLimit!,
-                size: gridUnit,
-              ),
-            ),
+          () {
+            final recycleLimit =
+                props.canTap?.findRule<CanRecyclePile>()?.limit;
+
+            if (recycleLimit != null && recycleLimit != intMaxValue) {
+              return Positioned.fromRect(
+                rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
+                        _resolvedRegion.get(pile).top, 1, 1)
+                    .scale(gridUnit),
+                child: _PileCycleIndicator(
+                  cycleCount:
+                      ((widget.currentMoveState?.recycleCounts[pile] ?? 0) + 1),
+                  cycleLimit: recycleLimit,
+                  size: gridUnit,
+                ),
+              );
+            } else {
+              return const SizedBox();
+            }
+          }()
         ],
       ],
     );

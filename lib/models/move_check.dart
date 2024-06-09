@@ -91,6 +91,12 @@ class MoveCheckFail extends MoveCheckResult {
   final MoveCheck? reason;
 }
 
+extension MoveCheckListExtension on List<MoveCheck> {
+  T? findRule<T extends MoveCheck>() {
+    return firstWhereOrNull((e) => e is T) as T?;
+  }
+}
+
 class CardsAreFacingUp extends MoveCheck {
   const CardsAreFacingUp();
 

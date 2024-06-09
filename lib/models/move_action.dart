@@ -354,11 +354,17 @@ class FlipTopCardFaceUp extends MoveAction {
 }
 
 class DistributeTo<T extends Pile> extends MoveAction {
-  const DistributeTo({required this.distribution, this.afterMove});
+  const DistributeTo({
+    required this.distribution,
+    this.afterMove,
+    this.countAsMove = false,
+  });
 
   final List<int> distribution;
 
   final List<MoveAction>? afterMove;
+
+  final bool countAsMove;
 
   @override
   MoveActionResult action(MoveActionData data) {
@@ -405,7 +411,7 @@ class DistributeTo<T extends Pile> extends MoveAction {
           p: [...data.table.get(p), ...cardSlots[i].allFaceUp]
       }),
       // TODO: Change this
-      action: Deal(cardsToTake, data.pile),
+      action: countAsMove ? Deal(cardsToTake, data.pile) : null,
     );
 
     if (afterMove != null) {

@@ -1,10 +1,9 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import 'card.dart';
 import 'direction.dart';
 import 'move_action.dart';
 import 'move_check.dart';
-import 'pile.dart';
 
 class PileProperty {
   PileProperty({
@@ -16,7 +15,6 @@ class PileProperty {
     this.canTap,
     this.onTap,
     this.afterMove,
-    this.recycleLimit,
     this.virtual = false,
   });
 
@@ -35,8 +33,6 @@ class PileProperty {
   List<MoveAction>? onTap;
 
   List<MoveAction>? afterMove;
-
-  int? recycleLimit;
 
   final bool virtual;
 }

@@ -125,6 +125,7 @@ class Spider extends SolitaireGame {
         onTap: const [
           DistributeTo<Tableau>(
             distribution: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            countAsMove: true,
           ),
         ],
       ),

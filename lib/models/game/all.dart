@@ -1,3 +1,4 @@
+import 'canfield.dart';
 import 'forty_thieves.dart';
 import 'freecell.dart';
 import 'golf.dart';
@@ -19,4 +20,6 @@ const allGamesList = [
   Golf(),
   Yukon(),
   FortyThieves(),
+  Canfield(numberOfDraws: 1),
+  Canfield(numberOfDraws: 3),
 ];
