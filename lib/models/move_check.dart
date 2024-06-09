@@ -280,8 +280,9 @@ class BuildupFollowsRankOrder extends MoveCheck {
 }
 
 class BuildupOneRankNearer extends MoveCheck {
-  // TODO: Support wrapping
-  const BuildupOneRankNearer();
+  const BuildupOneRankNearer({this.wrapping = false});
+
+  final bool wrapping;
 
   @override
   String get errorMessage => 'Buildup must be one rank higher or lower';
@@ -294,7 +295,8 @@ class BuildupOneRankNearer extends MoveCheck {
       return true;
     }
 
-    return cardsOnPile.last.isOneRankNearer(data.cards.first);
+    return cardsOnPile.last
+        .isOneRankNearer(data.cards.first, wrapping: wrapping);
   }
 }
 

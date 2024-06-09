@@ -659,6 +659,7 @@ class _GameTableState extends State<GameTable> {
   void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {
     final cardsToPick = widget.table.get(originPile).getLastFromCard(card);
 
+    _touchingCards = null;
     if (widget.canDragCards?.call(cardsToPick, originPile) == true) {
       _touchingCards = cardsToPick;
     }

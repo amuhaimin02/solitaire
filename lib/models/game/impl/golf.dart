@@ -2,15 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../../action.dart';
-import '../../card.dart';
 import '../../direction.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
 import '../../pile.dart';
 import '../../pile_property.dart';
-import '../../play_table.dart';
 import '../solitaire.dart';
 
 class Golf extends SolitaireGame {
