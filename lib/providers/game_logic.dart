@@ -195,6 +195,7 @@ class GameController extends _$GameController {
     bool doMove = true,
     bool doAfterMove = true,
     bool retainMoveCount = false,
+    bool isAutoMove = false,
   }) {
     final game = ref.read(currentGameProvider);
     final moveState = ref.read(currentMoveProvider)?.state;
@@ -328,6 +329,7 @@ class GameController extends _$GameController {
         result,
         doAfterMove: doAfterMove,
         retainMoveCount: retainMoveCount,
+        isAutoMove: isAutoMove,
       );
     }
     return MoveSuccess(targetAction);
@@ -441,7 +443,12 @@ class GameController extends _$GameController {
       handled = false;
       final table = ref.read(currentTableProvider);
       for (final move in game.game.postMoveStrategy(table)) {
-        final result = tryMove(move, doAfterMove: false, retainMoveCount: true);
+        final result = tryMove(
+          move,
+          doAfterMove: false,
+          retainMoveCount: true,
+          isAutoMove: true,
+        );
         if (result is MoveSuccess) {
           handled = true;
           break;
@@ -492,6 +499,7 @@ class GameController extends _$GameController {
     MoveActionResult result, {
     bool doAfterMove = true,
     bool retainMoveCount = false,
+    bool isAutoMove = false,
   }) {
     if (result is! MoveActionHandled) {
       throw StateError('result is not handled');
@@ -521,6 +529,7 @@ class GameController extends _$GameController {
           updatedTable,
           action ?? const Idle(), // TODO: Check not null
           score: score,
+          isAutoMove: isAutoMove,
           retainMoveCount: retainMoveCount || isEmptyPileMoveTransfer,
           recycledPiles: recycledPiles,
         );

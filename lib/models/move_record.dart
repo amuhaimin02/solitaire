@@ -9,6 +9,7 @@ part 'move_record.freezed.dart';
 @freezed
 class MoveRecord with _$MoveRecord {
   factory MoveRecord({
+    required bool isAutoMove,
     required Action action,
     required MoveState state,
     required PlayTable table,

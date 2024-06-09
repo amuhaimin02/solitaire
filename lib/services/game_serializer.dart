@@ -97,12 +97,17 @@ class GameStateSerializer implements Serializer<GameState> {
 class MoveRecordListSerializer implements Serializer<List<MoveRecord>> {
   const MoveRecordListSerializer();
 
+  static const moveToken = '@';
+  static const autoMoveToken = '!';
+  static const normalMoveToken = '~';
+
   @override
   String serialize(List<MoveRecord> records) {
     final buffer = StringBuffer();
 
     for (final record in records) {
-      buffer.write('@');
+      buffer.write(moveToken);
+      buffer.write(record.isAutoMove ? autoMoveToken : normalMoveToken);
       buffer.writeln(const ActionSerializer().serialize(record.action));
       buffer.writeln(const MoveStateSerializer().serialize(record.state));
       buffer.write(const PlayTableSerializer().serialize(record.table));
@@ -113,16 +118,22 @@ class MoveRecordListSerializer implements Serializer<List<MoveRecord>> {
 
   @override
   List<MoveRecord> deserialize(String raw) {
-    final moveParts = raw.split('@');
+    final moveParts = raw.split(moveToken);
 
     // Skip first part as it will be empty from the split results
     return moveParts.skip(1).map((part) {
       final firstNewLine = part.indexOf('\n');
       final secondNewLine = part.indexOf('\n', firstNewLine + 1);
-      final actionString = part.substring(0, firstNewLine);
+      final isAutoMove = switch (part[0]) {
+        autoMoveToken => true,
+        normalMoveToken => false,
+        _ => throw ArgumentError('Invalid move token: ${part[0]}')
+      };
+      final actionString = part.substring(1, firstNewLine);
       final stateString = part.substring(firstNewLine + 1, secondNewLine);
       final playTableString = part.substring(secondNewLine + 1);
       return MoveRecord(
+        isAutoMove: isAutoMove,
         action: const ActionSerializer().deserialize(actionString),
         state: const MoveStateSerializer().deserialize(stateString),
         table: const PlayTableSerializer().deserialize(playTableString),

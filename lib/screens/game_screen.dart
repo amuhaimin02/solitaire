@@ -108,8 +108,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
   void onEnter() {
     if (ref.read(gameControllerProvider) == GameStatus.started) {
       ref.read(playTimeProvider.notifier).resume();
-      print('resuming');
     }
+    print('Game resumed');
   }
 
   @override
@@ -120,6 +120,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
     final gameData = ref.read(gameControllerProvider.notifier).suspend();
     ref.read(gameStorageProvider.notifier).quickSave(gameData);
+    print('Game saved');
   }
 
   @override

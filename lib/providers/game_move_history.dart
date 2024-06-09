@@ -60,6 +60,16 @@ MoveRecord? currentMove(CurrentMoveRef ref) {
 }
 
 @riverpod
+MoveRecord? nextMove(CurrentMoveRef ref) {
+  final list = ref.watch(moveRecordListProvider);
+  final cursor = ref.watch(moveCursorProvider);
+  if (list.isEmpty || cursor > list.length - 1) {
+    return null;
+  }
+  return list[cursor + 1];
+}
+
+@riverpod
 MoveRecord? lastMove(LastMoveRef ref) {
   final list = ref.watch(moveRecordListProvider);
   final cursor = ref.watch(moveCursorProvider);
@@ -103,12 +113,9 @@ class MoveHistory extends _$MoveHistory {
     ref.read(moveCursorProvider.notifier).reset();
     ref.read(moveRecordListProvider.notifier).set([
       MoveRecord(
+        isAutoMove: true,
         action: action,
-        state: MoveState(
-          moveNumber: 0,
-          score: 0,
-          recycleCounts: {},
-        ),
+        state: MoveState(moveNumber: 0, score: 0, recycleCounts: {}),
         table: table,
       )
     ]);
@@ -120,6 +127,7 @@ class MoveHistory extends _$MoveHistory {
     int score = 0,
     List<Pile>? recycledPiles,
     bool retainMoveCount = false,
+    bool isAutoMove = false,
   }) {
     final lastMove = ref.read(currentMoveProvider);
     final lastMoveNumber = lastMove?.state.moveNumber ?? 0;
@@ -148,6 +156,7 @@ class MoveHistory extends _$MoveHistory {
 
     // Add to the point where move cursor is
     final newRecord = MoveRecord(
+      isAutoMove: isAutoMove,
       action: action,
       state: MoveState(
         moveNumber: newMoveNumber,
@@ -177,14 +186,32 @@ class MoveHistory extends _$MoveHistory {
   void undo() {
     if (canUndo()) {
       ref.read(currentMoveTypeProvider.notifier).state = MoveType.undo;
-      ref.read(moveCursorProvider.notifier).stepBack();
+      // Skip auto moves
+      MoveRecord? move;
+      do {
+        // Note: Checking move state before actually undoing
+        move = ref.read(currentMoveProvider);
+        ref.read(moveCursorProvider.notifier).stepBack();
+      } while (move?.isAutoMove == true);
     }
   }
 
   void redo() {
     if (canRedo()) {
       ref.read(currentMoveTypeProvider.notifier).state = MoveType.redo;
-      ref.read(moveCursorProvider.notifier).shift();
+
+      final moveLength = ref.read(moveRecordListProvider).length;
+
+      // Skip auto moves
+      MoveRecord? move;
+      do {
+        // Note: Checking move state after actually redoing
+        final newCursor = ref.read(moveCursorProvider.notifier).shift();
+        if (newCursor >= moveLength - 1) {
+          break;
+        }
+        move = ref.read(nextMoveProvider);
+      } while (move?.isAutoMove == true);
     }
   }
 
