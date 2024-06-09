@@ -88,7 +88,7 @@ extension PileIteration<T extends Pile> on Iterable<T> {
             cast<Tableau>().sorted((a, b) => a.index - b.index),
           const (Reserve) =>
             cast<Reserve>().sorted((a, b) => a.index - b.index),
-          _ => throw AssertionError('Should not happen'),
+          _ => throw AssertionError(),
         };
 
         int startIndex = 0;

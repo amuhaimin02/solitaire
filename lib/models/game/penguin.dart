@@ -45,14 +45,18 @@ class Penguin extends SolitaireGame {
               landscape: Rect.fromLTWH(0, i.toDouble() + 0.25, 1, 1),
             ),
           ),
-          markerStartsWithRelativeTo: const Foundation(0),
           pickable: const [
             CardIsOnTop(),
           ],
           placeable: const [
             CardIsSingle(),
-            BuildupStartsWithRelativeTo(Foundation(0)),
-            BuildupFollowsRankOrder(RankOrder.increasing),
+            BuildupStartsWith.relativeTo([
+              Foundation(0),
+              Foundation(1),
+              Foundation(2),
+              Foundation(3),
+            ]),
+            BuildupFollowsRankOrder(RankOrder.increasing, wrapping: true),
             BuildupSameSuit(),
           ],
         ),
@@ -65,14 +69,17 @@ class Penguin extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
-          markerStartsWithRelativeTo: const Foundation(0),
-          markerStartsWithRankDifference: -1,
           pickable: const [
             CardsFollowRankOrder(RankOrder.decreasing),
             CardsAreSameSuit(),
           ],
           placeable: const [
-            BuildupStartsWithRelativeTo(Foundation(0), rankDifference: -1),
+            BuildupStartsWith.relativeTo([
+              Foundation(0),
+              Foundation(1),
+              Foundation(2),
+              Foundation(3),
+            ], rankDifference: -1),
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupSameSuit(),
           ],

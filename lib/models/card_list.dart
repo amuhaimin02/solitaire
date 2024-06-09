@@ -13,31 +13,19 @@ extension PlayCardListExtension on List<PlayCard> {
   List<PlayCard> get topmostFaceUp =>
       mapIndexed((i, c) => i == length - 1 ? c.faceUp : c).toList();
 
-  bool get isSortedByRankIncreasingOrder {
-    int? lastRank;
-    for (final card in this) {
-      // Ensure cards in hand follows their ranking order based on numbers (e.g. A > 2 > 3)
-      if (lastRank != null) {
-        if (card.rank.value != lastRank + 1) {
-          return false;
-        }
-      }
-      lastRank = card.rank.value;
+  bool isSortedByRank(RankOrder rankOrder, {bool wrapping = false}) {
+    if (length <= 1) {
+      return true;
     }
-    return true;
-  }
+    final gap = switch (rankOrder) {
+      RankOrder.increasing => 1,
+      RankOrder.decreasing => -1
+    };
 
-  bool get isSortedByRankDecreasingOrder {
-    int? lastRank;
-    for (final card in this) {
-      // Ensure cards in hand follows their ranking order based on numbers (e.g. A < 2 < 3)
-
-      if (lastRank != null) {
-        if (card.rank.value != lastRank - 1) {
-          return false;
-        }
+    for (int i = 1; i < length; i++) {
+      if (this[i].rank != this[i - 1].rank.next(wrapping: wrapping, gap: gap)) {
+        return false;
       }
-      lastRank = card.rank.value;
     }
     return true;
   }

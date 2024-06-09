@@ -17,9 +17,6 @@ class PileProperty {
     this.onTap,
     this.afterMove,
     this.recycleLimit,
-    this.markerStartsWith,
-    this.markerStartsWithRelativeTo,
-    this.markerStartsWithRankDifference = 0,
     this.virtual = false,
   });
 
@@ -40,12 +37,6 @@ class PileProperty {
   List<MoveAction>? afterMove;
 
   int? recycleLimit;
-
-  Rank? markerStartsWith;
-
-  Pile? markerStartsWithRelativeTo;
-
-  int markerStartsWithRankDifference;
 
   final bool virtual;
 }

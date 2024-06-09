@@ -66,9 +66,9 @@ class Spider extends SolitaireGame {
               landscape: i == 0, // Only show marker on first foundation
             ),
           ),
-          markerStartsWith: Rank.king,
           pickable: const [NotAllowed()],
           placeable: const [
+            BuildupStartsWith(Rank.king),
             CardsHasFullSuit(RankOrder.decreasing),
           ],
         ),

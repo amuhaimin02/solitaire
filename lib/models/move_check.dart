@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:change_case/change_case.dart';
+import 'package:collection/collection.dart';
 
 import '../utils/types.dart';
 import 'card.dart';
@@ -130,19 +131,18 @@ class CardIsOnTop extends MoveCheck {
 }
 
 class CardsFollowRankOrder extends MoveCheck {
-  const CardsFollowRankOrder(this.rankOrder);
+  const CardsFollowRankOrder(this.rankOrder, {this.wrapping = false});
 
   final RankOrder rankOrder;
+
+  final bool wrapping;
 
   @override
   String get errorMessage => 'Cards must follow rank order, ${rankOrder.name}';
 
   @override
   bool check(MoveCheckData data) {
-    return switch (rankOrder) {
-      RankOrder.increasing => data.cards.isSortedByRankIncreasingOrder,
-      RankOrder.decreasing => data.cards.isSortedByRankDecreasingOrder,
-    };
+    return data.cards.isSortedByRank(rankOrder, wrapping: wrapping);
   }
 }
 
@@ -187,59 +187,70 @@ class CardsAreAlternatingColors extends MoveCheck {
 }
 
 class BuildupStartsWith extends MoveCheck {
-  const BuildupStartsWith({required this.rank});
+  const BuildupStartsWith(Rank this.rank)
+      : referencePiles = null,
+        rankDifference = 0;
 
-  final Rank rank;
+  /// Used by Penguin and the like
+  const BuildupStartsWith.relativeTo(
+    List<Pile> this.referencePiles, {
+    this.rankDifference = 0,
+  }) : rank = null;
 
-  @override
-  String get errorMessage =>
-      'Buildup must start with ${rank.name.toCapitalCase()}';
+  final Rank? rank;
 
-  @override
-  bool check(MoveCheckData data) {
-    final cardsOnPile = data.table.get(data.pile);
+  final List<Pile>? referencePiles;
 
-    if (cardsOnPile.isNotEmpty) {
-      return true;
-    }
-
-    final firstCardInHand = data.cards.first;
-    return firstCardInHand.rank == rank;
-  }
-}
-
-/// Used by Penguin and the like
-class BuildupStartsWithRelativeTo extends MoveCheck {
-  const BuildupStartsWithRelativeTo(this.refPile, {this.rankDifference = 0});
-
-  final Pile refPile;
   final int rankDifference;
 
+  bool get isRelative => referencePiles != null;
+
   @override
-  String get errorMessage => 'Buildup must start with the indicated rank';
+  String get errorMessage {
+    if (rank != null) {
+      return 'Buildup must start with ${rank!.name.toCapitalCase()}';
+    } else {
+      // TODO: Find out how to customize a constant error message
+      return 'Buildup must start with the indicated rank';
+    }
+  }
 
   @override
   bool check(MoveCheckData data) {
+    // If cards are already filled, ignore. This check is only for unfilled pile anyway
     final cardsOnPile = data.table.get(data.pile);
-    final cardsOnRefPile = data.table.get(refPile);
-
     if (cardsOnPile.isNotEmpty) {
-      return true;
-    }
-    if (cardsOnRefPile.isEmpty) {
       return true;
     }
 
     final firstCardInHand = data.cards.first;
-    return firstCardInHand.rank ==
-        cardsOnRefPile.first.rank.next(gap: rankDifference);
+
+    if (rank != null) {
+      return firstCardInHand.rank == rank;
+    } else if (referencePiles != null) {
+      final firstRefPile = referencePiles!
+          .firstWhereOrNull((pile) => data.table.get(pile).isNotEmpty);
+
+      // All reference piles are not filled yet, accept them
+      if (firstRefPile == null) {
+        return true;
+      }
+      final cardsOnRefPile = data.table.get(firstRefPile);
+
+      return firstCardInHand.rank ==
+          cardsOnRefPile.first.rank.next(gap: rankDifference);
+    } else {
+      throw AssertionError();
+    }
   }
 }
 
 class BuildupFollowsRankOrder extends MoveCheck {
-  const BuildupFollowsRankOrder(this.rankOrder);
+  const BuildupFollowsRankOrder(this.rankOrder, {this.wrapping = false});
 
   final RankOrder rankOrder;
+
+  final bool wrapping;
 
   @override
   String get errorMessage =>
@@ -254,8 +265,10 @@ class BuildupFollowsRankOrder extends MoveCheck {
     }
 
     return switch (rankOrder) {
-      RankOrder.increasing => cardsOnPile.last.isOneRankUnder(data.cards.first),
-      RankOrder.decreasing => cardsOnPile.last.isOneRankOver(data.cards.first),
+      RankOrder.increasing =>
+        cardsOnPile.last.isOneRankUnder(data.cards.first, wrapping: wrapping),
+      RankOrder.decreasing =>
+        cardsOnPile.last.isOneRankOver(data.cards.first, wrapping: wrapping),
     };
   }
 }
@@ -432,10 +445,7 @@ class PileHasFullSuit extends MoveCheck {
     }
 
     if (rankOrder != null) {
-      return switch (rankOrder!) {
-        RankOrder.increasing => cardsOnPile.isSortedByRankIncreasingOrder,
-        RankOrder.decreasing => cardsOnPile.isSortedByRankDecreasingOrder,
-      };
+      return cardsOnPile.isSortedByRank(rankOrder!);
     }
     return true;
   }
@@ -454,11 +464,7 @@ class CardsHasFullSuit extends MoveCheck {
     if (data.cards.length != Rank.values.length) {
       return false;
     }
-
-    return switch (rankOrder) {
-      RankOrder.increasing => data.cards.isSortedByRankIncreasingOrder,
-      RankOrder.decreasing => data.cards.isSortedByRankDecreasingOrder,
-    };
+    return data.cards.isSortedByRank(rankOrder);
   }
 }
 

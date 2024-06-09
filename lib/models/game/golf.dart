@@ -44,7 +44,6 @@ class Golf extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
-          markerStartsWith: Rank.king,
           pickable: const [
             CardIsSingle(),
           ],

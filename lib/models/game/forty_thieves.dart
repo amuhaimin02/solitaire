@@ -4,10 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../utils/types.dart';
 import '../action.dart';
 import '../card.dart';
-import '../card_list.dart';
 import '../direction.dart';
 import '../move_action.dart';
 import '../move_check.dart';
@@ -49,14 +47,13 @@ class FortyThieves extends SolitaireGame {
                   (i ~/ 4).toDouble(), (i % 4).toDouble() + 0.5, 1, 1),
             ),
           ),
-          markerStartsWith: Rank.ace,
           pickable: const [
             CardIsOnTop(),
           ],
           placeable: const [
             CardIsSingle(),
             CardsAreFacingUp(),
-            BuildupStartsWith(rank: Rank.ace),
+            BuildupStartsWith(Rank.ace),
             BuildupFollowsRankOrder(RankOrder.increasing),
             BuildupSameSuit(),
           ],

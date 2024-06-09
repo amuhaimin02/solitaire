@@ -45,6 +45,8 @@ enum Rank {
   }
 
   Rank? next({bool wrapping = false, int gap = 1}) {
+    if (gap == 0) return this;
+
     int nextValue = value + gap;
 
     if (!_isRankInBounds(nextValue) && !wrapping) {
@@ -56,6 +58,8 @@ enum Rank {
   }
 
   Rank? previous({bool wrapping = false, int gap = 1}) {
+    if (gap == 0) return this;
+
     int previousValue = value - 1;
 
     if (!_isRankInBounds(previousValue) && !wrapping) {
@@ -125,15 +129,16 @@ class PlayCard {
     return suit.color == other.suit.color;
   }
 
-  bool isOneRankOver(PlayCard other) {
-    return rank == other.rank.next();
+  bool isOneRankOver(PlayCard other, {bool wrapping = false}) {
+    return rank == other.rank.next(wrapping: wrapping);
   }
 
-  bool isOneRankUnder(PlayCard other) {
-    return rank == other.rank.previous();
+  bool isOneRankUnder(PlayCard other, {bool wrapping = false}) {
+    return rank == other.rank.previous(wrapping: wrapping);
   }
 
-  bool isOneRankNearer(PlayCard other) {
-    return isOneRankOver(other) || isOneRankUnder(other);
+  bool isOneRankNearer(PlayCard other, {bool wrapping = false}) {
+    return isOneRankOver(other, wrapping: wrapping) ||
+        isOneRankUnder(other, wrapping: wrapping);
   }
 }

@@ -12,6 +12,7 @@ import '../models/card.dart';
 import '../models/card_list.dart';
 import '../models/direction.dart';
 import '../models/game/solitaire.dart';
+import '../models/move_check.dart';
 import '../models/move_record.dart';
 import '../models/pile.dart';
 import '../models/pile_property.dart';
@@ -170,20 +171,24 @@ class _GameTableState extends State<GameTable> {
       return recycleLimit != null && currentCycle + 1 < recycleLimit;
     }
 
-    Rank? computeRankStartingMarker(Pile pile, PileProperty props) {
-      if (props.markerStartsWith != null) {
-        return props.markerStartsWith;
-      } else if (props.markerStartsWithRelativeTo != null) {
-        final startingCard =
-            widget.table.get(props.markerStartsWithRelativeTo!).firstOrNull;
-        if (startingCard == null) {
-          return null;
-        }
-        if (props.markerStartsWithRankDifference != 0) {
-          return startingCard.rank
-              .next(wrapping: true, gap: props.markerStartsWithRankDifference);
+    Rank? buildRankStartingMarker(Pile pile, PileProperty props) {
+      final buildupStartsWith =
+          props.placeable.firstWhereOrNull((p) => p is BuildupStartsWith)
+              as BuildupStartsWith?;
+
+      if (buildupStartsWith != null) {
+        if (buildupStartsWith.isRelative) {
+          final refPile = buildupStartsWith.referencePiles
+              ?.firstWhereOrNull((p) => widget.table.get(p).isNotEmpty);
+          if (refPile != null) {
+            final cardsInRefPile = widget.table.get(refPile);
+            return cardsInRefPile.first.rank
+                .next(gap: buildupStartsWith.rankDifference);
+          } else {
+            return null;
+          }
         } else {
-          return startingCard.rank;
+          return buildupStartsWith.rank;
         }
       } else {
         return null;
@@ -199,7 +204,7 @@ class _GameTableState extends State<GameTable> {
               rect: computeMarkerPlacement(pile).scale(gridUnit),
               child: _PileMarker(
                 pile: pile,
-                startsWith: computeRankStartingMarker(pile, props),
+                startsWith: buildRankStartingMarker(pile, props),
                 canRecycle: canRecycle(pile),
                 size: gridUnit,
               ),

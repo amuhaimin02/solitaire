@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/types.dart';
 import '../action.dart';
 import '../card.dart';
 import '../direction.dart';
@@ -44,14 +43,13 @@ class Yukon extends SolitaireGame {
               landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
             ),
           ),
-          markerStartsWith: Rank.ace,
           pickable: const [
             CardIsOnTop(),
           ],
           placeable: const [
             CardIsSingle(),
             CardsAreFacingUp(),
-            BuildupStartsWith(rank: Rank.ace),
+            BuildupStartsWith(Rank.ace),
             BuildupFollowsRankOrder(RankOrder.increasing),
             BuildupSameSuit(),
           ],
@@ -65,13 +63,12 @@ class Yukon extends SolitaireGame {
             ),
             stackDirection: const LayoutProperty.all(Direction.down),
           ),
-          markerStartsWith: Rank.king,
           pickable: const [
             CardsAreFacingUp(),
           ],
           placeable: const [
             CardsAreFacingUp(),
-            BuildupStartsWith(rank: Rank.king),
+            BuildupStartsWith(Rank.king),
             BuildupFollowsRankOrder(RankOrder.decreasing),
             BuildupAlternatingColors(),
           ],
