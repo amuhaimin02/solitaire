@@ -32,7 +32,7 @@ class Yukon extends SolitaireGame {
   }
 
   @override
-  Map<Pile, PileProperty> get piles {
+  GameSetup get setup {
     return {
       for (int i = 0; i < 4; i++)
         Foundation(i): PileProperty(

@@ -35,7 +35,7 @@ class FortyThieves extends SolitaireGame {
   }
 
   @override
-  Map<Pile, PileProperty> get piles {
+  GameSetup get setup {
     return {
       for (int i = 0; i < 8; i++)
         Foundation(i): PileProperty(

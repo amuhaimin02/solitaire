@@ -4,6 +4,7 @@ import 'impl/freecell.dart';
 import 'impl/golf.dart';
 import 'impl/klondike.dart';
 import 'impl/penguin.dart';
+import 'impl/putt_putt.dart';
 import 'impl/spider.dart';
 import 'impl/yukon.dart';
 
@@ -18,6 +19,7 @@ const allGamesList = [
   Spider(numberOfSuits: 2),
   Spider(numberOfSuits: 4),
   Golf(),
+  PuttPutt(),
   Yukon(),
   FortyThieves(),
   Canfield(numberOfDraws: 1),

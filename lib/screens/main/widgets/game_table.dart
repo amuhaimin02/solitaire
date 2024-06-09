@@ -98,7 +98,7 @@ class _GameTableState extends State<GameTable> {
     _resolvePiles();
   }
 
-  Map<Pile, PileProperty> get _allPiles => widget.game.piles;
+  Map<Pile, PileProperty> get _allPiles => widget.game.setup;
 
   void _resolvePiles() {
     _resolvedRegion = _allPiles.map((pile, prop) =>

@@ -204,9 +204,9 @@ class GameController extends _$GameController {
     final moveState = ref.read(currentMoveProvider)?.state;
     PlayTable table = ref.read(currentTableProvider);
 
-    final originPileInfo = game.game.piles.get(move.from);
+    final originPileInfo = game.game.setup.get(move.from);
 
-    final targetPileInfo = game.game.piles.get(move.to);
+    final targetPileInfo = game.game.setup.get(move.to);
 
     final cardToMove = move.card;
     final cardsInPile = table.get(move.from);
@@ -302,7 +302,7 @@ class GameController extends _$GameController {
         );
       }
     }
-    for (final (pile, props) in game.game.piles.items) {
+    for (final (pile, props) in game.game.setup.items) {
       if (props.afterMove != null) {
         result = MoveAction.chain(
           result,
@@ -396,7 +396,7 @@ class GameController extends _$GameController {
     PlayTable table = PlayTable.fromGame(gameData.game);
     final moveState = ref.read(currentMoveProvider)?.state;
 
-    for (final (pile, props) in gameData.game.piles.items) {
+    for (final (pile, props) in gameData.game.setup.items) {
       final result = MoveAction.run(
         props.onStart,
         MoveActionData(
@@ -418,7 +418,7 @@ class GameController extends _$GameController {
     final gameData = ref.read(currentGameProvider);
     final moveState = ref.read(currentMoveProvider)?.state;
 
-    for (final (pile, props) in gameData.game.piles.items) {
+    for (final (pile, props) in gameData.game.setup.items) {
       final result = MoveAction.run(
         props.onSetup,
         MoveActionData(
@@ -565,7 +565,7 @@ class GameController extends _$GameController {
     final table = ref.read(currentTableProvider);
     final game = ref.read(currentGameProvider);
 
-    for (final (pile, props) in game.game.piles.items) {
+    for (final (pile, props) in game.game.setup.items) {
       final canOnlyMoveTop = props.pickable.findRule<CardIsOnTop>() != null;
       final canOnlyTap = props.onTap != null;
 

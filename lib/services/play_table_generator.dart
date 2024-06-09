@@ -14,7 +14,7 @@ class PlayTableGenerator {
 
     PlayTable table = PlayTable.fromGame(game);
 
-    for (final (pile, props) in game.piles.items) {
+    for (final (pile, props) in game.setup.items) {
       final result = MoveAction.run(
         props.onStart,
         MoveActionData(
@@ -27,7 +27,7 @@ class PlayTableGenerator {
         table = result.table;
       }
     }
-    for (final (pile, props) in game.piles.items) {
+    for (final (pile, props) in game.setup.items) {
       final result = MoveAction.run(
         props.onSetup,
         MoveActionData(

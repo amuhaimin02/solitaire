@@ -53,7 +53,7 @@ class PlayArea extends ConsumerWidget {
                 ScaffoldMessenger.of(context).clearSnackBars();
                 final controller = ref.read(gameControllerProvider.notifier);
 
-                final pileInfo = game.game.piles.get(pile);
+                final pileInfo = game.game.setup.get(pile);
                 if (pileInfo.onTap != null) {
                   final result = controller.tryMove(MoveIntent(pile, pile));
                   if (result is MoveForbidden) {

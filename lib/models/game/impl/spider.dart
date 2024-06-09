@@ -42,7 +42,7 @@ class Spider extends SolitaireGame {
   }
 
   @override
-  Map<Pile, PileProperty> get piles {
+  GameSetup get setup {
     final setupDeck = switch (numberOfSuits) {
       1 => const SetupNewDeck(count: 8, onlySuit: [Suit.spade]),
       2 => const SetupNewDeck(count: 4, onlySuit: [Suit.spade, Suit.heart]),
