@@ -8,7 +8,7 @@ import 'impl/putt_putt.dart';
 import 'impl/spider.dart';
 import 'impl/yukon.dart';
 
-const allGamesList = [
+final allGamesList = [
   Klondike(numberOfDraws: 1, vegasScoring: false),
   Klondike(numberOfDraws: 3, vegasScoring: false),
   Klondike(numberOfDraws: 1, vegasScoring: true),

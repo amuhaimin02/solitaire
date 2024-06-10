@@ -174,21 +174,23 @@ class _GameTableState extends State<GameTable> {
     }
 
     Rank? buildRankStartingMarker(Pile pile, PileProperty props) {
-      final buildupStartsWith = props.placeable.findRule<BuildupStartsWith>();
+      final rule = props.placeable.findRule<BuildupStartsWith>();
 
-      if (buildupStartsWith != null) {
-        if (buildupStartsWith.isRelative) {
-          final refPile = buildupStartsWith.referencePiles
+      if (rule != null) {
+        if (rule.isRelative) {
+          final refPile = rule.referencePiles
               ?.firstWhereOrNull((p) => widget.table.get(p).isNotEmpty);
           if (refPile != null) {
             final cardsInRefPile = widget.table.get(refPile);
-            return cardsInRefPile.first.rank
-                .next(gap: buildupStartsWith.rankDifference);
+            return cardsInRefPile.first.rank.next(
+              gap: rule.rankDifference,
+              wrapping: rule.wrapping,
+            );
           } else {
             return null;
           }
         } else {
-          return buildupStartsWith.rank;
+          return rule.rank;
         }
       } else {
         return null;
@@ -975,12 +977,12 @@ class _PileMarker extends StatelessWidget {
       padding: EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
       child: Container(
         decoration: BoxDecoration(
-          color: borderOnly ? null : colorScheme.onSurface.withOpacity(0.15),
+          color: borderOnly ? null : colorScheme.onSurface.withOpacity(0.12),
           borderRadius: BorderRadius.circular(
               size.shortestSide * theme.cardTheme.cornerRadius),
           border: borderOnly
               ? Border.all(
-                  color: colorScheme.onSurface.withOpacity(0.3),
+                  color: colorScheme.onSurface.withOpacity(0.24),
                   width: 2,
                 )
               : null,
@@ -988,7 +990,7 @@ class _PileMarker extends StatelessWidget {
         child: Icon(
           icon,
           size: size.shortestSide * 0.5,
-          color: colorScheme.onSurface.withOpacity(0.3),
+          color: colorScheme.onSurface.withOpacity(0.24),
         ),
       ),
     );

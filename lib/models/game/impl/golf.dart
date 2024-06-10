@@ -11,7 +11,7 @@ import '../../pile_property.dart';
 import '../solitaire.dart';
 
 class Golf extends SolitaireGame {
-  const Golf();
+  Golf();
 
   @override
   String get name => 'Golf';
@@ -31,66 +31,68 @@ class Golf extends SolitaireGame {
   }
 
   @override
-  GameSetup get setup {
-    return {
-      for (int i = 0; i < 7; i++)
-        Tableau(i): PileProperty(
-          layout: PileLayout(
-            region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 3),
-              landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 3),
+  GameSetup construct() {
+    return GameSetup(
+      setup: {
+        for (int i = 0; i < 7; i++)
+          Tableau(i): PileProperty(
+            layout: PileLayout(
+              region: LayoutProperty(
+                portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 3),
+                landscape: Rect.fromLTWH(i.toDouble(), 0, 1, 3),
+              ),
+              stackDirection: const LayoutProperty.all(Direction.down),
             ),
-            stackDirection: const LayoutProperty.all(Direction.down),
+            pickable: const [
+              CardIsSingle(),
+            ],
+            placeable: const [NotAllowed()],
+          ),
+        const Stock(0): PileProperty(
+          layout: const PileLayout(
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(3, 4.5, 1, 1),
+              landscape: Rect.fromLTWH(7.5, 2.5, 1, 1),
+            ),
+            showCount: LayoutProperty.all(true),
+          ),
+          onStart: const [
+            SetupNewDeck(count: 1),
+            FlipAllCardsFaceDown(),
+          ],
+          onSetup: const [
+            DistributeTo<Tableau>(
+              distribution: [5, 5, 5, 5, 5, 5, 5],
+              afterMove: [
+                FlipAllCardsFaceUp(),
+              ],
+            ),
+          ],
+          pickable: const [NotAllowed()],
+          placeable: const [NotAllowed()],
+          canTap: const [
+            CanRecyclePile(willTakeFrom: Waste(0), limit: 1),
+          ],
+          onTap: const [
+            DrawFromTop(to: Waste(0), count: 1),
+          ],
+        ),
+        const Waste(0): PileProperty(
+          layout: const PileLayout(
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(3, 3, 1, 1),
+              landscape: Rect.fromLTWH(3, 3, 1, 1),
+            ),
           ),
           pickable: const [
-            CardIsSingle(),
+            NotAllowed(),
           ],
-          placeable: const [NotAllowed()],
+          placeable: const [
+            BuildupOneRankNearer(),
+          ],
         ),
-      const Stock(0): PileProperty(
-        layout: const PileLayout(
-          region: LayoutProperty(
-            portrait: Rect.fromLTWH(3, 4.5, 1, 1),
-            landscape: Rect.fromLTWH(7.5, 2.5, 1, 1),
-          ),
-          showCount: LayoutProperty.all(true),
-        ),
-        onStart: const [
-          SetupNewDeck(count: 1),
-          FlipAllCardsFaceDown(),
-        ],
-        onSetup: const [
-          DistributeTo<Tableau>(
-            distribution: [5, 5, 5, 5, 5, 5, 5],
-            afterMove: [
-              FlipAllCardsFaceUp(),
-            ],
-          ),
-        ],
-        pickable: const [NotAllowed()],
-        placeable: const [NotAllowed()],
-        canTap: const [
-          CanRecyclePile(willTakeFrom: Waste(0), limit: 1),
-        ],
-        onTap: const [
-          DrawFromTop(to: Waste(0), count: 1),
-        ],
-      ),
-      const Waste(0): PileProperty(
-        layout: const PileLayout(
-          region: LayoutProperty(
-            portrait: Rect.fromLTWH(3, 3, 1, 1),
-            landscape: Rect.fromLTWH(3, 3, 1, 1),
-          ),
-        ),
-        pickable: const [
-          NotAllowed(),
-        ],
-        placeable: const [
-          BuildupOneRankNearer(),
-        ],
-      ),
-    };
+      },
+    );
   }
 
   @override

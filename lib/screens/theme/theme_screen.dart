@@ -5,7 +5,9 @@ import '../../animations.dart';
 import '../../models/game/impl/demo.dart';
 import '../../providers/themes.dart';
 import '../../services/play_table_generator.dart';
+import '../../utils/types.dart';
 import '../../widgets/bottom_padded.dart';
+import '../../widgets/ripple_background.dart';
 import '../../widgets/section_title.dart';
 import '../../widgets/solitaire_theme.dart';
 import '../../widgets/two_pane.dart';
@@ -17,15 +19,23 @@ class ThemeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Customize'),
-        scrolledUnderElevation: 0,
+    final colorScheme = Theme.of(context).colorScheme;
+    return RippleBackground(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
       ),
-      body: TwoPane(
-        primaryBuilder: (context) => _buildTablePreview(context),
-        secondaryBuilder: (context) => const _SettingsList(),
-        stackingStyleOnPortrait: StackingStyle.topDown,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Customize'),
+          scrolledUnderElevation: 0,
+        ),
+        body: TwoPane(
+          primaryBuilder: (context) => _buildTablePreview(context),
+          secondaryBuilder: (context) => const _SettingsList(),
+          stackingStyleOnPortrait: StackingStyle.topDown,
+          primaryRatioOnPortrait: 0.4,
+        ),
       ),
     );
   }

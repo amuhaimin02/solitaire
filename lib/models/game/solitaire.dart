@@ -7,10 +7,12 @@ import '../move_event.dart';
 import '../pile.dart';
 import '../pile_property.dart';
 
-typedef GameSetup = Map<Pile, PileProperty>;
-
 abstract class SolitaireGame {
-  const SolitaireGame();
+  SolitaireGame() {
+    _setup = construct();
+  }
+
+  late final GameSetup _setup;
 
   String get name;
 
@@ -20,7 +22,7 @@ abstract class SolitaireGame {
 
   LayoutProperty<Size> get tableSize;
 
-  GameSetup get setup;
+  GameSetup construct();
 
   List<MoveCheck> get objectives;
 
@@ -38,13 +40,23 @@ abstract class SolitaireGame {
 
   @override
   String toString() => name;
+
+  GameSetupMap get setup => _setup.setup;
 }
 
-extension GameSetupExtension on GameSetup {
+class GameSetup {
+  const GameSetup({required this.setup});
+
+  final GameSetupMap setup;
+
   GameSetup adjust(Pile pile, PileProperty Function(PileProperty) changeProp) {
-    return {
-      ...this,
-      pile: changeProp(get(pile)),
-    };
+    return GameSetup(
+      setup: {
+        ...setup,
+        pile: changeProp(setup.get(pile)),
+      },
+    );
   }
 }
+
+typedef GameSetupMap = Map<Pile, PileProperty>;

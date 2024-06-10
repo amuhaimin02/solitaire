@@ -4,6 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../providers/settings.dart';
 import '../../widgets/bottom_padded.dart';
+import '../../widgets/info_tile.dart';
 import '../../widgets/section_title.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -29,6 +30,23 @@ class SettingsScreen extends ConsumerWidget {
                 value: ref.watch(settingsShowStatusBarProvider),
                 onChanged: (value) {
                   ref.read(settingsShowStatusBarProvider.notifier).toggle();
+                },
+              ),
+              const SectionTitle('Feedback'),
+              SwitchListTile(
+                title: const Text('Sounds'),
+                secondary: const Icon(Icons.volume_up),
+                value: ref.watch(settingsEnableSoundsProvider),
+                onChanged: (value) {
+                  ref.read(settingsEnableSoundsProvider.notifier).toggle();
+                },
+              ),
+              SwitchListTile(
+                title: const Text('Vibrations'),
+                secondary: const Icon(Icons.vibration),
+                value: ref.watch(settingsEnableVibrationProvider),
+                onChanged: (value) {
+                  ref.read(settingsEnableVibrationProvider.notifier).toggle();
                 },
               ),
               const SectionTitle('Appearance'),
@@ -69,7 +87,10 @@ class SettingsScreen extends ConsumerWidget {
                   ref.read(settingsShowPlayTimeProvider.notifier).toggle();
                 },
               ),
-              const SectionTitle('Behavior'),
+              const InfoTile(
+                message: Text('Scores, moves and time will still be recorded.'),
+              ),
+              const SectionTitle('Controls & assistance'),
               SwitchListTile(
                 title: const Text('One tap move'),
                 secondary: Icon(MdiIcons.gestureTap),
@@ -102,22 +123,8 @@ class SettingsScreen extends ConsumerWidget {
                       .toggle();
                 },
               ),
-              const SectionTitle('Feedback'),
-              SwitchListTile(
-                title: const Text('Sounds'),
-                secondary: const Icon(Icons.volume_up),
-                value: ref.watch(settingsEnableSoundsProvider),
-                onChanged: (value) {
-                  ref.read(settingsEnableSoundsProvider.notifier).toggle();
-                },
-              ),
-              SwitchListTile(
-                title: const Text('Vibrations'),
-                secondary: const Icon(Icons.vibration),
-                value: ref.watch(settingsEnableVibrationProvider),
-                onChanged: (value) {
-                  ref.read(settingsEnableVibrationProvider.notifier).toggle();
-                },
+              const InfoTile(
+                message: Text('Not all games support these assistance.'),
               ),
             ],
           ),

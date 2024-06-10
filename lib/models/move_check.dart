@@ -195,12 +195,14 @@ class CardsAreAlternatingColors extends MoveCheck {
 class BuildupStartsWith extends MoveCheck {
   const BuildupStartsWith(Rank this.rank)
       : referencePiles = null,
-        rankDifference = 0;
+        rankDifference = 0,
+        wrapping = false;
 
   /// Used by Penguin and the like
   const BuildupStartsWith.relativeTo(
     List<Pile> this.referencePiles, {
     this.rankDifference = 0,
+    this.wrapping = false,
   }) : rank = null;
 
   final Rank? rank;
@@ -208,6 +210,8 @@ class BuildupStartsWith extends MoveCheck {
   final List<Pile>? referencePiles;
 
   final int rankDifference;
+
+  final bool wrapping;
 
   bool get isRelative => referencePiles != null;
 
@@ -244,7 +248,8 @@ class BuildupStartsWith extends MoveCheck {
       final cardsOnRefPile = data.table.get(firstRefPile);
 
       return firstCardInHand.rank ==
-          cardsOnRefPile.first.rank.next(gap: rankDifference);
+          cardsOnRefPile.first.rank
+              .next(gap: rankDifference, wrapping: wrapping);
     } else {
       throw AssertionError();
     }
@@ -357,6 +362,19 @@ class PileIsNotEmpty extends MoveCheck {
   @override
   bool check(MoveCheckData data) {
     return data.table.get(data.pile).isNotEmpty;
+  }
+}
+
+class PileIsNotSingle extends MoveCheck {
+  const PileIsNotSingle();
+
+  @override
+  String get errorMessage => 'Cards on pile must not be single';
+
+  @override
+  bool check(MoveCheckData data) {
+    print('checking $data');
+    return data.table.get(data.pile).length != 1;
   }
 }
 

@@ -4,7 +4,7 @@ import '../solitaire.dart';
 import 'golf.dart';
 
 class PuttPutt extends Golf {
-  const PuttPutt();
+  PuttPutt();
 
   @override
   String get name => 'Putt Putt';
@@ -16,12 +16,14 @@ class PuttPutt extends Golf {
   String get tag => 'putt-putt';
 
   @override
-  GameSetup get setup {
-    return super.setup.adjust(
-          const Waste(0),
-          (props) => props.copyWith(
-            placeable: const [BuildupOneRankNearer(wrapping: true)],
-          ),
-        );
+  GameSetup construct() {
+    final setup = super.construct();
+
+    return setup.adjust(
+      const Waste(0),
+      (props) => props.copyWith(
+        placeable: const [BuildupOneRankNearer(wrapping: true)],
+      ),
+    );
   }
 }

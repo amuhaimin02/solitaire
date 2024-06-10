@@ -122,7 +122,9 @@ class GameController extends _$GameController {
     // Start distribute cards according to game
     final setupTable = _setupCards(initialTable);
     state = GameStatus.preparing;
-    ref.read(moveHistoryProvider.notifier).add(setupTable, const GameStart());
+    ref
+        .read(moveHistoryProvider.notifier)
+        .add(setupTable, const GameStart(), isAutoMove: true);
 
     // TODO: Time delayed is just an estimate
     await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
@@ -197,7 +199,6 @@ class GameController extends _$GameController {
     MoveIntent move, {
     bool doMove = true,
     bool doAfterMove = true,
-    bool retainMoveCount = false,
     bool isAutoMove = false,
   }) {
     final game = ref.read(currentGameProvider);
@@ -331,7 +332,6 @@ class GameController extends _$GameController {
       _doMoveCards(
         result,
         doAfterMove: doAfterMove,
-        retainMoveCount: retainMoveCount,
         isAutoMove: isAutoMove,
       );
     }
@@ -450,7 +450,6 @@ class GameController extends _$GameController {
         final result = tryMove(
           move,
           doAfterMove: false,
-          retainMoveCount: true,
           isAutoMove: true,
         );
         if (result is MoveSuccess) {
@@ -502,7 +501,6 @@ class GameController extends _$GameController {
   void _doMoveCards(
     MoveActionResult result, {
     bool doAfterMove = true,
-    bool retainMoveCount = false,
     bool isAutoMove = false,
   }) {
     if (result is! MoveActionHandled) {
@@ -534,7 +532,7 @@ class GameController extends _$GameController {
           action ?? const Idle(), // TODO: Check not null
           score: score,
           isAutoMove: isAutoMove,
-          retainMoveCount: retainMoveCount || isEmptyPileMoveTransfer,
+          skipMoveCount: isEmptyPileMoveTransfer,
           recycledPiles: recycledPiles,
         );
 

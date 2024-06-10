@@ -5,6 +5,12 @@ import 'package:intl/intl.dart';
 
 const intMaxValue = 9007199254740991;
 
+extension NumExtension on num {
+  bool isInRange(int start, int end) {
+    return this >= start && this <= end;
+  }
+}
+
 extension StringExtension on String {
   bool containsIgnoreCase(String substring) {
     return toLowerCase().contains(substring.toLowerCase());

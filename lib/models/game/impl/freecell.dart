@@ -14,7 +14,7 @@ import '../../rank_order.dart';
 import '../solitaire.dart';
 
 class FreeCell extends SolitaireGame {
-  const FreeCell();
+  FreeCell();
 
   @override
   String get name => 'FreeCell';
@@ -34,96 +34,98 @@ class FreeCell extends SolitaireGame {
   }
 
   @override
-  GameSetup get setup {
-    return {
-      for (int i = 0; i < 4; i++)
-        Foundation(i): PileProperty(
-          layout: PileLayout(
-            region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+  GameSetup construct() {
+    return GameSetup(
+      setup: {
+        for (int i = 0; i < 4; i++)
+          Foundation(i): PileProperty(
+            layout: PileLayout(
+              region: LayoutProperty(
+                portrait: Rect.fromLTWH(i.toDouble(), 0, 1, 1),
+                landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
+              ),
             ),
-          ),
-          pickable: const [
-            CardIsOnTop(),
-          ],
-          placeable: const [
-            CardIsSingle(),
-            BuildupStartsWith(Rank.ace),
-            BuildupFollowsRankOrder(RankOrder.increasing),
-            BuildupSameSuit(),
-          ],
-        ),
-      for (int i = 0; i < 8; i++)
-        Tableau(i): PileProperty(
-          layout: PileLayout(
-            region: LayoutProperty(
-              portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-              landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
-            ),
-            stackDirection: const LayoutProperty.all(Direction.down),
-          ),
-          pickable: const [
-            CardsFollowRankOrder(RankOrder.decreasing),
-            CardsAreAlternatingColors(),
-          ],
-          placeable: const [
-            BuildupFollowsRankOrder(RankOrder.decreasing),
-            BuildupAlternatingColors(),
-            FreeCellPowermove(),
-          ],
-          afterMove: const [
-            If(
-              condition: [PileTopCardIsFacingDown()],
-              ifTrue: [
-                FlipTopCardFaceUp(),
-                EmitEvent(TableauReveal()),
-              ],
-            )
-          ],
-        ),
-      for (int i = 0; i < 4; i++)
-        Reserve(i): PileProperty(
-          layout: PileLayout(
-            region: LayoutProperty(
-              portrait: Rect.fromLTWH(4 + i.toDouble(), 0, 1, 1),
-              landscape: Rect.fromLTWH(10, i.toDouble(), 1, 1),
-            ),
-          ),
-          pickable: const [
-            CardIsSingle(),
-            CardIsOnTop(),
-          ],
-          placeable: const [
-            CardIsSingle(),
-            CardsAreFacingUp(),
-            PileIsEmpty(),
-          ],
-        ),
-      const Stock(0): PileProperty(
-        layout: const PileLayout(
-          region: LayoutProperty(
-            portrait: Rect.fromLTWH(0, 0, 1, 1),
-            landscape: Rect.fromLTWH(10, 0, 1, 1),
-          ),
-        ),
-        virtual: true,
-        onStart: const [
-          SetupNewDeck(count: 1),
-          FlipAllCardsFaceDown(),
-        ],
-        onSetup: const [
-          DistributeTo<Tableau>(
-            distribution: [7, 7, 7, 7, 6, 6, 6, 6],
-            afterMove: [
-              FlipAllCardsFaceUp(),
+            pickable: const [
+              CardIsOnTop(),
+            ],
+            placeable: const [
+              CardIsSingle(),
+              BuildupStartsWith(Rank.ace),
+              BuildupFollowsRankOrder(RankOrder.increasing),
+              BuildupSameSuit(),
             ],
           ),
-        ],
-        pickable: const [NotAllowed()],
-        placeable: const [NotAllowed()],
-      ),
-    };
+        for (int i = 0; i < 8; i++)
+          Tableau(i): PileProperty(
+            layout: PileLayout(
+              region: LayoutProperty(
+                portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
+                landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+              ),
+              stackDirection: const LayoutProperty.all(Direction.down),
+            ),
+            pickable: const [
+              CardsFollowRankOrder(RankOrder.decreasing),
+              CardsAreAlternatingColors(),
+            ],
+            placeable: const [
+              BuildupFollowsRankOrder(RankOrder.decreasing),
+              BuildupAlternatingColors(),
+              FreeCellPowermove(),
+            ],
+            afterMove: const [
+              If(
+                condition: [PileTopCardIsFacingDown()],
+                ifTrue: [
+                  FlipTopCardFaceUp(),
+                  EmitEvent(TableauReveal()),
+                ],
+              )
+            ],
+          ),
+        for (int i = 0; i < 4; i++)
+          Reserve(i): PileProperty(
+            layout: PileLayout(
+              region: LayoutProperty(
+                portrait: Rect.fromLTWH(4 + i.toDouble(), 0, 1, 1),
+                landscape: Rect.fromLTWH(10, i.toDouble(), 1, 1),
+              ),
+            ),
+            pickable: const [
+              CardIsSingle(),
+              CardIsOnTop(),
+            ],
+            placeable: const [
+              CardIsSingle(),
+              CardsAreFacingUp(),
+              PileIsEmpty(),
+            ],
+          ),
+        const Stock(0): PileProperty(
+          layout: const PileLayout(
+            region: LayoutProperty(
+              portrait: Rect.fromLTWH(0, 0, 1, 1),
+              landscape: Rect.fromLTWH(10, 0, 1, 1),
+            ),
+          ),
+          virtual: true,
+          onStart: const [
+            SetupNewDeck(count: 1),
+            FlipAllCardsFaceDown(),
+          ],
+          onSetup: const [
+            DistributeTo<Tableau>(
+              distribution: [7, 7, 7, 7, 6, 6, 6, 6],
+              afterMove: [
+                FlipAllCardsFaceUp(),
+              ],
+            ),
+          ],
+          pickable: const [NotAllowed()],
+          placeable: const [NotAllowed()],
+        ),
+      },
+    );
   }
 
   @override

@@ -126,8 +126,8 @@ class MoveHistory extends _$MoveHistory {
     Action action, {
     int score = 0,
     List<Pile>? recycledPiles,
-    bool retainMoveCount = false,
     bool isAutoMove = false,
+    bool skipMoveCount = false,
   }) {
     final lastMove = ref.read(currentMoveProvider);
     final lastMoveNumber = lastMove?.state.moveNumber ?? 0;
@@ -136,10 +136,10 @@ class MoveHistory extends _$MoveHistory {
 
     final int newMoveNumber;
 
-    if (action.countAsMove && !retainMoveCount) {
-      newMoveNumber = lastMoveNumber + 1;
-    } else {
+    if (isAutoMove || skipMoveCount) {
       newMoveNumber = lastMoveNumber;
+    } else {
+      newMoveNumber = lastMoveNumber + 1;
     }
 
     final Map<Pile, int> newRecycleCounts;

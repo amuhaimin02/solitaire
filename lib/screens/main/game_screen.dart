@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../animations.dart';
 import '../../models/game/solitaire.dart';
 import '../../models/game_status.dart';
+import '../../models/play_data.dart';
 import '../../providers/feedback.dart';
 import '../../providers/game_logic.dart';
 import '../../providers/game_selection.dart';
@@ -17,7 +18,8 @@ import '../../widgets/bottom_padded.dart';
 import '../../widgets/ripple_background.dart';
 import '../../widgets/screen_visibility.dart';
 import '../../widgets/solitaire_theme.dart';
-import '../../widgets/status_pane.dart';
+import '../game_select/widgets/continue_failed_dialog.dart';
+import 'widgets/status_pane.dart';
 import 'widgets/control_pane.dart';
 import 'widgets/finish_dialog.dart';
 import 'widgets/game_menu.dart';
@@ -37,16 +39,18 @@ class _GameScreenState extends ConsumerState<GameScreen>
   @override
   void initState() {
     super.initState();
-    _startGame();
+    _tryContinueGame();
   }
 
-  void _startGame() {
+  void _tryContinueGame() {
     Future.microtask(() async {
-      bool isContinueGame;
-      SolitaireGame startedGame;
+      final allGames = ref.read(allSolitaireGamesProvider);
+
+      SolitaireGame? lastPlayedGame;
 
       try {
-        final allGames = ref.read(allSolitaireGamesProvider);
+        bool isContinueGame;
+        SolitaireGame startedGame;
 
         final continuableGames =
             await ref.read(continuableGamesProvider.future);
@@ -55,7 +59,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
         await ref.read(sharedPreferenceProvider.future);
         final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
 
-        final lastPlayedGame =
+        lastPlayedGame =
             allGames.firstWhereOrNull((game) => game.tag == lastPlayedGameTag);
 
         if (lastPlayedGame != null) {
@@ -65,36 +69,55 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 .read(gameStorageProvider.notifier)
                 .restoreQuickSave(lastPlayedGame);
 
-            ref.read(gameControllerProvider.notifier).restore(gameData);
-            isContinueGame = true;
-            startedGame = gameData.metadata.game;
+            _startExistingGame(gameData);
           } else {
-            ref.read(gameControllerProvider.notifier).startNew(lastPlayedGame);
-            isContinueGame = false;
-            startedGame = lastPlayedGame;
+            _startNewGame(lastPlayedGame);
           }
         } else {
-          ref.read(gameControllerProvider.notifier).startNew(allGames.first);
-          isContinueGame = false;
-          startedGame = allGames.first;
+          _startNewGame(allGames.first);
         }
-        // Wait for animation to end, also for context to be initialized with theme
-        Future.delayed(
-          themeChangeAnimation.duration,
-          () {
-            if (mounted) {
-              _showStartingSnackBar(context, startedGame, isContinueGame);
-            }
-          },
-        );
-      } finally {
-        Future.delayed(themeChangeAnimation.duration * 0.5, () {
+        Future.delayed(themeChangeAnimation.duration ~/ 2, () {
           setState(() {
             _isStarted = true;
           });
         });
+      } catch (error) {
+        setState(() {
+          _isStarted = true;
+        });
+        if (!mounted) return;
+        final response = await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => ContinueFailedDialog(error: error),
+        );
+        if (response == true) {
+          _startNewGame(lastPlayedGame ?? allGames.first);
+        } else {
+          if (!mounted) return;
+          context.go('/select');
+        }
       }
     });
+  }
+
+  void _startExistingGame(GameData gameData) {
+    ref.read(gameControllerProvider.notifier).restore(gameData);
+
+    Future.delayed(
+      themeChangeAnimation.duration,
+      () => _showStartingSnackBar(context, gameData.metadata.game,
+          isContinueGame: true),
+    );
+  }
+
+  void _startNewGame(SolitaireGame game) {
+    ref.read(gameControllerProvider.notifier).startNew(game);
+
+    Future.delayed(
+      themeChangeAnimation.duration,
+      () => _showStartingSnackBar(context, game, isContinueGame: false),
+    );
   }
 
   @override
@@ -273,16 +296,18 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  void _showStartingSnackBar(
-      BuildContext context, SolitaireGame game, bool continueGame) {
+  void _showStartingSnackBar(BuildContext context, SolitaireGame game,
+      {required bool isContinueGame}) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          continueGame
+          isContinueGame
               ? const Text('Continuing last game')
               : const Text('Starting game'),
           Text(
@@ -302,6 +327,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   Future<void> _showFinishDialog(BuildContext context) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!context.mounted) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,

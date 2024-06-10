@@ -4,7 +4,9 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_storage.dart';
+import '../../../widgets/fixes.dart';
 import '../../../widgets/popup_button.dart';
+import 'import_failed_dialog.dart';
 
 class GameSelectionActions extends ConsumerWidget {
   const GameSelectionActions({super.key});
@@ -36,10 +38,11 @@ class GameSelectionActions extends ConsumerWidget {
                 if (context.mounted) {
                   Navigator.pop(context);
                 }
-              } catch (e) {
+              } catch (error) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failure importing games.\n$e')),
+                  showDialog(
+                    context: context,
+                    builder: (context) => ImportFailedDialog(error: error),
                   );
                 }
               }

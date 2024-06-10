@@ -71,6 +71,14 @@ class GameMenuButton extends StatelessWidget {
               context.go('/select');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.local_library),
+            title: const Text('How to play'),
+            onTap: () {
+              dismiss();
+              context.go('/select');
+            },
+          ),
           const Divider(),
           for (final option in allOptions)
             ListTile(

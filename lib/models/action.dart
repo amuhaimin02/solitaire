@@ -4,8 +4,6 @@ import 'pile.dart';
 sealed class Action {
   const Action();
 
-  bool get countAsMove => false;
-
   Move? get move;
 }
 
@@ -37,9 +35,6 @@ class Move extends Action {
   const Move(this.cards, this.from, this.to);
 
   @override
-  bool get countAsMove => true;
-
-  @override
   String toString() => 'Move($cards, $from => $to)';
 
   @override
@@ -51,9 +46,6 @@ class Deal extends Action {
   final Pile pile;
 
   const Deal(this.cards, this.pile);
-
-  @override
-  bool get countAsMove => true;
 
   @override
   String toString() => 'Deal($cards, $pile)';

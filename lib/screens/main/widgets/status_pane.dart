@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-import '../providers/game_logic.dart';
-import '../providers/game_move_history.dart';
-import '../providers/settings.dart';
-import '../utils/types.dart';
-import '../utils/widgets.dart';
+import '../../../providers/game_logic.dart';
+import '../../../providers/game_move_history.dart';
+import '../../../providers/settings.dart';
+import '../../../utils/types.dart';
+import '../../../utils/widgets.dart';
 
 class StatusPane extends ConsumerWidget {
   const StatusPane({super.key, required this.orientation});
@@ -83,7 +83,7 @@ class ScoreLabel extends ConsumerWidget {
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
-        '$score',
+        '${score ?? 0}',
         style: textTheme.displayMedium!.copyWith(color: colorScheme.onSurface),
         textAlign: TextAlign.center,
       ),
@@ -103,7 +103,7 @@ class MoveLabel extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$moves'),
+          Text('${moves ?? 0}'),
           const SizedBox(width: 8),
           Icon(MdiIcons.cards,
               size: 18, color: DefaultTextStyle.of(context).style.color),
