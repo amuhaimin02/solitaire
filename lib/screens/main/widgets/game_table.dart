@@ -24,6 +24,10 @@ import '../../../widgets/solitaire_theme.dart';
 import '../../../widgets/ticking_number.dart';
 import 'card_view.dart';
 
+// Relation of touch points to position of the card.
+// (0.5, 0.5) indicates touch point at card center
+const cardTouchOffset = Offset(0.5, 0.8);
+
 class GameTable extends StatefulWidget {
   const GameTable({
     super.key,
@@ -80,9 +84,12 @@ class _GameTableState extends State<GameTable> {
   List<PlayCard>? _touchingCards;
   Pile? _touchingPile;
 
-  Offset? _lastTouchPoint;
-
   Timer? _touchDragTimer, _shakeCardTimer;
+
+  bool _isDragging = false;
+  bool _isDropping = false;
+
+  Offset? _dropTouchPoint;
 
   late Map<Pile, Rect> _resolvedRegion;
 
@@ -135,6 +142,7 @@ class _GameTableState extends State<GameTable> {
                 _buildMarkerLayer(context, gridUnit),
                 _buildCardLayer(context, gridUnit),
                 _buildOverlayLayer(context, gridUnit),
+                _buildCardDragOverlay(context, gridUnit),
                 if (debugHighlightPileRegion)
                   _buildDebugLayer(context, gridUnit),
               ],
@@ -204,11 +212,18 @@ class _GameTableState extends State<GameTable> {
               props.layout.showMarker?.resolve(widget.orientation) != false)
             Positioned.fromRect(
               rect: computeMarkerPlacement(pile).scale(gridUnit),
-              child: _PileMarker(
-                pile: pile,
-                startsWith: buildRankStartingMarker(pile, props),
-                canRecycle: canRecycle(pile, props),
-                size: gridUnit,
+              child: GestureDetector(
+                onTap: () {
+                  if (widget.table.get(pile).isEmpty) {
+                    _onCardTap(context, null, pile);
+                  }
+                },
+                child: _PileMarker(
+                  pile: pile,
+                  startsWith: buildRankStartingMarker(pile, props),
+                  canRecycle: canRecycle(pile, props),
+                  size: gridUnit,
+                ),
               ),
             ),
       ],
@@ -251,75 +266,6 @@ class _GameTableState extends State<GameTable> {
   }
 
   Widget _buildCardLayer(BuildContext context, Size gridUnit) {
-    void onPointerCancel() {
-      // Reset touch point, indicating that cards are no longer held
-      setState(() {
-        _lastTouchPoint = null;
-      });
-      // However, wait for animation to finish before we remove references to touched cards list.
-      // Using a timer to it is possible to cancel is a touch event comes again when waiting for the above.
-      _touchDragTimer = Timer(cardMoveAnimation.duration * timeDilation, () {
-        if (mounted) {
-          setState(() {
-            _touchingCards = null;
-            _touchingPile = null;
-          });
-        }
-      });
-    }
-
-    void onPointerDown(PointerDownEvent event) {
-      _touchDragTimer?.cancel();
-
-      final point = _convertToGrid(event.localPosition, gridUnit);
-
-      // Find pile belonging to the region, also ignore virtual ones
-      final touchPile = _allPiles.keys.firstWhereOrNull(
-        (pile) =>
-            !_allPiles.get(pile).virtual &&
-            _resolvedRegion.get(pile).contains(point),
-      );
-
-      _touchingPile = touchPile;
-    }
-
-    void onPointerUp(PointerUpEvent event) {
-      final point = _convertToGrid(event.localPosition, gridUnit);
-
-      // Find pile belonging to the region, also ignore virtual ones
-      final dropPile = _allPiles.keys.firstWhereOrNull(
-        (pile) =>
-            !_allPiles.get(pile).virtual &&
-            _resolvedRegion.get(pile).contains(point),
-      );
-
-      if (dropPile != null) {
-        if (_touchingCards != null &&
-            _touchingPile != null &&
-            _touchingPile != dropPile) {
-          _onCardDrop(context, _touchingCards!.first, _touchingPile!, dropPile);
-        } else {
-          // Trigger touch for z-stack cards (if no cards in pile, also  trigger with null value)
-          if (_touchingPile == dropPile) {
-            final cardsOnPile = widget.table.get(dropPile);
-            if (cardsOnPile.isEmpty) {
-              _onCardTap(context, null, dropPile);
-            }
-          }
-        }
-      }
-
-      onPointerCancel();
-    }
-
-    void onPointerMove(PointerMoveEvent event) {
-      if (_touchingCards != null) {
-        setState(() {
-          _lastTouchPoint = event.localPosition;
-        });
-      }
-    }
-
     List<Widget> sortCardWidgets(Iterable<Widget> cardWidgets) {
       final recentlyMovedWidgets = <Widget>[];
       final touchedWidgets = <Widget>[];
@@ -336,7 +282,9 @@ class _GameTableState extends State<GameTable> {
         final card = key.value;
 
         if (_touchingCards?.contains(card) == true) {
-          touchedWidgets.add(w);
+          if (!_isDragging) {
+            touchedWidgets.add(w);
+          }
         } else if (widget.lastMovedCards?.contains(card) == true) {
           recentlyMovedWidgets.add(w);
         } else {
@@ -347,23 +295,16 @@ class _GameTableState extends State<GameTable> {
       return [...remainingWidgets, ...recentlyMovedWidgets, ...touchedWidgets];
     }
 
-    return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: onPointerDown,
-      onPointerUp: onPointerUp,
-      onPointerMove: onPointerMove,
-      onPointerCancel: (_) => onPointerCancel(),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          ...sortCardWidgets(
-            [
-              for (final pile in _allPiles.keys)
-                ..._buildPile(context, gridUnit, pile),
-            ],
-          ),
-        ],
-      ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ...sortCardWidgets(
+          [
+            for (final pile in _allPiles.keys)
+              ..._buildPile(context, gridUnit, pile),
+          ],
+        ),
+      ],
     );
   }
 
@@ -407,6 +348,59 @@ class _GameTableState extends State<GameTable> {
     );
   }
 
+  Widget _buildCardDragOverlay(BuildContext context, Size gridUnit) {
+    return _CardDragOverlay(
+      gridUnit: gridUnit,
+      draggedCards: _touchingCards,
+      onDrag: (touchPoint) {
+        _touchDragTimer?.cancel();
+
+        setState(() {
+          _isDragging = true;
+        });
+      },
+      onDrop: (touchPoint) {
+        setState(() {
+          _isDragging = false;
+          _isDropping = true;
+          _dropTouchPoint = touchPoint;
+        });
+        final point = _convertToGrid(touchPoint, gridUnit);
+
+        // Find pile belonging to the region, also ignore virtual ones
+        final dropPile = _allPiles.keys.firstWhereOrNull(
+          (pile) =>
+              !_allPiles.get(pile).virtual &&
+              _resolvedRegion.get(pile).contains(point),
+        );
+
+        if (dropPile != null) {
+          if (_touchingCards != null &&
+              _touchingPile != null &&
+              _touchingPile != dropPile) {
+            _onCardDrop(
+                context, _touchingCards!.first, _touchingPile!, dropPile);
+          }
+        }
+
+        // Wait for previous setState to finish
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _isDropping = false;
+          });
+
+          // Wait for animation to finish, this ensures cards returning to original place are still rendered on top
+          _touchDragTimer =
+              Timer(cardMoveAnimation.duration * 1.5 * timeDilation, () {
+            setState(() {
+              _touchingCards = null;
+            });
+          });
+        });
+      },
+    );
+  }
+
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
     final theme = SolitaireTheme.of(context);
 
@@ -416,19 +410,18 @@ class _GameTableState extends State<GameTable> {
         layout.stackDirection?.resolve(widget.orientation) ?? Direction.none;
 
     Rect computePosition(PlayCard card, Rect originalPosition) {
-      if (_touchingCards != null &&
-          _touchingCards!.contains(card) &&
-          _lastTouchPoint != null) {
-        final newRect = (_lastTouchPoint! & gridUnit);
-        final index = _touchingCards!.indexOf(card);
-        return newRect.translate(
-          -(gridUnit.width * 0.5),
-          -(gridUnit.height * 0.75 -
-              index * (gridUnit.height * theme.cardTheme.stackGap.dy * 0.9)),
-        );
-      } else {
-        return originalPosition.scale(gridUnit);
+      if (_isDropping && _touchingCards != null) {
+        final dropCardIndex = _touchingCards!.indexOf(card);
+        if (dropCardIndex >= 0) {
+          return (const Rect.fromLTWH(0, 0, 1, 1)
+                  .translate(0, dropCardIndex * 0.3)
+                  .translate(-cardTouchOffset.dx, -cardTouchOffset.dy))
+              .scale(gridUnit)
+              .translate(_dropTouchPoint!.dx, _dropTouchPoint!.dy);
+        }
       }
+      return originalPosition.scale(gridUnit);
+      // }
     }
 
     List<PlayCard> cards = [];
@@ -438,8 +431,6 @@ class _GameTableState extends State<GameTable> {
     DurationCurve computeAnimation(int cardIndex) {
       if (!widget.animateMovement) {
         return DurationCurve.zero;
-      } else if (_lastTouchPoint != null) {
-        return cardDragAnimation;
       } else if (widget.animateDistribute &&
           (pile is Tableau || pile is Reserve)) {
         final delayFactor = cardMoveAnimation.duration * 0.25;
@@ -475,16 +466,14 @@ class _GameTableState extends State<GameTable> {
                 child: _CardWidget(
                   cardSize: gridUnit,
                   shake: _shakingCards?.contains(card) == true,
-                  isMoving: _lastTouchPoint != null &&
-                      _touchingCards?.contains(card) == true,
                   onTouch: () => _onCardTouch(context, card, pile),
                   onTap: () => _onCardTap(context, card, pile),
                   card: card,
-                  layout: layout,
                   stackDirection: stackDirection,
-                  orientation: widget.orientation,
-                  cardsInPile: widget.table.get(pile),
+                  isFirstCard: i == 0,
+                  isLastCard: i == cards.length - 1,
                   highlightColor: highlightCardColor(card),
+                  hasShadow: i < 3, // Bottom 3 card will have shadow
                 ),
               ),
         ];
@@ -523,22 +512,23 @@ class _GameTableState extends State<GameTable> {
                 card,
                 Rect.fromLTWH(region.left, region.top, 1, 1)
                     .shift(stackAnchor)
-                    // .shift(computeStackGap(i, cards.length, stackDirection)),
                     .shift(stackGapPositions[i]),
               ),
               child: _CardWidget(
                 cardSize: gridUnit,
                 shake: _shakingCards?.contains(card) == true,
-                isMoving: _lastTouchPoint != null &&
-                    _touchingCards?.contains(card) == true,
                 onTouch: () => _onCardTouch(context, card, pile),
                 onTap: () => _onCardTap(context, card, pile),
                 card: card,
-                layout: layout,
                 stackDirection: stackDirection,
-                orientation: widget.orientation,
-                cardsInPile: widget.table.get(pile),
+                isFirstCard: i == 0,
+                isLastCard: i == cards.length - 1,
                 highlightColor: highlightCardColor(card),
+                hasShadow: previewCards != 0
+                    // Only visible cards have shadow
+                    ? i >= cards.length - 1 - previewCards
+                    // All cards have shadow
+                    : true,
               ),
             ),
         ];
@@ -663,7 +653,10 @@ class _GameTableState extends State<GameTable> {
 
     _touchingCards = null;
     if (widget.canDragCards?.call(cardsToPick, originPile) == true) {
-      _touchingCards = cardsToPick;
+      setState(() {
+        _touchingCards = cardsToPick;
+        _touchingPile = originPile;
+      });
     }
   }
 
@@ -710,13 +703,13 @@ class _GameTableState extends State<GameTable> {
 class _CardWidget extends StatelessWidget {
   const _CardWidget({
     required this.cardSize,
-    required this.shake,
-    required this.isMoving,
     required this.card,
-    required this.layout,
-    required this.cardsInPile,
+    required this.isFirstCard,
+    required this.isLastCard,
     required this.stackDirection,
-    required this.orientation,
+    required this.hasShadow,
+    this.isMoving = false,
+    this.shake = false,
     this.onTouch,
     this.onTap,
     this.highlightColor,
@@ -726,11 +719,13 @@ class _CardWidget extends StatelessWidget {
 
   final bool isMoving;
 
+  final bool isFirstCard;
+
+  final bool isLastCard;
+
+  final bool hasShadow;
+
   final PlayCard card;
-
-  final PileLayout layout;
-
-  final List<PlayCard> cardsInPile;
 
   final VoidCallback? onTouch;
 
@@ -740,34 +735,22 @@ class _CardWidget extends StatelessWidget {
 
   final Direction stackDirection;
 
-  final Orientation orientation;
-
   final Size cardSize;
 
-  static const cardShowThreshold = 3;
   static const minElevation = 2.0;
   static const hoverElevation = 32.0;
 
   @override
   Widget build(BuildContext context) {
-    final cardPileLength = cardsInPile.length;
-    final cardIndex = cardsInPile.indexOf(card);
-
     final double elevation;
     final Alignment labelAlignment;
 
+    elevation = hasShadow ? minElevation : 0;
+
     if (stackDirection == Direction.none) {
-      elevation =
-          cardIndex > cardPileLength - 1 - cardShowThreshold ? minElevation : 0;
       labelAlignment = Alignment.center;
     } else {
-      final cardLimit = layout.previewCards?.resolve(orientation);
-      if (cardLimit != null && cardIndex < cardPileLength - cardLimit) {
-        elevation = 0;
-      } else {
-        elevation = minElevation;
-      }
-      if (cardIndex < cardPileLength - 1) {
+      if (!isLastCard) {
         labelAlignment = switch (stackDirection) {
           Direction.up => Alignment.bottomCenter,
           Direction.down => Alignment.topCenter,
@@ -992,6 +975,84 @@ class _PileMarker extends StatelessWidget {
           size: size.shortestSide * 0.5,
           color: colorScheme.onSurface.withOpacity(0.24),
         ),
+      ),
+    );
+  }
+}
+
+class _CardDragOverlay extends StatefulWidget {
+  const _CardDragOverlay({
+    super.key,
+    this.draggedCards,
+    required this.gridUnit,
+    required this.onDrag,
+    required this.onDrop,
+  });
+
+  final List<PlayCard>? draggedCards;
+
+  final Size gridUnit;
+
+  final void Function(Offset touchPoint) onDrag;
+
+  final void Function(Offset touchPoint) onDrop;
+
+  @override
+  State<_CardDragOverlay> createState() => _CardDragOverlayState();
+}
+
+class _CardDragOverlayState extends State<_CardDragOverlay> {
+  bool _dragging = false;
+
+  Offset? _touchPoint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerMove: (event) {
+        if (!_dragging) {
+          widget.onDrag(event.localPosition);
+        }
+        setState(() {
+          _touchPoint = event.localPosition;
+          _dragging = true;
+        });
+      },
+      onPointerUp: (event) {
+        widget.onDrop(event.localPosition);
+        setState(() {
+          _dragging = false;
+        });
+      },
+      onPointerCancel: (event) {
+        widget.onDrop(event.localPosition);
+        setState(() {
+          _dragging = false;
+        });
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (_dragging && _touchPoint != null && widget.draggedCards != null)
+            for (final (i, card) in widget.draggedCards!.indexed)
+              Positioned.fromRect(
+                rect: (const Rect.fromLTWH(0, 0, 1, 1)
+                        .translate(0, i * 0.3)
+                        .translate(-cardTouchOffset.dx, -cardTouchOffset.dy))
+                    .scale(widget.gridUnit)
+                    .translate(_touchPoint!.dx, _touchPoint!.dy),
+                child: _CardWidget(
+                  card: card,
+                  cardSize: widget.gridUnit,
+                  isMoving: true,
+                  stackDirection: Direction.down,
+                  isFirstCard: i == 0,
+                  isLastCard: i == widget.draggedCards!.length - 1,
+                  hasShadow: true,
+                ),
+              )
+        ],
       ),
     );
   }
