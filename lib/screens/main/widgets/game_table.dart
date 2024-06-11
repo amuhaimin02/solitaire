@@ -1004,32 +1004,46 @@ class _CardDragOverlay extends StatefulWidget {
 class _CardDragOverlayState extends State<_CardDragOverlay> {
   bool _dragging = false;
 
-  Offset? _touchPoint;
+  Offset? _touchPoint, _startTouchPoint;
+
+  static const dragThresholdDistanceSquared = 600;
 
   @override
   Widget build(BuildContext context) {
     return Listener(
       behavior: HitTestBehavior.translucent,
+      onPointerDown: (event) {
+        _startTouchPoint = event.localPosition;
+      },
       onPointerMove: (event) {
-        if (!_dragging) {
+        if (!_dragging &&
+            (event.localPosition - _startTouchPoint!).distanceSquared >
+                dragThresholdDistanceSquared) {
+          setState(() {
+            _dragging = true;
+          });
           widget.onDrag(event.localPosition);
         }
-        setState(() {
-          _touchPoint = event.localPosition;
-          _dragging = true;
-        });
+
+        if (_dragging) {
+          setState(() {
+            _touchPoint = event.localPosition;
+          });
+        }
       },
       onPointerUp: (event) {
-        widget.onDrop(event.localPosition);
+        if (!_dragging) return;
         setState(() {
           _dragging = false;
         });
+        widget.onDrop(event.localPosition);
       },
       onPointerCancel: (event) {
-        widget.onDrop(event.localPosition);
+        if (!_dragging) return;
         setState(() {
           _dragging = false;
         });
+        widget.onDrop(event.localPosition);
       },
       child: Stack(
         clipBehavior: Clip.none,
