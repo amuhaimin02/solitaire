@@ -23,14 +23,14 @@ class EmptyScreen extends StatelessWidget {
           children: [
             if (icon != null)
               IconTheme(
-                data: IconThemeData(size: 72, color: colorScheme.secondary),
+                data: IconThemeData(size: 72, color: colorScheme.primary),
                 child: icon!,
               ),
             const SizedBox(height: 16),
             if (title != null)
               DefaultTextStyle(
-                style: textTheme.titleLarge!
-                    .copyWith(color: colorScheme.secondary),
+                style:
+                    textTheme.titleLarge!.copyWith(color: colorScheme.primary),
                 textAlign: TextAlign.center,
                 child: title!,
               ),

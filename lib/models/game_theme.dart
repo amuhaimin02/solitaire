@@ -110,6 +110,7 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     required ColorScheme colorScheme,
     bool tintedCardFace = false,
     bool useClassicColors = false,
+    bool contrastingFaceColors = false,
   }) {
     Color cardLabelPlainColor = colorScheme.onSurfaceVariant;
     Color cardLabelAccentColor = colorScheme.primary;
@@ -121,6 +122,13 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
       cardLabelAccentColor = colorScheme.onPrimaryContainer;
       cardFacePlainColor = colorScheme.surfaceContainerLowest;
       cardFaceAccentColor = colorScheme.onPrimary;
+    }
+
+    if (contrastingFaceColors) {
+      cardFacePlainColor = colorScheme.inverseSurface;
+      cardFaceAccentColor = colorScheme.surface;
+      cardLabelPlainColor = colorScheme.inversePrimary;
+      cardLabelAccentColor = colorScheme.primary;
     }
 
     if (useClassicColors) {
@@ -135,7 +143,7 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
       faceAccentColor: cardFaceAccentColor,
       labelPlainColor: cardLabelPlainColor,
       labelAccentColor: cardLabelAccentColor,
-      backColor: colorScheme.primary,
+      backColor: colorScheme.secondary,
     );
   }
 }

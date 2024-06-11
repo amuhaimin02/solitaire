@@ -165,7 +165,7 @@ class _CurrentGameDisplay extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             currentGame.game.name,
-            style: textTheme.bodyLarge!.copyWith(color: colorScheme.secondary),
+            style: textTheme.bodyLarge!.copyWith(color: colorScheme.primary),
           ),
         ],
       ),

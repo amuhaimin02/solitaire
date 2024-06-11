@@ -206,6 +206,28 @@ class _SettingsList extends ConsumerWidget {
               value: ref.watch(themeUseClassicCardColorsProvider),
               onChanged: (value) {
                 ref.read(themeUseClassicCardColorsProvider.notifier).toggle();
+
+                if (value) {
+                  ref
+                      .read(themeUseContrastingCardColorsProvider.notifier)
+                      .set(false);
+                }
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Contrasting card colors'),
+              subtitle: const Text('Mix light and dark card colors.'),
+              value: ref.watch(themeUseContrastingCardColorsProvider),
+              onChanged: (value) {
+                ref
+                    .read(themeUseContrastingCardColorsProvider.notifier)
+                    .toggle();
+
+                if (value) {
+                  ref
+                      .read(themeUseClassicCardColorsProvider.notifier)
+                      .set(false);
+                }
               },
             ),
             SwitchListTile(

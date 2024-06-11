@@ -7,6 +7,7 @@ import '../../../models/card.dart';
 import '../../../models/game_theme.dart';
 import '../../../utils/canvas.dart';
 import '../../../widgets/flippable.dart';
+import '../../../widgets/soft_shadow.dart';
 
 class CardView extends StatelessWidget {
   const CardView({
@@ -39,20 +40,24 @@ class CardView extends StatelessWidget {
       duration: cardMoveAnimation.duration,
       curve: cardMoveAnimation.curve,
       flipped: hideFace || card.flipped,
-      front: Material(
-        borderRadius:
-            BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
-        elevation: elevation ?? 2,
+      front: Container(
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
+          boxShadow: [SoftShadow(elevation ?? 2)],
+        ),
         child: CardFace(
           card: card,
           size: size,
           labelAlignment: labelAlignment,
         ),
       ),
-      back: Material(
-        borderRadius:
-            BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
-        elevation: elevation ?? 2,
+      back: Container(
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
+          boxShadow: [SoftShadow(elevation ?? 2)],
+        ),
         child: CardBack(size: size),
       ),
       builder: (context, child) {
@@ -247,7 +252,6 @@ class CardBack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final cardTheme = Theme.of(context).gameCardTheme;
 
     return ClipRRect(
@@ -255,7 +259,7 @@ class CardBack extends StatelessWidget {
           BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
       child: CustomPaint(
         painter: SimpleCardCover(
-          color: colorScheme.primary,
+          color: cardTheme.backColor,
         ),
       ),
     );

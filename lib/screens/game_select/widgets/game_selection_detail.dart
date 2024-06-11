@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import '../../../models/game_theme.dart';
 import '../../../providers/game_selection.dart';
 import '../../../services/play_table_generator.dart';
 import '../../../utils/prng.dart';
@@ -40,7 +41,7 @@ class GameSelectionDetail extends ConsumerWidget {
                   final isInModal = !TwoPane.of(context).isActive;
 
                   final gameTableWidget = Container(
-                    // color: Theme.of(context).g,
+                    color: Theme.of(context).gameTheme.tableBackgroundColor,
                     padding: const EdgeInsets.all(32),
                     child: Center(
                       child: GameTable(
@@ -78,7 +79,7 @@ class GameSelectionDetail extends ConsumerWidget {
                       Text(
                         selectedGame.name,
                         style: textTheme.titleLarge!.copyWith(
-                          color: colorScheme.secondary,
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 8),

@@ -5,6 +5,6 @@ class SoftShadow extends BoxShadow {
       : super(
           color: (color ?? Colors.black.withOpacity(0.1)),
           offset: Offset(0, pixels),
-          blurRadius: pixels * 3,
+          blurRadius: pixels * 2,
         );
 }

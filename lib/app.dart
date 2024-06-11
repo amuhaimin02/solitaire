@@ -98,13 +98,10 @@ class SolitaireApp extends ConsumerWidget {
           : themeColorPalette.first,
       // variant: FlexSchemeVariant.rainbow,
       tones: switch (brightness) {
-        Brightness.light => const FlexTones.light(
-            primaryContainerTone: 85,
-            primaryTone: 55,
-          ),
+        Brightness.light => const FlexTones.light(),
         Brightness.dark => const FlexTones.dark(
-            primaryContainerTone: 25,
-            primaryChroma: 20,
+            primaryContainerTone: 20,
+            secondaryTone: 60,
           ),
       },
     );
@@ -113,6 +110,7 @@ class SolitaireApp extends ConsumerWidget {
       colorScheme: colorScheme,
       tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
       useClassicColors: ref.watch(themeUseClassicCardColorsProvider),
+      contrastingFaceColors: ref.watch(themeUseContrastingCardColorsProvider),
     ).copyWith(
       compressStack: ref.watch(themeCompressCardStackProvider),
     );

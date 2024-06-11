@@ -17,8 +17,8 @@ class AutoSolveButton extends ConsumerWidget {
     return Shrinkable(
       show: autoSolvable && gameStatus == GameStatus.started,
       child: FloatingActionButton.extended(
-        backgroundColor: colorScheme.secondary,
-        foregroundColor: colorScheme.onSecondary,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
         onPressed: () {
           ref.read(gameControllerProvider.notifier).autoSolve();
         },
