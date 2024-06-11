@@ -2,9 +2,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../models/game_theme.dart';
 import '../models/serializer.dart';
 import '../services/shared_preferences.dart';
-import '../widgets/solitaire_theme.dart';
 
 part 'themes.g.dart';
 

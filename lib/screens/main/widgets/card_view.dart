@@ -4,9 +4,9 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../../animations.dart';
 import '../../../models/card.dart';
+import '../../../models/game_theme.dart';
 import '../../../utils/canvas.dart';
 import '../../../widgets/flippable.dart';
-import '../../../widgets/solitaire_theme.dart';
 
 class CardView extends StatelessWidget {
   const CardView({
@@ -33,15 +33,15 @@ class CardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
+    final cardTheme = Theme.of(context).gameCardTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return Flippable(
       duration: cardMoveAnimation.duration,
       curve: cardMoveAnimation.curve,
       flipped: hideFace || card.flipped,
       front: Material(
-        borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardTheme.cornerRadius),
+        borderRadius:
+            BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
         elevation: elevation ?? 2,
         child: CardFace(
           card: card,
@@ -50,8 +50,8 @@ class CardView extends StatelessWidget {
         ),
       ),
       back: Material(
-        borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardTheme.cornerRadius),
+        borderRadius:
+            BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
         elevation: elevation ?? 2,
         child: CardBack(size: size),
       ),
@@ -65,8 +65,7 @@ class CardView extends StatelessWidget {
             ),
             Positioned.fill(
                 child: Padding(
-              padding:
-                  EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
+              padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
               child: child,
             )),
           ],
@@ -92,7 +91,7 @@ class CardHighlight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
+    final cardTheme = Theme.of(context).gameCardTheme;
     return AnimatedScale(
       duration: cardMoveAnimation.duration,
       curve: highlight ? Curves.easeOutCirc : Curves.easeInCirc,
@@ -100,8 +99,8 @@ class CardHighlight extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(size.shortestSide *
-              (theme.cardTheme.cornerRadius + theme.cardTheme.margin)),
+          borderRadius: BorderRadius.circular(
+              size.shortestSide * (cardTheme.cornerRadius + cardTheme.margin)),
         ),
       ),
     );
@@ -132,18 +131,18 @@ class CardFace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardShortestSide = size.shortestSide;
-    final theme = SolitaireTheme.of(context);
+    final cardTheme = Theme.of(context).gameCardTheme;
 
     final iconPath = 'assets/${card.suit.name}.png';
 
     final Color backgroundColor, foregroundColor;
     switch (card.suit.color) {
       case SuitColor.black:
-        backgroundColor = theme.cardTheme.facePlainColor;
-        foregroundColor = theme.cardTheme.labelPlainColor;
+        backgroundColor = cardTheme.facePlainColor;
+        foregroundColor = cardTheme.labelPlainColor;
       case SuitColor.red:
-        backgroundColor = theme.cardTheme.faceAccentColor;
-        foregroundColor = theme.cardTheme.labelAccentColor;
+        backgroundColor = cardTheme.faceAccentColor;
+        foregroundColor = cardTheme.labelAccentColor;
     }
 
     final numberAlignment = switch (labelAlignment) {
@@ -177,13 +176,13 @@ class CardFace extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardTheme.cornerRadius),
+        borderRadius:
+            BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
       ),
       child: ClipRRect(
         clipBehavior: Clip.hardEdge,
-        borderRadius: BorderRadius.circular(
-            size.shortestSide * theme.cardTheme.cornerRadius),
+        borderRadius:
+            BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
         child: Stack(
           children: [
             AnimatedAlign(
@@ -248,12 +247,12 @@ class CardBack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final cardTheme = Theme.of(context).gameCardTheme;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-          size.shortestSide * theme.cardTheme.cornerRadius),
+      borderRadius:
+          BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
       child: CustomPaint(
         painter: SimpleCardCover(
           color: colorScheme.primary,

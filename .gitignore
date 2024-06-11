@@ -45,3 +45,4 @@ app.*.map.json
 # Generated Dart code from build_runner
 *.g.dart
 *.freezed.dart
+*.tailor.dart

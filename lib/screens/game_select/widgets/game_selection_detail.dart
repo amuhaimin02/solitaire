@@ -6,7 +6,6 @@ import '../../../providers/game_selection.dart';
 import '../../../services/play_table_generator.dart';
 import '../../../utils/prng.dart';
 import '../../../widgets/empty_screen.dart';
-import '../../../widgets/solitaire_theme.dart';
 import '../../../widgets/two_pane.dart';
 import '../../main/widgets/game_table.dart';
 import 'game_selection_options.dart';
@@ -41,7 +40,7 @@ class GameSelectionDetail extends ConsumerWidget {
                   final isInModal = !TwoPane.of(context).isActive;
 
                   final gameTableWidget = Container(
-                    color: SolitaireTheme.of(context).backgroundColor,
+                    // color: Theme.of(context).g,
                     padding: const EdgeInsets.all(32),
                     child: Center(
                       child: GameTable(

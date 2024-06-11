@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'models/theme.dart';
+import 'models/game_theme.dart';
 import 'providers/settings.dart';
 import 'providers/themes.dart';
 import 'screens/about/about_screen.dart';
@@ -16,7 +16,6 @@ import 'screens/statistics/statistics_screen.dart';
 import 'screens/theme/theme_screen.dart';
 import 'services/system_window.dart';
 import 'widgets/screen_visibility.dart';
-import 'widgets/solitaire_theme.dart';
 
 final _router = GoRouter(
   routes: [
@@ -97,61 +96,74 @@ class SolitaireApp extends ConsumerWidget {
       primaryKey: themeColor != Colors.transparent
           ? themeColor
           : themeColorPalette.first,
-      variant: FlexSchemeVariant.rainbow,
+      // variant: FlexSchemeVariant.rainbow,
+      tones: switch (brightness) {
+        Brightness.light => const FlexTones.light(
+            primaryContainerTone: 85,
+            primaryTone: 55,
+          ),
+        Brightness.dark => const FlexTones.dark(
+            primaryContainerTone: 25,
+            primaryChroma: 20,
+          ),
+      },
     );
 
-    CardThemeData cardTheme = CardThemeData.fromColorScheme(
-      colorScheme,
+    GameCardTheme cardTheme = GameCardTheme.from(
+      colorScheme: colorScheme,
       tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
       useClassicColors: ref.watch(themeUseClassicCardColorsProvider),
     ).copyWith(
       compressStack: ref.watch(themeCompressCardStackProvider),
     );
 
-    TableThemeData tableTheme = TableThemeData.fromColorScheme(
+    GameTheme gameTheme = GameTheme.from(
       colorScheme: colorScheme,
-      cardTheme: cardTheme,
       coloredBackground: coloredBackground,
     );
 
     final textTheme = GoogleFonts.manropeTextTheme();
 
     ThemeData appTheme = ThemeData(
-      useMaterial3: true,
-      textTheme: textTheme,
-      colorScheme: colorScheme,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-      ),
-      splashFactory: InkSparkle.splashFactory,
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: SlideUpTransitionBuilder(),
-          TargetPlatform.iOS: SlideUpTransitionBuilder(),
-          TargetPlatform.macOS: SlideUpTransitionBuilder(),
-        },
-      ),
-      tooltipTheme: const TooltipThemeData(preferBelow: false),
-      snackBarTheme: const SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        // width: 400,
-      ),
-      scrollbarTheme: const ScrollbarThemeData(),
-    );
+        useMaterial3: true,
+        textTheme: textTheme,
+        colorScheme: colorScheme,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+        ),
+        splashFactory: InkSparkle.splashFactory,
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: SlideUpTransitionBuilder(),
+            TargetPlatform.iOS: SlideUpTransitionBuilder(),
+            TargetPlatform.macOS: SlideUpTransitionBuilder(),
+          },
+        ),
+        tooltipTheme: const TooltipThemeData(preferBelow: false),
+        snackBarTheme: const SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          // width: 400,
+        ),
+        scrollbarTheme: const ScrollbarThemeData(),
+        extensions: [gameTheme, cardTheme]);
 
     if (amoledDarkTheme && themeMode == ThemeMode.dark) {
-      tableTheme = tableTheme.copyWith(backgroundColor: Colors.black);
-      appTheme = appTheme.copyWith(scaffoldBackgroundColor: Colors.black);
+      appTheme = appTheme.copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        extensions: [
+          gameTheme.copyWith(
+            tableBackgroundColor: Colors.black,
+          ),
+          cardTheme
+        ],
+      );
     }
 
-    return SolitaireTheme(
-      data: tableTheme,
-      child: MaterialApp.router(
-        routerConfig: _router,
-        title: 'Solitaire',
-        theme: appTheme,
-        themeAnimationStyle: AnimationStyle.noAnimation,
-      ),
+    return MaterialApp.router(
+      routerConfig: _router,
+      title: 'Solitaire',
+      theme: appTheme,
+      themeAnimationStyle: AnimationStyle.noAnimation,
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_storage.dart';
-import '../../../widgets/fixes.dart';
 import '../../../widgets/popup_button.dart';
 import 'import_failed_dialog.dart';
 

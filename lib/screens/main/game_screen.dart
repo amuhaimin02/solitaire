@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../animations.dart';
 import '../../models/game/solitaire.dart';
 import '../../models/game_status.dart';
+import '../../models/game_theme.dart';
 import '../../models/play_data.dart';
 import '../../providers/feedback.dart';
 import '../../providers/game_logic.dart';
@@ -17,13 +18,12 @@ import '../../widgets/animated_visibility.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/ripple_background.dart';
 import '../../widgets/screen_visibility.dart';
-import '../../widgets/solitaire_theme.dart';
 import '../game_select/widgets/continue_failed_dialog.dart';
-import 'widgets/status_pane.dart';
 import 'widgets/control_pane.dart';
 import 'widgets/finish_dialog.dart';
 import 'widgets/game_menu.dart';
 import 'widgets/play_area.dart';
+import 'widgets/status_pane.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -49,9 +49,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
       SolitaireGame? lastPlayedGame;
 
       try {
-        bool isContinueGame;
-        SolitaireGame startedGame;
-
         final continuableGames =
             await ref.read(continuableGamesProvider.future);
 
@@ -141,7 +138,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
     final viewPadding = MediaQuery.of(context).viewPadding;
     final isFinished = ref
         .watch(gameControllerProvider.select((s) => s == GameStatus.finished));
@@ -166,8 +162,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
       extendBodyBehindAppBar: true,
       body: RippleBackground(
         decoration: isFinished
-            ? BoxDecoration(color: theme.winningBackgroundColor)
-            : BoxDecoration(color: theme.backgroundColor),
+            ? BoxDecoration(
+                color: Theme.of(context).gameTheme.winningBackgroundColor)
+            : BoxDecoration(
+                color: Theme.of(context).gameTheme.tableBackgroundColor),
         child: BottomPadded(
           child: OrientationBuilder(
             builder: (context, orientation) {

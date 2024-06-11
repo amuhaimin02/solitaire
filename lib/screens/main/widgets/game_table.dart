@@ -12,6 +12,7 @@ import '../../../models/card.dart';
 import '../../../models/card_list.dart';
 import '../../../models/direction.dart';
 import '../../../models/game/solitaire.dart';
+import '../../../models/game_theme.dart';
 import '../../../models/move_check.dart';
 import '../../../models/move_record.dart';
 import '../../../models/pile.dart';
@@ -20,7 +21,6 @@ import '../../../models/play_table.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/shakeable.dart';
 import '../../../widgets/shrinkable.dart';
-import '../../../widgets/solitaire_theme.dart';
 import '../../../widgets/ticking_number.dart';
 import 'card_view.dart';
 
@@ -114,7 +114,7 @@ class _GameTableState extends State<GameTable> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
+    final cardTheme = Theme.of(context).gameCardTheme;
 
     final Size tableSize;
 
@@ -127,8 +127,8 @@ class _GameTableState extends State<GameTable> {
     return IgnorePointer(
       ignoring: !widget.interactive,
       child: AspectRatio(
-        aspectRatio: (tableSize.width * theme.cardTheme.unitSize.width) /
-            (tableSize.height * theme.cardTheme.unitSize.height),
+        aspectRatio: (tableSize.width * cardTheme.unitSize.width) /
+            (tableSize.height * cardTheme.unitSize.height),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final gridUnit = Size(
@@ -350,60 +350,62 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildCardDragOverlay(BuildContext context, Size gridUnit) {
     return _CardDragOverlay(
-      gridUnit: gridUnit,
-      draggedCards: _touchingCards,
-      onDrag: (touchPoint) {
-        _touchDragTimer?.cancel();
+        gridUnit: gridUnit,
+        draggedCards: _touchingCards,
+        onDrag: (touchPoint) {
+          _touchDragTimer?.cancel();
 
-        setState(() {
-          _isDragging = true;
-        });
-      },
-      onDrop: (touchPoint) {
-        setState(() {
-          _isDragging = false;
-          _isDropping = true;
-          _dropTouchPoint = touchPoint;
-        });
-        final point = _convertToGrid(touchPoint, gridUnit);
-
-        // Find pile belonging to the region, also ignore virtual ones
-        final dropPile = _allPiles.keys.firstWhereOrNull(
-          (pile) =>
-              !_allPiles.get(pile).virtual &&
-              _resolvedRegion.get(pile).contains(point),
-        );
-
-        if (dropPile != null) {
-          if (_touchingCards != null &&
-              _touchingPile != null &&
-              _touchingPile != dropPile) {
-            _onCardDrop(
-                context, _touchingCards!.first, _touchingPile!, dropPile);
-          }
-        }
-
-        // Wait for previous setState to finish
-        WidgetsBinding.instance.addPostFrameCallback((_) {
           setState(() {
-            _isDropping = false;
+            _isDragging = true;
           });
+        },
+        onDrop: (touchPoint) {
+          setState(() {
+            _isDragging = false;
+            _isDropping = true;
+            _dropTouchPoint = touchPoint;
+          });
+          final point = _convertToGrid(touchPoint, gridUnit);
 
-          // Wait for animation to finish, this ensures cards returning to original place are still rendered on top
-          _touchDragTimer =
-              Timer(cardMoveAnimation.duration * 1.5 * timeDilation, () {
+          // Find pile belonging to the region, also ignore virtual ones
+          final dropPile = _allPiles.keys.firstWhereOrNull(
+            (pile) =>
+                !_allPiles.get(pile).virtual &&
+                _resolvedRegion.get(pile).contains(point),
+          );
+
+          if (dropPile != null) {
+            if (_touchingCards != null &&
+                _touchingPile != null &&
+                _touchingPile != dropPile) {
+              _onCardDrop(
+                  context, _touchingCards!.first, _touchingPile!, dropPile);
+            }
+          }
+
+          // Wait for previous setState to finish
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             setState(() {
-              _touchingCards = null;
+              _isDropping = false;
+            });
+
+            // Wait for animation to finish, this ensures cards returning to original place are still rendered on top
+            _touchDragTimer =
+                Timer(cardMoveAnimation.duration * 1.5 * timeDilation, () {
+              setState(() {
+                _touchingCards = null;
+              });
             });
           });
+        },
+        onLift: () {
+          setState(() {
+            _touchingCards = null;
+          });
         });
-      },
-    );
   }
 
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
-    final theme = SolitaireTheme.of(context);
-
     final layout = _allPiles.get(pile).layout;
     final region = _resolvedRegion.get(pile);
     final stackDirection =
@@ -444,10 +446,10 @@ class _GameTableState extends State<GameTable> {
 
     Color? highlightCardColor(PlayCard card) {
       if (widget.highlightedCards?.contains(card) == true) {
-        return theme.hintHighlightColor;
+        return Theme.of(context).gameTheme.hintHighlightColor;
       } else if (widget.showLastMovedCards &&
           widget.lastMovedCards?.contains(card) == true) {
-        return theme.lastMoveHighlightColor;
+        return Theme.of(context).gameTheme.lastMoveHighlightColor;
       }
       return null;
     }
@@ -547,9 +549,9 @@ class _GameTableState extends State<GameTable> {
     int? previewCards,
     bool? shiftStack,
   }) {
-    final theme = SolitaireTheme.of(context);
-    final stackGap = theme.cardTheme.stackGap;
-    final compressStack = theme.cardTheme.compressStack;
+    final cardTheme = Theme.of(context).gameCardTheme;
+    final stackGap = cardTheme.stackGap;
+    final compressStack = cardTheme.compressStack;
 
     final halfStack = stackGap.scale(0.5, 0.5);
 
@@ -896,9 +898,10 @@ class _PileMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
+    final cardTheme = Theme.of(context).gameCardTheme;
 
-    final borderOnly = theme.backgroundColor == Colors.black;
+    final borderOnly =
+        Theme.of(context).gameTheme.tableBackgroundColor == Colors.black;
 
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -957,12 +960,12 @@ class _PileMarker extends StatelessWidget {
     };
 
     return Container(
-      padding: EdgeInsets.all(size.shortestSide * theme.cardTheme.margin),
+      padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
       child: Container(
         decoration: BoxDecoration(
           color: borderOnly ? null : colorScheme.onSurface.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(
-              size.shortestSide * theme.cardTheme.cornerRadius),
+          borderRadius:
+              BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
           border: borderOnly
               ? Border.all(
                   color: colorScheme.onSurface.withOpacity(0.24),
@@ -987,6 +990,7 @@ class _CardDragOverlay extends StatefulWidget {
     required this.gridUnit,
     required this.onDrag,
     required this.onDrop,
+    required this.onLift,
   });
 
   final List<PlayCard>? draggedCards;
@@ -996,6 +1000,8 @@ class _CardDragOverlay extends StatefulWidget {
   final void Function(Offset touchPoint) onDrag;
 
   final void Function(Offset touchPoint) onDrop;
+
+  final void Function() onLift;
 
   @override
   State<_CardDragOverlay> createState() => _CardDragOverlayState();
@@ -1010,6 +1016,17 @@ class _CardDragOverlayState extends State<_CardDragOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    void onPointerStop(Offset position) {
+      if (_dragging) {
+        setState(() {
+          _dragging = false;
+        });
+        widget.onDrop(position);
+      } else {
+        widget.onLift();
+      }
+    }
+
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: (event) {
@@ -1031,20 +1048,8 @@ class _CardDragOverlayState extends State<_CardDragOverlay> {
           });
         }
       },
-      onPointerUp: (event) {
-        if (!_dragging) return;
-        setState(() {
-          _dragging = false;
-        });
-        widget.onDrop(event.localPosition);
-      },
-      onPointerCancel: (event) {
-        if (!_dragging) return;
-        setState(() {
-          _dragging = false;
-        });
-        widget.onDrop(event.localPosition);
-      },
+      onPointerUp: (event) => onPointerStop(event.localPosition),
+      onPointerCancel: (event) => onPointerStop(event.localPosition),
       child: Stack(
         clipBehavior: Clip.none,
         children: [

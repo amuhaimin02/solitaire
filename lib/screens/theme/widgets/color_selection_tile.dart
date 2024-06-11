@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../widgets/solitaire_theme.dart';
+import '../../../models/game_theme.dart';
 
 class ColorSelectionTile extends StatelessWidget {
   const ColorSelectionTile({

@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../animations.dart';
 import '../../models/game/impl/demo.dart';
+import '../../models/game_theme.dart';
 import '../../providers/themes.dart';
 import '../../services/play_table_generator.dart';
-import '../../utils/types.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/ripple_background.dart';
 import '../../widgets/section_title.dart';
-import '../../widgets/solitaire_theme.dart';
 import '../../widgets/two_pane.dart';
 import '../main/widgets/game_table.dart';
 import 'widgets/color_selection_tile.dart';
@@ -19,10 +18,9 @@ class ThemeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
     return RippleBackground(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: Theme.of(context).scaffoldBackgroundColor,
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -41,8 +39,6 @@ class ThemeScreen extends ConsumerWidget {
   }
 
   Widget _buildTablePreview(BuildContext context) {
-    final theme = SolitaireTheme.of(context);
-
     // Using any random source we could find, but consistent across states
     // i.e., only changing when going in or out of this screen
     final randomSeed = context.hashCode.toString();
@@ -51,7 +47,7 @@ class ThemeScreen extends ConsumerWidget {
       duration: themeChangeAnimation.duration,
       curve: themeChangeAnimation.curve,
       decoration: BoxDecoration(
-        color: theme.backgroundColor,
+        color: Theme.of(context).gameTheme.tableBackgroundColor,
       ),
       padding: const EdgeInsets.all(24) +
           EdgeInsets.only(left: MediaQuery.of(context).viewPadding.left),
