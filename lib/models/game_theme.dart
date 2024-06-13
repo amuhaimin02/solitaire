@@ -125,10 +125,10 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     }
 
     if (contrastingFaceColors) {
-      cardFacePlainColor = colorScheme.inverseSurface;
-      cardFaceAccentColor = colorScheme.surface;
-      cardLabelPlainColor = colorScheme.inversePrimary;
-      cardLabelAccentColor = colorScheme.primary;
+      cardFacePlainColor = colorScheme.surfaceContainerLowest;
+      cardFaceAccentColor = colorScheme.inverseSurface;
+      cardLabelPlainColor = colorScheme.primary;
+      cardLabelAccentColor = colorScheme.inversePrimary;
     }
 
     if (useClassicColors) {
@@ -143,7 +143,7 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
       faceAccentColor: cardFaceAccentColor,
       labelPlainColor: cardLabelPlainColor,
       labelAccentColor: cardLabelAccentColor,
-      backColor: colorScheme.secondary,
+      backColor: colorScheme.primary,
     );
   }
 }

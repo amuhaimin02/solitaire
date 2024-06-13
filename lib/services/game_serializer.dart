@@ -215,8 +215,8 @@ class MoveStateSerializer implements Serializer<MoveState> {
 
     for (final item in val3.split(',')) {
       if (item.isNotEmpty) {
-        final pile = const PileSerializer().deserialize(item.substring(0, 2));
-        final count = int.parse(item.substring(2), radix: _maxRadixSize);
+        final pile = const PileSerializer().deserialize(item.substring(0, 3));
+        final count = int.parse(item.substring(3), radix: _maxRadixSize);
         recycleCounts[pile] = count;
       }
     }
@@ -255,9 +255,9 @@ class PlayTableSerializer implements Serializer<PlayTable> {
       if (line.isEmpty) {
         continue;
       }
-      final pile = const PileSerializer().deserialize(line.substring(0, 2));
+      final pile = const PileSerializer().deserialize(line.substring(0, 3));
       final cards =
-          const PlayCardListSerializer().deserialize(line.substring(3));
+          const PlayCardListSerializer().deserialize(line.substring(4));
       tableMap[pile] = cards;
     }
     return PlayTable.fromMap(tableMap);
@@ -291,26 +291,31 @@ class PileSerializer implements Serializer<Pile> {
 
   @override
   String serialize(Pile pile) {
-    return switch (pile) {
-      Stock(:final index) => 'S$index',
-      Waste(:final index) => 'W$index',
-      Foundation(:final index) => 'F$index',
-      Tableau(:final index) => 'T$index',
-      Reserve(:final index) => 'R$index'
+    final symbol = switch (pile) {
+      Stock() => 'S',
+      Waste() => 'W',
+      Foundation() => 'F',
+      Tableau() => 'T',
+      Reserve() => 'R',
+      Grid() => 'G',
     };
+    final index = pile.index.toRadixString(_maxRadixSize).padLeft(2, '0');
+    return '$symbol$index';
   }
 
   @override
   Pile deserialize(String raw) {
-    assert(raw.length == 2, 'pile token must be exactly 2 characters');
+    assert(raw.length == 3, 'pile token must be exactly 3 characters');
     final type = raw[0];
-    final index = int.parse(raw[1], radix: _maxRadixSize);
+    final index = int.parse(raw.substring(1, 3), radix: _maxRadixSize);
+
     return switch (type) {
       'S' => Stock(index),
       'W' => Waste(index),
       'F' => Foundation(index),
       'T' => Tableau(index),
       'R' => Reserve(index),
+      'G' => Grid.fromIndex(index),
       _ => throw ArgumentError('unknown pile token: $raw')
     };
   }

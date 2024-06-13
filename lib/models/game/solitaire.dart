@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import '../../config.dart';
 import '../../utils/types.dart';
 import '../move_attempt.dart';
 import '../move_check.dart';
@@ -41,7 +42,12 @@ abstract class SolitaireGame {
   @override
   String toString() => name;
 
-  GameSetupMap get setup => _setup.setup;
+  GameSetupMap get setup {
+    if (refreshGameSetupOnReload) {
+      return construct().setup;
+    }
+    return _setup.setup;
+  }
 }
 
 class GameSetup {

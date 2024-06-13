@@ -37,6 +37,17 @@ class Reserve extends Pile {
   const Reserve(int index) : super('Reserve', index);
 }
 
+class Grid extends Pile {
+  const Grid(int x, int y) : super('Grid', x << 4 | y);
+
+  const Grid.fromIndex(int index) : super('Grid', index);
+
+  (int x, int y) get xy => (index >> 4, index & 0xF);
+
+  @override
+  String toString() => '$name$xy';
+}
+
 extension PileIteration<T extends Pile> on Iterable<T> {
   Iterable<T> roll({required Pile from}) {
     switch (T) {

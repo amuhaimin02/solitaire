@@ -433,15 +433,20 @@ class _GameTableState extends State<GameTable> {
     DurationCurve computeAnimation(int cardIndex) {
       if (!widget.animateMovement) {
         return DurationCurve.zero;
-      } else if (widget.animateDistribute &&
-          (pile is Tableau || pile is Reserve)) {
+      }
+
+      if (widget.animateDistribute) {
         final delayFactor = cardMoveAnimation.duration * 0.25;
 
-        return cardMoveAnimation
-            .delayed(delayFactor * (pile.index + cardIndex));
-      } else {
-        return cardMoveAnimation;
+        if ((pile is Tableau || pile is Reserve)) {
+          return cardMoveAnimation
+              .delayed(delayFactor * (pile.index + cardIndex));
+        } else if (pile is Grid) {
+          final (x, y) = pile.xy;
+          return cardMoveAnimation.delayed(delayFactor * (x + y));
+        }
       }
+      return cardMoveAnimation;
     }
 
     Color? highlightCardColor(PlayCard card) {
@@ -957,6 +962,7 @@ class _PileMarker extends StatelessWidget {
       Foundation() => getFoundationIcon(),
       Tableau() => getTableauIcon(),
       Reserve() => MdiIcons.circleOutline,
+      Grid() => null,
     };
 
     return Container(

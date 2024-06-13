@@ -5,7 +5,9 @@ import 'impl/golf.dart';
 import 'impl/klondike.dart';
 import 'impl/penguin.dart';
 import 'impl/putt_putt.dart';
+import 'impl/pyramid.dart';
 import 'impl/spider.dart';
+import 'impl/tripeaks.dart';
 import 'impl/yukon.dart';
 
 final allGamesList = [
@@ -24,4 +26,6 @@ final allGamesList = [
   FortyThieves(),
   Canfield(numberOfDraws: 1),
   Canfield(numberOfDraws: 3),
+  Pyramid(),
+  TriPeaks(),
 ];

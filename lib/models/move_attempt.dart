@@ -45,6 +45,29 @@ class MoveAttempt<From extends Pile, To extends Pile> {
   }
 }
 
+class MoveCompletedPairs<From extends Pile, To extends Pile>
+    extends MoveAttempt<From, To> {
+  const MoveCompletedPairs({super.onlyIf}) : super(cardLength: 2);
+
+  @override
+  Iterable<MoveIntent> attemptMoves(PlayTable table) sync* {
+    for (final from in table.allPilesOfType<From>()) {
+      final cardsOnPile = table.get(from);
+      if (cardsOnPile.length == 2) {
+        PlayCard? cardToMove;
+        cardToMove = cardsOnPile.first;
+
+        for (final to in table.allPilesOfType<To>()) {
+          if (onlyIf?.call(table, from, to) == false) {
+            continue;
+          }
+          yield MoveIntent(from, to, cardToMove);
+        }
+      }
+    }
+  }
+}
+
 class MoveAttemptTo<To extends Pile> {
   const MoveAttemptTo({
     this.onlyIf,

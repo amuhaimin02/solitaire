@@ -224,27 +224,6 @@ class FlipAllCardsFaceDown extends MoveAction {
     );
   }
 }
-//
-// class PickCardsFrom extends PileAction {
-//   const PickCardsFrom(this.fromPile, {required this.count});
-//
-//   final Pile fromPile;
-//
-//   final int count;
-//
-//   @override
-//   PileActionResult action(PileActionData data) {
-//     final cardsFromPile = data.table.get(fromPile);
-//     final (remainingCards, cardsToPick) = cardsFromPile.splitLast(count);
-//
-//     return PileActionHandled(
-//       table: data.table.modifyMultiple({
-//         fromPile: remainingCards,
-//         data.pile: cardsToPick,
-//       }),
-//     );
-//   }
-// }
 
 class MoveNormally extends MoveAction {
   const MoveNormally({required this.to, required this.cards});
@@ -309,8 +288,9 @@ class DrawFromTop extends MoveAction {
 }
 
 class RecyclePile extends MoveAction {
-  const RecyclePile({required this.takeFrom});
+  const RecyclePile({required this.takeFrom, this.faceUp = false});
   final Pile takeFrom;
+  final bool faceUp;
 
   @override
   MoveActionResult action(MoveActionData data) {
@@ -320,7 +300,10 @@ class RecyclePile extends MoveAction {
         takeFrom: [],
         data.pile: [
           ...data.table.get(data.pile),
-          ...cardsToRecycle.allFaceDown,
+          if (faceUp)
+            ...cardsToRecycle.allFaceUp
+          else
+            ...cardsToRecycle.allFaceDown
         ],
       }),
       action: Deal(cardsToRecycle, data.pile),
@@ -466,5 +449,26 @@ class ArrangePenguinFoundations extends MoveAction {
           pile: [relatedCards[index + 1].faceUp],
       }),
     );
+  }
+}
+
+class FlipExposedCardsFaceUp extends MoveAction {
+  const FlipExposedCardsFaceUp();
+
+  @override
+  MoveActionResult action(MoveActionData data) {
+    final grids = data.table.allPilesOfType<Grid>();
+
+    PlayTable updatedTable = data.table;
+
+    for (final grid in grids) {
+      if (const PileIsExposed()
+          .check(MoveCheckData(pile: grid, table: updatedTable))) {
+        final cardsInGrid = data.table.get(grid);
+        updatedTable = updatedTable.modify(grid, cardsInGrid.allFaceUp);
+      }
+    }
+
+    return MoveActionHandled(table: updatedTable);
   }
 }

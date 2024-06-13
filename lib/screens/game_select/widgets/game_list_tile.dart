@@ -26,8 +26,8 @@ class GameListTile extends ConsumerWidget {
 
     return ListTile(
       selected: TwoPane.of(context).isActive ? selectedGame == game : false,
-      selectedColor: colorScheme.primary,
-      selectedTileColor: colorScheme.onPrimary,
+      selectedColor: colorScheme.onPrimaryContainer,
+      selectedTileColor: colorScheme.primaryContainer,
       leading: Icon(MdiIcons.cardsPlayingSpadeOutline),
       title: Text(game.name),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),

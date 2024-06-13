@@ -96,13 +96,11 @@ class SolitaireApp extends ConsumerWidget {
       primaryKey: themeColor != Colors.transparent
           ? themeColor
           : themeColorPalette.first,
-      // variant: FlexSchemeVariant.rainbow,
+      // variant: FlexSchemeVariant.tonalSpot,
       tones: switch (brightness) {
-        Brightness.light => const FlexTones.light(),
-        Brightness.dark => const FlexTones.dark(
-            primaryContainerTone: 20,
-            secondaryTone: 60,
-          ),
+        Brightness.light =>
+          FlexTones.material(brightness).copyWith(primaryTone: 50),
+        Brightness.dark => FlexTones.material(brightness),
       },
     );
 

@@ -42,7 +42,7 @@ void feedback(FeedbackRef ref) {
     switch (target) {
       case Stock() || Foundation():
         HapticFeedback.heavyImpact();
-      case Tableau():
+      case Tableau() || Grid():
         HapticFeedback.mediumImpact();
       case Waste() || Reserve():
         HapticFeedback.lightImpact();

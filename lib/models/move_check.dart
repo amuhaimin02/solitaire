@@ -524,3 +524,65 @@ class CanRecyclePile extends MoveCheck {
     return currentCycle < limit! - 1;
   }
 }
+
+class PileIsExposed extends MoveCheck {
+  const PileIsExposed();
+
+  @override
+  String get errorMessage => 'Pile is not exposed yet';
+
+  @override
+  bool check(MoveCheckData data) {
+    if (data.pile is! Grid) {
+      return false;
+    }
+
+    final grid = data.pile as Grid;
+    final (x, y) = grid.xy;
+
+    final cardsOnBottomLeft = data.table.get(Grid(x, y + 1));
+    final cardsOnBottomRight = data.table.get(Grid(x + 1, y + 1));
+
+    return cardsOnBottomLeft.isEmpty && cardsOnBottomRight.isEmpty;
+  }
+}
+
+class BuildupRankValueAddUpTo extends MoveCheck {
+  const BuildupRankValueAddUpTo(this.targetValue);
+
+  final int targetValue;
+
+  @override
+  String get errorMessage => 'Buildup rank value must add up to $targetValue';
+
+  @override
+  bool check(MoveCheckData data) {
+    // Check card on pile and in hands, ensure they are not empty
+    if (data.table.get(data.pile).isEmpty || data.cards.isEmpty) {
+      return false;
+    }
+
+    final cardOnTable = data.table.get(data.pile).last;
+    final cardInHand = data.cards.first;
+
+    return cardOnTable.rank.value + cardInHand.rank.value == targetValue;
+  }
+}
+
+class CardsRankValueAddUpTo extends MoveCheck {
+  const CardsRankValueAddUpTo(this.targetValue);
+
+  final int targetValue;
+
+  @override
+  String get errorMessage => 'Cards\' rank value must add up to $targetValue';
+
+  @override
+  bool check(MoveCheckData data) {
+    if (data.cards.isEmpty) {
+      return false;
+    }
+
+    return data.cards.map((card) => card.rank.value).sum == targetValue;
+  }
+}
