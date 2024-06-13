@@ -23,29 +23,29 @@ class TriPeaks extends SolitaireGame {
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(10, 6),
-      landscape: Size(10, 4),
+      landscape: Size(10, 4.25), // Give gap to recycle count indicator
     );
   }
 
   static final _tripeaksPoints = [
     (0, 0),
-    (0, 3),
-    (0, 6),
-    (1, 0),
+    (3, 0),
+    (6, 0),
+    (0, 1),
     (1, 1),
-    (1, 3),
-    (1, 4),
-    (1, 6),
-    (1, 7),
-    for (int i = 0; i < 9; i++) (2, i),
-    for (int i = 0; i < 10; i++) (3, i),
+    (3, 1),
+    (4, 1),
+    (6, 1),
+    (7, 1),
+    for (int i = 0; i < 9; i++) (i, 2),
+    for (int i = 0; i < 10; i++) (i, 3),
   ];
 
   @override
   GameSetup construct() {
     return GameSetup(
       setup: {
-        for (final (y, x) in _tripeaksPoints)
+        for (final (x, y) in _tripeaksPoints)
           Grid(x, y): PileProperty(
             layout: PileLayout(
               region: LayoutProperty(

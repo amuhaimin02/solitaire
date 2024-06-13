@@ -24,7 +24,7 @@ class Pyramid extends SolitaireGame {
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(7, 6),
+      portrait: Size(7, 5.5),
       landscape: Size(8.5, 4),
     );
   }
@@ -55,7 +55,7 @@ class Pyramid extends SolitaireGame {
         const Foundation(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(0.5, 5, 1, 1),
+              portrait: Rect.fromLTWH(0.5, 4.5, 1, 1),
               landscape: Rect.fromLTWH(0, 0.5, 1, 1),
             ),
           ),
@@ -69,7 +69,7 @@ class Pyramid extends SolitaireGame {
         const Stock(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(5, 5, 1, 1),
+              portrait: Rect.fromLTWH(5, 4.5, 1, 1),
               landscape: Rect.fromLTWH(7.5, 2.5, 1, 1),
             ),
             showCount: LayoutProperty.all(true),
@@ -105,7 +105,7 @@ class Pyramid extends SolitaireGame {
         const Waste(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(3.5, 5, 1, 1),
+              portrait: Rect.fromLTWH(3.5, 4.5, 1, 1),
               landscape: Rect.fromLTWH(7.5, 0.5, 1, 1),
             ),
           ),

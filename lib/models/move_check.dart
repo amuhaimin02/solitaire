@@ -519,7 +519,7 @@ class PileIsExposed extends MoveCheck {
   const PileIsExposed();
 
   @override
-  String get errorMessage => 'Pile is not exposed yet';
+  String get errorMessage => 'Card is not exposed';
 
   @override
   bool check(MoveCheckArgs args) {

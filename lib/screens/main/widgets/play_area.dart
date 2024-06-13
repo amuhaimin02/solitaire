@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/action.dart';
 import '../../../models/card_list.dart';
 import '../../../models/game_status.dart';
+import '../../../models/move_check.dart';
 import '../../../models/move_result.dart';
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_move_history.dart';
@@ -46,6 +47,17 @@ class PlayArea extends ConsumerWidget {
               animateMovement: true,
               currentMoveState: ref.watch(currentMoveProvider)?.state,
               canDragCards: (cards, from) {
+                // Avoid dragging card that are stuck behind another cards on bottom
+                // (typically in Pyramid-style setup)
+                final pileIsExposed = game.game.setup
+                    .get(from)
+                    .pickable
+                    .findRule<PileIsExposed>();
+
+                if (pileIsExposed != null) {
+                  return pileIsExposed
+                      .check(MoveCheckArgs(pile: from, table: table));
+                }
                 return cards.isAllFacingUp;
               },
               onCardTap: (card, pile) {

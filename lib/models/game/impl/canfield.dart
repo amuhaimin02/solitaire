@@ -46,6 +46,7 @@ class Canfield extends SolitaireGame {
             ),
             pickable: const [
               CardIsOnTop(),
+              PileIsNotSingle(),
             ],
             placeable: const [
               CardIsSingle(),
