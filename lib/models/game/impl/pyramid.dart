@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../utils/types.dart';
+import '../../action.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
@@ -24,7 +25,7 @@ class Pyramid extends SolitaireGame {
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(7, 6),
-      landscape: Size(9, 4),
+      landscape: Size(8.5, 4),
     );
   }
 
@@ -54,25 +55,22 @@ class Pyramid extends SolitaireGame {
         const Foundation(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(1, 5, 1, 1),
-              landscape: Rect.fromLTWH(8, 0, 1, 1),
+              portrait: Rect.fromLTWH(0.5, 5, 1, 1),
+              landscape: Rect.fromLTWH(0, 0.5, 1, 1),
             ),
           ),
           pickable: const [
-            CardIsOnTop(),
+            NotAllowed(),
           ],
           placeable: const [
             CardsRankValueAddUpTo(13),
-          ],
-          afterMove: const [
-            FlipAllCardsFaceDown(),
           ],
         ),
         const Stock(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(5, 5, 1, 1),
-              landscape: Rect.fromLTWH(8, 3, 1, 1),
+              landscape: Rect.fromLTWH(7.5, 2.5, 1, 1),
             ),
             showCount: LayoutProperty.all(true),
           ),
@@ -99,23 +97,21 @@ class Pyramid extends SolitaireGame {
               ifFalse: [DrawFromTop(to: Waste(0), count: 1)],
             ),
           ],
-          pickable: const [
-            CardIsOnTop(),
+          pickable: const [],
+          placeable: const [
+            BuildupRankValueAddUpTo(13),
           ],
-          placeable: const [NotAllowed()],
         ),
         const Waste(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(3, 5, 1, 1),
-              landscape: Rect.fromLTWH(8, 1.5, 1, 1),
+              portrait: Rect.fromLTWH(3.5, 5, 1, 1),
+              landscape: Rect.fromLTWH(7.5, 0.5, 1, 1),
             ),
           ),
-          pickable: const [
-            CardIsOnTop(),
-          ],
+          pickable: const [],
           placeable: const [
-            // NotAllowed(),
+            BuildupRankValueAddUpTo(13),
           ],
         ),
       },
@@ -134,13 +130,33 @@ class Pyramid extends SolitaireGame {
     return const [
       MoveAttemptTo<Grid>(),
       MoveAttemptTo<Foundation>(),
+      MoveAttemptTo<Waste>(),
+      MoveAttemptTo<Stock>(),
     ];
+  }
+
+  static bool _recentMoveTargetIsStock(
+      Pile from, Pile to, MoveAttemptArgs args) {
+    // Prevent automatic movement if stock card is just revealed.
+    // In this case, top two cards might move to foundation they happens to be a perfect pair
+    return args.lastAction?.move?.to is Stock;
+  }
+
+  static bool _recentActionIsNotADraw(
+      Pile from, Pile to, MoveAttemptArgs args) {
+    // Prevent automatic movement if top cards on stock and waste pile make up a pair.
+    // This avoids unintended moves. However, players can still make a match by
+    // dragging the cards manually on top of each other, which triggers a Move instead
+    // of tapping (triggers a Draw)
+    return args.lastAction is! Draw;
   }
 
   @override
   List<MoveAttempt> get postMove {
     return const [
       MoveCompletedPairs<Grid, Foundation>(),
+      MoveCompletedPairs<Stock, Foundation>(onlyIf: _recentMoveTargetIsStock),
+      MoveCompletedPairs<Waste, Foundation>(onlyIf: _recentActionIsNotADraw),
     ];
   }
 }

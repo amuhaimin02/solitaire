@@ -160,11 +160,11 @@ class Penguin extends SolitaireGame {
   List<MoveAttemptTo> get quickMove {
     return [
       MoveAttemptTo<Foundation>(
-        onlyIf: (table, from, to) => from is! Foundation,
+        onlyIf: (from, to, args) => from is! Foundation,
       ),
       const MoveAttemptTo<Tableau>(roll: true),
       MoveAttemptTo<Reserve>(
-        onlyIf: (table, from, to) => from is Tableau,
+        onlyIf: (from, to, args) => from is Tableau,
       ),
     ];
   }

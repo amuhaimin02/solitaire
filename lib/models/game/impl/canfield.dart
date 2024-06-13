@@ -186,7 +186,7 @@ class Canfield extends SolitaireGame {
   List<MoveAttemptTo> get quickMove {
     return [
       MoveAttemptTo<Foundation>(
-        onlyIf: (table, from, to) => from is! Foundation,
+        onlyIf: (from, to, args) => from is! Foundation,
       ),
       const MoveAttemptTo<Tableau>(roll: true),
     ];
@@ -205,7 +205,7 @@ class Canfield extends SolitaireGame {
   List<MoveAttempt> get postMove {
     return [
       MoveAttempt<Reserve, Tableau>(
-        onlyIf: (table, from, to) => table.get(to).isEmpty,
+        onlyIf: (from, to, args) => args.table.get(to).isEmpty,
       ),
     ];
   }

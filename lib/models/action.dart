@@ -41,6 +41,20 @@ class Move extends Action {
   Move? get move => this;
 }
 
+class Draw extends Action {
+  final List<PlayCard> cards;
+  final Pile from;
+  final Pile to;
+
+  const Draw(this.cards, this.from, this.to);
+
+  @override
+  String toString() => 'Draw($cards, $from => $to)';
+
+  @override
+  Move? get move => Move(cards, from, to);
+}
+
 class Deal extends Action {
   final List<PlayCard> cards;
   final Pile pile;

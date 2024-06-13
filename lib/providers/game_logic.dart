@@ -203,6 +203,8 @@ class GameController extends _$GameController {
   }) {
     final game = ref.read(currentGameProvider);
     final moveState = ref.read(currentMoveProvider)?.state;
+    final lastAction = ref.read(currentActionProvider);
+
     PlayTable table = ref.read(currentTableProvider);
 
     final originPileInfo = game.game.setup.get(move.from);
@@ -229,7 +231,7 @@ class GameController extends _$GameController {
       if (originPileInfo.canTap != null) {
         final canTapResult = MoveCheck.checkAll(
           originPileInfo.canTap,
-          MoveCheckData(
+          MoveCheckArgs(
             pile: move.from,
             cards: cardsToPick,
             table: table,
@@ -245,11 +247,12 @@ class GameController extends _$GameController {
 
       result = MoveAction.run(
         originPileInfo.onTap,
-        MoveActionData(
+        MoveActionArgs(
           pile: move.from,
           table: table,
           metadata: game,
           moveState: moveState,
+          lastAction: lastAction,
         ),
       );
     } else {
@@ -264,7 +267,7 @@ class GameController extends _$GameController {
 
         final canPickResult = MoveCheck.checkAll(
           originPileInfo.pickable,
-          MoveCheckData(
+          MoveCheckArgs(
             pile: move.from,
             cards: cardsToPick,
             table: table,
@@ -279,7 +282,7 @@ class GameController extends _$GameController {
 
         final canPlaceResult = MoveCheck.checkAll(
           targetPileInfo.placeable,
-          MoveCheckData(
+          MoveCheckArgs(
             pile: move.to,
             cards: cardsToPick,
             table: table,
@@ -294,11 +297,12 @@ class GameController extends _$GameController {
 
         result = MoveAction.run(
           [MoveNormally(to: move.to, cards: cardsToPick)],
-          MoveActionData(
+          MoveActionArgs(
             pile: move.from,
             table: table,
             metadata: game,
             moveState: moveState,
+            lastAction: lastAction,
           ),
         );
       }
@@ -308,11 +312,12 @@ class GameController extends _$GameController {
         result = MoveAction.chain(
           result,
           props.afterMove,
-          MoveActionData(
+          MoveActionArgs(
             pile: pile,
             table: table,
             metadata: game,
             moveState: moveState,
+            lastAction: lastAction,
           ),
         );
       }
@@ -342,8 +347,15 @@ class GameController extends _$GameController {
     final game = ref.read(currentGameProvider);
     final table = ref.read(currentTableProvider);
 
-    for (final move
-        in MoveAttemptTo.getAttempts(game.game.quickMove, table, card, from)) {
+    final args = MoveAttemptArgs(
+      table: table,
+      from: from,
+      card: card,
+      lastAction: ref.read(currentActionProvider),
+      moveState: ref.read(currentMoveProvider)?.state,
+    );
+
+    for (final move in MoveAttemptTo.getAttempts(game.game.quickMove, args)) {
       final result = tryMove(move, doMove: doMove);
       if (result is MoveSuccess) {
         return result;
@@ -365,7 +377,14 @@ class GameController extends _$GameController {
     do {
       handled = false;
       final table = ref.read(currentTableProvider);
-      for (final move in MoveAttempt.getAttempts(game.game.autoSolve, table)) {
+
+      final args = MoveAttemptArgs(
+        table: table,
+        lastAction: ref.read(currentActionProvider),
+        moveState: ref.read(currentMoveProvider)?.state,
+      );
+
+      for (final move in MoveAttempt.getAttempts(game.game.autoSolve, args)) {
         final result = tryMove(move, doAfterMove: false);
         if (result is MoveSuccess) {
           handled = true;
@@ -399,7 +418,7 @@ class GameController extends _$GameController {
     for (final (pile, props) in gameData.game.setup.items) {
       final result = MoveAction.run(
         props.onStart,
-        MoveActionData(
+        MoveActionArgs(
           pile: pile,
           table: table,
           metadata: gameData,
@@ -421,7 +440,7 @@ class GameController extends _$GameController {
     for (final (pile, props) in gameData.game.setup.items) {
       final result = MoveAction.run(
         props.onSetup,
-        MoveActionData(
+        MoveActionArgs(
           pile: pile,
           table: table,
           metadata: gameData,
@@ -446,7 +465,14 @@ class GameController extends _$GameController {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       final table = ref.read(currentTableProvider);
-      for (final move in MoveAttempt.getAttempts(game.game.postMove, table)) {
+
+      final args = MoveAttemptArgs(
+        table: table,
+        lastAction: ref.read(currentActionProvider),
+        moveState: ref.read(currentMoveProvider)?.state,
+      );
+
+      for (final move in MoveAttempt.getAttempts(game.game.postMove, args)) {
         final result = tryMove(
           move,
           doAfterMove: false,
@@ -477,7 +503,13 @@ class GameController extends _$GameController {
       await Future.delayed(autoMoveDelay * timeDilation);
       handled = false;
       final table = ref.read(currentTableProvider);
-      for (final move in MoveAttempt.getAttempts(game.game.premove, table)) {
+
+      final args = MoveAttemptArgs(
+        table: table,
+        lastAction: ref.read(currentActionProvider),
+        moveState: ref.read(currentMoveProvider)?.state,
+      );
+      for (final move in MoveAttempt.getAttempts(game.game.premove, args)) {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
             lastAction.to == move.from &&
@@ -597,7 +629,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
   // TODO: Change "pile" parameter
   final result = MoveCheck.checkAll(
     game.game.objectives,
-    MoveCheckData(
+    MoveCheckArgs(
       pile: const Stock(0),
       cards: [],
       table: table,
@@ -620,7 +652,7 @@ bool autoSolvable(AutoSolvableRef ref) {
   // TODO: Change "pile" parameter
   final result = MoveCheck.checkAll(
     game.game.canAutoSolve,
-    MoveCheckData(
+    MoveCheckArgs(
       pile: const Stock(0),
       cards: [],
       table: table,

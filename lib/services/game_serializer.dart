@@ -155,6 +155,11 @@ class ActionSerializer implements Serializer<Action> {
         final toString = const PileSerializer().serialize(to);
         final cardsString = const PlayCardListSerializer().serialize(cards);
         return 'MV:$fromString:$toString:$cardsString';
+      case Draw(:final cards, :final from, :final to):
+        final fromString = const PileSerializer().serialize(from);
+        final toString = const PileSerializer().serialize(to);
+        final cardsString = const PlayCardListSerializer().serialize(cards);
+        return 'DW:$fromString:$toString:$cardsString';
       case Deal(:final cards, :final pile):
         final pileString = const PileSerializer().serialize(pile);
         final cardsString = const PlayCardListSerializer().serialize(cards);
@@ -172,6 +177,13 @@ class ActionSerializer implements Serializer<Action> {
       case 'MV':
         final [_, from, to, cards] = raw.split(':');
         return Move(
+          const PlayCardListSerializer().deserialize(cards),
+          const PileSerializer().deserialize(from),
+          const PileSerializer().deserialize(to),
+        );
+      case 'DW':
+        final [_, from, to, cards] = raw.split(':');
+        return Draw(
           const PlayCardListSerializer().deserialize(cards),
           const PileSerializer().deserialize(from),
           const PileSerializer().deserialize(to),

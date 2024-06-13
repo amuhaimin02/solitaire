@@ -1,10 +1,16 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../utils/types.dart';
 import 'action.dart';
 import 'card.dart';
+import 'move_record.dart';
 import 'pile.dart';
 import 'play_table.dart';
 
-typedef MoveAttemptTest = bool Function(PlayTable table, Pile from, Pile to);
+part 'move_attempt.freezed.dart';
+
+typedef MoveAttemptTest = bool Function(
+    Pile from, Pile to, MoveAttemptArgs args);
 
 class MoveAttempt<From extends Pile, To extends Pile> {
   const MoveAttempt({this.cardLength, this.onlyIf});
@@ -13,12 +19,12 @@ class MoveAttempt<From extends Pile, To extends Pile> {
 
   final MoveAttemptTest? onlyIf;
 
-  Iterable<MoveIntent> attemptMoves(PlayTable table) sync* {
-    for (final from in table.allPilesOfType<From>()) {
+  Iterable<MoveIntent> attemptMoves(MoveAttemptArgs args) sync* {
+    for (final from in args.table.allPilesOfType<From>()) {
       PlayCard? cardToMove;
 
       if (cardLength != null) {
-        final cardsOnPile = table.get(from);
+        final cardsOnPile = args.table.get(from);
 
         if (cardsOnPile.isNotEmpty) {
           cardToMove = cardsOnPile.length > cardLength!
@@ -27,8 +33,8 @@ class MoveAttempt<From extends Pile, To extends Pile> {
         }
       }
 
-      for (final to in table.allPilesOfType<To>()) {
-        if (onlyIf?.call(table, from, to) == false) {
+      for (final to in args.table.allPilesOfType<To>()) {
+        if (onlyIf?.call(from, to, args) == false) {
           continue;
         }
 
@@ -38,9 +44,11 @@ class MoveAttempt<From extends Pile, To extends Pile> {
   }
 
   static Iterable<MoveIntent> getAttempts(
-      List<MoveAttempt> attempts, PlayTable table) sync* {
+    List<MoveAttempt> attempts,
+    MoveAttemptArgs args,
+  ) sync* {
     for (final attempt in attempts) {
-      yield* attempt.attemptMoves(table);
+      yield* attempt.attemptMoves(args);
     }
   }
 }
@@ -50,15 +58,15 @@ class MoveCompletedPairs<From extends Pile, To extends Pile>
   const MoveCompletedPairs({super.onlyIf}) : super(cardLength: 2);
 
   @override
-  Iterable<MoveIntent> attemptMoves(PlayTable table) sync* {
-    for (final from in table.allPilesOfType<From>()) {
-      final cardsOnPile = table.get(from);
-      if (cardsOnPile.length == 2) {
+  Iterable<MoveIntent> attemptMoves(MoveAttemptArgs args) sync* {
+    for (final from in args.table.allPilesOfType<From>()) {
+      final cardsOnPile = args.table.get(from);
+      if (cardsOnPile.length >= 2) {
         PlayCard? cardToMove;
-        cardToMove = cardsOnPile.first;
+        cardToMove = cardsOnPile[cardsOnPile.length - 2];
 
-        for (final to in table.allPilesOfType<To>()) {
-          if (onlyIf?.call(table, from, to) == false) {
+        for (final to in args.table.allPilesOfType<To>()) {
+          if (onlyIf?.call(from, to, args) == false) {
             continue;
           }
           yield MoveIntent(from, to, cardToMove);
@@ -79,31 +87,42 @@ class MoveAttemptTo<To extends Pile> {
   final bool roll;
   final bool prioritizeNonEmptySpaces;
 
-  Iterable<MoveIntent> attemptMoves(
-      PlayTable table, PlayCard card, Pile from) sync* {
-    Iterable<To> pileIterator = table.allPilesOfType<To>();
+  Iterable<MoveIntent> attemptMoves(MoveAttemptArgs args) sync* {
+    Iterable<To> pileIterator = args.table.allPilesOfType<To>();
+    final from = args.from!;
 
-    if (roll && from.runtimeType == To) {
+    if (roll && args.from.runtimeType == To) {
       pileIterator = pileIterator.roll(from: from).skip(1);
     }
     if (prioritizeNonEmptySpaces) {
       pileIterator = pileIterator.toList().sortedByPriority((pile) {
-        return table.get(pile).isNotEmpty ? 1 : 0;
+        return args.table.get(pile).isNotEmpty ? 1 : 0;
       });
     }
     for (final to in pileIterator) {
-      if (onlyIf?.call(table, from, to) == false) {
+      if (onlyIf?.call(from, to, args) == false) {
         continue;
       }
 
-      yield MoveIntent(from, to, card);
+      yield MoveIntent(from, to, args.card);
     }
   }
 
-  static Iterable<MoveIntent> getAttempts(List<MoveAttemptTo> attempts,
-      PlayTable table, PlayCard card, Pile from) sync* {
+  static Iterable<MoveIntent> getAttempts(
+      List<MoveAttemptTo> attempts, MoveAttemptArgs args) sync* {
     for (final attempt in attempts) {
-      yield* attempt.attemptMoves(table, card, from);
+      yield* attempt.attemptMoves(args);
     }
   }
+}
+
+@freezed
+class MoveAttemptArgs with _$MoveAttemptArgs {
+  const factory MoveAttemptArgs({
+    required PlayTable table,
+    required MoveState? moveState,
+    required Action? lastAction,
+    PlayCard? card,
+    Pile? from,
+  }) = _MoveAttemptArgs;
 }
