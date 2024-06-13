@@ -28,7 +28,6 @@ class GameTheme extends ThemeExtension<GameTheme> with _$GameThemeTailorMixin {
     required this.tableBackgroundColor,
     required this.winningBackgroundColor,
     required this.hintHighlightColor,
-    required this.lastMoveHighlightColor,
   });
 
   @override
@@ -39,9 +38,6 @@ class GameTheme extends ThemeExtension<GameTheme> with _$GameThemeTailorMixin {
 
   @override
   final Color hintHighlightColor;
-
-  @override
-  final Color lastMoveHighlightColor;
 
   factory GameTheme.from({
     required ColorScheme colorScheme,
@@ -55,7 +51,6 @@ class GameTheme extends ThemeExtension<GameTheme> with _$GameThemeTailorMixin {
           ? colorScheme.surfaceContainer
           : colorScheme.primaryContainer,
       hintHighlightColor: colorScheme.error,
-      lastMoveHighlightColor: colorScheme.tertiary,
     );
   }
 }

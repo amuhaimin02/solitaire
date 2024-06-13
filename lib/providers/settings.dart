@@ -47,18 +47,18 @@ class SettingsShowStatusBar extends _$SettingsShowStatusBar
   bool build() => get();
 }
 
-@riverpod
-class SettingsShowLastMove extends _$SettingsShowLastMove
-    with SharedPreferencesProviderMixin {
-  @override
-  final String key = 'settings_show_last_moves';
-
-  @override
-  final bool defaultValue = true;
-
-  @override
-  bool build() => get();
-}
+// @riverpod
+// class SettingsShowLastMove extends _$SettingsShowLastMove
+//     with SharedPreferencesProviderMixin {
+//   @override
+//   final String key = 'settings_show_last_moves';
+//
+//   @override
+//   final bool defaultValue = true;
+//
+//   @override
+//   bool build() => get();
+// }
 
 @riverpod
 class SettingsShowScore extends _$SettingsShowScore

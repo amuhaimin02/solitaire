@@ -18,9 +18,9 @@ part 'move_action.freezed.dart';
 abstract class MoveAction {
   const MoveAction();
 
-  MoveActionResult action(MoveActionArgs args);
+  MoveActionResult run(MoveActionArgs args);
 
-  static MoveActionResult run(
+  static MoveActionResult runAll(
     List<MoveAction>? actions,
     MoveActionArgs args,
   ) {
@@ -34,7 +34,7 @@ abstract class MoveAction {
     PlayTable table = args.table;
 
     for (final item in actions) {
-      final result = item.action(args.copyWith(table: table));
+      final result = item.run(args.copyWith(table: table));
       switch (result) {
         case (MoveActionHandled()):
           hasChange = true;
@@ -71,7 +71,8 @@ abstract class MoveAction {
     Action? action = pastResult.action;
     List<MoveEvent> events = pastResult.events;
 
-    final currentResult = MoveAction.run(actions, args.copyWith(table: table));
+    final currentResult =
+        MoveAction.runAll(actions, args.copyWith(table: table));
 
     if (currentResult is MoveActionHandled) {
       table = currentResult.table;
@@ -138,7 +139,7 @@ class If extends MoveAction {
   final List<MoveAction>? ifFalse;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final cond = MoveCheck.checkAll(
       condition,
       MoveCheckArgs(
@@ -149,9 +150,9 @@ class If extends MoveAction {
     );
 
     if (cond is MoveCheckOK && ifTrue != null) {
-      return MoveAction.run(ifTrue, args);
+      return MoveAction.runAll(ifTrue, args);
     } else if (cond is MoveCheckFail && ifFalse != null) {
-      return MoveAction.run(ifFalse, args);
+      return MoveAction.runAll(ifFalse, args);
     } else {
       return MoveActionNoChange(table: args.table);
     }
@@ -168,7 +169,7 @@ class SetupNewDeck extends MoveAction {
   final List<Suit>? onlySuit;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final existingCards = args.table.get(args.pile);
 
     final newCards = const PlayCardGenerator().generateShuffledDeck(
@@ -188,7 +189,7 @@ class FlipAllCardsFaceUp extends MoveAction {
   const FlipAllCardsFaceUp();
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     return MoveActionHandled(
       table: args.table.modify(args.pile, args.table.get(args.pile).allFaceUp),
     );
@@ -199,7 +200,7 @@ class FlipAllCardsFaceDown extends MoveAction {
   const FlipAllCardsFaceDown();
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     return MoveActionHandled(
       table:
           args.table.modify(args.pile, args.table.get(args.pile).allFaceDown),
@@ -208,18 +209,16 @@ class FlipAllCardsFaceDown extends MoveAction {
 }
 
 class MoveNormally extends MoveAction {
-  const MoveNormally({required this.to, required this.cards});
+  const MoveNormally({required this.to, required this.count});
   final Pile to;
-  final List<PlayCard> cards;
+  final int count;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
-    final cardsInHand = cards;
+  MoveActionResult run(MoveActionArgs args) {
     final cardsOnTable = args.table.get(args.pile);
 
     // Check and remove cards from source pile to hand
-    final (remainingCards, cardsToPickUp) =
-        cardsOnTable.splitLast(cardsInHand.length);
+    final (remainingCards, cardsToPickUp) = cardsOnTable.splitLast(count);
 
     // Check whether card picked is similar to what is on hand
     // if (!const ListEquality().equals(cardsToPickUp, cardsInHand)) {
@@ -247,7 +246,7 @@ class DrawFromTop extends MoveAction {
   final int count;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final cardsOnTable = args.table.get(args.pile);
 
     // Check and remove cards from source pile to hand
@@ -275,7 +274,7 @@ class RecyclePile extends MoveAction {
   final bool faceUp;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final cardsToRecycle = args.table.get(takeFrom).reversed.toList();
     return MoveActionHandled(
       table: args.table.modifyMultiple({
@@ -300,7 +299,7 @@ class FlipTopCardFaceUp extends MoveAction {
   final int count;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final cardsOnPile = args.table.get(args.pile);
 
     if (cardsOnPile.isEmpty || cardsOnPile.last.isFacingUp) {
@@ -332,7 +331,7 @@ class DistributeTo<T extends Pile> extends MoveAction {
   final bool countAsMove;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final targetPiles = args.table.allPilesOfType<T>().toList();
 
     if (targetPiles.length != distribution.length) {
@@ -397,7 +396,7 @@ class EmitEvent extends MoveAction {
   final MoveEvent event;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     return MoveActionHandled(
       table: args.table,
       events: [event],
@@ -416,7 +415,7 @@ class ArrangePenguinFoundations extends MoveAction {
   final List<Pile> relatedCardsGoTo;
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final cardsInStock = args.table.get(args.pile);
     final firstCard = cardsInStock.first;
 
@@ -438,7 +437,7 @@ class FlipExposedCardsFaceUp extends MoveAction {
   const FlipExposedCardsFaceUp();
 
   @override
-  MoveActionResult action(MoveActionArgs args) {
+  MoveActionResult run(MoveActionArgs args) {
     final grids = args.table.allPilesOfType<Grid>();
 
     PlayTable updatedTable = args.table;

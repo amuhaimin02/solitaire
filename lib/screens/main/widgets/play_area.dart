@@ -28,8 +28,6 @@ class PlayArea extends ConsumerWidget {
 
     return OrientationBuilder(
       builder: (context, localOrientation) {
-        final showLastMoves = ref.watch(settingsShowLastMoveProvider);
-
         final showAutoSolveButton =
             ref.watch(settingsShowAutoSolveButtonProvider);
 
@@ -42,7 +40,6 @@ class PlayArea extends ConsumerWidget {
               orientation: localOrientation,
               highlightedCards: highlightedCards,
               lastMovedCards: ref.watch(lastMoveProvider)?.action.move?.cards,
-              showLastMovedCards: showLastMoves,
               animateDistribute: status == GameStatus.preparing,
               animateMovement: true,
               currentMoveState: ref.watch(currentMoveProvider)?.state,

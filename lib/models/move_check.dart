@@ -393,6 +393,22 @@ class PileTopCardIsFacingDown extends MoveCheck {
   }
 }
 
+class PileTopCardIsRank extends MoveCheck {
+  const PileTopCardIsRank(this.rank);
+
+  final Rank rank;
+
+  @override
+  String get errorMessage =>
+      'Cards on pile must be ${rank.name.toCapitalCase()}';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final cardsOnPile = args.table.get(args.pile);
+    return cardsOnPile.isNotEmpty && cardsOnPile.last.rank == rank;
+  }
+}
+
 class NotAllowed extends MoveCheck {
   const NotAllowed();
 

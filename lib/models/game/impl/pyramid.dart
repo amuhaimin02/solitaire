@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../utils/types.dart';
 import '../../action.dart';
+import '../../card.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
@@ -94,7 +95,13 @@ class Pyramid extends SolitaireGame {
             If(
               condition: [PileIsEmpty()],
               ifTrue: [RecyclePile(takeFrom: Waste(0), faceUp: true)],
-              ifFalse: [DrawFromTop(to: Waste(0), count: 1)],
+              ifFalse: [
+                If(
+                  condition: [PileTopCardIsRank(Rank.king)],
+                  ifTrue: [MoveNormally(to: Foundation(0), count: 1)],
+                  ifFalse: [DrawFromTop(to: Waste(0), count: 1)],
+                ),
+              ],
             ),
           ],
           pickable: const [],

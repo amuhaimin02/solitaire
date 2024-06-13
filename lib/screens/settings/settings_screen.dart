@@ -49,17 +49,7 @@ class SettingsScreen extends ConsumerWidget {
                   ref.read(settingsEnableVibrationProvider.notifier).toggle();
                 },
               ),
-              const SectionTitle('Appearance'),
-              SwitchListTile(
-                title: const Text('Highlight last moves'),
-                secondary: const Icon(Icons.crop_portrait),
-                subtitle: const Text(
-                    'Recently moved cards will be indicated with a border'),
-                value: ref.watch(settingsShowLastMoveProvider),
-                onChanged: (value) {
-                  ref.read(settingsShowLastMoveProvider.notifier).toggle();
-                },
-              ),
+              const SectionTitle('In game'),
               SwitchListTile(
                 title: const Text('Show score'),
                 secondary: Icon(MdiIcons.counter),
@@ -124,7 +114,7 @@ class SettingsScreen extends ConsumerWidget {
                 },
               ),
               const InfoTile(
-                message: Text('Not all games support these assistance.'),
+                message: Text('Games might not support some controls.'),
               ),
             ],
           ),

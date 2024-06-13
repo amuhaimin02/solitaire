@@ -245,7 +245,7 @@ class GameController extends _$GameController {
         }
       }
 
-      result = MoveAction.run(
+      result = MoveAction.runAll(
         originPileInfo.onTap,
         MoveActionArgs(
           pile: move.from,
@@ -295,8 +295,8 @@ class GameController extends _$GameController {
               'Cannot place the card(s) here.\n${canPlaceResult.reason?.errorMessage}');
         }
 
-        result = MoveAction.run(
-          [MoveNormally(to: move.to, cards: cardsToPick)],
+        result = MoveAction.runAll(
+          [MoveNormally(to: move.to, count: cardsToPick.length)],
           MoveActionArgs(
             pile: move.from,
             table: table,
@@ -416,7 +416,7 @@ class GameController extends _$GameController {
     final moveState = ref.read(currentMoveProvider)?.state;
 
     for (final (pile, props) in gameData.game.setup.items) {
-      final result = MoveAction.run(
+      final result = MoveAction.runAll(
         props.onStart,
         MoveActionArgs(
           pile: pile,
@@ -438,7 +438,7 @@ class GameController extends _$GameController {
     final moveState = ref.read(currentMoveProvider)?.state;
 
     for (final (pile, props) in gameData.game.setup.items) {
-      final result = MoveAction.run(
+      final result = MoveAction.runAll(
         props.onSetup,
         MoveActionArgs(
           pile: pile,
