@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../animations.dart';
 import 'bottom_padded.dart';
 
 enum StackingStyle { topDown, bottomSheet, newPage }
@@ -107,6 +108,7 @@ class TwoPaneState extends State<TwoPane> {
             context: context,
             isScrollControlled: true,
             showDragHandle: true,
+            sheetAnimationStyle: popupAnimation.animationStyle,
             builder: (context) => SingleChildScrollView(
               child: Wrap(
                 children: [

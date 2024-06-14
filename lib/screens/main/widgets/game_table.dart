@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../animations.dart';
@@ -137,8 +138,8 @@ class _GameTableState extends State<GameTable> {
               clipBehavior: Clip.none,
               children: [
                 _buildMarkerLayer(context, gridUnit),
-                _buildCardLayer(context, gridUnit),
                 _buildOverlayLayer(context, gridUnit),
+                _buildCardLayer(context, gridUnit),
                 _buildCardDragOverlay(context, gridUnit),
                 if (debugHighlightPileRegion)
                   _buildDebugLayer(context, gridUnit),
@@ -306,15 +307,19 @@ class _GameTableState extends State<GameTable> {
   }
 
   Widget _buildOverlayLayer(BuildContext context, Size gridUnit) {
+    Rect getRect(pile) {
+      return Rect.fromLTWH(_resolvedRegion.get(pile).left,
+              _resolvedRegion.get(pile).top, 1, 1)
+          .scale(gridUnit);
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
         for (final (pile, props) in _allPiles.items) ...[
           if (props.layout.showCount?.resolve(widget.orientation) == true)
             Positioned.fromRect(
-              rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
-                      _resolvedRegion.get(pile).top, 1, 1)
-                  .scale(gridUnit),
+              rect: getRect(pile),
               child: _CardCountIndicator(
                 count: widget.table.get(pile).length,
                 size: gridUnit,
@@ -326,9 +331,7 @@ class _GameTableState extends State<GameTable> {
 
             if (recycleLimit != null && recycleLimit != intMaxValue) {
               return Positioned.fromRect(
-                rect: Rect.fromLTWH(_resolvedRegion.get(pile).left,
-                        _resolvedRegion.get(pile).top, 1, 1)
-                    .scale(gridUnit),
+                rect: getRect(pile),
                 child: _PileCycleIndicator(
                   cycleCount:
                       ((widget.currentMoveState?.recycleCounts[pile] ?? 0) + 1),
@@ -347,59 +350,63 @@ class _GameTableState extends State<GameTable> {
 
   Widget _buildCardDragOverlay(BuildContext context, Size gridUnit) {
     return _CardDragOverlay(
-        gridUnit: gridUnit,
-        draggedCards: _touchingCards,
-        onDrag: (touchPoint) {
-          _touchDragTimer?.cancel();
+      gridUnit: gridUnit,
+      draggedCards: _touchingCards,
+      onTouch: () {
+        _touchDragTimer?.cancel();
+      },
+      onLift: () {
+        setState(() {
+          _touchingCards = null;
+        });
+      },
+      onDrag: (touchPoint) {
+        setState(() {
+          _isDragging = true;
+        });
+      },
+      onDrop: (touchPoint) {
+        setState(() {
+          _isDragging = false;
+          _isDropping = true;
+          _dropTouchPoint = touchPoint;
+        });
 
-          setState(() {
-            _isDragging = true;
-          });
-        },
-        onDrop: (touchPoint) {
-          setState(() {
-            _isDragging = false;
-            _isDropping = true;
-            _dropTouchPoint = touchPoint;
-          });
-          final point = _convertToGrid(touchPoint, gridUnit);
+        // Convert to grid representation
+        final point = touchPoint.scale(1 / gridUnit.width, 1 / gridUnit.height);
 
-          // Find pile belonging to the region, also ignore virtual ones
-          final dropPile = _allPiles.keys.firstWhereOrNull(
-            (pile) =>
-                !_allPiles.get(pile).virtual &&
-                _resolvedRegion.get(pile).contains(point),
-          );
+        // Find pile belonging to the region, also ignore virtual ones
+        final dropPile = _allPiles.keys.firstWhereOrNull(
+          (pile) =>
+              !_allPiles.get(pile).virtual &&
+              _resolvedRegion.get(pile).contains(point),
+        );
 
-          if (dropPile != null) {
-            if (_touchingCards != null &&
-                _touchingPile != null &&
-                _touchingPile != dropPile) {
-              _onCardDrop(
-                  context, _touchingCards!.first, _touchingPile!, dropPile);
-            }
+        if (dropPile != null) {
+          if (_touchingCards != null &&
+              _touchingPile != null &&
+              _touchingPile != dropPile) {
+            _onCardDrop(
+                context, _touchingCards!.first, _touchingPile!, dropPile);
           }
+        }
 
-          // Wait for previous setState to finish
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {
-              _isDropping = false;
-            });
-
-            // Wait for animation to finish, this ensures cards returning to original place are still rendered on top
-            _touchDragTimer =
-                Timer(cardMoveAnimation.duration * 1.5 * timeDilation, () {
-              setState(() {
-                _touchingCards = null;
-              });
-            });
-          });
-        },
-        onLift: () {
+        // Wait for previous setState to finish
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           setState(() {
-            _touchingCards = null;
+            _isDropping = false;
+          });
+
+          // Wait for animation to finish, this ensures cards returning to original place are still rendered on top
+          _touchDragTimer =
+              Timer(cardMoveAnimation.duration * 1.5 * timeDilation, () {
+            setState(() {
+              _touchingCards = null;
+            });
           });
         });
+      },
+    );
   }
 
   List<Widget> _buildPile(BuildContext context, Size gridUnit, Pile pile) {
@@ -420,12 +427,9 @@ class _GameTableState extends State<GameTable> {
         }
       }
       return originalPosition.scale(gridUnit);
-      // }
     }
 
-    List<PlayCard> cards = [];
-
-    cards = widget.table.get(pile);
+    final cards = widget.table.get(pile);
 
     DurationCurve computeAnimation(int cardIndex) {
       if (!widget.animateMovement) {
@@ -534,10 +538,6 @@ class _GameTableState extends State<GameTable> {
             ),
         ];
     }
-  }
-
-  Offset _convertToGrid(Offset point, Size gridUnit) {
-    return point.scale(1 / gridUnit.width, 1 / gridUnit.height);
   }
 
   List<Offset> _computeStackGapPositions({
@@ -810,7 +810,7 @@ class _CardCountIndicator extends StatelessWidget {
             width: size.shortestSide * 0.5,
             height: size.shortestSide * 0.5,
             decoration: BoxDecoration(
-              color: colorScheme.inverseSurface,
+              color: colorScheme.secondary,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -821,7 +821,7 @@ class _CardCountIndicator extends StatelessWidget {
                 duration: cardMoveAnimation.duration * 1.5,
                 curve: cardMoveAnimation.curve,
                 style: TextStyle(
-                  color: colorScheme.onInverseSurface,
+                  color: colorScheme.onSecondary,
                   fontWeight: FontWeight.bold,
                   fontSize: size.shortestSide * 0.25,
                   height: 1,
@@ -856,7 +856,7 @@ class _PileCycleIndicator extends StatelessWidget {
         alignment: Alignment.topCenter,
         child: Container(
           decoration: ShapeDecoration(
-            color: colorScheme.secondaryContainer,
+            color: colorScheme.secondary,
             shape: const StadiumBorder(),
           ),
           padding: EdgeInsets.all(size.shortestSide * 0.1),
@@ -865,7 +865,7 @@ class _PileCycleIndicator extends StatelessWidget {
             child: Text(
               '$cycleCount / $cycleLimit',
               style: TextStyle(
-                color: colorScheme.onSecondaryContainer,
+                color: colorScheme.onSecondary,
                 fontWeight: FontWeight.bold,
                 fontSize: size.shortestSide * 0.2,
                 height: 1,
@@ -904,13 +904,9 @@ class _PileMarker extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    IconData getStockIcon() {
-      if (canRecycle == null) {
-        throw ArgumentError(
-            'Stock pile must have canRecycle property for pile marker');
-      }
-      return canRecycle == true ? MdiIcons.refresh : Icons.block;
-    }
+    final markerColor = colorScheme.onSurface.withOpacity(0.26);
+    final markerIconSize = size.shortestSide * 0.5;
+    final markerTextSize = size.shortestSide * 0.5;
 
     IconData getFoundationIcon() {
       return switch (startsWith) {
@@ -950,14 +946,33 @@ class _PileMarker extends StatelessWidget {
       };
     }
 
-    final icon = switch (pile) {
-      Stock() => getStockIcon(),
-      Waste() => MdiIcons.cardsPlaying,
-      Foundation() => getFoundationIcon(),
-      Tableau() => getTableauIcon(),
-      Reserve() => MdiIcons.circleOutline,
-      Grid() => null,
-    };
+    final Widget? label;
+    switch (pile) {
+      case Stock():
+        if (canRecycle == null) {
+          throw ArgumentError(
+              'Stock pile must have canRecycle property for pile marker');
+        }
+        label = Icon(
+          canRecycle == true ? MdiIcons.refresh : Icons.block,
+          color: markerColor,
+          size: markerIconSize,
+        );
+      case Foundation() || Tableau() when startsWith != null:
+        label = Text(
+          startsWith!.symbol,
+          style:
+              GoogleFonts.dosis(color: markerColor, fontSize: markerTextSize),
+        );
+      case Waste():
+        label = Icon(
+          MdiIcons.cardsPlaying,
+          color: markerColor,
+          size: markerIconSize,
+        );
+      default:
+        label = null;
+    }
 
     return Container(
       padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
@@ -973,11 +988,8 @@ class _PileMarker extends StatelessWidget {
                 )
               : null,
         ),
-        child: Icon(
-          icon,
-          size: size.shortestSide * 0.5,
-          color: colorScheme.onSurface.withOpacity(0.24),
-        ),
+        alignment: Alignment.center,
+        child: label ?? const SizedBox(),
       ),
     );
   }
@@ -988,20 +1000,23 @@ class _CardDragOverlay extends StatefulWidget {
     super.key,
     this.draggedCards,
     required this.gridUnit,
+    required this.onTouch,
+    required this.onLift,
     required this.onDrag,
     required this.onDrop,
-    required this.onLift,
   });
 
   final List<PlayCard>? draggedCards;
 
   final Size gridUnit;
 
+  final void Function() onTouch;
+
+  final void Function() onLift;
+
   final void Function(Offset touchPoint) onDrag;
 
   final void Function(Offset touchPoint) onDrop;
-
-  final void Function() onLift;
 
   @override
   State<_CardDragOverlay> createState() => _CardDragOverlayState();
@@ -1031,6 +1046,7 @@ class _CardDragOverlayState extends State<_CardDragOverlay> {
       behavior: HitTestBehavior.translucent,
       onPointerDown: (event) {
         _startTouchPoint = event.localPosition;
+        widget.onTouch();
       },
       onPointerMove: (event) {
         if (!_dragging &&

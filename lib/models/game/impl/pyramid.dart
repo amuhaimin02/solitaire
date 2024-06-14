@@ -144,6 +144,11 @@ class Pyramid extends SolitaireGame {
 
   static bool _recentMoveTargetIsStock(
       Pile from, Pile to, MoveAttemptArgs args) {
+    // Only do matching on last moved cards
+    if (args.lastAction?.move?.to != from) {
+      return false;
+    }
+
     // Prevent automatic movement if stock card is just revealed.
     // In this case, top two cards might move to foundation they happens to be a perfect pair
     return args.lastAction?.move?.to is Stock;
@@ -151,6 +156,11 @@ class Pyramid extends SolitaireGame {
 
   static bool _recentActionIsNotADraw(
       Pile from, Pile to, MoveAttemptArgs args) {
+    // Only do matching on last moved cards
+    if (args.lastAction?.move?.to != from) {
+      return false;
+    }
+
     // Prevent automatic movement if top cards on stock and waste pile make up a pair.
     // This avoids unintended moves. However, players can still make a match by
     // dragging the cards manually on top of each other, which triggers a Move instead

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../animations.dart';
 import '../utils/widgets.dart';
 
 class PopupButton extends StatelessWidget {
@@ -71,7 +72,7 @@ class PopupButton extends StatelessWidget {
               child: Align(
                 alignment: popupAlignment,
                 child: ScaleTransition(
-                  scale: CurveTween(curve: Easing.emphasizedDecelerate)
+                  scale: CurveTween(curve: popupAnimation.curve)
                       .animate(animation),
                   alignment: popupAlignment,
                   child: Container(

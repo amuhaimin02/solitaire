@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'animations.dart';
 import 'models/game_theme.dart';
 import 'providers/settings.dart';
 import 'providers/themes.dart';
@@ -118,30 +119,32 @@ class SolitaireApp extends ConsumerWidget {
       coloredBackground: coloredBackground,
     );
 
-    final textTheme = GoogleFonts.manropeTextTheme();
-
     ThemeData appTheme = ThemeData(
-        useMaterial3: true,
-        textTheme: textTheme,
-        colorScheme: colorScheme,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-        ),
-        splashFactory: InkSparkle.splashFactory,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: SlideUpTransitionBuilder(),
-            TargetPlatform.iOS: SlideUpTransitionBuilder(),
-            TargetPlatform.macOS: SlideUpTransitionBuilder(),
-          },
-        ),
-        tooltipTheme: const TooltipThemeData(preferBelow: false),
-        snackBarTheme: const SnackBarThemeData(
-          behavior: SnackBarBehavior.floating,
-          // width: 400,
-        ),
-        scrollbarTheme: const ScrollbarThemeData(),
-        extensions: [gameTheme, cardTheme]);
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+      ),
+      splashFactory: InkSparkle.splashFactory,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: SlideUpTransitionBuilder(),
+          TargetPlatform.iOS: SlideUpTransitionBuilder(),
+          TargetPlatform.macOS: SlideUpTransitionBuilder(),
+        },
+      ),
+      tooltipTheme: const TooltipThemeData(preferBelow: false),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        // width: 400,
+      ),
+      scrollbarTheme: const ScrollbarThemeData(),
+      extensions: [gameTheme, cardTheme],
+    );
+
+    appTheme = appTheme.copyWith(
+      textTheme: GoogleFonts.manropeTextTheme(appTheme.textTheme),
+    );
 
     if (amoledDarkTheme && themeMode == ThemeMode.dark) {
       appTheme = appTheme.copyWith(
@@ -202,7 +205,7 @@ class SlideUpTransitionBuilder extends PageTransitionsBuilder {
       Widget child) {
     final colorScheme = Theme.of(context).colorScheme;
     final curvedAnimation =
-        CurveTween(curve: Easing.emphasizedDecelerate).animate(animation);
+        CurveTween(curve: popupAnimation.curve).animate(animation);
 
     return Stack(
       children: [

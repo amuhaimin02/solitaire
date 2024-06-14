@@ -21,6 +21,15 @@ class DurationCurve {
     return DurationCurve(duration * slowFactor, curve);
   }
 
+  AnimationStyle get animationStyle {
+    return AnimationStyle(
+      duration: duration,
+      reverseDuration: duration,
+      curve: curve,
+      reverseCurve: curve.flipped,
+    );
+  }
+
   @override
   String toString() {
     return 'DurationCurve($duration, $curve)';
@@ -29,6 +38,9 @@ class DurationCurve {
 
 const cardMoveAnimation =
     DurationCurve(Duration(milliseconds: 300), Easing.standard);
+
+const popupAnimation =
+    DurationCurve(Duration(milliseconds: 300), Easing.emphasizedDecelerate);
 
 const cardDragAnimation =
     DurationCurve(Duration(milliseconds: 200), Curves.easeOutCirc);

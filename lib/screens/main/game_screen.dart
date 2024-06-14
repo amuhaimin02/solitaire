@@ -325,8 +325,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   Future<void> _showFinishDialog(BuildContext context) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
     if (!context.mounted) return;
 
     final confirm = await showDialog<bool>(

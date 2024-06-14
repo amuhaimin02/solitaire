@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/game_logic.dart';
 import '../../../utils/types.dart';
-import '../../../widgets/fixes.dart';
 
 class FinishDialog extends ConsumerWidget {
   const FinishDialog({super.key});
@@ -15,12 +14,16 @@ class FinishDialog extends ConsumerWidget {
     final scoreSummary =
         ref.watch(gameControllerProvider.notifier).getScoreSummary();
 
-    return DialogThemeFix(
-      child: AlertDialog(
-        title: const Text('You win'),
-        content: SizedBox(
-          width: 300,
+    return AlertDialog(
+      title: const Text('You win!'),
+      titleTextStyle:
+          textTheme.headlineSmall!.copyWith(color: colorScheme.primary),
+      content: SizedBox(
+        width: 300,
+        child: Scrollbar(
+          thumbVisibility: true,
           child: SingleChildScrollView(
+            primary: true,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -81,21 +84,21 @@ class FinishDialog extends ConsumerWidget {
             ),
           ),
         ),
-        actions: [
-          FilledButton.tonal(
-            onPressed: () {
-              Navigator.pop(context, false);
-            },
-            child: const Text('Close'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context, true);
-            },
-            child: const Text('Play again'),
-          ),
-        ],
       ),
+      actions: [
+        FilledButton.tonal(
+          onPressed: () {
+            Navigator.pop(context, false);
+          },
+          child: const Text('Close'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+          child: const Text('Play again'),
+        ),
+      ],
     );
   }
 }
