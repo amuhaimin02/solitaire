@@ -450,11 +450,8 @@ class _GameTableState extends State<GameTable> {
       return cardMoveAnimation;
     }
 
-    Color? highlightCardColor(PlayCard card) {
-      if (widget.highlightedCards?.contains(card) == true) {
-        return Theme.of(context).gameTheme.hintHighlightColor;
-      }
-      return null;
+    bool cardIsHighlighted(PlayCard card) {
+      return widget.highlightedCards?.contains(card) == true;
     }
 
     switch (stackDirection) {
@@ -477,7 +474,7 @@ class _GameTableState extends State<GameTable> {
                   stackDirection: stackDirection,
                   isFirstCard: i == 0,
                   isLastCard: i == cards.length - 1,
-                  highlightColor: highlightCardColor(card),
+                  highlighted: cardIsHighlighted(card),
                   hasShadow: i < 3, // Bottom 3 card will have shadow
                 ),
               ),
@@ -528,7 +525,7 @@ class _GameTableState extends State<GameTable> {
                 stackDirection: stackDirection,
                 isFirstCard: i == 0,
                 isLastCard: i == cards.length - 1,
-                highlightColor: highlightCardColor(card),
+                highlighted: cardIsHighlighted(card),
                 hasShadow: previewCards != 0
                     // Only visible cards have shadow
                     ? i >= cards.length - 1 - previewCards
@@ -710,10 +707,10 @@ class _CardWidget extends StatelessWidget {
     required this.stackDirection,
     required this.hasShadow,
     this.isMoving = false,
+    this.highlighted = false,
     this.shake = false,
     this.onTouch,
     this.onTap,
-    this.highlightColor,
   });
 
   final bool shake;
@@ -732,7 +729,7 @@ class _CardWidget extends StatelessWidget {
 
   final VoidCallback? onTap;
 
-  final Color? highlightColor;
+  final bool highlighted;
 
   final Direction stackDirection;
 
@@ -777,7 +774,7 @@ class _CardWidget extends StatelessWidget {
           card: card,
           size: cardSize,
           elevation: isMoving ? hoverElevation : elevation,
-          highlightColor: highlightColor,
+          highlighted: highlighted,
           labelAlignment: labelAlignment,
         ),
       ),

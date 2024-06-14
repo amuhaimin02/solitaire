@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/scheduler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -664,6 +666,8 @@ bool autoSolvable(AutoSolvableRef ref) {
 
 @riverpod
 class HintedCards extends _$HintedCards {
+  static Timer? _highlightTimer;
+
   @override
   List<PlayCard>? build() {
     return null;
@@ -674,8 +678,10 @@ class HintedCards extends _$HintedCards {
   }
 
   void highlight(List<PlayCard> cards) {
+    _highlightTimer?.cancel();
+
     state = cards;
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    _highlightTimer = Timer(const Duration(milliseconds: 1500), () {
       state = null;
     });
   }

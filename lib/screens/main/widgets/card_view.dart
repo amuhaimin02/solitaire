@@ -8,6 +8,7 @@ import '../../../models/game_theme.dart';
 import '../../../utils/canvas.dart';
 import '../../../widgets/flippable.dart';
 import '../../../widgets/soft_shadow.dart';
+import 'card_highlight.dart';
 
 class CardView extends StatelessWidget {
   const CardView({
@@ -16,7 +17,7 @@ class CardView extends StatelessWidget {
     required this.size,
     this.elevation,
     this.hideFace = false,
-    this.highlightColor,
+    this.highlighted = false,
     this.labelAlignment = Alignment.center,
   });
 
@@ -26,7 +27,7 @@ class CardView extends StatelessWidget {
 
   final bool hideFace;
 
-  final Color? highlightColor;
+  final bool highlighted;
 
   final Size size;
 
@@ -35,7 +36,6 @@ class CardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardTheme = Theme.of(context).gameCardTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     return Flippable(
       duration: cardMoveAnimation.duration,
       curve: cardMoveAnimation.curve,
@@ -61,53 +61,15 @@ class CardView extends StatelessWidget {
         child: CardBack(size: size),
       ),
       builder: (context, child) {
-        return Stack(
-          children: [
-            CardHighlight(
-              highlight: highlightColor != null,
-              color: highlightColor ?? colorScheme.primary,
-              size: size,
-            ),
-            Positioned.fill(
-                child: Padding(
-              padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
-              child: child,
-            )),
-          ],
+        return ColorSpectrumCardHighlight(
+          highlight: highlighted,
+          size: size,
+          child: Padding(
+            padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
+            child: child,
+          ),
         );
       },
-    );
-  }
-}
-
-class CardHighlight extends StatelessWidget {
-  const CardHighlight({
-    super.key,
-    required this.highlight,
-    required this.color,
-    required this.size,
-  });
-
-  final Color color;
-
-  final bool highlight;
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    final cardTheme = Theme.of(context).gameCardTheme;
-    return AnimatedScale(
-      duration: cardMoveAnimation.duration,
-      curve: highlight ? Curves.easeOutCirc : Curves.easeInCirc,
-      scale: highlight ? 1 : 0.01,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(
-              size.shortestSide * (cardTheme.cornerRadius + cardTheme.margin)),
-        ),
-      ),
     );
   }
 }
