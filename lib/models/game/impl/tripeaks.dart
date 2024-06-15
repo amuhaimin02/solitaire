@@ -27,7 +27,7 @@ class TriPeaks extends SolitaireGame {
     );
   }
 
-  static final _tripeaksPoints = [
+  static final _tripeaksPlacement = [
     (0, 0),
     (3, 0),
     (6, 0),
@@ -45,7 +45,7 @@ class TriPeaks extends SolitaireGame {
   GameSetup construct() {
     return GameSetup(
       setup: {
-        for (final (x, y) in _tripeaksPoints)
+        for (final (x, y) in _tripeaksPlacement)
           Grid(x, y): PileProperty(
             layout: PileLayout(
               region: LayoutProperty(
@@ -76,11 +76,11 @@ class TriPeaks extends SolitaireGame {
           onSetup: [
             DistributeTo<Grid>(
               distribution: List.filled(28, 1),
-              afterMove: [
-                const FlipAllCardsFaceDown(),
-                const FlipExposedCardsFaceUp(),
-              ],
             ),
+            const ForAllPilesOfType<Grid>([
+              FlipAllCardsFaceDown(),
+              FlipExposedCardsFaceUp(),
+            ])
           ],
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],

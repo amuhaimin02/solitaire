@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+
 import '../../direction.dart';
 import '../../move_action.dart';
 import '../../move_check.dart';
@@ -65,11 +67,11 @@ class SolitaireDemo extends SolitaireGame {
           onSetup: const [
             DistributeTo<Tableau>(
               distribution: [1, 2, 3, 4],
-              afterMove: [
-                FlipAllCardsFaceDown(),
-                FlipTopCardFaceUp(),
-              ],
-            )
+            ),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(),
+            ])
           ],
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],

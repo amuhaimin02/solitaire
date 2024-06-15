@@ -321,14 +321,11 @@ class FlipTopCardFaceUp extends MoveAction {
 class DistributeTo<T extends Pile> extends MoveAction {
   const DistributeTo({
     required this.distribution,
-    this.afterMove,
     this.countAsMove = false,
     this.allowPartial = false,
   });
 
   final List<int> distribution;
-
-  final List<MoveAction>? afterMove;
 
   final bool countAsMove;
 
@@ -384,15 +381,7 @@ class DistributeTo<T extends Pile> extends MoveAction {
       action: countAsMove ? Deal(cardsToTake, args.pile) : null,
     );
 
-    if (afterMove != null) {
-      return targetPiles.fold(
-        result,
-        (result, pile) =>
-            MoveAction.chain(result, afterMove, args.copyWith(pile: pile)),
-      );
-    } else {
-      return result;
-    }
+    return result;
   }
 }
 
@@ -406,35 +395,6 @@ class EmitEvent extends MoveAction {
     return MoveActionHandled(
       table: args.table,
       events: [event],
-    );
-  }
-}
-
-class ArrangePenguinFoundations extends MoveAction {
-  const ArrangePenguinFoundations({
-    required this.firstCardGoesTo,
-    required this.relatedCardsGoTo,
-  });
-
-  final Pile firstCardGoesTo;
-
-  final List<Pile> relatedCardsGoTo;
-
-  @override
-  MoveActionResult run(MoveActionArgs args) {
-    final cardsInStock = args.table.get(args.pile);
-    final firstCard = cardsInStock.first;
-
-    final (remainingCards, relatedCards) =
-        cardsInStock.splitWhere((card) => card.rank == firstCard.rank);
-
-    return MoveActionHandled(
-      table: args.table.modifyMultiple({
-        args.pile: remainingCards,
-        firstCardGoesTo: [relatedCards.first.faceUp],
-        for (final (index, pile) in relatedCardsGoTo.indexed)
-          pile: [relatedCards[index + 1].faceUp],
-      }),
     );
   }
 }
@@ -457,5 +417,54 @@ class FlipExposedCardsFaceUp extends MoveAction {
     }
 
     return MoveActionHandled(table: updatedTable);
+  }
+}
+
+class FindCardsAndMove extends MoveAction {
+  const FindCardsAndMove({
+    required this.where,
+    this.firstCardOnly = false,
+    required this.moveTo,
+  });
+
+  final bool Function(PlayCard card, List<PlayCard> cardsOnPile) where;
+  final bool firstCardOnly;
+  final Pile moveTo;
+
+  @override
+  MoveActionResult run(MoveActionArgs args) {
+    final cardsOnPile = args.table.get(args.pile);
+    final (remainingCards, foundCards) = cardsOnPile.splitWhere(
+      (c) => where(c, cardsOnPile),
+      firstCardOnly: firstCardOnly,
+    );
+
+    return MoveActionHandled(
+      table: args.table.modifyMultiple({
+        args.pile: remainingCards,
+        moveTo: [...args.table.get(moveTo), ...foundCards],
+      }),
+    );
+  }
+}
+
+class ForAllPilesOfType<T extends Pile> extends MoveAction {
+  const ForAllPilesOfType(this.actions);
+
+  final List<MoveAction>? actions;
+
+  @override
+  MoveActionResult run(MoveActionArgs args) {
+    MoveActionResult? result;
+
+    for (final pile in args.table.allPilesOfType<T>()) {
+      if (result == null) {
+        result = MoveAction.runAll(actions, args.copyWith(pile: pile));
+      } else {
+        result = MoveAction.chain(result, actions, args.copyWith(pile: pile));
+      }
+    }
+
+    return result!;
   }
 }

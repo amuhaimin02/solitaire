@@ -5,29 +5,28 @@ import '../../direction.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
-import '../../move_event.dart';
 import '../../pile.dart';
 import '../../pile_property.dart';
 import '../../rank_order.dart';
 import '../solitaire.dart';
 
-class Yukon extends SolitaireGame {
-  Yukon();
+class SirTommy extends SolitaireGame {
+  SirTommy();
 
   @override
-  String get name => 'Yukon';
+  String get name => 'Sir Tommy';
 
   @override
-  String get family => 'Yukon';
+  String get family => 'Sir Tommy';
 
   @override
-  String get tag => 'yukon';
+  String get tag => 'sir-tommy';
 
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(7, 6),
-      landscape: Size(10, 4),
+      portrait: Size(6.5, 6),
+      landscape: Size(8, 4),
     );
   }
 
@@ -39,7 +38,7 @@ class Yukon extends SolitaireGame {
           Foundation(i): PileProperty(
             layout: PileLayout(
               region: LayoutProperty(
-                portrait: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 1),
+                portrait: Rect.fromLTWH(i.toDouble() + 0.5, 0, 1, 1),
                 landscape: Rect.fromLTWH(0, i.toDouble(), 1, 1),
               ),
             ),
@@ -48,61 +47,42 @@ class Yukon extends SolitaireGame {
             ],
             placeable: const [
               CardIsSingle(),
-              CardsAreFacingUp(),
               BuildupStartsWith(Rank.ace),
               BuildupFollowsRankOrder(RankOrder.increasing),
-              BuildupSameSuit(),
             ],
           ),
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 4; i++)
           Tableau(i): PileProperty(
             layout: PileLayout(
               region: LayoutProperty(
-                portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
-                landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
+                portrait: Rect.fromLTWH(i.toDouble() + 0.5, 1.3, 1, 4.7),
+                landscape: Rect.fromLTWH(i.toDouble() + 2, 0, 1, 4),
               ),
               stackDirection: const LayoutProperty.all(Direction.down),
             ),
             pickable: const [
-              CardsAreFacingUp(),
+              CardIsOnTop(),
             ],
             placeable: const [
-              CardsAreFacingUp(),
-              BuildupStartsWith(Rank.king),
-              BuildupFollowsRankOrder(RankOrder.decreasing),
-              BuildupAlternatingColors(),
-            ],
-            afterMove: const [
-              If(
-                condition: [PileTopCardIsFacingDown()],
-                ifTrue: [
-                  FlipTopCardFaceUp(),
-                  EmitEvent(TableauReveal()),
-                ],
-              )
+              CardsNotComingFrom<Tableau>(),
             ],
           ),
         const Stock(0): PileProperty(
           layout: const PileLayout(
             region: LayoutProperty(
-              portrait: Rect.fromLTWH(6, 0, 1, 1),
-              landscape: Rect.fromLTWH(9, 2.5, 1, 1),
+              portrait: Rect.fromLTWH(5, 1.3, 1, 1),
+              landscape: Rect.fromLTWH(7, 1.5, 1, 1),
             ),
+            showCount: LayoutProperty.all(true),
           ),
-          virtual: true,
           onStart: const [
             SetupNewDeck(count: 1),
           ],
           onSetup: const [
-            DistributeTo<Tableau>(
-              distribution: [1, 6, 7, 8, 9, 10, 11],
-            ),
-            ForAllPilesOfType<Tableau>([
-              FlipAllCardsFaceDown(),
-              FlipTopCardFaceUp(count: 5),
-            ])
+            FlipAllCardsFaceUp(),
           ],
-          pickable: const [NotAllowed()],
+          canTap: const [CanRecyclePile(willTakeFrom: Stock(0), limit: 1)],
+          pickable: const [CardIsOnTop()],
           placeable: const [NotAllowed()],
         ),
       },
@@ -112,20 +92,20 @@ class Yukon extends SolitaireGame {
   @override
   List<MoveCheck> get objectives {
     return const [
-      AllPilesOfType<Foundation>([PileHasFullSuit()]),
+      AllPilesOfType<Foundation>(
+        [PileHasFullSuit(rankOrder: RankOrder.increasing)],
+      ),
     ];
   }
 
   @override
   List<MoveAttemptTo> get quickMove {
-    return const [
-      MoveAttemptTo<Foundation>(),
-      MoveAttemptTo<Tableau>(roll: true),
+    return [
+      const MoveAttemptTo<Foundation>(),
+      MoveAttemptTo<Tableau>(
+        onlyIf: (from, to, args) => from is! Tableau,
+        prioritizeShorterStacks: true,
+      ),
     ];
-  }
-
-  @override
-  List<MoveAttempt> get premove {
-    return const [MoveAttempt<Tableau, Foundation>()];
   }
 }

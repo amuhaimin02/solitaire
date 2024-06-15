@@ -111,11 +111,11 @@ class Spider extends SolitaireGame {
           onSetup: const [
             DistributeTo<Tableau>(
               distribution: [6, 6, 6, 6, 5, 5, 5, 5, 5, 5],
-              afterMove: [
-                FlipAllCardsFaceDown(),
-                FlipTopCardFaceUp(),
-              ],
             ),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(),
+            ])
           ],
           canTap: const [
             CanRecyclePile(willTakeFrom: Stock(0), limit: 1),

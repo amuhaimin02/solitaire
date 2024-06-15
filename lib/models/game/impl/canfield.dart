@@ -113,24 +113,23 @@ class Canfield extends SolitaireGame {
           onSetup: const [
             DistributeTo<Foundation>(
               distribution: [1, 0, 0, 0],
-              afterMove: [
-                FlipAllCardsFaceUp(),
-              ],
             ),
             DistributeTo<Tableau>(
               distribution: [1, 1, 1, 1],
-              afterMove: [
-                FlipAllCardsFaceDown(),
-                FlipTopCardFaceUp(),
-              ],
             ),
             DistributeTo<Reserve>(
               distribution: [13],
-              afterMove: [
-                FlipAllCardsFaceDown(),
-                FlipTopCardFaceUp(),
-              ],
             ),
+            ForAllPilesOfType<Foundation>([
+              FlipAllCardsFaceUp(),
+            ]),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceUp(),
+            ]),
+            ForAllPilesOfType<Reserve>([
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(),
+            ]),
           ],
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],

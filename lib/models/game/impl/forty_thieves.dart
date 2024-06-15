@@ -95,10 +95,10 @@ class FortyThieves extends SolitaireGame {
           onSetup: const [
             DistributeTo<Tableau>(
               distribution: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-              afterMove: [
-                FlipAllCardsFaceUp(),
-              ],
             ),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceUp(),
+            ])
           ],
           canTap: const [
             CanRecyclePile(limit: 1, willTakeFrom: Waste(0)),

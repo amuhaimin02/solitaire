@@ -62,10 +62,10 @@ class Golf extends SolitaireGame {
           onSetup: const [
             DistributeTo<Tableau>(
               distribution: [5, 5, 5, 5, 5, 5, 5],
-              afterMove: [
-                FlipAllCardsFaceUp(),
-              ],
             ),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceUp(),
+            ])
           ],
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],

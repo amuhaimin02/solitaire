@@ -20,7 +20,10 @@ class MoveAttempt<From extends Pile, To extends Pile> {
   final MoveAttemptTest? onlyIf;
 
   Iterable<MoveIntent> attemptMoves(MoveAttemptArgs args) sync* {
-    for (final from in args.table.allPilesOfType<From>()) {
+    final sourcePiles = args.table.allPilesOfType<From>();
+    final targetPiles = args.table.allPilesOfType<To>();
+
+    for (final from in sourcePiles) {
       PlayCard? cardToMove;
 
       if (cardLength != null) {
@@ -33,7 +36,7 @@ class MoveAttempt<From extends Pile, To extends Pile> {
         }
       }
 
-      for (final to in args.table.allPilesOfType<To>()) {
+      for (final to in targetPiles) {
         if (onlyIf?.call(from, to, args) == false) {
           continue;
         }
@@ -59,13 +62,16 @@ class MoveCompletedPairs<From extends Pile, To extends Pile>
 
   @override
   Iterable<MoveIntent> attemptMoves(MoveAttemptArgs args) sync* {
-    for (final from in args.table.allPilesOfType<From>()) {
+    final sourcePiles = args.table.allPilesOfType<From>();
+    final targetPiles = args.table.allPilesOfType<To>();
+
+    for (final from in sourcePiles) {
       final cardsOnPile = args.table.get(from);
       if (cardsOnPile.length >= 2) {
         PlayCard? cardToMove;
         cardToMove = cardsOnPile[cardsOnPile.length - 2];
 
-        for (final to in args.table.allPilesOfType<To>()) {
+        for (final to in targetPiles) {
           if (onlyIf?.call(from, to, args) == false) {
             continue;
           }
@@ -81,11 +87,13 @@ class MoveAttemptTo<To extends Pile> {
     this.onlyIf,
     this.roll = false,
     this.prioritizeNonEmptySpaces = false,
+    this.prioritizeShorterStacks = false,
   });
 
   final MoveAttemptTest? onlyIf;
   final bool roll;
   final bool prioritizeNonEmptySpaces;
+  final bool prioritizeShorterStacks;
 
   Iterable<MoveIntent> attemptMoves(MoveAttemptArgs args) sync* {
     Iterable<To> pileIterator = args.table.allPilesOfType<To>();
@@ -94,9 +102,18 @@ class MoveAttemptTo<To extends Pile> {
     if (roll && args.from.runtimeType == To) {
       pileIterator = pileIterator.roll(from: from).skip(1);
     }
-    if (prioritizeNonEmptySpaces) {
+    if (prioritizeNonEmptySpaces || prioritizeShorterStacks) {
       pileIterator = pileIterator.toList().sortedByPriority((pile) {
-        return args.table.get(pile).isNotEmpty ? 1 : 0;
+        final cardsOnPile = args.table.get(pile);
+
+        if (prioritizeNonEmptySpaces && cardsOnPile.isEmpty) {
+          return 0;
+        }
+        if (prioritizeShorterStacks) {
+          return intMaxValue - cardsOnPile.length;
+        } else {
+          return 1;
+        }
       });
     }
     for (final to in pileIterator) {

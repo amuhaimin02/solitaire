@@ -1,12 +1,9 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-
-<svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 60 60">
-
-  <rect x="10" y="10" width="40" height="40"
-	transform="rotate(45,30,30)" />
-
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 150 150" style="enable-background:new 0 0 150 150;" xml:space="preserve">
+<path d="M150,75.05c-0.78,0.73-1.37,1.38-2.07,1.93c-27.46,21.59-51.26,45.37-71.25,71.41c-1.51,1.96-2.34,2.29-4.05,0.07
+	c-19.94-25.93-43.56-49.67-71-71.12c-2.91-2.28-1.4-3.38,0.62-4.96C25.49,54.12,45.98,34.14,63.93,12.6
+	c2.82-3.38,5.5-6.83,8.23-10.26c2.48-3.11,2.51-3.14,4.93,0.01c13.12,17.04,27.98,33.11,44.42,48.32
+	c8.21,7.59,16.77,14.94,25.76,21.99C148.2,73.38,149.01,74.18,150,75.05z"/>
 </svg>

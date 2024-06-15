@@ -133,8 +133,8 @@ class CardFace extends StatelessWidget {
     final double labelSize, iconSize;
 
     if (labelAlignment != Alignment.center) {
-      labelSize = cardShortestSide * 0.4;
-      iconSize = cardShortestSide * 0.35;
+      labelSize = cardShortestSide * 0.35;
+      iconSize = cardShortestSide * 0.28;
     } else {
       labelSize = cardShortestSide * 0.5;
       iconSize = cardShortestSide * 0.6;

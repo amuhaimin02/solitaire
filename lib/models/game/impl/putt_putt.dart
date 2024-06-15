@@ -10,9 +10,6 @@ class PuttPutt extends Golf {
   String get name => 'Putt Putt';
 
   @override
-  String get family => 'Golf';
-
-  @override
   String get tag => 'putt-putt';
 
   @override

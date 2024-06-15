@@ -115,12 +115,15 @@ extension PlayCardListExtension on List<PlayCard> {
     return (slice(0, startRange), slice(startRange, endRange));
   }
 
-  (List<PlayCard>, List<PlayCard>) splitWhere(bool Function(PlayCard) test) {
+  (List<PlayCard>, List<PlayCard>) splitWhere(
+    bool Function(PlayCard) test, {
+    bool firstCardOnly = false,
+  }) {
     final List<PlayCard> passedCards = [];
     final List<PlayCard> failedCards = [];
 
     for (final card in this) {
-      if (test(card)) {
+      if (test(card) && (!firstCardOnly || passedCards.isEmpty)) {
         passedCards.add(card);
       } else {
         failedCards.add(card);

@@ -59,7 +59,7 @@ class FreeCell extends SolitaireGame {
           Tableau(i): PileProperty(
             layout: PileLayout(
               region: LayoutProperty(
-                portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 4.7),
+                portrait: Rect.fromLTWH(i.toDouble(), 1.3, 1, 5.7),
                 landscape: Rect.fromLTWH(i.toDouble() + 1.5, 0, 1, 4),
               ),
               stackDirection: const LayoutProperty.all(Direction.down),
@@ -115,10 +115,10 @@ class FreeCell extends SolitaireGame {
           onSetup: const [
             DistributeTo<Tableau>(
               distribution: [7, 7, 7, 7, 6, 6, 6, 6],
-              afterMove: [
-                FlipAllCardsFaceUp(),
-              ],
             ),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceUp(),
+            ])
           ],
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],

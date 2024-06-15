@@ -126,20 +126,21 @@ class Penguin extends SolitaireGame {
           onStart: const [
             SetupNewDeck(count: 1),
           ],
-          onSetup: const [
-            ArrangePenguinFoundations(
-                firstCardGoesTo: Tableau(0),
-                relatedCardsGoTo: [
-                  Foundation(0),
-                  Foundation(1),
-                  Foundation(2)
-                ]),
-            DistributeTo<Tableau>(
-              distribution: [6, 7, 7, 7, 7, 7, 7],
-              afterMove: [
-                FlipAllCardsFaceUp(),
-              ],
+          onSetup: [
+            for (int i = 0; i < 3; i++)
+              FindCardsAndMove(
+                where: (card, cardsOnPile) {
+                  final refCard = cardsOnPile.first;
+                  return card != refCard && card.rank == refCard.rank;
+                },
+                firstCardOnly: true,
+                moveTo: Foundation(i),
+              ),
+            const DistributeTo<Tableau>(
+              distribution: [7, 7, 7, 7, 7, 7, 7],
             ),
+            const ForAllPilesOfType<Tableau>([FlipAllCardsFaceUp()]),
+            const ForAllPilesOfType<Foundation>([FlipAllCardsFaceUp()]),
           ],
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],

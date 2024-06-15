@@ -286,6 +286,7 @@ class GameController extends _$GameController {
           targetPileInfo.placeable,
           MoveCheckArgs(
             pile: move.to,
+            originPile: move.from,
             cards: cardsToPick,
             table: table,
             moveState: moveState,

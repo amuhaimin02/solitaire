@@ -105,11 +105,11 @@ class Spiderette extends SolitaireGame {
           onSetup: const [
             DistributeTo<Tableau>(
               distribution: [1, 2, 3, 4, 5, 6, 7],
-              afterMove: [
-                FlipAllCardsFaceDown(),
-                FlipTopCardFaceUp(),
-              ],
             ),
+            ForAllPilesOfType<Tableau>([
+              FlipAllCardsFaceDown(),
+              FlipTopCardFaceUp(),
+            ])
           ],
           canTap: const [
             CanRecyclePile(willTakeFrom: Stock(0), limit: 1),

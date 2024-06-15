@@ -1,3 +1,4 @@
+import 'impl/calculation.dart';
 import 'impl/canfield.dart';
 import 'impl/forty_thieves.dart';
 import 'impl/freecell.dart';
@@ -7,6 +8,7 @@ import 'impl/penguin.dart';
 import 'impl/putt_putt.dart';
 import 'impl/pyramid.dart';
 import 'impl/simple_simon.dart';
+import 'impl/sir_tommy.dart';
 import 'impl/spider.dart';
 import 'impl/spiderette.dart';
 import 'impl/tripeaks.dart';
@@ -26,12 +28,14 @@ final allGamesList = [
   Spiderette(numberOfSuits: 2),
   Spiderette(numberOfSuits: 4),
   SimpleSimon(),
+  Canfield(numberOfDraws: 1),
+  Canfield(numberOfDraws: 3),
   Golf(),
   PuttPutt(),
   Yukon(),
   FortyThieves(),
-  Canfield(numberOfDraws: 1),
-  Canfield(numberOfDraws: 3),
   Pyramid(),
   TriPeaks(),
+  SirTommy(),
+  Calculation(),
 ];

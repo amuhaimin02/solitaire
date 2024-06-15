@@ -64,6 +64,7 @@ class MoveCheckArgs with _$MoveCheckArgs {
     @Default([]) List<PlayCard> cards,
     required PlayTable table,
     MoveState? moveState,
+    Pile? originPile,
   }) = _MoveCheckArgs;
 }
 
@@ -209,6 +210,30 @@ class CardsAreAlternatingColors extends MoveCheck {
       }
     }
     return true;
+  }
+}
+
+class CardsComingFrom<T extends Pile> extends MoveCheck {
+  const CardsComingFrom();
+
+  @override
+  String get errorMessage => 'Cards must come from $T';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    return args.originPile is T;
+  }
+}
+
+class CardsNotComingFrom<T extends Pile> extends MoveCheck {
+  const CardsNotComingFrom();
+
+  @override
+  String get errorMessage => 'Cards must not come from $T';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    return args.originPile is! T;
   }
 }
 
@@ -361,6 +386,31 @@ class BuildupSameSuit extends MoveCheck {
   }
 }
 
+class BuildupRankAbove extends MoveCheck {
+  const BuildupRankAbove({
+    required this.gap,
+    this.wrapping = false,
+  }) : assert(gap > 0);
+
+  final int gap;
+  final bool wrapping;
+
+  @override
+  String get errorMessage => 'Buildup must be $gap rank(s) above';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final cardsOnPile = args.table.get(args.pile);
+
+    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+      return true;
+    }
+
+    return cardsOnPile.last.rank.next(gap: gap, wrapping: wrapping) ==
+        args.cards.first.rank;
+  }
+}
+
 class PileIsEmpty extends MoveCheck {
   const PileIsEmpty();
 
@@ -449,6 +499,22 @@ class PileTopCardIsRank extends MoveCheck {
   bool check(MoveCheckArgs args) {
     final cardsOnPile = args.table.get(args.pile);
     return cardsOnPile.isNotEmpty && cardsOnPile.last.rank == rank;
+  }
+}
+
+class PileTopCardIsNotRank extends MoveCheck {
+  const PileTopCardIsNotRank(this.rank);
+
+  final Rank rank;
+
+  @override
+  String get errorMessage =>
+      'Cards on pile must not be ${rank.name.toCapitalCase()}';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final cardsOnPile = args.table.get(args.pile);
+    return cardsOnPile.isNotEmpty && cardsOnPile.last.rank != rank;
   }
 }
 
