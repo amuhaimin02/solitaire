@@ -1,3 +1,4 @@
+import 'impl/aces_up.dart';
 import 'impl/calculation.dart';
 import 'impl/canfield.dart';
 import 'impl/eight_off.dart';
@@ -40,4 +41,5 @@ final allGamesList = [
   TriPeaks(),
   SirTommy(),
   Calculation(),
+  AcesUp(),
 ];

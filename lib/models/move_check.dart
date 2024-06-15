@@ -729,3 +729,46 @@ class CardsRankValueAddUpTo extends MoveCheck {
     return args.cards.map((card) => card.rank.value).sum == targetValue;
   }
 }
+
+/// Used by Aces Up and the like
+class CardRankIsLowestAmong<T extends Pile> extends MoveCheck {
+  const CardRankIsLowestAmong({
+    required this.compareWith,
+    this.ignoreCardsWith,
+  });
+
+  final PlayCard? Function(List<PlayCard> cardsOnPile, PlayCard refCard)
+      compareWith;
+
+  final bool Function(PlayCard card)? ignoreCardsWith;
+
+  @override
+  String get errorMessage => 'Card\'s rank must be the lowest among $T piles';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final refCard = args.cards.firstOrNull;
+    if (refCard == null) {
+      return false;
+    }
+
+    Iterable<PlayCard> cardsToCompare = args.table
+        .allPilesOfType<T>()
+        .map((p) => compareWith(args.table.get(p), refCard))
+        .whereNotNull();
+
+    if (cardsToCompare.length <= 1) {
+      // Cards with length == 1 means ony ref card is available
+      return false;
+    }
+
+    if (ignoreCardsWith != null) {
+      cardsToCompare = cardsToCompare.whereNot(ignoreCardsWith!);
+    }
+
+    final lowestCard =
+        cardsToCompare.sortedBy<num>((card) => card.rank.value).firstOrNull;
+
+    return lowestCard?.rank.value == refCard.rank.value;
+  }
+}
