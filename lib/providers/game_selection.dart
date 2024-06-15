@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game/all.dart';
 import '../models/game/solitaire.dart';
-import '../services/shared_preferences.dart';
+import 'shared_preferences.dart';
 
 part 'game_selection.g.dart';
 

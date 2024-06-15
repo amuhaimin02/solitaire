@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 enum ScreenOrientation { auto, landscape, portrait }
 
 class SystemWindow {
-  static void changeOrientation(ScreenOrientation orientation) {
+  const SystemWindow();
+
+  void changeOrientation(ScreenOrientation orientation) {
     print('Changing orientation $orientation');
     switch (orientation) {
       case ScreenOrientation.auto:
@@ -20,7 +22,7 @@ class SystemWindow {
     }
   }
 
-  static setStatusBarTheme(Brightness brightness) {
+  void setStatusBarTheme(Brightness brightness) {
     print('Set status color $brightness');
     // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     //   statusBarBrightness: brightness,
@@ -39,7 +41,7 @@ class SystemWindow {
     ));
   }
 
-  static setStatusBarVisibility(bool visible) {
+  void setStatusBarVisibility(bool visible) {
     print('Set status bar $visible');
 
     SystemChrome.setEnabledSystemUIMode(

@@ -5,7 +5,9 @@ import '../models/play_table.dart';
 import '../utils/types.dart';
 
 class PlayTableGenerator {
-  static PlayTable generateSampleSetup(SolitaireGame game, String randomSeed) {
+  const PlayTableGenerator();
+
+  PlayTable generateSampleSetup(SolitaireGame game, String randomSeed) {
     final sampleMetadata = GameMetadata(
       game: game,
       startedTime: DateTime.now(),

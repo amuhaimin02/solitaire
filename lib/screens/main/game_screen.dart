@@ -13,7 +13,7 @@ import '../../providers/game_logic.dart';
 import '../../providers/game_selection.dart';
 import '../../providers/game_storage.dart';
 import '../../providers/settings.dart';
-import '../../services/shared_preferences.dart';
+import '../../providers/shared_preferences.dart';
 import '../../widgets/animated_visibility.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/ripple_background.dart';

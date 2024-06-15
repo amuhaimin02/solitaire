@@ -1,7 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../services/card_shuffler.dart';
+import '../services/all.dart';
+import '../services/play_card_generator.dart';
 import '../utils/prng.dart';
 import 'action.dart';
 import 'card.dart';
@@ -172,7 +173,7 @@ class SetupNewDeck extends MoveAction {
   MoveActionResult run(MoveActionArgs args) {
     final existingCards = args.table.get(args.pile);
 
-    final newCards = const PlayCardGenerator().generateShuffledDeck(
+    final newCards = services<PlayCardGenerator>().generateShuffledDeck(
       numberOfDecks: count,
       CustomPRNG.create(args.metadata!.randomSeed),
       criteria:

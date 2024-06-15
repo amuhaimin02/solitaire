@@ -5,6 +5,7 @@ import '../../animations.dart';
 import '../../models/game/impl/demo.dart';
 import '../../models/game_theme.dart';
 import '../../providers/themes.dart';
+import '../../services/all.dart';
 import '../../services/play_table_generator.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/ripple_background.dart';
@@ -56,8 +57,8 @@ class ThemeScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
           child: GameTable(
             game: SolitaireDemo(),
-            table: PlayTableGenerator.generateSampleSetup(
-                SolitaireDemo(), randomSeed),
+            table: services<PlayTableGenerator>()
+                .generateSampleSetup(SolitaireDemo(), randomSeed),
             interactive: false,
             animateMovement: true,
           ),

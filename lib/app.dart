@@ -15,6 +15,7 @@ import 'screens/main/game_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/statistics/statistics_screen.dart';
 import 'screens/theme/theme_screen.dart';
+import 'services/all.dart';
 import 'services/system_window.dart';
 import 'widgets/screen_visibility.dart';
 
@@ -60,13 +61,13 @@ class SolitaireApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(settingsScreenOrientationProvider, (_, orientation) {
-      SystemWindow.changeOrientation(orientation);
+      services<SystemWindow>().changeOrientation(orientation);
     });
     ref.listen(settingsShowStatusBarProvider, (_, visible) {
-      SystemWindow.setStatusBarVisibility(visible);
+      services<SystemWindow>().setStatusBarVisibility(visible);
     });
     ref.listen(themeBaseModeProvider, (_, themeMode) {
-      SystemWindow.setStatusBarTheme(switch (themeMode) {
+      services<SystemWindow>().setStatusBarTheme(switch (themeMode) {
         ThemeMode.dark => Brightness.light,
         ThemeMode.light => Brightness.dark,
         ThemeMode.system => Brightness.dark,

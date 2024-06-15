@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game_theme.dart';
 import '../models/serializer.dart';
-import '../services/shared_preferences.dart';
+import 'shared_preferences.dart';
 
 part 'themes.g.dart';
 

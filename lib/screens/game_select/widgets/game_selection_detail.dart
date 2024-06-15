@@ -4,6 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../../models/game_theme.dart';
 import '../../../providers/game_selection.dart';
+import '../../../services/all.dart';
 import '../../../services/play_table_generator.dart';
 import '../../../utils/prng.dart';
 import '../../../widgets/empty_screen.dart';
@@ -47,7 +48,8 @@ class GameSelectionDetail extends ConsumerWidget {
                       child: GameTable(
                         key: ValueKey(selectedGame),
                         game: selectedGame,
-                        table: PlayTableGenerator.generateSampleSetup(
+                        table:
+                            services<PlayTableGenerator>().generateSampleSetup(
                           selectedGame,
                           randomSeed,
                         ),

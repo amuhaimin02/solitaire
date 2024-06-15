@@ -6,7 +6,8 @@ import '../models/card_list.dart';
 import '../models/game/impl/klondike.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
-import '../services/card_shuffler.dart';
+import '../services/all.dart';
+import '../services/play_card_generator.dart';
 import 'game_logic.dart';
 import 'game_move_history.dart';
 
@@ -25,7 +26,7 @@ class GameDebug extends _$GameDebug {
     if (game.game is! Klondike) {
       return;
     }
-    const generator = PlayCardGenerator();
+    final generator = services<PlayCardGenerator>();
 
     final presetCards = PlayTable.fromMap({
       const Stock(0): [

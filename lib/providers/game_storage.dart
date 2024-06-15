@@ -7,6 +7,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game/solitaire.dart';
 import '../models/play_data.dart';
+import '../services/all.dart';
+import '../services/file_handler.dart';
 import '../services/game_serializer.dart';
 import '../utils/compress.dart';
 import '../utils/types.dart';
@@ -29,18 +31,18 @@ class GameStorage extends _$GameStorage {
   DateTime build() => DateTime.now();
 
   Future<List<int>> _convertToBytes(GameData gameData) async {
-    final saveData = const GameDataSerializer().serialize(gameData);
+    final saveData = services<GameDataSerializer>().serialize(gameData);
     final compressedSaveData = await compressText(saveData);
     return compressedSaveData;
   }
 
   Future<GameData> _convertFromBytes(List<int> bytes) async {
     final decompressedSaveData = await decompressText(bytes);
-    return const GameDataSerializer().deserialize(decompressedSaveData);
+    return services<GameDataSerializer>().deserialize(decompressedSaveData);
   }
 
   Future<void> quickSave(GameData gameData) async {
-    final fileHandler = ref.read(fileHandlerProvider.notifier);
+    final fileHandler = services<FileHandler>();
     final bytes = await _convertToBytes(gameData);
 
     fileHandler.save(quickSaveFileName(gameData.metadata.game), bytes);
@@ -48,14 +50,14 @@ class GameStorage extends _$GameStorage {
   }
 
   Future<GameData> restoreQuickSave(SolitaireGame game) async {
-    final fileHandler = ref.read(fileHandlerProvider.notifier);
+    final fileHandler = services<FileHandler>();
     final saveData = await fileHandler.load(quickSaveFileName(game));
 
     return _convertFromBytes(saveData);
   }
 
   Future<void> deleteQuickSave(SolitaireGame game) async {
-    final fileHandler = ref.read(fileHandlerProvider.notifier);
+    final fileHandler = services<FileHandler>();
     await fileHandler.remove(quickSaveFileName(game));
     ref.invalidateSelf();
   }
@@ -93,7 +95,8 @@ class GameStorage extends _$GameStorage {
 @riverpod
 Future<List<SolitaireGame>> continuableGames(ContinuableGamesRef ref) async {
   ref.watch(gameStorageProvider);
-  final saveFiles = await ref.read(fileHandlerProvider.notifier).list('');
+  final fileHandler = services<FileHandler>();
+  final saveFiles = await fileHandler.list('');
   final allGames = ref.watch(allSolitaireGamesProvider);
   return saveFiles
       .map((file) =>
