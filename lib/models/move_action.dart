@@ -163,11 +163,13 @@ class If extends MoveAction {
 // -------------------------------------------------------
 
 class SetupNewDeck extends MoveAction {
-  const SetupNewDeck({this.count = 1, this.onlySuit});
+  const SetupNewDeck({this.count = 1, this.onlySuit, this.criteria});
 
   final int count;
 
   final List<Suit>? onlySuit;
+
+  final bool Function(PlayCard card)? criteria;
 
   @override
   MoveActionResult run(MoveActionArgs args) {
@@ -176,8 +178,19 @@ class SetupNewDeck extends MoveAction {
     final newCards = services<PlayCardGenerator>().generateShuffledDeck(
       numberOfDecks: count,
       CustomPRNG.create(args.metadata!.randomSeed),
-      criteria:
-          onlySuit != null ? (card) => onlySuit!.contains(card.suit) : null,
+      criteria: (card) {
+        if (onlySuit != null) {
+          if (onlySuit!.contains(card.suit) == false) {
+            return false;
+          }
+        }
+        if (criteria != null) {
+          if (criteria!.call(card) == false) {
+            return false;
+          }
+        }
+        return true;
+      },
     );
 
     return MoveActionHandled(

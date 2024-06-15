@@ -13,6 +13,7 @@ import 'impl/simple_simon.dart';
 import 'impl/sir_tommy.dart';
 import 'impl/spider.dart';
 import 'impl/spiderette.dart';
+import 'impl/tower_of_hanoy.dart';
 import 'impl/tripeaks.dart';
 import 'impl/yukon.dart';
 
@@ -42,4 +43,5 @@ final allGamesList = [
   SirTommy(),
   Calculation(),
   AcesUp(),
+  TowerOfHanoy(),
 ];

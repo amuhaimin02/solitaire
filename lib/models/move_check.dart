@@ -36,26 +36,26 @@ abstract class MoveCheck {
     return const MoveCheckOK();
   }
 
-  MoveCheck operator |(MoveCheck other) {
-    return _MoveCheckOr(this, other);
-  }
+  // MoveCheck operator |(MoveCheck other) {
+  //   return _MoveCheckOr(this, other);
+  // }
 }
 
-class _MoveCheckOr extends MoveCheck {
-  const _MoveCheckOr(this.check1, this.check2);
-
-  final MoveCheck check1;
-  final MoveCheck check2;
-
-  @override
-  String get errorMessage =>
-      '${check1.errorMessage}, or ${check2.errorMessage}';
-
-  @override
-  bool check(MoveCheckArgs args) {
-    return check1.check(args) || check2.check(args);
-  }
-}
+// class _MoveCheckOr extends MoveCheck {
+//   const _MoveCheckOr(this.check1, this.check2);
+//
+//   final MoveCheck check1;
+//   final MoveCheck check2;
+//
+//   @override
+//   String get errorMessage =>
+//       '${check1.errorMessage}, or ${check2.errorMessage}';
+//
+//   @override
+//   bool check(MoveCheckArgs args) {
+//     return check1.check(args) || check2.check(args);
+//   }
+// }
 
 @freezed
 class MoveCheckArgs with _$MoveCheckArgs {
@@ -108,6 +108,29 @@ class Select extends MoveCheck {
     } else {
       return false;
     }
+  }
+}
+
+class Either extends MoveCheck {
+  const Either({required this.first, required this.second});
+
+  final List<MoveCheck> first;
+  final List<MoveCheck> second;
+
+  @override
+  String get errorMessage => '';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final firstResult = MoveCheck.checkAll(first, args);
+    if (firstResult is MoveCheckOK) {
+      return true;
+    }
+    final secondResult = MoveCheck.checkAll(second, args);
+    if (secondResult is MoveCheckOK) {
+      return true;
+    }
+    return false;
   }
 }
 
@@ -169,7 +192,7 @@ class CardsFollowRankOrder extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    return args.cards.isSortedByRank(rankOrder, wrapping: wrapping);
+    return args.cards.isArrangedByRank(rankOrder, wrapping: wrapping);
   }
 }
 
@@ -388,15 +411,21 @@ class BuildupSameSuit extends MoveCheck {
 
 class BuildupRankAbove extends MoveCheck {
   const BuildupRankAbove({
-    required this.gap,
+    this.gap,
     this.wrapping = false,
-  }) : assert(gap > 0);
+  });
 
-  final int gap;
+  final int? gap;
   final bool wrapping;
 
   @override
-  String get errorMessage => 'Buildup must be $gap rank(s) above';
+  String get errorMessage {
+    if (gap != null) {
+      return 'Buildup must be $gap rank(s) above';
+    } else {
+      return 'Buildup rank most be higher';
+    }
+  }
 
   @override
   bool check(MoveCheckArgs args) {
@@ -405,9 +434,52 @@ class BuildupRankAbove extends MoveCheck {
     if (cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
+    final lastCardOnPile = cardsOnPile.last;
+    final firstCardOnHand = args.cards.first;
 
-    return cardsOnPile.last.rank.next(gap: gap, wrapping: wrapping) ==
-        args.cards.first.rank;
+    if (gap != null) {
+      return lastCardOnPile.rank.next(gap: gap!, wrapping: wrapping) ==
+          firstCardOnHand.rank;
+    } else {
+      return lastCardOnPile.rank.value < firstCardOnHand.rank.value;
+    }
+  }
+}
+
+class BuildupRankBelow extends MoveCheck {
+  const BuildupRankBelow({
+    this.gap,
+    this.wrapping = false,
+  });
+
+  final int? gap;
+  final bool wrapping;
+
+  @override
+  String get errorMessage {
+    if (gap != null) {
+      return 'Buildup must be $gap rank(s) below';
+    } else {
+      return 'Buildup rank most be lower';
+    }
+  }
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final cardsOnPile = args.table.get(args.pile);
+
+    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+      return true;
+    }
+    final lastCardOnPile = cardsOnPile.last;
+    final firstCardOnHand = args.cards.first;
+
+    if (gap != null) {
+      return lastCardOnPile.rank.previous(gap: gap!, wrapping: wrapping) ==
+          firstCardOnHand.rank;
+    } else {
+      return lastCardOnPile.rank.value > firstCardOnHand.rank.value;
+    }
   }
 }
 
@@ -597,6 +669,25 @@ class FreeCellPowermove extends MoveCheck {
   }
 }
 
+class PileFollowsRankOrder extends MoveCheck {
+  const PileFollowsRankOrder(this.rankOrder, {this.wrapping = false});
+
+  final RankOrder rankOrder;
+
+  final bool wrapping;
+
+  @override
+  String get errorMessage =>
+      'Cards on pile must follow rank order, ${rankOrder.name}';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    return args.table
+        .get(args.pile)
+        .isArrangedByRank(rankOrder, wrapping: wrapping);
+  }
+}
+
 class PileHasFullSuit extends MoveCheck {
   const PileHasFullSuit({this.rankOrder});
 
@@ -614,7 +705,7 @@ class PileHasFullSuit extends MoveCheck {
     }
 
     if (rankOrder != null) {
-      return cardsOnPile.isSortedByRank(rankOrder!);
+      return cardsOnPile.isArrangedByRank(rankOrder!);
     }
     return true;
   }
@@ -633,7 +724,7 @@ class CardsHasFullSuit extends MoveCheck {
     if (args.cards.length != Rank.values.length) {
       return false;
     }
-    return args.cards.isSortedByRank(rankOrder);
+    return args.cards.isArrangedByRank(rankOrder);
   }
 }
 

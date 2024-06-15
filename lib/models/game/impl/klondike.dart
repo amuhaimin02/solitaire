@@ -163,9 +163,9 @@ class Klondike extends SolitaireGame {
 
   @override
   List<MoveCheck> get canAutoSolve {
-    return [
+    return const [
       AllPilesOfType<Tableau>([
-        const PileIsEmpty() | const PileIsAllFacingUp(),
+        Either(first: [PileIsEmpty()], second: [PileIsAllFacingUp()])
       ]),
     ];
   }

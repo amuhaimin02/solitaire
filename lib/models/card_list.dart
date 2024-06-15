@@ -13,7 +13,7 @@ extension PlayCardListExtension on List<PlayCard> {
   List<PlayCard> get topmostFaceUp =>
       mapIndexed((i, c) => i == length - 1 ? c.faceUp : c).toList();
 
-  bool isSortedByRank(RankOrder rankOrder, {bool wrapping = false}) {
+  bool isArrangedByRank(RankOrder rankOrder, {bool wrapping = false}) {
     if (length <= 1) {
       return true;
     }
