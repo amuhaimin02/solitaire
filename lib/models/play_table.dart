@@ -40,6 +40,10 @@ class PlayTable {
     return UnmodifiableListView(cards);
   }
 
+  Iterable<Pile> allPiles() {
+    return _allCards.keys;
+  }
+
   Iterable<T> allPilesOfType<T extends Pile>() {
     return _allCards.keys.whereType<T>();
   }
@@ -49,10 +53,6 @@ class PlayTable {
   }
 
   Map<Pile, List<PlayCard>> get allCards => UnmodifiableMapView(_allCards);
-
-  List<PlayCard> foundationPile(int index) => get(Foundation(index));
-
-  List<PlayCard> tableauPile(int index) => get(Tableau(index));
 
   PlayTable modify(Pile pile, List<PlayCard> cards) {
     return PlayTable._(

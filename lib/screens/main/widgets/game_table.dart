@@ -10,6 +10,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import '../../../animations.dart';
 import '../../../config.dart';
 import '../../../models/card.dart';
+import '../../../models/card_distribute_animation.dart';
 import '../../../models/card_list.dart';
 import '../../../models/direction.dart';
 import '../../../models/game/solitaire.dart';
@@ -140,7 +141,8 @@ class _GameTableState extends State<GameTable> {
                 _buildMarkerLayer(context, gridUnit),
                 _buildOverlayLayer(context, gridUnit),
                 _buildCardLayer(context, gridUnit),
-                _buildCardDragOverlay(context, gridUnit),
+                if (widget.interactive)
+                  _buildCardDragOverlay(context, gridUnit),
                 if (debugHighlightPileRegion)
                   _buildDebugLayer(context, gridUnit),
               ],
@@ -437,15 +439,9 @@ class _GameTableState extends State<GameTable> {
       }
 
       if (widget.animateDistribute) {
-        final delayFactor = cardMoveAnimation.duration * 0.25;
-
-        if ((pile is Tableau || pile is Reserve)) {
-          return cardMoveAnimation
-              .delayed(delayFactor * (pile.index + cardIndex));
-        } else if (pile is Grid) {
-          final (x, y) = pile.xy;
-          return cardMoveAnimation.delayed(delayFactor * (x + y));
-        }
+        return cardMoveAnimation.delayed(
+          const CardDistributeAnimationDelay().compute(pile, cardIndex),
+        );
       }
       return cardMoveAnimation;
     }
@@ -465,7 +461,7 @@ class _GameTableState extends State<GameTable> {
                 curve: computeAnimation(i).curve,
                 rect: computePosition(
                     card, Rect.fromLTWH(region.left, region.top, 1, 1)),
-                child: _CardWidget(
+                child: _CardWrapper(
                   cardSize: gridUnit,
                   shake: _shakingCards?.contains(card) == true,
                   onTouch: () => _onCardTouch(context, card, pile),
@@ -516,7 +512,7 @@ class _GameTableState extends State<GameTable> {
                     .shift(stackAnchor)
                     .shift(stackGapPositions[i]),
               ),
-              child: _CardWidget(
+              child: _CardWrapper(
                 cardSize: gridUnit,
                 shake: _shakingCards?.contains(card) == true,
                 onTouch: () => _onCardTouch(context, card, pile),
@@ -698,8 +694,8 @@ class _GameTableState extends State<GameTable> {
   }
 }
 
-class _CardWidget extends StatelessWidget {
-  const _CardWidget({
+class _CardWrapper extends StatelessWidget {
+  const _CardWrapper({
     required this.cardSize,
     required this.card,
     required this.isFirstCard,
@@ -904,44 +900,44 @@ class _PileMarker extends StatelessWidget {
     final markerColor = colorScheme.onSurface.withOpacity(0.26);
     final markerIconSize = size.shortestSide * 0.5;
     final markerTextSize = size.shortestSide * 0.5;
-
-    IconData getFoundationIcon() {
-      return switch (startsWith) {
-        Rank.ace => MdiIcons.alphaACircle,
-        Rank.two => MdiIcons.numeric2Circle,
-        Rank.three => MdiIcons.numeric3Circle,
-        Rank.four => MdiIcons.numeric4Circle,
-        Rank.five => MdiIcons.numeric5Circle,
-        Rank.six => MdiIcons.numeric6Circle,
-        Rank.seven => MdiIcons.numeric7Circle,
-        Rank.eight => MdiIcons.numeric8Circle,
-        Rank.nine => MdiIcons.numeric9Circle,
-        Rank.ten => MdiIcons.numeric10Circle,
-        Rank.jack => MdiIcons.alphaJCircle,
-        Rank.queen => MdiIcons.alphaQCircle,
-        Rank.king => MdiIcons.alphaKCircle,
-        null => MdiIcons.starCircle,
-      };
-    }
-
-    IconData getTableauIcon() {
-      return switch (startsWith) {
-        Rank.ace => MdiIcons.alphaABox,
-        Rank.two => MdiIcons.numeric2Box,
-        Rank.three => MdiIcons.numeric3Box,
-        Rank.four => MdiIcons.numeric4Box,
-        Rank.five => MdiIcons.numeric5Box,
-        Rank.six => MdiIcons.numeric6Box,
-        Rank.seven => MdiIcons.numeric7Box,
-        Rank.eight => MdiIcons.numeric8Box,
-        Rank.nine => MdiIcons.numeric9Box,
-        Rank.ten => MdiIcons.numeric10Box,
-        Rank.jack => MdiIcons.alphaJBox,
-        Rank.queen => MdiIcons.alphaQBox,
-        Rank.king => MdiIcons.alphaKBox,
-        null => MdiIcons.starBox,
-      };
-    }
+    //
+    // IconData getFoundationIcon() {
+    //   return switch (startsWith) {
+    //     Rank.ace => MdiIcons.alphaACircle,
+    //     Rank.two => MdiIcons.numeric2Circle,
+    //     Rank.three => MdiIcons.numeric3Circle,
+    //     Rank.four => MdiIcons.numeric4Circle,
+    //     Rank.five => MdiIcons.numeric5Circle,
+    //     Rank.six => MdiIcons.numeric6Circle,
+    //     Rank.seven => MdiIcons.numeric7Circle,
+    //     Rank.eight => MdiIcons.numeric8Circle,
+    //     Rank.nine => MdiIcons.numeric9Circle,
+    //     Rank.ten => MdiIcons.numeric10Circle,
+    //     Rank.jack => MdiIcons.alphaJCircle,
+    //     Rank.queen => MdiIcons.alphaQCircle,
+    //     Rank.king => MdiIcons.alphaKCircle,
+    //     null => MdiIcons.starCircle,
+    //   };
+    // }
+    //
+    // IconData getTableauIcon() {
+    //   return switch (startsWith) {
+    //     Rank.ace => MdiIcons.alphaABox,
+    //     Rank.two => MdiIcons.numeric2Box,
+    //     Rank.three => MdiIcons.numeric3Box,
+    //     Rank.four => MdiIcons.numeric4Box,
+    //     Rank.five => MdiIcons.numeric5Box,
+    //     Rank.six => MdiIcons.numeric6Box,
+    //     Rank.seven => MdiIcons.numeric7Box,
+    //     Rank.eight => MdiIcons.numeric8Box,
+    //     Rank.nine => MdiIcons.numeric9Box,
+    //     Rank.ten => MdiIcons.numeric10Box,
+    //     Rank.jack => MdiIcons.alphaJBox,
+    //     Rank.queen => MdiIcons.alphaQBox,
+    //     Rank.king => MdiIcons.alphaKBox,
+    //     null => MdiIcons.starBox,
+    //   };
+    // }
 
     final Widget? label;
     switch (pile) {
@@ -1022,7 +1018,8 @@ class _CardDragOverlay extends StatefulWidget {
 class _CardDragOverlayState extends State<_CardDragOverlay> {
   bool _dragging = false;
 
-  Offset? _touchPoint, _startTouchPoint;
+  Offset _touchPoint = Offset.zero;
+  Offset _startTouchPoint = Offset.zero;
 
   static const dragThresholdDistanceSquared = 600;
 
@@ -1047,7 +1044,7 @@ class _CardDragOverlayState extends State<_CardDragOverlay> {
       },
       onPointerMove: (event) {
         if (!_dragging &&
-            (event.localPosition - _startTouchPoint!).distanceSquared >
+            (event.localPosition - _startTouchPoint).distanceSquared >
                 dragThresholdDistanceSquared) {
           setState(() {
             _dragging = true;
@@ -1066,15 +1063,15 @@ class _CardDragOverlayState extends State<_CardDragOverlay> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          if (_dragging && _touchPoint != null && widget.draggedCards != null)
+          if (_dragging && widget.draggedCards != null)
             for (final (i, card) in widget.draggedCards!.indexed)
               Positioned.fromRect(
                 rect: (const Rect.fromLTWH(0, 0, 1, 1)
                         .translate(0, i * 0.3)
                         .translate(-cardTouchOffset.dx, -cardTouchOffset.dy))
                     .scale(widget.gridUnit)
-                    .translate(_touchPoint!.dx, _touchPoint!.dy),
-                child: _CardWidget(
+                    .translate(_touchPoint.dx, _touchPoint.dy),
+                child: _CardWrapper(
                   card: card,
                   cardSize: widget.gridUnit,
                   isMoving: true,

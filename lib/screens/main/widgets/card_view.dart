@@ -132,12 +132,12 @@ class CardFace extends StatelessWidget {
 
     final double labelSize, iconSize;
 
-    if (labelAlignment != Alignment.center) {
-      labelSize = cardShortestSide * 0.35;
-      iconSize = cardShortestSide * 0.28;
-    } else {
+    if (labelAlignment == Alignment.center) {
       labelSize = cardShortestSide * 0.5;
       iconSize = cardShortestSide * 0.6;
+    } else {
+      labelSize = cardShortestSide * 0.4;
+      iconSize = cardShortestSide * 0.28;
     }
 
     return Container(
@@ -183,7 +183,7 @@ class CardFace extends StatelessWidget {
               alignment: iconAlignment,
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                  vertical: cardShortestSide * 0.08,
+                  vertical: cardShortestSide * 0.1,
                   horizontal: cardShortestSide * 0.06,
                 ),
                 child: AnimatedContainer(

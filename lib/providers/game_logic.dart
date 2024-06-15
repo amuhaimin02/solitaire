@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../animations.dart';
 import '../models/action.dart';
 import '../models/card.dart';
+import '../models/card_distribute_animation.dart';
 import '../models/card_list.dart';
 import '../models/game/solitaire.dart';
 import '../models/game_status.dart';
@@ -19,6 +20,8 @@ import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/score_summary.dart';
 import '../models/user_action.dart';
+import '../utils/collections.dart';
+import '../utils/math.dart';
 import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
 import '../utils/types.dart';
@@ -128,8 +131,9 @@ class GameController extends _$GameController {
         .read(moveHistoryProvider.notifier)
         .add(setupTable, const GameStart(), isAutoMove: true);
 
-    // TODO: Time delayed is just an estimate
-    await Future.delayed(cardMoveAnimation.duration * timeDilation * 5);
+    // Wait for animation to finish (this ties up to game table animation logic
+    await Future.delayed(
+        _estimateDistributionAnimationTime(setupTable) * timeDilation);
 
     ref.read(playTimeProvider.notifier).restart();
     state = GameStatus.started;
@@ -456,6 +460,17 @@ class GameController extends _$GameController {
     }
 
     return table;
+  }
+
+  Duration _estimateDistributionAnimationTime(PlayTable table) {
+    final minMaxTracker = MinMaxTracker<Duration>();
+    const distributeAnimationDelay = CardDistributeAnimationDelay();
+
+    for (final pile in table.allPiles()) {
+      minMaxTracker
+          .add(distributeAnimationDelay.compute(pile, table.get(pile).length));
+    }
+    return (minMaxTracker.max ?? Duration.zero) + cardMoveAnimation.duration;
   }
 
   Future<void> _doPostMove() async {
