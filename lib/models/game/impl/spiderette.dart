@@ -101,7 +101,6 @@ class Spiderette extends SolitaireGame {
           placeable: const [NotAllowed()],
           onStart: [
             setupDeck,
-            const FlipAllCardsFaceDown(),
           ],
           onSetup: const [
             DistributeTo<Tableau>(
@@ -114,12 +113,27 @@ class Spiderette extends SolitaireGame {
           ],
           canTap: const [
             CanRecyclePile(willTakeFrom: Stock(0), limit: 1),
-            AllPilesOfType<Tableau>([PileIsNotEmpty()]),
+            // Edge case: the last distribution will only have 3 cards
+            // which is not enough to cover all 7 tableau piles.
+            // Therefore, only check the first 3 piles
+            Select(
+              condition: [PileHasLength(3)],
+              ifTrue: [
+                AllPilesOf(
+                  [Tableau(0), Tableau(1), Tableau(2)],
+                  [PileIsNotEmpty()],
+                )
+              ],
+              ifFalse: [
+                AllPilesOfType<Tableau>([PileIsNotEmpty()])
+              ],
+            )
           ],
           onTap: const [
             DistributeTo<Tableau>(
               distribution: [1, 1, 1, 1, 1, 1, 1],
               countAsMove: true,
+              allowPartial: true,
             ),
           ],
         ),

@@ -34,10 +34,10 @@ class GameListTile extends ConsumerWidget {
       trailing: Wrap(
         spacing: 12,
         children: [
-          if (continuableGames != null && continuableGames.contains(game))
-            Icon(MdiIcons.motionPauseOutline),
           if (ref.watch(favoritedGamesProvider).contains(game))
             const Icon(Icons.favorite),
+          if (continuableGames != null && continuableGames.contains(game))
+            Icon(MdiIcons.motionPauseOutline),
         ],
       ),
       onTap: onTap,

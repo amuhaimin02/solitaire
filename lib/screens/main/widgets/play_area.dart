@@ -25,6 +25,7 @@ class PlayArea extends ConsumerWidget {
     final table = ref.watch(currentTableProvider);
     final status = ref.watch(gameControllerProvider);
     final highlightedCards = ref.watch(hintedCardsProvider);
+    final oneTapMoveEnabled = ref.watch(settingsUseOneTapMoveProvider);
 
     return OrientationBuilder(
       builder: (context, localOrientation) {
@@ -70,7 +71,7 @@ class PlayArea extends ConsumerWidget {
                   }
                   return null;
                 }
-                if (card != null) {
+                if (oneTapMoveEnabled && card != null) {
                   final result = controller.tryQuickMove(card, pile);
                   return result is MoveSuccess ? null : [card];
                 }

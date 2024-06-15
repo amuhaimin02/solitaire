@@ -77,7 +77,6 @@ class Pyramid extends SolitaireGame {
           ),
           onStart: const [
             SetupNewDeck(count: 1),
-            FlipAllCardsFaceDown(),
           ],
           onSetup: [
             DistributeTo<Grid>(

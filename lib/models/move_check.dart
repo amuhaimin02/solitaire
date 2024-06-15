@@ -81,6 +81,35 @@ class MoveCheckFail extends MoveCheckResult {
   final MoveCheck? reason;
 }
 
+class Select extends MoveCheck {
+  const Select({
+    required this.condition,
+    this.ifTrue,
+    this.ifFalse,
+  });
+
+  final List<MoveCheck> condition;
+  final List<MoveCheck>? ifTrue;
+  final List<MoveCheck>? ifFalse;
+
+  @override
+  // TODO: Implement
+  String get errorMessage => '';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final cond = MoveCheck.checkAll(condition, args);
+
+    if (cond is MoveCheckOK && ifTrue != null) {
+      return MoveCheck.checkAll(ifTrue, args) is MoveCheckOK;
+    } else if (cond is MoveCheckFail && ifFalse != null) {
+      return MoveCheck.checkAll(ifFalse, args) is MoveCheckOK;
+    } else {
+      return false;
+    }
+  }
+}
+
 extension MoveCheckListExtension on List<MoveCheck> {
   T? findRule<T extends MoveCheck>() {
     return firstWhereOrNull((e) => e is T) as T?;
@@ -92,6 +121,7 @@ class CardsAreFacingUp extends MoveCheck {
 
   @override
   String get errorMessage => 'Cards must all be facing up';
+
   @override
   bool check(MoveCheckArgs args) {
     return args.cards.isAllFacingUp;
@@ -363,8 +393,21 @@ class PileIsNotSingle extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    print('checking $args');
     return args.table.get(args.pile).length != 1;
+  }
+}
+
+class PileHasLength extends MoveCheck {
+  const PileHasLength(this.length);
+
+  final int length;
+
+  @override
+  String get errorMessage => 'Pile must have $length card(s)';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    return args.table.get(args.pile).length == length;
   }
 }
 
@@ -433,6 +476,24 @@ class AllPilesOfType<T extends Pile> extends MoveCheck {
   @override
   bool check(MoveCheckArgs args) {
     return args.table.allPilesOfType<T>().every((p) {
+      return checkPerPile.every((c) => c.check(args.copyWith(pile: p)));
+    });
+  }
+}
+
+class AllPilesOf<T extends Pile> extends MoveCheck {
+  const AllPilesOf(this.piles, this.checkPerPile);
+
+  final List<T> piles;
+  final List<MoveCheck> checkPerPile;
+
+  // TODO: Implement
+  @override
+  String get errorMessage => '';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    return piles.every((p) {
       return checkPerPile.every((c) => c.check(args.copyWith(pile: p)));
     });
   }

@@ -111,7 +111,6 @@ class FreeCell extends SolitaireGame {
           virtual: true,
           onStart: const [
             SetupNewDeck(count: 1),
-            FlipAllCardsFaceDown(),
           ],
           onSetup: const [
             DistributeTo<Tableau>(

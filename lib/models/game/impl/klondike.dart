@@ -101,7 +101,6 @@ class Klondike extends SolitaireGame {
           ),
           onStart: const [
             SetupNewDeck(count: 1),
-            FlipAllCardsFaceDown(),
           ],
           onSetup: const [
             DistributeTo<Tableau>(

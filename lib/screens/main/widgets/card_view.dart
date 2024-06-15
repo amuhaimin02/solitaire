@@ -61,7 +61,7 @@ class CardView extends StatelessWidget {
         child: CardBack(size: size),
       ),
       builder: (context, child) {
-        return ColorSpectrumCardHighlight(
+        return ColorWheelCardHighlight(
           highlight: highlighted,
           size: size,
           child: Padding(

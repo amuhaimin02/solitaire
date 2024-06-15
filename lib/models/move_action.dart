@@ -180,7 +180,8 @@ class SetupNewDeck extends MoveAction {
     );
 
     return MoveActionHandled(
-      table: args.table.modify(args.pile, [...existingCards, ...newCards]),
+      table: args.table
+          .modify(args.pile, [...existingCards, ...newCards.allFaceDown]),
     );
   }
 }
@@ -322,6 +323,7 @@ class DistributeTo<T extends Pile> extends MoveAction {
     required this.distribution,
     this.afterMove,
     this.countAsMove = false,
+    this.allowPartial = false,
   });
 
   final List<int> distribution;
@@ -329,6 +331,8 @@ class DistributeTo<T extends Pile> extends MoveAction {
   final List<MoveAction>? afterMove;
 
   final bool countAsMove;
+
+  final bool allowPartial;
 
   @override
   MoveActionResult run(MoveActionArgs args) {
@@ -341,7 +345,7 @@ class DistributeTo<T extends Pile> extends MoveAction {
     final cardsOnOriginPile = args.table.get(args.pile);
     final totalCardsToTake = distribution.sum;
 
-    if (totalCardsToTake > cardsOnOriginPile.length) {
+    if (!allowPartial && totalCardsToTake > cardsOnOriginPile.length) {
       throw ArgumentError(
           'Insufficient cards to take. Want: $totalCardsToTake, have: ${cardsOnOriginPile.length}');
     }
@@ -359,7 +363,9 @@ class DistributeTo<T extends Pile> extends MoveAction {
     for (int d = 0; d < maxDistributionHeight; d++) {
       for (int i = 0; i < targetPiles.length; i++) {
         if (d < distribution[i]) {
-          cardSlots[i].add(cardsToDistribute.removeLast());
+          if (cardsToDistribute.isNotEmpty) {
+            cardSlots[i].add(cardsToDistribute.removeLast());
+          }
         }
       }
     }

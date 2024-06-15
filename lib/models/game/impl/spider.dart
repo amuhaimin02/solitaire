@@ -107,7 +107,6 @@ class Spider extends SolitaireGame {
           placeable: const [NotAllowed()],
           onStart: [
             setupDeck,
-            const FlipAllCardsFaceDown(),
           ],
           onSetup: const [
             DistributeTo<Tableau>(
