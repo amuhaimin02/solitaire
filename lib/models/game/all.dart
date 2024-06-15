@@ -1,5 +1,6 @@
 import 'impl/calculation.dart';
 import 'impl/canfield.dart';
+import 'impl/eight_off.dart';
 import 'impl/forty_thieves.dart';
 import 'impl/freecell.dart';
 import 'impl/golf.dart';
@@ -20,6 +21,7 @@ final allGamesList = [
   Klondike(numberOfDraws: 1, vegasScoring: true),
   Klondike(numberOfDraws: 3, vegasScoring: true),
   FreeCell(),
+  EightOff(),
   Penguin(),
   Spider(numberOfSuits: 1),
   Spider(numberOfSuits: 2),

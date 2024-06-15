@@ -567,19 +567,29 @@ class AllPilesOf<T extends Pile> extends MoveCheck {
 
 /// http://www.solitairecentral.com/articles/FreecellPowerMovesExplained.html
 class FreeCellPowermove extends MoveCheck {
-  const FreeCellPowermove();
+  const FreeCellPowermove({
+    this.countEmptyTableaus = true,
+    this.countEmptyReserves = true,
+  });
+
+  final bool countEmptyTableaus;
+  final bool countEmptyReserves;
 
   @override
   String get errorMessage => 'Not enough free cells to move the cards';
 
   @override
   bool check(MoveCheckArgs args) {
-    final numberOfEmptyTableaus = args.table
-        .allPilesOfType<Tableau>()
-        .count((t) => t != args.pile && args.table.get(t).isEmpty);
-    final numberOfEmptyReserves = args.table
-        .allPilesOfType<Reserve>()
-        .count((r) => args.table.get(r).isEmpty);
+    final numberOfEmptyTableaus = countEmptyTableaus
+        ? args.table
+            .allPilesOfType<Tableau>()
+            .count((t) => t != args.pile && args.table.get(t).isEmpty)
+        : 0;
+    final numberOfEmptyReserves = countEmptyReserves
+        ? args.table
+            .allPilesOfType<Reserve>()
+            .count((r) => args.table.get(r).isEmpty)
+        : 0;
 
     final movableCardsLength =
         (1 + numberOfEmptyReserves) * pow(2, numberOfEmptyTableaus);

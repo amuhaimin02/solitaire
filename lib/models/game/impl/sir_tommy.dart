@@ -101,7 +101,9 @@ class SirTommy extends SolitaireGame {
   @override
   List<MoveAttemptTo> get quickMove {
     return [
-      const MoveAttemptTo<Foundation>(),
+      MoveAttemptTo<Foundation>(
+        onlyIf: (from, to, args) => from is! Foundation,
+      ),
       MoveAttemptTo<Tableau>(
         onlyIf: (from, to, args) => from is! Tableau,
         prioritizeShorterStacks: true,
