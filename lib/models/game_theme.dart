@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:theme_tailor_annotation/theme_tailor_annotation.dart';
 
+import '../screens/main/widgets/card_back.dart';
+import '../utils/colors.dart';
+
 part 'game_theme.tailor.dart';
 
 const themeColorPalette = [
@@ -21,6 +24,8 @@ const themeColorPalette = [
   Colors.orange,
   Colors.deepOrange,
 ];
+
+enum CardBackStyle { solid, gradient }
 
 @TailorMixin(themeGetter: ThemeGetter.onThemeData)
 class GameTheme extends ThemeExtension<GameTheme> with _$GameThemeTailorMixin {
@@ -64,6 +69,8 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     required this.labelPlainColor,
     required this.labelAccentColor,
     required this.backColor,
+    required this.backSecondaryColor,
+    this.backStyle = CardBackStyle.solid,
     this.unitSize = const Size(2.5, 3.5),
     this.margin = 0.05,
     this.stackGap = const Offset(0.3, 0.3),
@@ -87,6 +94,12 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
   final Color backColor;
 
   @override
+  final Color backSecondaryColor;
+
+  @override
+  final CardBackStyle backStyle;
+
+  @override
   final Size unitSize;
 
   @override
@@ -107,12 +120,14 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     bool useClassicColors = false,
     bool contrastingFaceColors = false,
   }) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     Color cardLabelPlainColor = colorScheme.onSurfaceVariant;
     Color cardLabelAccentColor = colorScheme.primary;
     Color cardFacePlainColor = colorScheme.surfaceContainerLowest;
     Color cardFaceAccentColor = colorScheme.surfaceContainerLowest;
 
-    if (tintedCardFace && colorScheme.brightness == Brightness.dark) {
+    if (tintedCardFace && isDark) {
       cardLabelPlainColor = colorScheme.onSurfaceVariant;
       cardLabelAccentColor = colorScheme.onPrimaryContainer;
       cardFacePlainColor = colorScheme.surfaceContainerLowest;
@@ -133,12 +148,18 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
       cardFaceAccentColor = Colors.grey.shade50;
     }
 
+    // final primaryTonalPalette = colorScheme.primary.tonalPalette;
+    //
+    // final baseBackColor = Color(primaryTonalPalette.get(isDark ? 70 : 55));
+    // final backSecondaryColor = Color(primaryTonalPalette.get(isDark ? 85 : 40));
+
     return GameCardTheme(
       facePlainColor: cardFacePlainColor,
       faceAccentColor: cardFaceAccentColor,
       labelPlainColor: cardLabelPlainColor,
       labelAccentColor: cardLabelAccentColor,
       backColor: colorScheme.primary,
+      backSecondaryColor: colorScheme.tertiary,
     );
   }
 }

@@ -132,3 +132,19 @@ class ThemeUseContrastingCardColors extends _$ThemeUseContrastingCardColors
   @override
   bool build() => get();
 }
+
+@riverpod
+class ThemeCardBackStyle extends _$ThemeCardBackStyle
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'theme_card_back_style';
+
+  @override
+  final CardBackStyle defaultValue = CardBackStyle.solid;
+
+  @override
+  List<CardBackStyle>? get options => CardBackStyle.values;
+
+  @override
+  CardBackStyle build() => get();
+}

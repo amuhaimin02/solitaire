@@ -199,9 +199,9 @@ class _SettingsList extends ConsumerWidget {
                 ref.read(themeBackgroundColoredProvider.notifier).toggle();
               },
             ),
-            const SectionTitle('Cards'),
+            const SectionTitle('Card'),
             SwitchListTile(
-              title: const Text('Classic card colors'),
+              title: const Text('Standard card colors'),
               subtitle: const Text(
                   'Use standard red-black labels with white background.'),
               value: ref.watch(themeUseClassicCardColorsProvider),
@@ -231,10 +231,22 @@ class _SettingsList extends ConsumerWidget {
                 }
               },
             ),
+            // TODO: Change to selection
             SwitchListTile(
-              title: const Text('Compress card stack'),
-              subtitle: const Text(
-                  'Reduce the spacing of face-down cards in the stack.'),
+              title: const Text('Card back style'),
+              subtitle: const Text('Choose solid or gradient'),
+              value: ref.watch(themeCardBackStyleProvider) ==
+                  CardBackStyle.gradient,
+              onChanged: (value) {
+                ref
+                    .read(themeCardBackStyleProvider.notifier)
+                    .set(value ? CardBackStyle.gradient : CardBackStyle.solid);
+              },
+            ),
+            const SectionTitle('Arrangement'),
+            SwitchListTile(
+              title: const Text('Compact card stack'),
+              subtitle: const Text('Reduce spacing of cards among the stack.'),
               value: ref.watch(themeCompressCardStackProvider),
               onChanged: (value) {
                 ref.read(themeCompressCardStackProvider.notifier).toggle();

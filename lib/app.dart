@@ -110,6 +110,7 @@ class SolitaireApp extends ConsumerWidget {
       contrastingFaceColors: ref.watch(themeUseContrastingCardColorsProvider),
     ).copyWith(
       compressStack: ref.watch(themeCompressCardStackProvider),
+      backStyle: ref.watch(themeCardBackStyleProvider),
     );
 
     GameTheme gameTheme = GameTheme.from(
