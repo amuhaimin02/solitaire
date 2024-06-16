@@ -9,6 +9,7 @@ import 'impl/klondike.dart';
 import 'impl/penguin.dart';
 import 'impl/putt_putt.dart';
 import 'impl/pyramid.dart';
+import 'impl/scorpion.dart';
 import 'impl/simple_simon.dart';
 import 'impl/sir_tommy.dart';
 import 'impl/spider.dart';
@@ -32,6 +33,7 @@ final allGamesList = [
   Spiderette(numberOfSuits: 2),
   Spiderette(numberOfSuits: 4),
   SimpleSimon(),
+  Scorpion(),
   Canfield(numberOfDraws: 1),
   Canfield(numberOfDraws: 3),
   Golf(),

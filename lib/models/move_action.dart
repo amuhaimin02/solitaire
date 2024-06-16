@@ -440,10 +440,32 @@ class FindCardsAndMove extends MoveAction {
   }
 }
 
+class ForAllPilesOf extends MoveAction {
+  const ForAllPilesOf(this.piles, this.actions);
+
+  final List<Pile> piles;
+  final List<MoveAction> actions;
+
+  @override
+  MoveActionResult run(MoveActionArgs args) {
+    MoveActionResult? result;
+
+    for (final pile in piles) {
+      if (result == null) {
+        result = MoveAction.runAll(actions, args.copyWith(pile: pile));
+      } else {
+        result = MoveAction.chain(result, actions, args.copyWith(pile: pile));
+      }
+    }
+
+    return result!;
+  }
+}
+
 class ForAllPilesOfType<T extends Pile> extends MoveAction {
   const ForAllPilesOfType(this.actions);
 
-  final List<MoveAction>? actions;
+  final List<MoveAction> actions;
 
   @override
   MoveActionResult run(MoveActionArgs args) {
