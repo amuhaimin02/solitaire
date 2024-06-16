@@ -7,6 +7,7 @@ import '../../../providers/game_storage.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/bottom_padded.dart';
 import '../../../widgets/empty_screen.dart';
+import '../../../widgets/section_title.dart';
 import '../../../widgets/two_pane.dart';
 import 'game_list_group.dart';
 import 'game_list_tile.dart';
@@ -34,21 +35,19 @@ class GameSelectionList extends ConsumerWidget {
       body: Builder(
         builder: (context) {
           return DefaultTabController(
-            length: 3,
+            length: 2,
             child: Column(
               children: [
                 const TabBar.secondary(
                   tabs: [
-                    Tab(text: 'Continue'),
-                    Tab(text: 'Favorites'),
+                    Tab(text: 'Featured'),
                     Tab(text: 'All games'),
                   ],
                 ),
                 Expanded(
                   child: TabBarView(
                     children: [
-                      _buildContinueGameList(context, ref),
-                      _buildFavoriteGameList(context, ref),
+                      _buildFeaturedGameList(context, ref),
                       _buildAllGamesList(context, ref),
                     ],
                   ),
@@ -86,36 +85,35 @@ class GameSelectionList extends ConsumerWidget {
     }
   }
 
-  Widget _buildContinueGameList(BuildContext context, WidgetRef ref) {
+  Widget _buildFeaturedGameList(BuildContext context, WidgetRef ref) {
+    final favoritedGames = ref.watch(favoritedGamesProvider);
     final continuableGames = ref.watch(continuableGamesProvider);
 
-    if (continuableGames.isLoading) {
-      return const Align(
-        alignment: Alignment.topCenter,
-        child: LinearProgressIndicator(),
-      );
-    }
+    // if (continuableGames.isLoading) {
+    //   return const Align(
+    //     alignment: Alignment.topCenter,
+    //     child: LinearProgressIndicator(),
+    //   );
+    // }
 
-    if (continuableGames.value == null || continuableGames.value!.isEmpty) {
-      return const EmptyScreen(
-        icon: Icon(Icons.favorite_border),
-        title: Text('No games to continue'),
-        body: Text(
-            'Play some games and you may continue your unfinished game here'),
-      );
-    } else {
-      return ListView(
-        key: const PageStorageKey('continue'),
-        padding: BottomPadded.getPadding(context),
-        children: [
-          for (final game in continuableGames.value!)
-            GameListTile(
-              game: game,
-              onTap: () => _onListTap(context, ref, game),
-            ),
-        ],
-      );
-    }
+    return ListView(
+      key: const PageStorageKey('featured'),
+      padding: BottomPadded.getPadding(context),
+      children: [
+        const SectionTitle('Recent games', first: true),
+        for (final game in continuableGames.value?.take(5) ?? <SolitaireGame>[])
+          GameListTile(
+            game: game,
+            onTap: () => _onListTap(context, ref, game),
+          ),
+        const SectionTitle('Favorites'),
+        for (final game in favoritedGames)
+          GameListTile(
+            game: game,
+            onTap: () => _onListTap(context, ref, game),
+          ),
+      ],
+    );
   }
 
   Widget _buildAllGamesList(BuildContext context, WidgetRef ref) {

@@ -11,10 +11,10 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, first ? 0 : 32, 16, 8),
-      child: Text(title,
-          style: textTheme.titleMedium!.copyWith(color: colorScheme.primary)),
+    return ListTile(
+      title: Text(title),
+      titleTextStyle:
+          textTheme.titleMedium!.copyWith(color: colorScheme.primary),
     );
   }
 }

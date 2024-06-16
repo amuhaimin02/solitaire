@@ -20,6 +20,7 @@ import '../../../models/move_record.dart';
 import '../../../models/pile.dart';
 import '../../../models/pile_property.dart';
 import '../../../models/play_table.dart';
+import '../../../utils/collections.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/shakeable.dart';
 import '../../../widgets/shrinkable.dart';
@@ -43,7 +44,7 @@ class GameTable extends StatefulWidget {
     this.lastMovedCards,
     this.animateDistribute = false,
     this.animateMovement = true,
-    this.fitEmptySpaces = false,
+    this.shrinkVerticalSpaces = false,
     this.orientation = Orientation.portrait,
     this.currentMoveState,
   });
@@ -68,7 +69,7 @@ class GameTable extends StatefulWidget {
 
   final bool animateMovement;
 
-  final bool fitEmptySpaces;
+  final bool shrinkVerticalSpaces;
 
   final Orientation orientation;
 
@@ -117,8 +118,8 @@ class _GameTableState extends State<GameTable> {
 
     final Size tableSize;
 
-    if (widget.fitEmptySpaces) {
-      tableSize = _calculateConsumedTableSpace(context);
+    if (widget.shrinkVerticalSpaces) {
+      tableSize = _calculateShrunkTableSpace(context);
     } else {
       tableSize = widget.game.tableSize.resolve(widget.orientation);
     }
@@ -608,9 +609,8 @@ class _GameTableState extends State<GameTable> {
     }
   }
 
-  Size _calculateConsumedTableSpace(BuildContext context) {
-    var maxWidth = 0.0;
-    var maxHeight = 0.0;
+  Size _calculateShrunkTableSpace(BuildContext context) {
+    final maxHeightTracker = MinMaxTracker<num>();
 
     for (final (pile, props) in _allPiles.items) {
       final layout = props.layout;
@@ -621,8 +621,7 @@ class _GameTableState extends State<GameTable> {
 
       switch (stackDirection) {
         case Direction.none:
-          maxWidth = max(maxWidth, region.right);
-          maxHeight = max(maxHeight, region.bottom);
+          maxHeightTracker.add(region.bottom);
         case _:
           final stackPositions = _computeStackGapPositions(
             context: context,
@@ -634,12 +633,13 @@ class _GameTableState extends State<GameTable> {
           );
           final lastPoint = stackPositions.lastOrNull ?? Offset.zero;
 
-          maxWidth = max(maxWidth, region.left + lastPoint.dx + 1);
-          maxHeight = max(maxHeight, region.top + lastPoint.dy + 1);
+          maxHeightTracker.add(region.top + lastPoint.dy + 1);
       }
     }
 
-    return Size(maxWidth, maxHeight);
+    final tableSize = widget.game.tableSize.resolve(widget.orientation);
+    return Size(
+        tableSize.width, maxHeightTracker.max?.toDouble() ?? tableSize.height);
   }
 
   void _onCardTouch(BuildContext context, PlayCard card, Pile originPile) {

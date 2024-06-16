@@ -24,13 +24,8 @@ extension IterableExtension<T> on Iterable<T> {
 }
 
 extension ListExtension<T> on List<T> {
-  (List<T> a, List<T> b) partition(bool Function(T element) test) {
-    final List<T> a = [];
-    final List<T> b = [];
-
-    forEach((element) => test(element) ? a.add(element) : b.add(element));
-
-    return (a, b);
+  Map<K, T> mapBy<K>(K Function(T element) mapperFn) {
+    return {for (var e in this) mapperFn(e): e};
   }
 
   List<T> sortedByPriority(int Function(T element) getPriority) {

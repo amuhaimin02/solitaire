@@ -18,6 +18,7 @@ class FinishDialog extends ConsumerWidget {
       title: const Text('You win!'),
       titleTextStyle:
           textTheme.headlineSmall!.copyWith(color: colorScheme.primary),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       content: SizedBox(
         width: 300,
         child: Scrollbar(
@@ -28,16 +29,17 @@ class FinishDialog extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Text('Moves: ${scoreSummary.moves}'),
-                    const Spacer(),
-                    Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
-                  ],
+                ListTile(
+                  title: Row(
+                    children: [
+                      Text('Moves: ${scoreSummary.moves}'),
+                      const Spacer(),
+                      Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
+                    ],
+                  ),
                 ),
                 const Divider(),
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
                   title: const Text('Obtained'),
                   subtitle: const Text('Score during play'),
                   trailing: Text(
@@ -48,7 +50,6 @@ class FinishDialog extends ConsumerWidget {
                   ),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
                   title: const Text('Bonus'),
                   subtitle: const Text('700,000 / play seconds'),
                   trailing: Text(
@@ -59,7 +60,6 @@ class FinishDialog extends ConsumerWidget {
                   ),
                 ),
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
                   title: const Text('Penalty'),
                   subtitle: const Text('2 points every 10 seconds'),
                   trailing: Text(
@@ -71,7 +71,6 @@ class FinishDialog extends ConsumerWidget {
                 ),
                 const Divider(),
                 ListTile(
-                  contentPadding: EdgeInsets.zero,
                   title: const Text('Final score'),
                   trailing: Text(
                     '${scoreSummary.finalScore}',

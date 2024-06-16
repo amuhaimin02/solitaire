@@ -593,12 +593,12 @@ class GameController extends _$GameController {
       return;
     }
 
-    if (doAfterMove && state == GameStatus.started) {
+    if (state == GameStatus.started) {
       // Post moves will always be made, if available
       _doPostMove();
 
       // If possible and allowed to premove, do it
-      if (ref.read(settingsUseAutoPremoveProvider)) {
+      if (doAfterMove && ref.read(settingsUseAutoPremoveProvider)) {
         _doPremove();
       }
     }

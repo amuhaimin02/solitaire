@@ -96,10 +96,10 @@ Future<List<SolitaireGame>> continuableGames(ContinuableGamesRef ref) async {
   ref.watch(gameStorageProvider);
   final fileHandler = services<FileHandler>();
   final saveFiles = await fileHandler.list('');
-  final allGames = ref.watch(allSolitaireGamesProvider);
-  return saveFiles
-      .map((file) =>
-          allGames.firstWhereOrNull((game) => quickSaveFileName(game) == file))
-      .whereNotNull()
-      .toList();
+
+  final allGamesMapped = ref
+      .watch(allSolitaireGamesProvider)
+      .mapBy((game) => quickSaveFileName(game));
+
+  return saveFiles.map((file) => allGamesMapped[file]).whereNotNull().toList();
 }

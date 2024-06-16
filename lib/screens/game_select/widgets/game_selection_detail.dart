@@ -56,7 +56,7 @@ class GameSelectionDetail extends ConsumerWidget {
                         orientation: isInModal
                             ? Orientation.portrait
                             : Orientation.landscape,
-                        fitEmptySpaces: true,
+                        shrinkVerticalSpaces: true,
                         animateDistribute: false,
                         animateMovement: false,
                         interactive: false,

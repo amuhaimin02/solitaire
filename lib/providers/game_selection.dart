@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game/all.dart';
 import '../models/game/solitaire.dart';
+import '../utils/types.dart';
 import 'shared_preferences.dart';
 
 part 'game_selection.g.dart';
@@ -48,9 +49,16 @@ class FavoritedGames extends _$FavoritedGames {
       return [];
     }
     final favoritedTags = prefs.getStringList(preferenceKey) ?? [];
-    return ref
-        .watch(allSolitaireGamesProvider)
-        .where((game) => favoritedTags.contains(game.tag))
+
+    final allGamesMapped =
+        ref.watch(allSolitaireGamesProvider).mapBy((game) => game.tag);
+
+    // Ensure recently favorited one is on top
+    return favoritedTags
+        .map((tag) => allGamesMapped[tag])
+        .whereNotNull()
+        .toList()
+        .reversed
         .toList();
   }
 
