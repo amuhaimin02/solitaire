@@ -1,13 +1,15 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/card.dart';
+import '../models/card_list.dart';
 
 class PlayCardGenerator {
   const PlayCardGenerator();
 
-  List<PlayCard> generateOrderedDeck(
+  PlayCardList generateOrderedDeck(
       {int numberOfDecks = 1, bool Function(PlayCard card)? criteria}) {
     return List.generate(numberOfDecks, (times) {
       final cards = <PlayCard>[];
@@ -20,16 +22,16 @@ class PlayCardGenerator {
         }
       }
       return cards;
-    }).flattened.toList();
+    }).flattened.toList().lock;
   }
 
-  List<PlayCard> generateShuffledDeck(Random random,
+  PlayCardList generateShuffledDeck(Random random,
       {int numberOfDecks = 1, bool Function(PlayCard card)? criteria}) {
     return generateOrderedDeck(numberOfDecks: numberOfDecks, criteria: criteria)
-      ..shuffle(random);
+        .shuffle(random);
   }
 
-  List<PlayCard> generateOrderedSuit(Suit suit, {Rank? from, Rank? to}) {
+  PlayCardList generateOrderedSuit(Suit suit, {Rank? from, Rank? to}) {
     final fromIndex = from != null ? Rank.values.indexOf(from) : 0;
     final toIndex =
         to != null ? Rank.values.indexOf(to) + 1 : Rank.values.length;
@@ -37,6 +39,7 @@ class PlayCardGenerator {
     return Rank.values
         .slice(fromIndex, toIndex)
         .map((rank) => PlayCard(suit, rank))
-        .toList();
+        .toList()
+        .lock;
   }
 }

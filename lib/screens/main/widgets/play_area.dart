@@ -73,7 +73,7 @@ class PlayArea extends ConsumerWidget {
                 }
                 if (oneTapMoveEnabled && card != null) {
                   final result = controller.tryQuickMove(card, pile);
-                  return result is MoveSuccess ? null : [card];
+                  return result is MoveSuccess ? null : PlayCardList([card]);
                 }
                 return null;
               },

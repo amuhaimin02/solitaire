@@ -1,43 +1,42 @@
 import 'package:collection/collection.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 
 import '../utils/types.dart';
-import 'card.dart';
+import 'card_list.dart';
 import 'game/solitaire.dart';
 import 'pile.dart';
 
+typedef PlayCardMap = IMap<Pile, PlayCardList>;
+
 @immutable
 class PlayTable {
-  final Map<Pile, List<PlayCard>> _allCards;
+  final IMap<Pile, PlayCardList> _allCards;
 
   const PlayTable._(this._allCards);
 
   factory PlayTable.empty() {
-    return PlayTable._(Map.unmodifiable({}));
+    return const PlayTable._(PlayCardMap.empty());
   }
 
-  factory PlayTable.fromMap(Map<Pile, List<PlayCard>> cards) {
+  factory PlayTable.fromMap(Map<Pile, PlayCardList> cards) {
     return PlayTable._(
-      UnmodifiableMapView({
-        for (final (pile, c) in cards.items) pile: List.unmodifiable(c),
+      PlayCardMap({
+        for (final (pile, c) in cards.items) pile: PlayCardList(c),
       }),
     );
   }
 
   factory PlayTable.fromGame(SolitaireGame game) {
     return PlayTable._(
-      UnmodifiableMapView({
-        for (final pile in game.setup.keys) pile: List.empty(growable: false),
+      PlayCardMap({
+        for (final pile in game.setup.keys) pile: const PlayCardList.empty(),
       }),
     );
   }
 
-  List<PlayCard> get(Pile pile) {
-    final cards = _allCards[pile];
-    if (cards == null) {
-      return List.empty(growable: false);
-    }
-    return UnmodifiableListView(cards);
+  PlayCardList get(Pile pile) {
+    return _allCards[pile] ?? const PlayCardList.empty();
   }
 
   Iterable<Pile> allPiles() {
@@ -52,18 +51,20 @@ class PlayTable {
     return allPilesOfType<T>().firstWhereOrNull((p) => get(p).isEmpty);
   }
 
-  Map<Pile, List<PlayCard>> get allCards => UnmodifiableMapView(_allCards);
+  PlayCardMap get allCards => _allCards;
 
-  PlayTable modify(Pile pile, List<PlayCard> cards) {
+  // TODO: Remove
+  PlayTable modify(Pile pile, PlayCardList cards) {
     return PlayTable._(
-      UnmodifiableMapView({..._allCards, pile: cards}),
+      PlayCardMap({..._allCards.unlockView, pile: cards}),
     );
   }
 
-  PlayTable modifyMultiple(Map<Pile, List<PlayCard>> updates) {
+  // TODO: Remove
+  PlayTable modifyMultiple(Map<Pile, PlayCardList> updates) {
     return PlayTable._(
-      UnmodifiableMapView({
-        ..._allCards,
+      PlayCardMap({
+        ..._allCards.unlockView,
         for (final (pile, cards) in updates.items) pile: cards,
       }),
     );

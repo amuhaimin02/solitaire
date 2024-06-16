@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../utils/types.dart';
 import 'card.dart';
@@ -61,7 +62,7 @@ abstract class MoveCheck {
 class MoveCheckArgs with _$MoveCheckArgs {
   const factory MoveCheckArgs({
     required Pile pile,
-    @Default([]) List<PlayCard> cards,
+    @Default(PlayCardList.empty()) PlayCardList cards,
     required PlayTable table,
     MoveState? moveState,
     Pile? originPile,
@@ -828,7 +829,7 @@ class CardRankIsLowestAmong<T extends Pile> extends MoveCheck {
     this.ignoreCardsWith,
   });
 
-  final PlayCard? Function(List<PlayCard> cardsOnPile, PlayCard refCard)
+  final PlayCard? Function(PlayCardList cardsOnPile, PlayCard refCard)
       compareWith;
 
   final bool Function(PlayCard card)? ignoreCardsWith;

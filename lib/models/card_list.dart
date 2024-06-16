@@ -1,17 +1,20 @@
 import 'dart:math';
 
-import 'package:collection/collection.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import 'card.dart';
 import 'rank_order.dart';
 
-extension PlayCardListExtension on List<PlayCard> {
-  List<PlayCard> get allFaceDown => map((e) => e.faceDown).toList();
+typedef PlayCardList = IList<PlayCard>;
 
-  List<PlayCard> get allFaceUp => map((e) => e.faceUp).toList();
+extension PlayCardListExtension on PlayCardList {
+  PlayCardList get allFaceDown => PlayCardList(map((c) => c.faceDown));
 
-  List<PlayCard> get topmostFaceUp =>
-      mapIndexed((i, c) => i == length - 1 ? c.faceUp : c).toList();
+  PlayCardList get allFaceUp => PlayCardList(map((c) => c.faceUp));
+
+  PlayCardList get topmostFaceUp => isNotEmpty
+      ? replace(length - 1, last.faceUp)
+      : const PlayCardList.empty();
 
   bool isArrangedByRank(RankOrder rankOrder, {bool wrapping = false}) {
     if (length <= 1) {
@@ -36,38 +39,39 @@ extension PlayCardListExtension on List<PlayCard> {
 
   bool get isAllFacingDown => every((e) => e.isFacingDown);
 
-  List<PlayCard> getLast([int amount = 1]) {
+  PlayCardList getLast([int amount = 1]) {
     final startRange = max(length - amount, 0);
     final endRange = length;
-    return slice(startRange, endRange);
+    return sublist(startRange, endRange);
   }
 
-  (List<PlayCard>, List<PlayCard>) splitLast([int amount = 1]) {
+  (PlayCardList, PlayCardList) splitLast([int amount = 1]) {
     final startRange = max(length - amount, 0);
     final endRange = length;
-    return (slice(0, startRange), slice(startRange, endRange));
+    return (sublist(0, startRange), sublist(startRange, endRange));
   }
 
-  List<PlayCard> getLastFromCard(PlayCard card) {
+  PlayCardList getLastFromCard(PlayCard card) {
     if (isNotEmpty && last == card) {
-      return [card];
+      return PlayCardList([card]);
     }
 
     final startRange = indexOf(card);
     if (startRange < 0) {
-      return [];
+      return const PlayCardList.empty();
     }
     final endRange = length;
-    return slice(startRange, endRange);
+    return sublist(startRange, endRange);
   }
 
-  List<PlayCard> getSuitStreakFromLast(RankOrder order,
-      {bool sameSuit = false}) {
+  PlayCardList getSuitStreakFromLast(RankOrder order, {bool sameSuit = false}) {
     if (length == 0) {
-      return [];
+      return const PlayCardList.empty();
     } else if (length == 1) {
       final onlyCard = single;
-      return onlyCard.isFacingUp ? [onlyCard] : [];
+      return onlyCard.isFacingUp
+          ? PlayCardList([onlyCard])
+          : const PlayCardList.empty();
     } else {
       int fromIndex;
       PlayCard? refCard;
@@ -75,7 +79,7 @@ extension PlayCardListExtension on List<PlayCard> {
         if (refCard == null) {
           refCard = this[fromIndex];
           if (refCard.isFacingDown) {
-            return [];
+            return const PlayCardList.empty();
           }
         } else {
           final currentCard = this[fromIndex];
@@ -98,13 +102,13 @@ extension PlayCardListExtension on List<PlayCard> {
         }
       }
 
-      return slice(fromIndex + 1, length);
+      return sublist(fromIndex + 1, length);
     }
   }
 
-  (List<PlayCard>, List<PlayCard>) splitLastFromCard(PlayCard card) {
+  (PlayCardList, PlayCardList) splitLastFromCard(PlayCard card) {
     if (isNotEmpty && last == card) {
-      return (const [], [card]);
+      return (const PlayCardList.empty(), PlayCardList([card]));
     }
 
     final startRange = indexOf(card);
@@ -112,21 +116,22 @@ extension PlayCardListExtension on List<PlayCard> {
       throw RangeError('Card $card is not in list $this');
     }
     final endRange = length;
-    return (slice(0, startRange), slice(startRange, endRange));
+    return (sublist(0, startRange), sublist(startRange, endRange));
   }
 
-  (List<PlayCard>, List<PlayCard>) splitWhere(
+  (PlayCardList, PlayCardList) splitWhere(
     bool Function(PlayCard) test, {
     bool firstCardOnly = false,
   }) {
-    final List<PlayCard> passedCards = [];
-    final List<PlayCard> failedCards = [];
+    // TODO: Optimize this
+    PlayCardList passedCards = const PlayCardList.empty();
+    PlayCardList failedCards = const PlayCardList.empty();
 
     for (final card in this) {
       if (test(card) && (!firstCardOnly || passedCards.isEmpty)) {
-        passedCards.add(card);
+        passedCards = passedCards.add(card);
       } else {
-        failedCards.add(card);
+        failedCards = failedCards.add(card);
       }
     }
     return (failedCards, passedCards);

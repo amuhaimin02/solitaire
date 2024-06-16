@@ -195,7 +195,7 @@ class SetupNewDeck extends MoveAction {
 
     return MoveActionHandled(
       table: args.table
-          .modify(args.pile, [...existingCards, ...newCards.allFaceDown]),
+          .modify(args.pile, existingCards.addAll(newCards.allFaceDown)),
     );
   }
 }
@@ -244,7 +244,7 @@ class MoveNormally extends MoveAction {
     return MoveActionHandled(
       table: args.table.modifyMultiple({
         args.pile: remainingCards,
-        to: [...args.table.get(to), ...cardsToPickUp]
+        to: args.table.get(to).addAll(cardsToPickUp),
       }),
       action: Move(cardsToPickUp, args.pile, to),
       events: [MoveMade(from: args.pile, to: to)],
@@ -276,7 +276,7 @@ class DrawFromTop extends MoveAction {
     return MoveActionHandled(
       table: args.table.modifyMultiple({
         args.pile: remainingCards,
-        to: [...args.table.get(to), ...cardsToPickUp.allFaceUp]
+        to: args.table.get(to).addAll(cardsToPickUp.allFaceUp)
       }),
       action: Draw(cardsToPickUp, args.pile, to),
     );
@@ -290,17 +290,12 @@ class RecyclePile extends MoveAction {
 
   @override
   MoveActionResult run(MoveActionArgs args) {
-    final cardsToRecycle = args.table.get(takeFrom).reversed.toList();
+    final cardsToRecycle = args.table.get(takeFrom).reversed;
     return MoveActionHandled(
       table: args.table.modifyMultiple({
-        takeFrom: [],
-        args.pile: [
-          ...args.table.get(args.pile),
-          if (faceUp)
-            ...cardsToRecycle.allFaceUp
-          else
-            ...cardsToRecycle.allFaceDown
-        ],
+        takeFrom: const PlayCardList.empty(),
+        args.pile: args.table.get(args.pile).addAll(
+            faceUp ? cardsToRecycle.allFaceUp : cardsToRecycle.allFaceDown),
       }),
       action: Deal(cardsToRecycle, args.pile),
       events: [RecycleMade(args.pile)],
@@ -326,7 +321,7 @@ class FlipTopCardFaceUp extends MoveAction {
     return MoveActionHandled(
       table: args.table.modify(
         args.pile,
-        [...remainingCards, ...cardsToFlip.allFaceUp],
+        remainingCards.addAll(cardsToFlip.allFaceUp),
       ),
     );
   }
@@ -368,14 +363,15 @@ class DistributeTo<T extends Pile> extends MoveAction {
     final cardsToDistribute = cardsToTake.reversed.toList();
 
     final maxDistributionHeight = distribution.max;
-    final List<List<PlayCard>> cardSlots =
-        List.generate(targetPiles.length, (_) => []);
+    final List<PlayCardList> cardSlots =
+        List.generate(targetPiles.length, (_) => const PlayCardList.empty());
 
+    // TODO: Optimize
     for (int d = 0; d < maxDistributionHeight; d++) {
       for (int i = 0; i < targetPiles.length; i++) {
         if (d < distribution[i]) {
           if (cardsToDistribute.isNotEmpty) {
-            cardSlots[i].add(cardsToDistribute.removeLast());
+            cardSlots[i] = cardSlots[i].add(cardsToDistribute.removeLast());
           }
         }
       }
@@ -389,7 +385,7 @@ class DistributeTo<T extends Pile> extends MoveAction {
         args.pile: remainingCards,
         // TODO: Check for index ordering
         for (final (i, p) in targetPiles.indexed)
-          p: [...args.table.get(p), ...cardSlots[i].allFaceUp]
+          p: args.table.get(p).addAll(cardSlots[i].allFaceUp)
       }),
       // TODO: Change this
       action: countAsMove ? Deal(cardsToTake, args.pile) : null,
@@ -441,7 +437,7 @@ class FindCardsAndMove extends MoveAction {
     required this.moveTo,
   });
 
-  final bool Function(PlayCard card, List<PlayCard> cardsOnPile) where;
+  final bool Function(PlayCard card, PlayCardList cardsOnPile) where;
   final bool firstCardOnly;
   final Pile moveTo;
 
@@ -456,7 +452,7 @@ class FindCardsAndMove extends MoveAction {
     return MoveActionHandled(
       table: args.table.modifyMultiple({
         args.pile: remainingCards,
-        moveTo: [...args.table.get(moveTo), ...foundCards],
+        moveTo: args.table.get(moveTo).addAll(foundCards),
       }),
     );
   }

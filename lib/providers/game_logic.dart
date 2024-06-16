@@ -194,7 +194,9 @@ class GameController extends _$GameController {
     }
 
     if (movableCards.isNotEmpty) {
-      ref.read(hintedCardsProvider.notifier).highlight(movableCards);
+      ref
+          .read(hintedCardsProvider.notifier)
+          .highlight(PlayCardList(movableCards));
       return true;
     } else {
       return false;
@@ -220,14 +222,14 @@ class GameController extends _$GameController {
     final cardToMove = move.card;
     final cardsInPile = table.get(move.from);
 
-    final List<PlayCard> cardsToPick;
+    final PlayCardList cardsToPick;
     if (cardToMove != null) {
       cardsToPick = cardsInPile.getLastFromCard(cardToMove);
     } else {
       if (cardsInPile.isEmpty) {
-        cardsToPick = [];
+        cardsToPick = const PlayCardList.empty();
       } else {
-        cardsToPick = [cardsInPile.last];
+        cardsToPick = PlayCardList([cardsInPile.last]);
       }
     }
 
@@ -649,7 +651,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
     game.game.objectives,
     MoveCheckArgs(
       pile: const Stock(0),
-      cards: [],
+      cards: const PlayCardList.empty(),
       table: table,
       moveState: moveState,
     ),
@@ -672,7 +674,7 @@ bool autoSolvable(AutoSolvableRef ref) {
     game.game.canAutoSolve,
     MoveCheckArgs(
       pile: const Stock(0),
-      cards: [],
+      cards: const PlayCardList.empty(),
       table: table,
       moveState: moveState,
     ),
@@ -685,7 +687,7 @@ class HintedCards extends _$HintedCards {
   static Timer? _highlightTimer;
 
   @override
-  List<PlayCard>? build() {
+  PlayCardList? build() {
     return null;
   }
 
@@ -693,7 +695,7 @@ class HintedCards extends _$HintedCards {
     state = null;
   }
 
-  void highlight(List<PlayCard> cards) {
+  void highlight(PlayCardList cards) {
     _highlightTimer?.cancel();
 
     state = cards;

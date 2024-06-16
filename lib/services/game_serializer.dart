@@ -4,6 +4,7 @@ import 'package:quiver/collection.dart';
 
 import '../models/action.dart';
 import '../models/card.dart';
+import '../models/card_list.dart';
 import '../models/game/all.dart';
 import '../models/move_record.dart';
 import '../models/pile.dart';
@@ -248,7 +249,7 @@ class PlayTableSerializer implements Serializer<PlayTable> {
   String serialize(PlayTable table) {
     final buffer = StringBuffer();
 
-    for (final (pile, cards) in table.allCards.items) {
+    for (final MapEntry(key: pile, value: cards) in table.allCards.entries) {
       buffer.write(const PileSerializer().serialize(pile));
       buffer.write(':');
       buffer.write(const PlayCardListSerializer().serialize(cards));
@@ -260,7 +261,7 @@ class PlayTableSerializer implements Serializer<PlayTable> {
 
   @override
   PlayTable deserialize(String raw) {
-    final tableMap = <Pile, List<PlayCard>>{};
+    final tableMap = <Pile, PlayCardList>{};
     final lines = LineSplitter.split(raw);
 
     for (final line in lines) {
@@ -276,11 +277,11 @@ class PlayTableSerializer implements Serializer<PlayTable> {
   }
 }
 
-class PlayCardListSerializer implements Serializer<List<PlayCard>> {
+class PlayCardListSerializer implements Serializer<PlayCardList> {
   const PlayCardListSerializer();
 
   @override
-  String serialize(List<PlayCard> cards) {
+  String serialize(PlayCardList cards) {
     final buffer = StringBuffer();
     for (final card in cards) {
       buffer.write(const PlayCardSerializer().serialize(card));
@@ -290,11 +291,10 @@ class PlayCardListSerializer implements Serializer<List<PlayCard>> {
   }
 
   @override
-  List<PlayCard> deserialize(String raw) {
-    return raw
+  PlayCardList deserialize(String raw) {
+    return PlayCardList(raw
         .chunk(4)
-        .map((chunk) => const PlayCardSerializer().deserialize(chunk))
-        .toList();
+        .map((chunk) => const PlayCardSerializer().deserialize(chunk)));
   }
 }
 

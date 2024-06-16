@@ -50,19 +50,19 @@ class GameTable extends StatefulWidget {
 
   final SolitaireGame game;
 
-  final List<PlayCard>? Function(PlayCard? card, Pile pile)? onCardTap;
+  final PlayCardList? Function(PlayCard? card, Pile pile)? onCardTap;
 
-  final List<PlayCard>? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+  final PlayCardList? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
 
-  final bool Function(List<PlayCard> card, Pile from)? canDragCards;
+  final bool Function(PlayCardList card, Pile from)? canDragCards;
 
   final bool interactive;
 
   final PlayTable table;
 
-  final List<PlayCard>? highlightedCards;
+  final PlayCardList? highlightedCards;
 
-  final List<PlayCard>? lastMovedCards;
+  final PlayCardList? lastMovedCards;
 
   final bool animateDistribute;
 
@@ -79,8 +79,8 @@ class GameTable extends StatefulWidget {
 }
 
 class _GameTableState extends State<GameTable> {
-  List<PlayCard>? _shakingCards;
-  List<PlayCard>? _touchingCards;
+  PlayCardList? _shakingCards;
+  PlayCardList? _touchingCards;
   Pile? _touchingPile;
 
   Timer? _touchDragTimer, _shakeCardTimer;
@@ -535,7 +535,7 @@ class _GameTableState extends State<GameTable> {
 
   List<Offset> _computeStackGapPositions({
     required BuildContext context,
-    required List<PlayCard> cards,
+    required PlayCardList cards,
     required Rect region,
     required Direction stackDirection,
     int? previewCards,
@@ -676,7 +676,7 @@ class _GameTableState extends State<GameTable> {
     }
   }
 
-  void _shakeCard(List<PlayCard>? cards) {
+  void _shakeCard(PlayCardList? cards) {
     if (cards == null) {
       return;
     }
@@ -999,7 +999,7 @@ class _CardDragOverlay extends StatefulWidget {
     required this.onDrop,
   });
 
-  final List<PlayCard>? draggedCards;
+  final PlayCardList? draggedCards;
 
   final Size gridUnit;
 

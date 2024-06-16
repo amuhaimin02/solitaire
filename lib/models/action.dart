@@ -1,4 +1,5 @@
 import 'card.dart';
+import 'card_list.dart';
 import 'pile.dart';
 
 sealed class Action {
@@ -28,7 +29,7 @@ class GameStart extends Action {
 }
 
 class Move extends Action {
-  final List<PlayCard> cards;
+  final PlayCardList cards;
   final Pile from;
   final Pile to;
 
@@ -42,7 +43,7 @@ class Move extends Action {
 }
 
 class Draw extends Action {
-  final List<PlayCard> cards;
+  final PlayCardList cards;
   final Pile from;
   final Pile to;
 
@@ -56,7 +57,7 @@ class Draw extends Action {
 }
 
 class Deal extends Action {
-  final List<PlayCard> cards;
+  final PlayCardList cards;
   final Pile pile;
 
   const Deal(this.cards, this.pile);

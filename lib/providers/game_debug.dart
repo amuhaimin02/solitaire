@@ -29,15 +29,15 @@ class GameDebug extends _$GameDebug {
     final generator = services<PlayCardGenerator>();
 
     final presetCards = PlayTable.fromMap({
-      const Stock(0): [
-        const PlayCard(Suit.spade, Rank.jack),
-        const PlayCard(Suit.club, Rank.jack),
-      ].allFaceDown,
-      const Waste(0): const [
+      const Stock(0): PlayCardList(const [
+        PlayCard(Suit.spade, Rank.jack),
+        PlayCard(Suit.club, Rank.jack),
+      ]).allFaceDown,
+      const Waste(0): PlayCardList(const [
         PlayCard(Suit.heart, Rank.jack),
         PlayCard(Suit.diamond, Rank.jack),
         PlayCard(Suit.diamond, Rank.queen),
-      ],
+      ]),
       const Foundation(0):
           generator.generateOrderedSuit(Suit.diamond, to: Rank.ten),
       const Foundation(1):
@@ -46,21 +46,21 @@ class GameDebug extends _$GameDebug {
           generator.generateOrderedSuit(Suit.heart, to: Rank.ten),
       const Foundation(3):
           generator.generateOrderedSuit(Suit.spade, to: Rank.ten),
-      const Tableau(0): const [
+      const Tableau(0): PlayCardList(const [
         PlayCard(Suit.heart, Rank.king),
         PlayCard(Suit.spade, Rank.queen)
-      ],
-      const Tableau(1): const [
+      ]),
+      const Tableau(1): PlayCardList(const [
         PlayCard(Suit.spade, Rank.king),
         PlayCard(Suit.heart, Rank.queen)
-      ],
-      const Tableau(2): const [
+      ]),
+      const Tableau(2): PlayCardList(const [
         PlayCard(Suit.diamond, Rank.king),
         PlayCard(Suit.club, Rank.queen),
-      ],
-      const Tableau(3): const [
+      ]),
+      const Tableau(3): PlayCardList(const [
         PlayCard(Suit.club, Rank.king),
-      ],
+      ]),
     });
 
     // TODO: Change action
