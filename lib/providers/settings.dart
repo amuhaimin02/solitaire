@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'shared_preferences.dart';
-import '../services/system_window.dart';
 
 part 'settings.g.dart';
 
@@ -19,19 +18,16 @@ class SettingsLastPlayedGame extends _$SettingsLastPlayedGame
 }
 
 @riverpod
-class SettingsScreenOrientation extends _$SettingsScreenOrientation
+class SettingsShowScreenRotateButton extends _$SettingsShowScreenRotateButton
     with SharedPreferencesProviderMixin {
   @override
-  final String key = 'settings_screen_orientation';
+  final String key = 'settings_show_screen_rotate_button';
 
   @override
-  final ScreenOrientation defaultValue = ScreenOrientation.auto;
+  final bool defaultValue = true;
 
   @override
-  List<ScreenOrientation>? get options => ScreenOrientation.values;
-
-  @override
-  ScreenOrientation build() => get();
+  bool build() => get();
 }
 
 @riverpod
@@ -46,19 +42,6 @@ class SettingsShowStatusBar extends _$SettingsShowStatusBar
   @override
   bool build() => get();
 }
-
-// @riverpod
-// class SettingsShowLastMove extends _$SettingsShowLastMove
-//     with SharedPreferencesProviderMixin {
-//   @override
-//   final String key = 'settings_show_last_moves';
-//
-//   @override
-//   final bool defaultValue = true;
-//
-//   @override
-//   bool build() => get();
-// }
 
 @riverpod
 class SettingsShowScore extends _$SettingsShowScore
@@ -113,6 +96,19 @@ class SettingsUseOneTapMove extends _$SettingsUseOneTapMove
 }
 
 @riverpod
+class SettingsUseTwoTapMove extends _$SettingsUseTwoTapMove
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_use_two_tap_move';
+
+  @override
+  final bool defaultValue = false;
+
+  @override
+  bool build() => get();
+}
+
+@riverpod
 class SettingsUseAutoPremove extends _$SettingsUseAutoPremove
     with SharedPreferencesProviderMixin {
   @override
@@ -130,6 +126,32 @@ class SettingsShowAutoSolveButton extends _$SettingsShowAutoSolveButton
     with SharedPreferencesProviderMixin {
   @override
   final String key = 'settings_show_auto_solve_button';
+
+  @override
+  final bool defaultValue = true;
+
+  @override
+  bool build() => get();
+}
+
+@riverpod
+class SettingsShowHintButton extends _$SettingsShowHintButton
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_show_hint_button';
+
+  @override
+  final bool defaultValue = true;
+
+  @override
+  bool build() => get();
+}
+
+@riverpod
+class SettingsShowUndoRedoButton extends _$SettingsShowUndoRedoButton
+    with SharedPreferencesProviderMixin {
+  @override
+  final String key = 'settings_show_undo_redo_button';
 
   @override
   final bool defaultValue = true;

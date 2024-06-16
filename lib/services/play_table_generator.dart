@@ -9,9 +9,9 @@ class PlayTableGenerator {
 
   PlayTable generateSampleSetup(SolitaireGame game, String randomSeed) {
     final sampleMetadata = GameMetadata(
-      game: game,
+      kind: game,
       startedTime: DateTime.now(),
-      randomSeed: randomSeed,
+      seed: randomSeed,
     );
 
     PlayTable table = PlayTable.fromGame(game);

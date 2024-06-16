@@ -60,9 +60,6 @@ class SolitaireApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(settingsScreenOrientationProvider, (_, orientation) {
-      services<SystemWindow>().changeOrientation(orientation);
-    });
     ref.listen(settingsShowStatusBarProvider, (_, visible) {
       services<SystemWindow>().setStatusBarVisibility(visible);
     });
@@ -164,6 +161,7 @@ class SolitaireApp extends ConsumerWidget {
       title: 'Solitaire',
       theme: appTheme,
       themeAnimationStyle: AnimationStyle.noAnimation,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

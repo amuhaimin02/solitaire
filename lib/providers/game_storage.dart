@@ -44,7 +44,7 @@ class GameStorage extends _$GameStorage {
     final fileHandler = services<FileHandler>();
     final bytes = await _convertToBytes(gameData);
 
-    fileHandler.save(quickSaveFileName(gameData.metadata.game), bytes);
+    fileHandler.save(quickSaveFileName(gameData.metadata.kind), bytes);
     ref.invalidateSelf();
   }
 
@@ -66,7 +66,7 @@ class GameStorage extends _$GameStorage {
 
     final outputFilePath = await FilePicker.platform.saveFile(
       dialogTitle: 'Choose where to export save file',
-      fileName: exportFileName(gameData.metadata.game),
+      fileName: exportFileName(gameData.metadata.kind),
       type: FileType.any,
       bytes: Uint8List.fromList(bytes),
     );

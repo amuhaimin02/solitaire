@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +24,7 @@ import 'widgets/control_pane.dart';
 import 'widgets/finish_dialog.dart';
 import 'widgets/game_menu.dart';
 import 'widgets/play_area.dart';
+import 'widgets/screen_rotate_button.dart';
 import 'widgets/status_pane.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -103,7 +105,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     Future.delayed(
       themeChangeAnimation.duration,
-      () => _showStartingSnackBar(context, gameData.metadata.game,
+      () => _showStartingSnackBar(context, gameData.metadata.kind,
           isContinueGame: true),
     );
   }
@@ -147,29 +149,32 @@ class _GameScreenState extends ConsumerState<GameScreen>
         Future.microtask(() async {
           _showFinishDialog(context);
           final game = ref.read(currentGameProvider);
-          ref.read(gameStorageProvider.notifier).deleteQuickSave(game.game);
+          ref.read(gameStorageProvider.notifier).deleteQuickSave(game.kind);
         });
       }
     });
 
     ref.watch(feedbackProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-        leading: const GameMenuButton(),
-      ),
-      extendBodyBehindAppBar: true,
-      body: RippleBackground(
-        decoration: isFinished
-            ? BoxDecoration(
-                color: Theme.of(context).gameTheme.winningBackgroundColor)
-            : BoxDecoration(
-                color: Theme.of(context).gameTheme.tableBackgroundColor),
-        child: BottomPadded(
-          child: OrientationBuilder(
-            builder: (context, orientation) {
-              return LayoutBuilder(
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        return Scaffold(
+          appBar: AppBar(
+            forceMaterialTransparency: true,
+            leading: const GameMenuButton(),
+            actions: orientation == Orientation.portrait
+                ? const [ScreenRotateButton()]
+                : null,
+          ),
+          extendBodyBehindAppBar: true,
+          body: RippleBackground(
+            decoration: isFinished
+                ? BoxDecoration(
+                    color: Theme.of(context).gameTheme.winningBackgroundColor)
+                : BoxDecoration(
+                    color: Theme.of(context).gameTheme.tableBackgroundColor),
+            child: BottomPadded(
+              child: LayoutBuilder(
                 builder: (context, constraints) {
                   final colorScheme = Theme.of(context).colorScheme;
                   // final isMobile = constraints.biggest.shortestSide < 600;
@@ -188,109 +193,105 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   return AnimatedVisibility(
                     visible: _isStarted,
                     duration: themeChangeAnimation.duration,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: switch (orientation) {
-                            Orientation.landscape => Padding(
-                                padding: EdgeInsets.only(
-                                    left: viewPadding.left + 56,
-                                    right: viewPadding
-                                        .right), // Make room for the back button
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Flexible(
-                                      child: IgnorePointer(
-                                        ignoring: isPreparing,
-                                        child: Padding(
-                                          padding: playAreaMargin,
-                                          child: ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 1000,
-                                                maxHeight: 1000),
-                                            child: PlayArea(
-                                              orientation: orientation,
-                                            ),
+                    child: switch (orientation) {
+                      Orientation.landscape => Stack(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: viewPadding.left + 56,
+                                  right: viewPadding
+                                      .right), // Make room for the back button
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: IgnorePointer(
+                                      ignoring: isPreparing,
+                                      child: Padding(
+                                        padding: playAreaMargin,
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 1000, maxHeight: 1000),
+                                          child: PlayArea(
+                                            orientation: orientation,
                                           ),
                                         ),
                                       ),
                                     ),
-                                    AnimatedVisibility(
-                                      visible: !isPreparing,
-                                      child: Container(
-                                        width: 120,
-                                        margin: const EdgeInsets.fromLTRB(
-                                            8, 8, 8, 8),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            StatusPane(
-                                                orientation: orientation),
-                                            divider,
-                                            ControlPane(
-                                                orientation: orientation),
-                                          ],
-                                        ),
+                                  ),
+                                  AnimatedVisibility(
+                                    visible: !isPreparing,
+                                    child: Container(
+                                      width: 120,
+                                      margin:
+                                          const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          StatusPane(orientation: orientation),
+                                          divider,
+                                          ControlPane(orientation: orientation),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            Orientation.portrait => Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 56), // Make room for the back button
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 32),
-                                      child: AnimatedVisibility(
-                                        visible: !isPreparing,
-                                        child: StatusPane(
-                                            orientation: orientation),
-                                      ),
-                                    ),
-                                    Flexible(
-                                      child: IgnorePointer(
-                                        ignoring: isPreparing,
-                                        child: Padding(
-                                          padding: playAreaMargin,
-                                          child: ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 1000,
-                                                maxHeight: 1000),
-                                            child: PlayArea(
-                                              orientation: orientation,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 32),
-                                      child: AnimatedVisibility(
-                                        visible: !isPreparing,
-                                        child: ControlPane(
-                                            orientation: orientation),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          },
+                            ),
+                            Positioned(
+                              left: viewPadding.left,
+                              top: viewPadding.top + kToolbarHeight,
+                              child: const ScreenRotateButton(),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      Orientation.portrait => Padding(
+                          padding: const EdgeInsets.only(
+                              top: 56), // Make room for the back button
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 32),
+                                child: AnimatedVisibility(
+                                  visible: !isPreparing,
+                                  child: StatusPane(orientation: orientation),
+                                ),
+                              ),
+                              Flexible(
+                                child: IgnorePointer(
+                                  ignoring: isPreparing,
+                                  child: Padding(
+                                    padding: playAreaMargin,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                          maxWidth: 1000, maxHeight: 1000),
+                                      child: PlayArea(
+                                        orientation: orientation,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 32),
+                                child: AnimatedVisibility(
+                                  visible: !isPreparing,
+                                  child: ControlPane(orientation: orientation),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    },
                   );
                 },
-              );
-            },
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -337,7 +338,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     if (confirm == true) {
       final game = ref.read(currentGameProvider);
-      ref.read(gameControllerProvider.notifier).startNew(game.game);
+      ref.read(gameControllerProvider.notifier).startNew(game.kind);
     } else {
       // Navigator.pop(context);
     }

@@ -9,7 +9,7 @@ class InfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final color = colorScheme.onSurface.withOpacity(0.54);
+    final color = colorScheme.tertiary;
 
     return Container(
       margin: const EdgeInsets.only(top: 8),

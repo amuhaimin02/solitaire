@@ -175,7 +175,7 @@ class SetupNewDeck extends MoveAction {
   MoveActionResult run(MoveActionArgs args) {
     final newCards = services<PlayCardGenerator>().generateShuffledDeck(
       numberOfDecks: count,
-      CustomPRNG.create(args.metadata!.randomSeed),
+      CustomPRNG.create(args.metadata!.seed),
       criteria: (card) {
         if (onlySuit != null) {
           if (onlySuit!.contains(card.suit) == false) {

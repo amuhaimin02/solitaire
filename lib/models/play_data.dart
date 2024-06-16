@@ -8,9 +8,9 @@ part 'play_data.freezed.dart';
 @freezed
 class GameMetadata with _$GameMetadata {
   factory GameMetadata({
-    required SolitaireGame game,
+    required SolitaireGame kind,
     required DateTime startedTime,
-    required String randomSeed,
+    required String seed,
   }) = _GameMetadata;
 }
 

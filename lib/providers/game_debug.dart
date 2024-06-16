@@ -23,7 +23,7 @@ class GameDebug extends _$GameDebug {
   void debugTestCustomLayout() {
     final game = ref.read(currentGameProvider);
 
-    if (game.game is! Klondike) {
+    if (game.kind is! Klondike) {
       return;
     }
     final generator = services<PlayCardGenerator>();

@@ -37,7 +37,7 @@ class PlayArea extends ConsumerWidget {
           children: [
             GameTable(
               table: table,
-              game: game.game,
+              game: game.kind,
               orientation: localOrientation,
               highlightedCards: highlightedCards,
               lastMovedCards: ref.watch(lastMoveProvider)?.action.move?.cards,
@@ -47,7 +47,7 @@ class PlayArea extends ConsumerWidget {
               canDragCards: (cards, from) {
                 // Avoid dragging card that are stuck behind another cards on bottom
                 // (typically in Pyramid-style setup)
-                final pileIsExposed = game.game.setup
+                final pileIsExposed = game.kind.setup
                     .get(from)
                     .pickable
                     .findRule<PileIsExposed>();
@@ -63,7 +63,7 @@ class PlayArea extends ConsumerWidget {
                 ScaffoldMessenger.of(context).clearSnackBars();
                 final controller = ref.read(gameControllerProvider.notifier);
 
-                final pileInfo = game.game.setup.get(pile);
+                final pileInfo = game.kind.setup.get(pile);
                 if (pileInfo.onTap != null) {
                   final result = controller.tryMove(MoveIntent(pile, pile));
                   if (result is MoveForbidden) {

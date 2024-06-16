@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-enum ScreenOrientation { auto, landscape, portrait }
+import '../utils/host_platform.dart';
 
 class SystemWindow {
   const SystemWindow();
 
-  void changeOrientation(ScreenOrientation orientation) {
-    print('Changing orientation $orientation');
-    switch (orientation) {
-      case ScreenOrientation.auto:
-        SystemChrome.setPreferredOrientations([]);
-      case ScreenOrientation.landscape:
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight
-        ]);
-      case ScreenOrientation.portrait:
-        SystemChrome.setPreferredOrientations(
-            [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
+  Future<void> toggleOrientation(Orientation targetOrientation) async {
+    if (HostPlatform.isMobile) {
+      switch (targetOrientation) {
+        case Orientation.landscape:
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight
+          ]);
+        case Orientation.portrait:
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.portraitUp,
+          ]);
+      }
+    } else {
+      throw ArgumentError(
+          'Screen rotation is only supported on mobile platforms');
     }
   }
 

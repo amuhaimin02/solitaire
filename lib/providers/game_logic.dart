@@ -83,9 +83,9 @@ class CurrentGame extends _$CurrentGame {
   @override
   GameMetadata build() {
     return GameMetadata(
-      game: ref.watch(allSolitaireGamesProvider).first,
+      kind: ref.watch(allSolitaireGamesProvider).first,
       startedTime: DateTime.now(),
-      randomSeed: '1234',
+      seed: '1234',
     );
   }
 
@@ -109,9 +109,9 @@ class GameController extends _$GameController {
   Future<void> startNew(SolitaireGame game) async {
     // Prepare a new game to start
     final newPlayData = GameMetadata(
-      game: game,
+      kind: game,
       startedTime: DateTime.now(),
-      randomSeed: CustomPRNG.generateSeed(length: 12),
+      seed: CustomPRNG.generateSeed(length: 12),
     );
     ref.read(currentGameProvider.notifier).start(newPlayData);
 
@@ -214,9 +214,9 @@ class GameController extends _$GameController {
 
     PlayTable table = ref.read(currentTableProvider);
 
-    final originPileInfo = game.game.setup.get(move.from);
+    final originPileInfo = game.kind.setup.get(move.from);
 
-    final targetPileInfo = game.game.setup.get(move.to);
+    final targetPileInfo = game.kind.setup.get(move.to);
 
     final cardToMove = move.card;
     final cardsInPile = table.get(move.from);
@@ -315,7 +315,7 @@ class GameController extends _$GameController {
         );
       }
     }
-    for (final (pile, props) in game.game.setup.items) {
+    for (final (pile, props) in game.kind.setup.items) {
       if (props.afterMove != null) {
         result = MoveAction.chain(
           result,
@@ -363,7 +363,7 @@ class GameController extends _$GameController {
       moveState: ref.read(currentMoveProvider)?.state,
     );
 
-    for (final move in MoveAttemptTo.getAttempts(game.game.quickMove, args)) {
+    for (final move in MoveAttemptTo.getAttempts(game.kind.quickMove, args)) {
       final result = tryMove(move, doMove: doMove);
       if (result is MoveSuccess) {
         return result;
@@ -392,7 +392,7 @@ class GameController extends _$GameController {
         moveState: ref.read(currentMoveProvider)?.state,
       );
 
-      for (final move in MoveAttempt.getAttempts(game.game.autoSolve, args)) {
+      for (final move in MoveAttempt.getAttempts(game.kind.autoSolve, args)) {
         final result = tryMove(move, doAfterMove: false);
         if (result is MoveSuccess) {
           handled = true;
@@ -420,10 +420,10 @@ class GameController extends _$GameController {
 
   PlayTable _setupPiles() {
     final gameData = ref.read(currentGameProvider);
-    PlayTable table = PlayTable.fromGame(gameData.game);
+    PlayTable table = PlayTable.fromGame(gameData.kind);
     final moveState = ref.read(currentMoveProvider)?.state;
 
-    for (final (pile, props) in gameData.game.setup.items) {
+    for (final (pile, props) in gameData.kind.setup.items) {
       final result = MoveAction.runAll(
         props.onStart,
         MoveActionArgs(
@@ -445,7 +445,7 @@ class GameController extends _$GameController {
     final gameData = ref.read(currentGameProvider);
     final moveState = ref.read(currentMoveProvider)?.state;
 
-    for (final (pile, props) in gameData.game.setup.items) {
+    for (final (pile, props) in gameData.kind.setup.items) {
       final result = MoveAction.runAll(
         props.onSetup,
         MoveActionArgs(
@@ -491,7 +491,7 @@ class GameController extends _$GameController {
         moveState: ref.read(currentMoveProvider)?.state,
       );
 
-      for (final move in MoveAttempt.getAttempts(game.game.postMove, args)) {
+      for (final move in MoveAttempt.getAttempts(game.kind.postMove, args)) {
         final result = tryMove(
           move,
           doAfterMove: false,
@@ -528,7 +528,7 @@ class GameController extends _$GameController {
         lastAction: ref.read(currentActionProvider),
         moveState: ref.read(currentMoveProvider)?.state,
       );
-      for (final move in MoveAttempt.getAttempts(game.game.premove, args)) {
+      for (final move in MoveAttempt.getAttempts(game.kind.premove, args)) {
         // The card was just recently move. Skip that
         if (lastAction is Move &&
             lastAction.to == move.from &&
@@ -607,14 +607,14 @@ class GameController extends _$GameController {
   int _calculateScore(List<MoveEvent> events) {
     final game = ref.read(currentGameProvider);
     return events.fold(
-        0, (prev, event) => prev + game.game.determineScore(event));
+        0, (prev, event) => prev + game.kind.determineScore(event));
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {
     final table = ref.read(currentTableProvider);
     final game = ref.read(currentGameProvider);
 
-    for (final (pile, props) in game.game.setup.items) {
+    for (final (pile, props) in game.kind.setup.items) {
       final canOnlyMoveTop = props.pickable.findRule<CardIsOnTop>() != null;
       final canOnlyTap = props.onTap != null;
 
@@ -647,7 +647,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
 
   // TODO: Change "pile" parameter
   final result = MoveCheck.checkAll(
-    game.game.objectives,
+    game.kind.objectives,
     MoveCheckArgs(
       pile: const Stock(0),
       cards: const PlayCardList.empty(),
@@ -664,13 +664,13 @@ bool autoSolvable(AutoSolvableRef ref) {
   final table = ref.watch(currentTableProvider);
   final moveState = ref.watch(currentMoveProvider)?.state;
 
-  if (game.game.canAutoSolve == null) {
+  if (game.kind.canAutoSolve == null) {
     return false;
   }
 
   // TODO: Change "pile" parameter
   final result = MoveCheck.checkAll(
-    game.game.canAutoSolve,
+    game.kind.canAutoSolve,
     MoveCheckArgs(
       pile: const Stock(0),
       cards: const PlayCardList.empty(),
