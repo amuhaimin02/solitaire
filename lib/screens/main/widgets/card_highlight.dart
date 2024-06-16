@@ -65,6 +65,7 @@ class _ColorWheelCardHighlightState extends State<ColorWheelCardHighlight>
     setState(() {
       _gradientAnimationActive = true;
     });
+    _controller.reset();
     _controller.repeat();
   }
 
@@ -78,13 +79,13 @@ class _ColorWheelCardHighlightState extends State<ColorWheelCardHighlight>
   @override
   Widget build(BuildContext context) {
     final cardTheme = Theme.of(context).gameCardTheme;
-    const baseColorHSV = HSVColor.fromAHSV(1, 0, 0.7, 1);
+    const baseColorHSL = HSLColor.fromAHSL(1, 0, 0.7, 0.5);
 
     final gradientColorPoints = [
       for (int i = 0; i < _gradientStops; i++)
-        baseColorHSV.withHue(i / _gradientStops * 360),
-      baseColorHSV.withHue(360)
-    ].map((hsv) => hsv.toColor()).toList();
+        baseColorHSL.withHue(i / _gradientStops * 360),
+      baseColorHSL.withHue(360)
+    ].map((hsl) => hsl.toColor()).toList();
 
     final gradientStopPoints = [
       for (int i = 0; i < _gradientStops; i++) i / _gradientStops,

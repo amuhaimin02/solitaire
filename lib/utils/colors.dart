@@ -22,6 +22,14 @@ extension ColorExtension on Color {
 
     return hsl.withLightness(newLightness).toColor();
   }
+
+  Color shiftHue(double shiftAmount) {
+    assert(shiftAmount.abs() <= 360, 'Hue shift amount should be in range');
+
+    final hsl = HSLColor.fromColor(this);
+
+    return hsl.withHue((hsl.hue + shiftAmount) % 360).toColor();
+  }
 }
 
 extension MaterialColorExtension on Color {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../models/game_theme.dart';
 import '../../../utils/canvas.dart';
+import '../../../utils/colors.dart';
 
 class CardBack extends StatelessWidget {
   const CardBack({super.key, required this.size});
@@ -14,9 +15,7 @@ class CardBack extends StatelessWidget {
 
     final painter = switch (cardTheme.backStyle) {
       CardBackStyle.solid => SolidCardCover(color: cardTheme.backColor),
-      CardBackStyle.gradient => GradientCardCover(
-          color: cardTheme.backColor,
-          secondaryColor: cardTheme.backSecondaryColor),
+      CardBackStyle.gradient => GradientCardCover(color: cardTheme.backColor),
     };
     return ClipRRect(
       borderRadius:
@@ -53,28 +52,31 @@ class SolidCardCover extends CustomPainter {
 
 class GradientCardCover extends CustomPainter {
   final Color color;
-  final Color? secondaryColor;
 
   GradientCardCover({
     super.repaint,
     required this.color,
-    this.secondaryColor,
   });
+
+  static const gradientSteps = 8;
+  static const hueSpan = 30.0;
 
   @override
   void paint(Canvas canvas, Size size) {
     final drawArea = Offset.zero & size;
     final paint = Paint();
 
-    if (secondaryColor != null) {
-      paint.shader = LinearGradient(
-        begin: Alignment.topRight,
-        end: Alignment.bottomLeft,
-        colors: [color, secondaryColor!],
-      ).createShader(drawArea);
-    } else {
-      paint.color = color;
-    }
+    final gradientColors = [
+      for (int i = -(gradientSteps ~/ 2); i <= gradientSteps ~/ 2; i++)
+        color.shiftHue(hueSpan * i / gradientSteps)
+    ];
+
+    paint.shader = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: gradientColors,
+    ).createShader(drawArea);
+
     canvas.drawRect(drawArea, paint);
   }
 

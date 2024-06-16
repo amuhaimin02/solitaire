@@ -60,6 +60,7 @@ class GameMenuButton extends StatelessWidget {
         }
 
         return [
+          const SizedBox(height: 4),
           const _CurrentGameDisplay(),
           ListTile(
             leading: Icon(MdiIcons.cardsPlaying),
@@ -130,19 +131,19 @@ class _CurrentGameDisplay extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message:
-                'Seed: ${currentGame.seed}\nStarted on: ${currentGame.startedTime}',
-            preferBelow: true,
-            triggerMode: TooltipTriggerMode.tap,
-            enableTapToDismiss: false,
-            child: Icon(
-              Icons.info_outline,
-              size: 20,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          )
+          // const SizedBox(width: 8),
+          // Tooltip(
+          //   message:
+          //       'Seed: ${currentGame.seed}\nStarted on: ${currentGame.startedTime}',
+          //   preferBelow: true,
+          //   triggerMode: TooltipTriggerMode.tap,
+          //   enableTapToDismiss: false,
+          //   child: Icon(
+          //     Icons.info_outline,
+          //     size: 20,
+          //     color: colorScheme.onPrimaryContainer,
+          //   ),
+          // )
         ],
       ),
     );
