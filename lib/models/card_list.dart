@@ -123,17 +123,15 @@ extension PlayCardListExtension on PlayCardList {
     bool Function(PlayCard) test, {
     bool firstCardOnly = false,
   }) {
-    // TODO: Optimize this
-    PlayCardList passedCards = const PlayCardList.empty();
-    PlayCardList failedCards = const PlayCardList.empty();
-
-    for (final card in this) {
-      if (test(card) && (!firstCardOnly || passedCards.isEmpty)) {
-        passedCards = passedCards.add(card);
-      } else {
-        failedCards = failedCards.add(card);
+    bool firstCardFound = false;
+    final divided = divideIn2((card) {
+      if (test(card) && (!firstCardOnly || !firstCardFound)) {
+        firstCardFound = true;
+        return true;
       }
-    }
-    return (failedCards, passedCards);
+      return false;
+    });
+
+    return (divided.last, divided.first);
   }
 }

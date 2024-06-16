@@ -173,8 +173,6 @@ class SetupNewDeck extends MoveAction {
 
   @override
   MoveActionResult run(MoveActionArgs args) {
-    final existingCards = args.table.get(args.pile);
-
     final newCards = services<PlayCardGenerator>().generateShuffledDeck(
       numberOfDecks: count,
       CustomPRNG.create(args.metadata!.randomSeed),
@@ -194,8 +192,7 @@ class SetupNewDeck extends MoveAction {
     );
 
     return MoveActionHandled(
-      table: args.table
-          .modify(args.pile, existingCards.addAll(newCards.allFaceDown)),
+      table: args.table.add(args.pile, newCards.allFaceDown),
     );
   }
 }
@@ -206,7 +203,7 @@ class FlipAllCardsFaceUp extends MoveAction {
   @override
   MoveActionResult run(MoveActionArgs args) {
     return MoveActionHandled(
-      table: args.table.modify(args.pile, args.table.get(args.pile).allFaceUp),
+      table: args.table.modify(args.pile, (c) => c.faceUp),
     );
   }
 }
@@ -217,8 +214,7 @@ class FlipAllCardsFaceDown extends MoveAction {
   @override
   MoveActionResult run(MoveActionArgs args) {
     return MoveActionHandled(
-      table:
-          args.table.modify(args.pile, args.table.get(args.pile).allFaceDown),
+      table: args.table.modify(args.pile, (c) => c.faceDown),
     );
   }
 }
@@ -242,10 +238,8 @@ class MoveNormally extends MoveAction {
 
     // Move all cards on hand to target pile
     return MoveActionHandled(
-      table: args.table.modifyMultiple({
-        args.pile: remainingCards,
-        to: args.table.get(to).addAll(cardsToPickUp),
-      }),
+      table:
+          args.table.change(args.pile, remainingCards).add(to, cardsToPickUp),
       action: Move(cardsToPickUp, args.pile, to),
       events: [MoveMade(from: args.pile, to: to)],
     );
@@ -267,17 +261,11 @@ class DrawFromTop extends MoveAction {
     // Check and remove cards from source pile to hand
     final (remainingCards, cardsToPickUp) = cardsOnTable.splitLast(count);
 
-    // Check whether card picked is similar to what is on hand
-    // if (!const ListEquality().equals(cardsToPickUp, cardsInHand)) {
-    //   throw StateError("Cards picked up and in hand is not the same");
-    // }
-
     // Move all cards on hand to target pile
     return MoveActionHandled(
-      table: args.table.modifyMultiple({
-        args.pile: remainingCards,
-        to: args.table.get(to).addAll(cardsToPickUp.allFaceUp)
-      }),
+      table: args.table
+          .change(args.pile, remainingCards)
+          .add(to, cardsToPickUp.allFaceUp),
       action: Draw(cardsToPickUp, args.pile, to),
     );
   }
@@ -292,11 +280,8 @@ class RecyclePile extends MoveAction {
   MoveActionResult run(MoveActionArgs args) {
     final cardsToRecycle = args.table.get(takeFrom).reversed;
     return MoveActionHandled(
-      table: args.table.modifyMultiple({
-        takeFrom: const PlayCardList.empty(),
-        args.pile: args.table.get(args.pile).addAll(
-            faceUp ? cardsToRecycle.allFaceUp : cardsToRecycle.allFaceDown),
-      }),
+      table: args.table.clear(takeFrom).add(args.pile,
+          faceUp ? cardsToRecycle.allFaceUp : cardsToRecycle.allFaceDown),
       action: Deal(cardsToRecycle, args.pile),
       events: [RecycleMade(args.pile)],
     );
@@ -319,7 +304,7 @@ class FlipTopCardFaceUp extends MoveAction {
     final (remainingCards, cardsToFlip) = cardsOnPile.splitLast(count);
 
     return MoveActionHandled(
-      table: args.table.modify(
+      table: args.table.change(
         args.pile,
         remainingCards.addAll(cardsToFlip.allFaceUp),
       ),
@@ -380,13 +365,13 @@ class DistributeTo<T extends Pile> extends MoveAction {
     assert(cardsToDistribute.isEmpty,
         'Leftover cards should be empty after distribution');
 
+    PlayTable table = args.table.change(args.pile, remainingCards);
+    for (final (i, p) in targetPiles.indexed) {
+      table = table.add(p, cardSlots[i].allFaceUp);
+    }
+
     final result = MoveActionHandled(
-      table: args.table.modifyMultiple({
-        args.pile: remainingCards,
-        // TODO: Check for index ordering
-        for (final (i, p) in targetPiles.indexed)
-          p: args.table.get(p).addAll(cardSlots[i].allFaceUp)
-      }),
+      table: table,
       // TODO: Change this
       action: countAsMove ? Deal(cardsToTake, args.pile) : null,
     );
@@ -416,17 +401,16 @@ class FlipExposedCardsFaceUp extends MoveAction {
   MoveActionResult run(MoveActionArgs args) {
     final grids = args.table.allPilesOfType<Grid>();
 
-    PlayTable updatedTable = args.table;
+    PlayTable table = args.table;
 
     for (final grid in grids) {
       if (const PileIsExposed()
-          .check(MoveCheckArgs(pile: grid, table: updatedTable))) {
-        final cardsInGrid = args.table.get(grid);
-        updatedTable = updatedTable.modify(grid, cardsInGrid.allFaceUp);
+          .check(MoveCheckArgs(pile: grid, table: table))) {
+        table = table.modify(grid, (c) => c.faceUp);
       }
     }
 
-    return MoveActionHandled(table: updatedTable);
+    return MoveActionHandled(table: table);
   }
 }
 
@@ -450,10 +434,8 @@ class FindCardsAndMove extends MoveAction {
     );
 
     return MoveActionHandled(
-      table: args.table.modifyMultiple({
-        args.pile: remainingCards,
-        moveTo: args.table.get(moveTo).addAll(foundCards),
-      }),
+      table:
+          args.table.change(args.pile, remainingCards).add(moveTo, foundCards),
     );
   }
 }

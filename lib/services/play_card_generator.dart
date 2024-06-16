@@ -22,7 +22,7 @@ class PlayCardGenerator {
         }
       }
       return cards;
-    }).flattened.toList().lock;
+    }).flattened.toIList();
   }
 
   PlayCardList generateShuffledDeck(Random random,
@@ -39,7 +39,6 @@ class PlayCardGenerator {
     return Rank.values
         .slice(fromIndex, toIndex)
         .map((rank) => PlayCard(suit, rank))
-        .toList()
-        .lock;
+        .toIList();
   }
 }

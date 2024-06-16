@@ -456,7 +456,7 @@ class _GameTableState extends State<GameTable> {
           if (cards.isNotEmpty)
             for (final (i, card) in cards.indexed)
               AnimatedPositioned.fromRect(
-                key: ValueKey(card),
+                key: ValueKey(card.faceUp),
                 duration: computeAnimation(i).duration,
                 curve: computeAnimation(i).curve,
                 rect: computePosition(
@@ -503,7 +503,7 @@ class _GameTableState extends State<GameTable> {
         return [
           for (final (i, card) in cards.indexed)
             AnimatedPositioned.fromRect(
-              key: ValueKey(card),
+              key: ValueKey(card.faceUp),
               duration: computeAnimation(i).duration,
               curve: computeAnimation(i).curve,
               rect: computePosition(

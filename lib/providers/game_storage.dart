@@ -12,7 +12,6 @@ import '../services/file_handler.dart';
 import '../services/game_serializer.dart';
 import '../utils/compress.dart';
 import '../utils/types.dart';
-import 'file_handler.dart';
 import 'game_selection.dart';
 
 part 'game_storage.g.dart';

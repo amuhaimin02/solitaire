@@ -76,9 +76,7 @@ class PlayCard {
 
   final Suit suit;
   final Rank rank;
-
   final bool flipped;
-
   final int deck;
 
   const PlayCard(this.suit, this.rank, {this.deck = 1, this.flipped = false});
@@ -97,11 +95,12 @@ class PlayCard {
     return other is PlayCard &&
         suit == other.suit &&
         rank == other.rank &&
+        flipped == other.flipped &&
         deck == other.deck;
   }
 
   @override
-  int get hashCode => Object.hash(suit, rank, deck);
+  int get hashCode => Object.hash(suit, rank, flipped, deck);
 
   bool get isFacingUp => flipped == false;
 

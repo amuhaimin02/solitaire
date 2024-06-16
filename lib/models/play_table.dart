@@ -1,8 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../utils/types.dart';
+import 'card.dart';
 import 'card_list.dart';
 import 'game/solitaire.dart';
 import 'pile.dart';
@@ -11,9 +12,9 @@ typedef PlayCardMap = IMap<Pile, PlayCardList>;
 
 @immutable
 class PlayTable {
-  final IMap<Pile, PlayCardList> _allCards;
+  final IMap<Pile, PlayCardList> _cardMap;
 
-  const PlayTable._(this._allCards);
+  const PlayTable._(this._cardMap);
 
   factory PlayTable.empty() {
     return const PlayTable._(PlayCardMap.empty());
@@ -36,37 +37,44 @@ class PlayTable {
   }
 
   PlayCardList get(Pile pile) {
-    return _allCards[pile] ?? const PlayCardList.empty();
+    return _cardMap[pile] ?? const PlayCardList.empty();
   }
 
   Iterable<Pile> allPiles() {
-    return _allCards.keys;
+    return _cardMap.keys;
   }
 
   Iterable<T> allPilesOfType<T extends Pile>() {
-    return _allCards.keys.whereType<T>();
+    return _cardMap.keys.whereType<T>();
   }
 
   T? getEmptyPileOfType<T extends Pile>() {
     return allPilesOfType<T>().firstWhereOrNull((p) => get(p).isEmpty);
   }
 
-  PlayCardMap get allCards => _allCards;
+  PlayCardMap get allCards => _cardMap;
 
-  // TODO: Remove
-  PlayTable modify(Pile pile, PlayCardList cards) {
+  @useResult
+  PlayTable clear(Pile pile) {
+    return PlayTable._(_cardMap.add(pile, const PlayCardList.empty()));
+  }
+
+  @useResult
+  PlayTable change(Pile pile, PlayCardList cards) {
+    return PlayTable._(_cardMap.add(pile, cards));
+  }
+
+  @useResult
+  PlayTable modify(Pile pile, PlayCard Function(PlayCard) change) {
+    final existingCards = _cardMap.get(pile) ?? const PlayCardList.empty();
     return PlayTable._(
-      PlayCardMap({..._allCards.unlockView, pile: cards}),
+      _cardMap.add(pile, PlayCardList(existingCards.map(change))),
     );
   }
 
-  // TODO: Remove
-  PlayTable modifyMultiple(Map<Pile, PlayCardList> updates) {
-    return PlayTable._(
-      PlayCardMap({
-        ..._allCards.unlockView,
-        for (final (pile, cards) in updates.items) pile: cards,
-      }),
-    );
+  @useResult
+  PlayTable add(Pile pile, PlayCardList cards) {
+    final existingCards = _cardMap.get(pile) ?? const PlayCardList.empty();
+    return PlayTable._(_cardMap.add(pile, existingCards.addAll(cards)));
   }
 }
