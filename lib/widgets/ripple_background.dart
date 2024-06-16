@@ -56,6 +56,7 @@ class _RippleBackgroundState extends State<RippleBackground>
   void didUpdateWidget(covariant RippleBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.decoration != oldWidget.decoration) {
+      _lastDecoration = oldWidget.decoration;
       _controller.forward(from: 0.0);
     }
   }
