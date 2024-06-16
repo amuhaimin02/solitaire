@@ -59,7 +59,7 @@ class GradientCardCover extends CustomPainter {
   });
 
   static const gradientSteps = 8;
-  static const hueSpan = 30.0;
+  static const hueSpan = 45.0;
 
   @override
   void paint(Canvas canvas, Size size) {

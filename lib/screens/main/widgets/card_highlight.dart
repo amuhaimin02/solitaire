@@ -5,15 +5,63 @@ import 'package:flutter/material.dart';
 import '../../../animations.dart';
 import '../../../models/game_theme.dart';
 
+class SimpleCardHighlight extends StatefulWidget {
+  const SimpleCardHighlight({
+    super.key,
+    this.active = false,
+    required this.size,
+    required this.color,
+    required this.child,
+  });
+
+  final bool active;
+
+  final Size size;
+
+  final Color color;
+
+  final Widget child;
+
+  @override
+  State<SimpleCardHighlight> createState() => _SimpleCardHighlightState();
+}
+
+class _SimpleCardHighlightState extends State<SimpleCardHighlight> {
+  @override
+  Widget build(BuildContext context) {
+    final cardTheme = Theme.of(context).gameCardTheme;
+
+    return Stack(
+      children: [
+        AnimatedScale(
+          duration: cardMoveAnimation.duration,
+          curve: widget.active ? Curves.easeOutCirc : Curves.easeInCirc,
+          scale: widget.active ? 1 : 0.01,
+          child: Container(
+            decoration: BoxDecoration(
+              color: widget.color,
+              borderRadius: BorderRadius.circular(
+                widget.size.shortestSide *
+                    (cardTheme.cornerRadius + cardTheme.margin),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(child: widget.child),
+      ],
+    );
+  }
+}
+
 class ColorWheelCardHighlight extends StatefulWidget {
   const ColorWheelCardHighlight({
     super.key,
-    required this.highlight,
+    required this.active,
     required this.size,
     required this.child,
   });
 
-  final bool highlight;
+  final bool active;
 
   final Size size;
 
@@ -54,8 +102,8 @@ class _ColorWheelCardHighlightState extends State<ColorWheelCardHighlight>
   @override
   void didUpdateWidget(covariant ColorWheelCardHighlight oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.highlight != oldWidget.highlight) {
-      if (widget.highlight) {
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
         _startGradientAnimation();
       }
     }
@@ -96,8 +144,8 @@ class _ColorWheelCardHighlightState extends State<ColorWheelCardHighlight>
       children: [
         AnimatedScale(
           duration: cardMoveAnimation.duration,
-          curve: widget.highlight ? Curves.easeOutCirc : Curves.easeInCirc,
-          scale: widget.highlight ? 1 : 0.5,
+          curve: widget.active ? Curves.easeOutCirc : Curves.easeInCirc,
+          scale: widget.active ? 1 : 0.5,
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
@@ -120,7 +168,7 @@ class _ColorWheelCardHighlightState extends State<ColorWheelCardHighlight>
             },
           ),
           onEnd: () {
-            if (!widget.highlight) {
+            if (!widget.active) {
               _stopGradientAnimation();
             }
           },

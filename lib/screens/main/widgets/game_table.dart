@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
@@ -41,6 +40,7 @@ class GameTable extends StatefulWidget {
     this.onCardDrop,
     this.canDragCards,
     this.highlightedCards,
+    this.selectedCards,
     this.lastMovedCards,
     this.animateDistribute = false,
     this.animateMovement = true,
@@ -51,9 +51,10 @@ class GameTable extends StatefulWidget {
 
   final SolitaireGame game;
 
-  final PlayCardList? Function(PlayCard? card, Pile pile)? onCardTap;
+  final FutureOr<PlayCardList?> Function(PlayCard? card, Pile pile)? onCardTap;
 
-  final PlayCardList? Function(PlayCard card, Pile from, Pile to)? onCardDrop;
+  final FutureOr<PlayCardList?> Function(PlayCard card, Pile from, Pile to)?
+      onCardDrop;
 
   final bool Function(PlayCardList card, Pile from)? canDragCards;
 
@@ -62,6 +63,8 @@ class GameTable extends StatefulWidget {
   final PlayTable table;
 
   final PlayCardList? highlightedCards;
+
+  final PlayCardList? selectedCards;
 
   final PlayCardList? lastMovedCards;
 
@@ -451,6 +454,10 @@ class _GameTableState extends State<GameTable> {
       return widget.highlightedCards?.contains(card) == true;
     }
 
+    bool cardIsSelected(PlayCard card) {
+      return widget.selectedCards?.contains(card) == true;
+    }
+
     switch (stackDirection) {
       case Direction.none:
         return [
@@ -472,6 +479,7 @@ class _GameTableState extends State<GameTable> {
                   isFirstCard: i == 0,
                   isLastCard: i == cards.length - 1,
                   highlighted: cardIsHighlighted(card),
+                  selected: cardIsSelected(card),
                   hasShadow: i < 3, // Bottom 3 card will have shadow
                 ),
               ),
@@ -523,6 +531,7 @@ class _GameTableState extends State<GameTable> {
                 isFirstCard: i == 0,
                 isLastCard: i == cards.length - 1,
                 highlighted: cardIsHighlighted(card),
+                selected: cardIsSelected(card),
                 hasShadow: previewCards != 0
                     // Only visible cards have shadow
                     ? i >= cards.length - 1 - previewCards
@@ -654,23 +663,24 @@ class _GameTableState extends State<GameTable> {
     }
   }
 
-  void _onCardTap(BuildContext context, PlayCard? card, Pile pile) {
+  void _onCardTap(BuildContext context, PlayCard? card, Pile pile) async {
     if (_allPiles.get(pile).virtual) {
       return;
     }
 
-    final feedback = widget.onCardTap?.call(card, pile);
+    final feedback = await widget.onCardTap?.call(card, pile);
     if (feedback != null) {
       _shakeCard(feedback);
     }
   }
 
-  void _onCardDrop(BuildContext context, PlayCard card, Pile from, Pile to) {
+  void _onCardDrop(
+      BuildContext context, PlayCard card, Pile from, Pile to) async {
     if (_allPiles.get(to).virtual) {
       return;
     }
 
-    final feedback = widget.onCardDrop?.call(card, from, to);
+    final feedback = await widget.onCardDrop?.call(card, from, to);
     if (feedback != null) {
       _shakeCard(feedback);
     }
@@ -704,6 +714,7 @@ class _CardWrapper extends StatelessWidget {
     required this.hasShadow,
     this.isMoving = false,
     this.highlighted = false,
+    this.selected = false,
     this.shake = false,
     this.onTouch,
     this.onTap,
@@ -726,6 +737,8 @@ class _CardWrapper extends StatelessWidget {
   final VoidCallback? onTap;
 
   final bool highlighted;
+
+  final bool selected;
 
   final Direction stackDirection;
 
@@ -771,6 +784,7 @@ class _CardWrapper extends StatelessWidget {
           size: cardSize,
           elevation: isMoving ? hoverElevation : elevation,
           highlighted: highlighted,
+          selected: selected,
           labelAlignment: labelAlignment,
         ),
       ),

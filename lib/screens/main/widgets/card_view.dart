@@ -20,6 +20,7 @@ class CardView extends StatelessWidget {
     this.elevation,
     this.hideFace = false,
     this.highlighted = false,
+    this.selected = false,
     this.labelAlignment = Alignment.center,
   });
 
@@ -31,6 +32,8 @@ class CardView extends StatelessWidget {
 
   final bool highlighted;
 
+  final bool selected;
+
   final Size size;
 
   final Alignment labelAlignment;
@@ -38,6 +41,8 @@ class CardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardTheme = Theme.of(context).gameCardTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Flippable(
       duration: cardMoveAnimation.duration,
       curve: cardMoveAnimation.curve,
@@ -63,12 +68,17 @@ class CardView extends StatelessWidget {
         child: CardBack(size: size),
       ),
       builder: (context, child) {
-        return ColorWheelCardHighlight(
-          highlight: highlighted,
+        return SimpleCardHighlight(
+          active: selected,
           size: size,
-          child: Padding(
-            padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
-            child: child,
+          color: colorScheme.tertiary,
+          child: ColorWheelCardHighlight(
+            active: highlighted,
+            size: size,
+            child: Padding(
+              padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
+              child: child,
+            ),
           ),
         );
       },
