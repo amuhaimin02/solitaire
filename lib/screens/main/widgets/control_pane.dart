@@ -6,8 +6,8 @@ import '../../../models/user_action.dart';
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_move_history.dart';
 import '../../../providers/settings.dart';
-import '../../../providers/themes.dart';
 import '../../../widgets/tap_hold_detector.dart';
+import 'restart_dialog.dart';
 
 class ControlPane extends ConsumerWidget {
   const ControlPane({super.key, required this.orientation});
@@ -28,7 +28,7 @@ class ControlPane extends ConsumerWidget {
         onPressed: () {
           showDialog(
             context: context,
-            builder: (_) => const _RestartDialog(),
+            builder: (_) => const RestartDialog(),
           );
         },
         icon: const Icon(Icons.restart_alt, size: 24),
@@ -117,40 +117,5 @@ class ControlPane extends ConsumerWidget {
           children: children,
         ),
     };
-  }
-}
-
-class _RestartDialog extends ConsumerWidget {
-  const _RestartDialog({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return AlertDialog(
-      title: const Text('Restart game?'),
-      content: const Text(
-          'Do you want to restart this game from beginning or redeal for a new game?'),
-      actions: [
-        FilledButton.tonalIcon(
-          onPressed: () {
-            Navigator.pop(context);
-            ref.read(gameControllerProvider.notifier).restart();
-          },
-          icon: const Icon(Icons.fast_rewind),
-          label: const Text('Restart'),
-        ),
-        FilledButton.icon(
-          onPressed: () {
-            Navigator.pop(context);
-            ref
-                .read(themeBaseRandomizeColorProvider.notifier)
-                .tryShuffleColor();
-            final game = ref.read(currentGameProvider);
-            ref.read(gameControllerProvider.notifier).startNew(game.kind);
-          },
-          icon: const Icon(Icons.restart_alt),
-          label: const Text('New game'),
-        ),
-      ],
-    );
   }
 }

@@ -18,14 +18,6 @@ import 'auto_solve_button.dart';
 import 'game_table.dart';
 import 'user_action_indicator.dart';
 
-// TODO: Move out of here
-class PlayCardAndPile {
-  final PlayCard card;
-  final Pile pile;
-
-  PlayCardAndPile(this.card, this.pile);
-}
-
 class PlayArea extends ConsumerStatefulWidget {
   const PlayArea({super.key, required this.orientation});
 
@@ -36,13 +28,13 @@ class PlayArea extends ConsumerStatefulWidget {
 }
 
 class _PlayAreaState extends ConsumerState<PlayArea> {
-  PlayCardAndPile? _firstSelected;
-  PlayCardAndPile? _secondSelected;
+  PlayCard? _selectedCard;
+  Pile? _selectedPile;
 
   void _clearSelection() {
     setState(() {
-      _firstSelected = null;
-      _secondSelected = null;
+      _selectedCard = null;
+      _selectedPile = null;
     });
   }
 
@@ -69,11 +61,6 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
         final showAutoSolveButton =
             ref.watch(settingsShowAutoSolveButtonProvider);
 
-        final selectedCards = [
-          if (_firstSelected != null) _firstSelected!.card,
-          if (_secondSelected != null) _secondSelected!.card,
-        ];
-
         return Stack(
           alignment: Alignment.center,
           children: [
@@ -82,7 +69,8 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
               game: game.kind,
               orientation: localOrientation,
               highlightedCards: highlightedCards,
-              selectedCards: PlayCardList(selectedCards),
+              selectedCards:
+                  _selectedCard != null ? PlayCardList([_selectedCard!]) : null,
               lastMovedCards: ref.watch(lastMoveProvider)?.action.move?.cards,
               animateDistribute: status == GameStatus.preparing,
               animateMovement: true,
@@ -122,29 +110,25 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 }
 
                 if (twoTapMoveEnabled) {
-                  if (_firstSelected == null) {
+                  if (_selectedCard == null) {
                     if (card != null) {
                       setState(() {
-                        _firstSelected = PlayCardAndPile(card, pile);
+                        _selectedCard = card;
+                        _selectedPile = pile;
                       });
                     }
                     return null;
                   } else {
-                    if (card != null) {
-                      setState(() {
-                        _secondSelected = PlayCardAndPile(card, pile);
-                      });
-                    }
-
                     MoveResult result;
-                    if (_firstSelected!.card == card) {
+                    if (_selectedCard == card) {
+                      // Card was double tapped. Try to quick move
                       result = controller.tryQuickMove(
-                          _firstSelected!.card, _firstSelected!.pile);
+                          _selectedCard!, _selectedPile!);
                     } else {
                       result = controller.tryMove(MoveIntent(
-                        _firstSelected!.pile,
+                        _selectedPile!,
                         pile,
-                        _firstSelected!.card,
+                        _selectedCard!,
                       ));
                     }
 
@@ -152,14 +136,11 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                       _clearSelection();
                       return null;
                     } else {
-                      // await Future.delayed(cardMoveAnimation.duration);
-
-                      final firstCard = _firstSelected?.card;
-                      final secondCard = _secondSelected?.card;
+                      final firstSelectedCard = _selectedCard;
                       _clearSelection();
                       return PlayCardList([
-                        if (firstCard != null) firstCard,
-                        if (secondCard != null) secondCard,
+                        firstSelectedCard!,
+                        if (card != null) card,
                       ]);
                     }
                   }

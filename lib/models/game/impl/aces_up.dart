@@ -25,7 +25,7 @@ class AcesUp extends SolitaireGame {
   @override
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
-      portrait: Size(7, 6),
+      portrait: Size(7, 5),
       landscape: Size(8, 4),
     );
   }

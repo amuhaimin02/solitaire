@@ -130,8 +130,8 @@ class _GameTableState extends State<GameTable> {
     return IgnorePointer(
       ignoring: !widget.interactive,
       child: AspectRatio(
-        aspectRatio: (tableSize.width * cardTheme.unitSize.width) /
-            (tableSize.height * cardTheme.unitSize.height),
+        aspectRatio: (tableSize.width * cardSizeRatio.width) /
+            (tableSize.height * cardSizeRatio.height),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final gridUnit = Size(

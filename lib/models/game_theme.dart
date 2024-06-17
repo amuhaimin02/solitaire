@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:theme_tailor_annotation/theme_tailor_annotation.dart';
 
-import '../screens/main/widgets/card_back.dart';
-import '../utils/colors.dart';
-
 part 'game_theme.tailor.dart';
 
 const themeColorPalette = [
@@ -24,6 +21,8 @@ const themeColorPalette = [
   Colors.orange,
   Colors.deepOrange,
 ];
+
+const cardSizeRatio = Size(2.5, 3.5);
 
 enum CardBackStyle { solid, gradient }
 
@@ -71,7 +70,6 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     required this.backColor,
     required this.backSecondaryColor,
     this.backStyle = CardBackStyle.solid,
-    this.unitSize = const Size(2.5, 3.5),
     this.margin = 0.05,
     this.stackGap = const Offset(0.3, 0.3),
     this.cornerRadius = 0.1,
@@ -98,9 +96,6 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
 
   @override
   final CardBackStyle backStyle;
-
-  @override
-  final Size unitSize;
 
   @override
   final double margin;
@@ -147,11 +142,6 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
       cardFacePlainColor = Colors.grey.shade50;
       cardFaceAccentColor = Colors.grey.shade50;
     }
-
-    // final primaryTonalPalette = colorScheme.primary.tonalPalette;
-    //
-    // final baseBackColor = Color(primaryTonalPalette.get(isDark ? 70 : 55));
-    // final backSecondaryColor = Color(primaryTonalPalette.get(isDark ? 85 : 40));
 
     return GameCardTheme(
       facePlainColor: cardFacePlainColor,

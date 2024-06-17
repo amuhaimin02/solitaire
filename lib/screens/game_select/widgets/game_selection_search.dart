@@ -5,6 +5,7 @@ import '../../../models/game/solitaire.dart';
 import '../../../providers/game_selection.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/bottom_padded.dart';
+import '../../../widgets/empty_message.dart';
 import '../../../widgets/two_pane.dart';
 import 'game_list_tile.dart';
 
@@ -44,6 +45,7 @@ class _GameSelectionSearchState extends ConsumerState<GameSelectionSearch> {
             hintText: 'Search games...',
           ),
           autofocus: true,
+          onChanged: (_) => setState(() {}),
           style: TextStyle(color: colorScheme.onSurface),
         ),
         actions: [
@@ -59,16 +61,21 @@ class _GameSelectionSearchState extends ConsumerState<GameSelectionSearch> {
           )
         ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: _textController,
-        builder: (context, searchQuery, child) {
-          if (searchQuery.text.isEmpty) {
-            return Container();
+      body: Builder(
+        builder: (context) {
+          final searchQuery = _textController.text;
+          if (searchQuery.isEmpty) {
+            return const EmptyMessage(
+              icon: Icon(Icons.search),
+              title: Text('Search for a game'),
+              body: Text(
+                  'Type the name of a game you want to look for.\nName variations are supported as well.'),
+            );
           }
 
           final matchedGame = ref
               .read(allSolitaireGamesProvider)
-              .where((game) => game.name.containsIgnoreCase(searchQuery.text))
+              .where((game) => game.name.containsIgnoreCase(searchQuery))
               .toList();
 
           return ListView.builder(

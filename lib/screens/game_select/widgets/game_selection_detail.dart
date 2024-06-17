@@ -7,7 +7,7 @@ import '../../../providers/game_selection.dart';
 import '../../../services/all.dart';
 import '../../../services/play_table_generator.dart';
 import '../../../utils/prng.dart';
-import '../../../widgets/empty_screen.dart';
+import '../../../widgets/empty_message.dart';
 import '../../../widgets/two_pane.dart';
 import '../../main/widgets/game_table.dart';
 import 'game_selection_options.dart';
@@ -24,7 +24,7 @@ class GameSelectionDetail extends ConsumerWidget {
     final randomSeed = CustomPRNG.generateSeed(length: 12);
 
     if (selectedGame == null) {
-      return EmptyScreen(
+      return EmptyMessage(
         icon: Icon(MdiIcons.cardsPlaying),
         title: const Text('Select a game'),
       );

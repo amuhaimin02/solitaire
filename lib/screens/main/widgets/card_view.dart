@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart' hide Action;
-import 'package:google_fonts/google_fonts.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../animations.dart';
 import '../../../models/card.dart';
 import '../../../models/game_theme.dart';
-import '../../../utils/canvas.dart';
 import '../../../widgets/flippable.dart';
 import '../../../widgets/soft_shadow.dart';
 import 'card_back.dart';
@@ -68,7 +65,7 @@ class CardView extends StatelessWidget {
         child: CardBack(size: size),
       ),
       builder: (context, child) {
-        return SimpleCardHighlight(
+        return BlinkingCardHighlight(
           active: selected,
           size: size,
           color: colorScheme.tertiary,

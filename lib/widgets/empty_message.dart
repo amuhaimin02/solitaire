@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-class EmptyScreen extends StatelessWidget {
-  const EmptyScreen({super.key, this.icon, this.title, this.body});
+import '../utils/widgets.dart';
+
+class EmptyMessage extends StatelessWidget {
+  const EmptyMessage({super.key, this.icon, this.title, this.body});
 
   final Widget? icon;
 
@@ -26,7 +28,6 @@ class EmptyScreen extends StatelessWidget {
                 data: IconThemeData(size: 72, color: colorScheme.primary),
                 child: icon!,
               ),
-            const SizedBox(height: 16),
             if (title != null)
               DefaultTextStyle(
                 style:
@@ -34,16 +35,14 @@ class EmptyScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 child: title!,
               ),
-            if (body != null) ...[
-              const SizedBox(height: 16),
+            if (body != null)
               DefaultTextStyle(
                 style:
                     textTheme.bodyLarge!.copyWith(color: colorScheme.onSurface),
                 textAlign: TextAlign.center,
                 child: body!,
               ),
-            ]
-          ],
+          ].separatedBy(const SizedBox(height: 16)),
         ),
       ),
     );

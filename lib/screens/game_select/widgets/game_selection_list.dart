@@ -6,7 +6,7 @@ import '../../../providers/game_selection.dart';
 import '../../../providers/game_storage.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/bottom_padded.dart';
-import '../../../widgets/empty_screen.dart';
+import '../../../widgets/empty_message.dart';
 import '../../../widgets/section_title.dart';
 import '../../../widgets/two_pane.dart';
 import 'game_list_group.dart';
@@ -64,7 +64,7 @@ class GameSelectionList extends ConsumerWidget {
     final favoritedGames = ref.watch(favoritedGamesProvider);
 
     if (favoritedGames.isEmpty) {
-      return const EmptyScreen(
+      return const EmptyMessage(
         icon: Icon(Icons.favorite_border),
         title: Text('No favorited games yet'),
         body: Text(
@@ -107,11 +107,16 @@ class GameSelectionList extends ConsumerWidget {
             onTap: () => _onListTap(context, ref, game),
           ),
         const SectionTitle('Favorites'),
-        for (final game in favoritedGames)
-          GameListTile(
-            game: game,
-            onTap: () => _onListTap(context, ref, game),
-          ),
+        if (favoritedGames.isEmpty)
+          const EmptyMessage(
+            body: Text('No favorited games yet'),
+          )
+        else
+          for (final game in favoritedGames)
+            GameListTile(
+              game: game,
+              onTap: () => _onListTap(context, ref, game),
+            ),
       ],
     );
   }

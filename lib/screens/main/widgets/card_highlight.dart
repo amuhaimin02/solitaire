@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../../../animations.dart';
 import '../../../models/game_theme.dart';
+import '../../../widgets/pulsating.dart';
 
-class SimpleCardHighlight extends StatefulWidget {
-  const SimpleCardHighlight({
+class BlinkingCardHighlight extends StatefulWidget {
+  const BlinkingCardHighlight({
     super.key,
     this.active = false,
     required this.size,
@@ -23,30 +24,28 @@ class SimpleCardHighlight extends StatefulWidget {
   final Widget child;
 
   @override
-  State<SimpleCardHighlight> createState() => _SimpleCardHighlightState();
+  State<BlinkingCardHighlight> createState() => _BlinkingCardHighlightState();
 }
 
-class _SimpleCardHighlightState extends State<SimpleCardHighlight> {
+class _BlinkingCardHighlightState extends State<BlinkingCardHighlight> {
   @override
   Widget build(BuildContext context) {
     final cardTheme = Theme.of(context).gameCardTheme;
 
     return Stack(
       children: [
-        AnimatedScale(
-          duration: cardMoveAnimation.duration,
-          curve: widget.active ? Curves.easeOutCirc : Curves.easeInCirc,
-          scale: widget.active ? 1 : 0.01,
-          child: Container(
-            decoration: BoxDecoration(
-              color: widget.color,
-              borderRadius: BorderRadius.circular(
-                widget.size.shortestSide *
-                    (cardTheme.cornerRadius + cardTheme.margin),
+        if (widget.active)
+          Pulsating(
+            child: Container(
+              decoration: BoxDecoration(
+                color: widget.color,
+                borderRadius: BorderRadius.circular(
+                  widget.size.shortestSide *
+                      (cardTheme.cornerRadius + cardTheme.margin),
+                ),
               ),
             ),
           ),
-        ),
         Positioned.fill(child: widget.child),
       ],
     );
