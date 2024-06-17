@@ -73,17 +73,19 @@ class MessageOverlayState extends State<MessageOverlay>
       child: Stack(
         children: [
           widget.child,
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return FadeTransition(
-                opacity: _controller,
-                child: child,
-              );
-            },
-            child: Material(
-              type: MaterialType.transparency,
-              child: _overlay,
+          SafeArea(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _controller,
+                  child: child,
+                );
+              },
+              child: Material(
+                type: MaterialType.transparency,
+                child: _overlay,
+              ),
             ),
           )
         ],
