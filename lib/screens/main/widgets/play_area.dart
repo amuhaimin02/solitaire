@@ -14,6 +14,7 @@ import '../../../providers/game_logic.dart';
 import '../../../providers/game_move_history.dart';
 import '../../../providers/settings.dart';
 import '../../../utils/types.dart';
+import '../../../widgets/message_overlay.dart';
 import 'auto_solve_button.dart';
 import 'game_table.dart';
 import 'user_action_indicator.dart';
@@ -177,8 +178,27 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
   }
 
   void _showMoveForbiddenSnackbar(BuildContext context, MoveForbidden move) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(move.reason),
-    ));
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final overlay = Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        child: Material(
+          color: colorScheme.error,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Text(
+              move.reason,
+              style: textTheme.bodyMedium!.copyWith(color: colorScheme.onError),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    MessageOverlay.of(context).show(overlay);
   }
 }

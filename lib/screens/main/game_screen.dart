@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +16,7 @@ import '../../providers/settings.dart';
 import '../../providers/shared_preferences.dart';
 import '../../widgets/animated_visibility.dart';
 import '../../widgets/bottom_padded.dart';
+import '../../widgets/message_overlay.dart';
 import '../../widgets/ripple_background.dart';
 import '../../widgets/screen_visibility.dart';
 import '../game_select/widgets/continue_failed_dialog.dart';
@@ -27,14 +27,25 @@ import 'widgets/play_area.dart';
 import 'widgets/screen_rotate_button.dart';
 import 'widgets/status_pane.dart';
 
-class GameScreen extends ConsumerStatefulWidget {
+class GameScreen extends StatelessWidget {
   const GameScreen({super.key});
 
   @override
-  ConsumerState<GameScreen> createState() => _GameScreenState();
+  Widget build(BuildContext context) {
+    return const MessageOverlay(
+      child: GameScreenBody(),
+    );
+  }
 }
 
-class _GameScreenState extends ConsumerState<GameScreen>
+class GameScreenBody extends ConsumerStatefulWidget {
+  const GameScreenBody({super.key});
+
+  @override
+  ConsumerState<GameScreenBody> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends ConsumerState<GameScreenBody>
     with RouteAware, WidgetsBindingObserver, ScreenVisibility {
   bool _isStarted = false;
 
@@ -302,27 +313,42 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          isContinueGame
-              ? const Text('Continuing last game')
-              : const Text('Starting game'),
-          Text(
-            game.name,
-            style: textTheme.titleMedium!
-                .copyWith(color: colorScheme.inversePrimary),
+    final overlay = Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        child: Material(
+          color: colorScheme.inverseSurface,
+          elevation: 8,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DefaultTextStyle(
+                  style: textTheme.titleSmall!
+                      .copyWith(color: colorScheme.onInverseSurface),
+                  child: isContinueGame
+                      ? const Text('Continuing last game')
+                      : const Text('Starting game'),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  game.name,
+                  style: textTheme.titleLarge!
+                      .copyWith(color: colorScheme.inversePrimary),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
-      action: SnackBarAction(
-        label: 'Change',
-        onPressed: () {
-          context.go('/select');
-        },
-      ),
-    ));
+    );
+
+    MessageOverlay.of(context).show(overlay);
   }
 
   Future<void> _showFinishDialog(BuildContext context) async {

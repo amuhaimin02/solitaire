@@ -36,27 +36,7 @@ abstract class MoveCheck {
     }
     return const MoveCheckOK();
   }
-
-  // MoveCheck operator |(MoveCheck other) {
-  //   return _MoveCheckOr(this, other);
-  // }
 }
-
-// class _MoveCheckOr extends MoveCheck {
-//   const _MoveCheckOr(this.check1, this.check2);
-//
-//   final MoveCheck check1;
-//   final MoveCheck check2;
-//
-//   @override
-//   String get errorMessage =>
-//       '${check1.errorMessage}, or ${check2.errorMessage}';
-//
-//   @override
-//   bool check(MoveCheckArgs args) {
-//     return check1.check(args) || check2.check(args);
-//   }
-// }
 
 @freezed
 class MoveCheckArgs with _$MoveCheckArgs {
@@ -157,7 +137,7 @@ class CardIsSingle extends MoveCheck {
   const CardIsSingle();
 
   @override
-  String get errorMessage => 'Only a single card is allowed';
+  String get errorMessage => 'Can only move a single card';
 
   @override
   bool check(MoveCheckArgs args) {
@@ -169,7 +149,7 @@ class CardIsOnTop extends MoveCheck {
   const CardIsOnTop();
 
   @override
-  String get errorMessage => 'Card is not on top';
+  String get errorMessage => 'Can only move card on top';
 
   @override
   bool check(MoveCheckArgs args) {

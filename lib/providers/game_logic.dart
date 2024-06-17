@@ -247,7 +247,7 @@ class GameController extends _$GameController {
         );
         if (canTapResult is MoveCheckFail) {
           return MoveForbidden(
-            'Cannot make the move.\n${canTapResult.reason?.errorMessage}',
+            '${canTapResult.reason?.errorMessage}',
           );
         }
       }
@@ -283,7 +283,7 @@ class GameController extends _$GameController {
         );
         if (canPickResult is MoveCheckFail) {
           return MoveForbidden(
-            'Cannot pick the card(s) there.\n${canPickResult.reason?.errorMessage}',
+            '${canPickResult.reason?.errorMessage}',
           );
         }
 
@@ -299,8 +299,7 @@ class GameController extends _$GameController {
         );
 
         if (canPlaceResult is MoveCheckFail) {
-          return MoveForbidden(
-              'Cannot place the card(s) here.\n${canPlaceResult.reason?.errorMessage}');
+          return MoveForbidden('${canPlaceResult.reason?.errorMessage}');
         }
 
         result = MoveAction.runAll(
