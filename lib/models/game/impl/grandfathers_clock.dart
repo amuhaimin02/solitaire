@@ -112,7 +112,7 @@ class GrandfathersClock extends SolitaireGame {
             ),
             pickable: const [
               CardIsOnTop(),
-              PileIsNotSingle(),
+              PileIsNotLeftEmpty(),
             ],
             placeable: const [
               CardIsSingle(),
@@ -201,13 +201,6 @@ class GrandfathersClock extends SolitaireGame {
     return const [
       MoveAttemptTo<Grid>(),
       MoveAttemptTo<Tableau>(roll: true),
-    ];
-  }
-
-  @override
-  List<MoveAttempt> get premove {
-    return const [
-      MoveAttempt<Tableau, Grid>(),
     ];
   }
 }

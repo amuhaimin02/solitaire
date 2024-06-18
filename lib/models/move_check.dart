@@ -47,6 +47,10 @@ class MoveCheckArgs with _$MoveCheckArgs {
     MoveState? moveState,
     Pile? originPile,
   }) = _MoveCheckArgs;
+
+  const MoveCheckArgs._();
+
+  PlayCardList get cardsOnPile => table.get(pile);
 }
 
 sealed class MoveCheckResult {
@@ -153,11 +157,9 @@ class CardIsOnTop extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
     return args.cards.isSingle &&
-        cardsOnPile.isNotEmpty &&
-        cardsOnPile.last == args.cards.single;
+        args.cardsOnPile.isNotEmpty &&
+        args.cardsOnPile.last == args.cards.single;
   }
 }
 
@@ -277,8 +279,7 @@ class BuildupStartsWith extends MoveCheck {
   @override
   bool check(MoveCheckArgs args) {
     // If cards are already filled, ignore. This check is only for unfilled pile anyway
-    final cardsOnPile = args.table.get(args.pile);
-    if (cardsOnPile.isNotEmpty) {
+    if (args.cardsOnPile.isNotEmpty) {
       return true;
     }
 
@@ -318,17 +319,15 @@ class BuildupFollowsRankOrder extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
-    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
 
     return switch (rankOrder) {
-      RankOrder.increasing =>
-        cardsOnPile.last.isOneRankUnder(args.cards.first, wrapping: wrapping),
-      RankOrder.decreasing =>
-        cardsOnPile.last.isOneRankOver(args.cards.first, wrapping: wrapping),
+      RankOrder.increasing => args.cardsOnPile.last
+          .isOneRankUnder(args.cards.first, wrapping: wrapping),
+      RankOrder.decreasing => args.cardsOnPile.last
+          .isOneRankOver(args.cards.first, wrapping: wrapping),
     };
   }
 }
@@ -343,13 +342,11 @@ class BuildupOneRankNearer extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
-    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
 
-    return cardsOnPile.last
+    return args.cardsOnPile.last
         .isOneRankNearer(args.cards.first, wrapping: wrapping);
   }
 }
@@ -362,13 +359,11 @@ class BuildupAlternatingColors extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
-    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
 
-    return !cardsOnPile.last.isSameColor(args.cards.first);
+    return !args.cardsOnPile.last.isSameColor(args.cards.first);
   }
 }
 
@@ -380,13 +375,11 @@ class BuildupSameSuit extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
-    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
 
-    return cardsOnPile.last.suit == args.cards.first.suit;
+    return args.cardsOnPile.last.suit == args.cards.first.suit;
   }
 }
 
@@ -410,12 +403,10 @@ class BuildupRankAbove extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
-    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
-    final lastCardOnPile = cardsOnPile.last;
+    final lastCardOnPile = args.cardsOnPile.last;
     final firstCardOnHand = args.cards.first;
 
     if (gap != null) {
@@ -447,12 +438,10 @@ class BuildupRankBelow extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-
-    if (cardsOnPile.isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return true;
     }
-    final lastCardOnPile = cardsOnPile.last;
+    final lastCardOnPile = args.cardsOnPile.last;
     final firstCardOnHand = args.cards.first;
 
     if (gap != null) {
@@ -472,7 +461,7 @@ class PileIsEmpty extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    return args.table.get(args.pile).isEmpty;
+    return args.cardsOnPile.isEmpty;
   }
 }
 
@@ -484,7 +473,22 @@ class PileIsNotEmpty extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    return args.table.get(args.pile).isNotEmpty;
+    return args.cardsOnPile.isNotEmpty;
+  }
+}
+
+class PileIsNotLeftEmpty extends MoveCheck {
+  const PileIsNotLeftEmpty();
+
+  @override
+  String get errorMessage => 'Cannot move cards out and left pile empty';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    if (args.cards.isEmpty || args.cardsOnPile.isEmpty) {
+      return true;
+    }
+    return args.cards.first != args.cardsOnPile.first;
   }
 }
 
@@ -496,7 +500,7 @@ class PileIsNotSingle extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    return args.table.get(args.pile).length != 1;
+    return args.cardsOnPile.length != 1;
   }
 }
 
@@ -510,7 +514,7 @@ class PileHasLength extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    return args.table.get(args.pile).length == length;
+    return args.cardsOnPile.length == length;
   }
 }
 
@@ -522,7 +526,7 @@ class PileIsAllFacingUp extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    return args.table.get(args.pile).isAllFacingUp;
+    return args.cardsOnPile.isAllFacingUp;
   }
 }
 
@@ -534,8 +538,7 @@ class PileTopCardIsFacingDown extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-    return cardsOnPile.isNotEmpty && cardsOnPile.last.isFacingDown;
+    return args.cardsOnPile.isNotEmpty && args.cardsOnPile.last.isFacingDown;
   }
 }
 
@@ -550,8 +553,7 @@ class PileTopCardIsRank extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-    return cardsOnPile.isNotEmpty && cardsOnPile.last.rank == rank;
+    return args.cardsOnPile.isNotEmpty && args.cardsOnPile.last.rank == rank;
   }
 }
 
@@ -566,8 +568,7 @@ class PileTopCardIsNotRank extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile);
-    return cardsOnPile.isNotEmpty && cardsOnPile.last.rank != rank;
+    return args.cardsOnPile.isNotEmpty && args.cardsOnPile.last.rank != rank;
   }
 }
 
@@ -679,7 +680,7 @@ class PileHasFullSuit extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final cardsOnPile = args.table.get(args.pile).getLast(Rank.values.length);
+    final cardsOnPile = args.cardsOnPile.getLast(Rank.values.length);
 
     if (cardsOnPile.length != Rank.values.length) {
       return false;
@@ -726,7 +727,7 @@ class CanRecyclePile extends MoveCheck {
     }
 
     // Ignore if pile is not empty
-    if (args.table.get(args.pile).isNotEmpty) {
+    if (args.cardsOnPile.isNotEmpty) {
       return true;
     }
 
@@ -773,11 +774,11 @@ class BuildupRankValueAddUpTo extends MoveCheck {
   @override
   bool check(MoveCheckArgs args) {
     // Check card on pile and in hands, ensure they are not empty
-    if (args.table.get(args.pile).isEmpty || args.cards.isEmpty) {
+    if (args.cardsOnPile.isEmpty || args.cards.isEmpty) {
       return false;
     }
 
-    final cardOnTable = args.table.get(args.pile).last;
+    final cardOnTable = args.cardsOnPile.last;
     final cardInHand = args.cards.first;
 
     return cardOnTable.rank.value + cardInHand.rank.value == targetValue;

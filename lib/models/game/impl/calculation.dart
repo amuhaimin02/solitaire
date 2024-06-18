@@ -39,7 +39,7 @@ class Calculation extends SirTommy {
         (props) => props.copyWith(
           pickable: const [
             CardIsOnTop(),
-            PileIsNotSingle(), // Prevent moving out pre-moved cards
+            PileIsNotLeftEmpty(), // Prevent moving out pre-moved cards
           ],
           placeable: [
             // King cards pretty much terminate the addition sequence

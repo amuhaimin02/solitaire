@@ -46,7 +46,7 @@ class Penguin extends SolitaireGame {
             ),
             pickable: const [
               CardIsOnTop(),
-              PileIsNotSingle(),
+              PileIsNotLeftEmpty(),
             ],
             placeable: const [
               CardIsSingle(),
