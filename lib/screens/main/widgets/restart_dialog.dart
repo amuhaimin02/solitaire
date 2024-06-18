@@ -26,9 +26,6 @@ class RestartDialog extends ConsumerWidget {
         FilledButton.icon(
           onPressed: () {
             Navigator.pop(context);
-            ref
-                .read(themeBaseRandomizeColorProvider.notifier)
-                .tryShuffleColor();
             final game = ref.read(currentGameProvider);
             ref.read(gameControllerProvider.notifier).startNew(game.kind);
           },

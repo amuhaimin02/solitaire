@@ -14,6 +14,7 @@ import '../../providers/game_selection.dart';
 import '../../providers/game_storage.dart';
 import '../../providers/settings.dart';
 import '../../providers/shared_preferences.dart';
+import '../../providers/themes.dart';
 import '../../widgets/animated_visibility.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/celebration_effect.dart';
@@ -162,6 +163,13 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
           _showFinishDialog(context);
           final game = ref.read(currentGameProvider);
           ref.read(gameStorageProvider.notifier).deleteQuickSave(game.kind);
+        });
+      }
+    });
+    ref.listen(currentGameProvider, (previousGame, newGame) {
+      if (previousGame?.startedTime != newGame.startedTime) {
+        Future.delayed(standardAnimation.duration, () {
+          ref.read(themeBaseRandomizeColorProvider.notifier).tryShuffleColor();
         });
       }
     });

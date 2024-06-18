@@ -24,17 +24,45 @@ abstract class MoveCheck {
 
   static MoveCheckResult checkAll(
     List<MoveCheck>? checks,
-    MoveCheckArgs args,
-  ) {
-    if (checks == null) {
-      return const MoveCheckFail(reason: null);
-    }
-    for (final item in checks) {
-      if (!item.check(args)) {
-        return MoveCheckFail(reason: item);
+    MoveCheckArgs args, {
+    bool throwIfFail = true,
+  }) {
+    try {
+      if (checks == null) {
+        return const MoveCheckFail(null);
+      }
+      for (final item in checks) {
+        if (!item.check(args)) {
+          throw MoveCheckException(item);
+        }
+      }
+      return const MoveCheckOK();
+    } on MoveCheckException catch (e) {
+      if (throwIfFail) {
+        rethrow;
+      } else {
+        return MoveCheckFail(e.reason);
       }
     }
-    return const MoveCheckOK();
+  }
+
+  static MoveCheckResult checkSingle(
+    MoveCheck item,
+    MoveCheckArgs args, {
+    bool throwIfFail = true,
+  }) {
+    try {
+      if (!item.check(args)) {
+        throw MoveCheckException(item);
+      }
+      return const MoveCheckOK();
+    } on MoveCheckException catch (e) {
+      if (throwIfFail) {
+        rethrow;
+      } else {
+        return MoveCheckFail(e.reason);
+      }
+    }
   }
 }
 
@@ -62,9 +90,15 @@ class MoveCheckOK extends MoveCheckResult {
 }
 
 class MoveCheckFail extends MoveCheckResult {
-  const MoveCheckFail({required this.reason});
+  const MoveCheckFail(this.reason);
 
   final MoveCheck? reason;
+}
+
+class MoveCheckException implements Exception {
+  final MoveCheck reason;
+
+  MoveCheckException(this.reason);
 }
 
 class Select extends MoveCheck {
@@ -79,12 +113,11 @@ class Select extends MoveCheck {
   final List<MoveCheck>? ifFalse;
 
   @override
-  // TODO: Implement
   String get errorMessage => '';
 
   @override
   bool check(MoveCheckArgs args) {
-    final cond = MoveCheck.checkAll(condition, args);
+    final cond = MoveCheck.checkAll(condition, args, throwIfFail: false);
 
     if (cond is MoveCheckOK && ifTrue != null) {
       return MoveCheck.checkAll(ifTrue, args) is MoveCheckOK;
@@ -107,11 +140,11 @@ class Either extends MoveCheck {
 
   @override
   bool check(MoveCheckArgs args) {
-    final firstResult = MoveCheck.checkAll(first, args);
+    final firstResult = MoveCheck.checkAll(first, args, throwIfFail: false);
     if (firstResult is MoveCheckOK) {
       return true;
     }
-    final secondResult = MoveCheck.checkAll(second, args);
+    final secondResult = MoveCheck.checkAll(second, args, throwIfFail: false);
     if (secondResult is MoveCheckOK) {
       return true;
     }
@@ -589,14 +622,14 @@ class AllPilesOfType<T extends Pile> extends MoveCheck {
 
   final List<MoveCheck> checkPerPile;
 
-  // TODO: Implement
   @override
   String get errorMessage => '';
 
   @override
   bool check(MoveCheckArgs args) {
     return args.table.allPilesOfType<T>().every((p) {
-      return checkPerPile.every((c) => c.check(args.copyWith(pile: p)));
+      return MoveCheck.checkAll(checkPerPile, args.copyWith(pile: p))
+          is MoveCheckOK;
     });
   }
 }
@@ -607,14 +640,14 @@ class AllPilesOf<T extends Pile> extends MoveCheck {
   final List<T> piles;
   final List<MoveCheck> checkPerPile;
 
-  // TODO: Implement
   @override
   String get errorMessage => '';
 
   @override
   bool check(MoveCheckArgs args) {
     return piles.every((p) {
-      return checkPerPile.every((c) => c.check(args.copyWith(pile: p)));
+      return MoveCheck.checkAll(checkPerPile, args.copyWith(pile: p))
+          is MoveCheckOK;
     });
   }
 }

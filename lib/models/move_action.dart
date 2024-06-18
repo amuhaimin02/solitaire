@@ -150,6 +150,7 @@ class If extends MoveAction {
         table: args.table,
         moveState: args.moveState,
       ),
+      throwIfFail: false,
     );
 
     if (cond is MoveCheckOK && ifTrue != null) {

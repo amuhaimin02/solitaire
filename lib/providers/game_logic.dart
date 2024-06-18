@@ -244,6 +244,7 @@ class GameController extends _$GameController {
             table: table,
             moveState: moveState,
           ),
+          throwIfFail: false,
         );
         if (canTapResult is MoveCheckFail) {
           return MoveForbidden(
@@ -280,6 +281,7 @@ class GameController extends _$GameController {
             table: table,
             moveState: moveState,
           ),
+          throwIfFail: false,
         );
         if (canPickResult is MoveCheckFail) {
           return MoveForbidden(
@@ -296,6 +298,7 @@ class GameController extends _$GameController {
             table: table,
             moveState: moveState,
           ),
+          throwIfFail: false,
         );
 
         if (canPlaceResult is MoveCheckFail) {
@@ -653,6 +656,7 @@ bool isGameFinished(IsGameFinishedRef ref) {
       table: table,
       moveState: moveState,
     ),
+    throwIfFail: false,
   );
   return result is MoveCheckOK;
 }
@@ -676,6 +680,7 @@ bool autoSolvable(AutoSolvableRef ref) {
       table: table,
       moveState: moveState,
     ),
+    throwIfFail: false,
   );
   return result is MoveCheckOK;
 }
