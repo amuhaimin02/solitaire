@@ -60,52 +60,26 @@ class GameSelectionList extends ConsumerWidget {
     );
   }
 
-  Widget _buildFavoriteGameList(BuildContext context, WidgetRef ref) {
-    final favoritedGames = ref.watch(favoritedGamesProvider);
-
-    if (favoritedGames.isEmpty) {
-      return const EmptyMessage(
-        icon: Icon(Icons.favorite_border),
-        title: Text('No favorited games yet'),
-        body: Text(
-            'Find the games you liked on All games tab and add it to favorite to see them here'),
-      );
-    } else {
-      return ListView(
-        key: const PageStorageKey('favorite'),
-        padding: BottomPadded.getPadding(context),
-        children: [
-          for (final game in favoritedGames)
-            GameListTile(
-              game: game,
-              onTap: () => _onListTap(context, ref, game),
-            ),
-        ],
-      );
-    }
-  }
-
   Widget _buildFeaturedGameList(BuildContext context, WidgetRef ref) {
     final favoritedGames = ref.watch(favoritedGamesProvider);
     final continuableGames = ref.watch(continuableGamesProvider);
-
-    // if (continuableGames.isLoading) {
-    //   return const Align(
-    //     alignment: Alignment.topCenter,
-    //     child: LinearProgressIndicator(),
-    //   );
-    // }
 
     return ListView(
       key: const PageStorageKey('featured'),
       padding: BottomPadded.getPadding(context),
       children: [
-        const SectionTitle('Recent games', first: true),
-        for (final game in continuableGames.value?.take(5) ?? <SolitaireGame>[])
-          GameListTile(
-            game: game,
-            onTap: () => _onListTap(context, ref, game),
-          ),
+        const SectionTitle('Continue games', first: true),
+        if (continuableGames.value?.isEmpty == true)
+          const EmptyMessage(
+            body: Text('No recent games'),
+          )
+        else
+          for (final game
+              in continuableGames.value?.take(5) ?? <SolitaireGame>[])
+            GameListTile(
+              game: game,
+              onTap: () => _onListTap(context, ref, game),
+            ),
         const SectionTitle('Favorites'),
         if (favoritedGames.isEmpty)
           const EmptyMessage(

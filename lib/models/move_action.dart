@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -480,5 +482,39 @@ class ForAllPilesOfType<T extends Pile> extends MoveAction {
     }
 
     return result!;
+  }
+}
+
+class DisperseRandomlyTo<T extends Pile> extends MoveAction {
+  const DisperseRandomlyTo({this.which});
+
+  final bool Function(T pile)? which;
+
+  @override
+  MoveActionResult run(MoveActionArgs args) {
+    final cardsOnPile = args.table.get(args.pile);
+
+    Iterable<T> targetPiles = args.table.allPilesOfType<T>();
+    if (which != null) {
+      targetPiles = targetPiles.where((pile) => which!.call(pile));
+    }
+
+    final random = CustomPRNG.create(args.metadata!.seed);
+    final targetPilesRandomized = targetPiles.toList()..shuffle(random);
+
+    PlayTable table = args.table;
+
+    // Cards on pile may not be equal to target count, in which the remaining will be discarded or ignored
+    int minCount = min(cardsOnPile.length, targetPiles.length);
+
+    final (remainingCards, cardsToDisperse) = cardsOnPile.splitLast(minCount);
+
+    for (int i = 0; i < minCount; i++) {
+      table = table.add(
+          targetPilesRandomized[i], PlayCardList([cardsToDisperse[i]]));
+    }
+    table = table.change(args.pile, remainingCards);
+
+    return MoveActionHandled(table: table);
   }
 }

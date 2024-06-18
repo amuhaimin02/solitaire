@@ -7,6 +7,7 @@ import 'impl/freecell.dart';
 import 'impl/golf.dart';
 import 'impl/grandfathers_clock.dart';
 import 'impl/klondike.dart';
+import 'impl/maze.dart';
 import 'impl/penguin.dart';
 import 'impl/putt_putt.dart';
 import 'impl/pyramid.dart';
@@ -42,10 +43,11 @@ final allGamesList = [
   Yukon(),
   FortyThieves(),
   Pyramid(),
-  TriPeaks(),
   SirTommy(),
   Calculation(),
   AcesUp(),
+  Maze(),
+  TriPeaks(),
   TowerOfHanoy(),
   GrandfathersClock(),
 ];
