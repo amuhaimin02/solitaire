@@ -99,7 +99,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 if (pileInfo.onTap != null) {
                   final result = controller.tryMove(MoveIntent(pile, pile));
                   if (result is MoveForbidden) {
-                    _showMoveForbiddenSnackbar(context, result);
+                    _showMoveForbiddenPopup(context, result);
                   }
                   _clearSelection();
                   return null;
@@ -156,7 +156,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
 
                 ScaffoldMessenger.of(context).clearSnackBars();
                 if (result is MoveForbidden) {
-                  _showMoveForbiddenSnackbar(context, result);
+                  _showMoveForbiddenPopup(context, result);
                 }
                 return null;
               },
@@ -177,9 +177,13 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
     );
   }
 
-  void _showMoveForbiddenSnackbar(BuildContext context, MoveForbidden move) {
+  void _showMoveForbiddenPopup(BuildContext context, MoveForbidden move) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    if (move.reason.isEmpty) {
+      return;
+    }
 
     final overlay = Align(
       alignment: Alignment.topCenter,

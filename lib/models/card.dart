@@ -16,7 +16,7 @@ enum SuitColor {
   black;
 }
 
-enum Rank {
+enum Rank implements Comparable<Rank> {
   ace('A', 1),
   two('2', 2),
   three('3', 3),
@@ -35,6 +35,11 @@ enum Rank {
   final int value;
 
   const Rank(this.symbol, this.value);
+
+  @override
+  int compareTo(Rank other) {
+    return value.compareTo(other.value);
+  }
 
   int _wrapValue(int value) {
     return (value - 1) % Rank.king.value + 1;

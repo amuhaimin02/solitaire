@@ -43,7 +43,39 @@ class Maze extends SolitaireGame {
               ),
             ),
             pickable: const [CardIsOnTop()],
-            placeable: const [PileIsEmpty()],
+            placeable: const [
+              PileIsEmpty(),
+              Either(
+                first: [
+                  PreviousPile<Grid>(
+                    checks: [
+                      Select(
+                        condition: [PileTopCardIsRank(Rank.queen)],
+                        ifTrue: [
+                          CardsStartWith(Rank.ace),
+                        ],
+                        ifFalse: [
+                          PileIsNotEmpty(),
+                          BuildupRankAbove(gap: 1),
+                          BuildupSameSuit(),
+                        ],
+                      )
+                    ],
+                    wrapping: true,
+                  ),
+                ],
+                second: [
+                  NextPile<Grid>(
+                    checks: [
+                      PileIsNotEmpty(),
+                      BuildupRankBelow(gap: 1),
+                      BuildupSameSuit(),
+                    ],
+                    wrapping: true,
+                  ),
+                ],
+              )
+            ],
           ),
         const Stock(0): PileProperty(
           layout: const PileLayout(
@@ -70,14 +102,16 @@ class Maze extends SolitaireGame {
   @override
   List<MoveCheck> get objectives {
     return const [
-      AllPilesOfType<Grid>([PileIsEmpty()]),
+      CollectPiles<Grid>([
+        CardsAreFullOrderedDeck(count: 4, from: Rank.ace, until: Rank.queen)
+      ]),
     ];
   }
 
   @override
   List<MoveAttemptTo> get quickMove {
     return const [
-      MoveAttemptTo<Waste>(),
+      MoveAttemptTo<Grid>(),
     ];
   }
 }

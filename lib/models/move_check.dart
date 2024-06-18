@@ -276,6 +276,20 @@ class CardsNotComingFrom<T extends Pile> extends MoveCheck {
   }
 }
 
+class CardsStartWith extends MoveCheck {
+  const CardsStartWith(this.rank);
+
+  final Rank rank;
+
+  @override
+  String get errorMessage => 'Cards must start with $rank';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    return args.cards.isNotEmpty && args.cards.first.rank == rank;
+  }
+}
+
 class BuildupStartsWith extends MoveCheck {
   const BuildupStartsWith(Rank this.rank)
       : referencePiles = null,
@@ -441,6 +455,8 @@ class BuildupRankAbove extends MoveCheck {
     }
     final lastCardOnPile = args.cardsOnPile.last;
     final firstCardOnHand = args.cards.first;
+
+    print('last: $lastCardOnPile, first: $firstCardOnHand');
 
     if (gap != null) {
       return lastCardOnPile.rank.next(gap: gap!, wrapping: wrapping) ==
@@ -649,6 +665,78 @@ class AllPilesOf<T extends Pile> extends MoveCheck {
       return MoveCheck.checkAll(checkPerPile, args.copyWith(pile: p))
           is MoveCheckOK;
     });
+  }
+}
+
+class PreviousPile<T extends Pile> extends MoveCheck {
+  const PreviousPile({required this.checks, this.wrapping = false});
+
+  final List<MoveCheck> checks;
+  final bool wrapping;
+
+  @override
+  // TODO: implement
+  String get errorMessage => '';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final relatedPiles =
+        args.table.allPilesOfType<T>().sortedBy<num>((p) => p.index);
+    final currentIndex = relatedPiles.indexOf(args.pile as T);
+
+    if (currentIndex < 0) {
+      // Wrong pile type or pile does not exist
+      return false;
+    }
+
+    int prevIndex = currentIndex - 1;
+    if (prevIndex < 0) {
+      if (wrapping) {
+        prevIndex = relatedPiles.length - 1;
+      } else {
+        return false;
+      }
+    }
+    final prevPile = relatedPiles[prevIndex];
+
+    return MoveCheck.checkAll(checks, args.copyWith(pile: prevPile))
+        is MoveCheckOK;
+  }
+}
+
+class NextPile<T extends Pile> extends MoveCheck {
+  const NextPile({required this.checks, this.wrapping = false});
+
+  final List<MoveCheck> checks;
+  final bool wrapping;
+
+  @override
+  // TODO: implement
+  String get errorMessage => '';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final relatedPiles =
+        args.table.allPilesOfType<T>().sortedBy<num>((p) => p.index);
+    final currentIndex = relatedPiles.indexOf(args.pile as T);
+
+    if (currentIndex < 0) {
+      // Wrong pile type or pile does not exist
+      return false;
+    }
+
+    int nextIndex = currentIndex + 1;
+    if (nextIndex >= relatedPiles.length) {
+      if (wrapping) {
+        nextIndex = 0;
+      } else {
+        return false;
+      }
+    }
+    final nextPile = relatedPiles[nextIndex];
+
+    return MoveCheck.checkAll(checks, args.copyWith(pile: nextPile))
+        is MoveCheckOK;
   }
 }
 
@@ -876,5 +964,73 @@ class CardRankIsLowestAmong<T extends Pile> extends MoveCheck {
         cardsToCompare.sortedBy<num>((card) => card.rank.value).firstOrNull;
 
     return lowestCard?.rank.value == refCard.rank.value;
+  }
+}
+
+class CollectPiles<T extends Pile> extends MoveCheck {
+  const CollectPiles(this.checks);
+
+  final List<MoveCheck> checks;
+
+  @override
+  String get errorMessage => '';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final piles = args.table.allPilesOfType<T>();
+    final collectedCards = PlayCardList(piles.map((pile) {
+      return args.table.get(pile);
+    }).flattened);
+
+    return MoveCheck.checkAll(checks, args.copyWith(cards: collectedCards))
+        is MoveCheckOK;
+  }
+}
+
+class CardsAreFullOrderedDeck extends MoveCheck {
+  const CardsAreFullOrderedDeck({
+    this.count = 1,
+    this.from = Rank.ace,
+    this.until = Rank.king,
+  });
+
+  final int count;
+  final Rank from;
+  final Rank until;
+
+  @override
+  String get errorMessage => 'Card must have full ordered deck';
+
+  @override
+  bool check(MoveCheckArgs args) {
+    final rankDifference = until.value - from.value;
+    if (rankDifference == 0) {
+      throw ArgumentError(
+          'Starting and ending rank should be different: $from}');
+    }
+
+    final totalExpectedCardCount = count * (rankDifference.abs() + 1);
+
+    if (args.cards.length != totalExpectedCardCount) {
+      // Insufficient or excess cards
+      return false;
+    }
+
+    int startingRank = from.value;
+    int endingRank = until.value;
+    int direction = startingRank < endingRank ? 1 : -1;
+
+    int cardIndex = 0;
+
+    for (int c = 0; c < count; c++) {
+      for (int r = startingRank; r <= endingRank; r += direction) {
+        if (args.cards[cardIndex].rank.value != r) {
+          // Rank should follow expected sequence
+          return false;
+        }
+        cardIndex++;
+      }
+    }
+    return true;
   }
 }

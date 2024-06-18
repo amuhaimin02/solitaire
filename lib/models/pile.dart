@@ -45,7 +45,7 @@ class Grid extends Pile {
   (int x, int y) get xy => (index >> 4, index & 0xF);
 
   @override
-  String toString() => '$name$xy';
+  String toString() => '$name($index @ $xy)';
 }
 
 extension PileIteration<T extends Pile> on Iterable<T> {
