@@ -129,7 +129,7 @@ class Penguin extends SolitaireGame {
           onSetup: [
             for (int i = 0; i < 3; i++)
               FindCardsAndMove(
-                where: (card, cardsOnPile) {
+                which: (card, cardsOnPile) {
                   final refCard = cardsOnPile.first;
                   return card != refCard && card.rank == refCard.rank;
                 },

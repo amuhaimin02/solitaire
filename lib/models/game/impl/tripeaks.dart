@@ -11,10 +11,10 @@ class TriPeaks extends SolitaireGame {
   TriPeaks();
 
   @override
-  String get name => 'Tri Peaks';
+  String get name => 'TriPeaks';
 
   @override
-  String get family => 'Pyramid';
+  String get family => 'Others';
 
   @override
   String get tag => 'tripeaks';
@@ -46,7 +46,7 @@ class TriPeaks extends SolitaireGame {
     return GameSetup(
       setup: {
         for (final (x, y) in _tripeaksPlacement)
-          Grid(x, y): PileProperty(
+          Grid.xy(x, y): PileProperty(
             layout: PileLayout(
               region: LayoutProperty(
                 portrait: Rect.fromLTWH(x * 1.0 + 1.5 - y * 0.5, y * 0.5, 1, 1),

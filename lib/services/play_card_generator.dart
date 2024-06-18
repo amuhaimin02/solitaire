@@ -15,7 +15,7 @@ class PlayCardGenerator {
       final cards = <PlayCard>[];
       for (final suit in Suit.values) {
         for (final value in Rank.values) {
-          final card = PlayCard(suit, value, deck: times);
+          final card = PlayCard(value, suit, deck: times);
           if (criteria == null || criteria(card)) {
             cards.add(card);
           }
@@ -38,7 +38,7 @@ class PlayCardGenerator {
 
     return Rank.values
         .slice(fromIndex, toIndex)
-        .map((rank) => PlayCard(suit, rank))
+        .map((rank) => PlayCard(rank, suit))
         .toIList();
   }
 }

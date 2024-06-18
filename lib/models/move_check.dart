@@ -755,8 +755,8 @@ class PileIsExposed extends MoveCheck {
     final grid = args.pile as Grid;
     final (x, y) = grid.xy;
 
-    final cardsOnBottomLeft = args.table.get(Grid(x, y + 1));
-    final cardsOnBottomRight = args.table.get(Grid(x + 1, y + 1));
+    final cardsOnBottomLeft = args.table.get(Grid.xy(x, y + 1));
+    final cardsOnBottomRight = args.table.get(Grid.xy(x + 1, y + 1));
 
     return cardsOnBottomLeft.isEmpty && cardsOnBottomRight.isEmpty;
   }

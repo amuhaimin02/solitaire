@@ -42,7 +42,6 @@ class _CelebrationEffectState extends State<CelebrationEffect> {
 
   @override
   Widget build(BuildContext context) {
-    final confettiSize = MediaQuery.of(context).size.shortestSide * 0.03;
     return Stack(
       children: [
         widget.child,
@@ -51,14 +50,13 @@ class _CelebrationEffectState extends State<CelebrationEffect> {
           child: ConfettiWidget(
             confettiController: _controller,
             blastDirectionality: BlastDirectionality.explosive,
-            blastDirection: -pi / 2,
             maxBlastForce: 20, // set a lower max blast force
             minBlastForce: 1, // set a lower min blast force
-            emissionFrequency: 0.5,
+            emissionFrequency: 0.1,
             numberOfParticles: 50,
-            gravity: 0.1,
-            minimumSize: Size.square(confettiSize * 0.5),
-            maximumSize: Size.square(confettiSize),
+            gravity: 0.05,
+            minimumSize: const Size.square(10),
+            maximumSize: const Size.square(20),
           ),
         ),
       ],

@@ -38,9 +38,9 @@ class Reserve extends Pile {
 }
 
 class Grid extends Pile {
-  const Grid(int x, int y) : super('Grid', x << 4 | y);
+  const Grid.xy(int x, int y) : super('Grid', x << 4 | y);
 
-  const Grid.fromIndex(int index) : super('Grid', index);
+  const Grid(int index) : super('Grid', index);
 
   (int x, int y) get xy => (index >> 4, index & 0xF);
 

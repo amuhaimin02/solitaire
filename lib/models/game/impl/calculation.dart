@@ -25,7 +25,7 @@ class Calculation extends SirTommy {
           const FlipAllCardsFaceUp(),
           for (int i = 0; i < 4; i++)
             FindCardsAndMove(
-              where: (card, cardsOnPile) => card.rank.value == i + 1,
+              which: (card, cardsOnPile) => card.rank.value == i + 1,
               firstCardOnly: true,
               moveTo: Foundation(i),
             )

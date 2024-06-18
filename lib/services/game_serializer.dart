@@ -327,7 +327,7 @@ class PileSerializer implements Serializer<Pile> {
       'F' => Foundation(index),
       'T' => Tableau(index),
       'R' => Reserve(index),
-      'G' => Grid.fromIndex(index),
+      'G' => Grid(index),
       _ => throw ArgumentError('unknown pile token: $raw')
     };
   }
@@ -384,8 +384,8 @@ class PlayCardSerializer implements Serializer<PlayCard> {
     assert(raw.length == 4, 'card token must be exactly 4 characters');
     return PlayCard(
       // Rank comes before suit
-      _playCardSuitSymbols.inverse[raw[1]]!,
       _playCardRankSymbols.inverse[raw[0]]!,
+      _playCardSuitSymbols.inverse[raw[1]]!,
       deck: int.parse(raw[2], radix: _maxRadixSize),
       flipped: switch (raw[3]) {
         '-' => true,

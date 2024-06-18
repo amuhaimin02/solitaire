@@ -36,7 +36,7 @@ class Pyramid extends SolitaireGame {
       setup: {
         for (int y = 0; y < 7; y++)
           for (int x = 0; x <= y; x++)
-            Grid(x, y): PileProperty(
+            Grid.xy(x, y): PileProperty(
               layout: PileLayout(
                 region: LayoutProperty(
                   portrait: Rect.fromLTWH(x * 1.0 + 3 - y * 0.5, y * 0.5, 1, 1),

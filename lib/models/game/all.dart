@@ -5,6 +5,7 @@ import 'impl/eight_off.dart';
 import 'impl/forty_thieves.dart';
 import 'impl/freecell.dart';
 import 'impl/golf.dart';
+import 'impl/grandfathers_clock.dart';
 import 'impl/klondike.dart';
 import 'impl/penguin.dart';
 import 'impl/putt_putt.dart';
@@ -46,4 +47,5 @@ final allGamesList = [
   Calculation(),
   AcesUp(),
   TowerOfHanoy(),
+  GrandfathersClock(),
 ];

@@ -31,6 +31,7 @@ class PileLayout with _$PileLayout {
     LayoutProperty<bool>? showCount,
     LayoutProperty<bool>? shiftStack,
     LayoutProperty<bool>? showMarker,
+    LayoutProperty<double>? rotation,
   }) = _PileLayout;
 }
 

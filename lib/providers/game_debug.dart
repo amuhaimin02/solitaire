@@ -30,13 +30,28 @@ class GameDebug extends _$GameDebug {
 
     final presetCards = PlayTable.fromMap({
       const Stock(0): PlayCardList(const [
-        PlayCard(Suit.spade, Rank.jack),
-        PlayCard(Suit.club, Rank.jack),
+        PlayCard(
+          Rank.jack,
+          Suit.spade,
+        ),
+        PlayCard(
+          Rank.jack,
+          Suit.club,
+        ),
       ]).allFaceDown,
       const Waste(0): PlayCardList(const [
-        PlayCard(Suit.heart, Rank.jack),
-        PlayCard(Suit.diamond, Rank.jack),
-        PlayCard(Suit.diamond, Rank.queen),
+        PlayCard(
+          Rank.jack,
+          Suit.heart,
+        ),
+        PlayCard(
+          Rank.jack,
+          Suit.diamond,
+        ),
+        PlayCard(
+          Rank.queen,
+          Suit.diamond,
+        ),
       ]),
       const Foundation(0):
           generator.generateOrderedSuit(Suit.diamond, to: Rank.ten),
@@ -47,19 +62,19 @@ class GameDebug extends _$GameDebug {
       const Foundation(3):
           generator.generateOrderedSuit(Suit.spade, to: Rank.ten),
       const Tableau(0): PlayCardList(const [
-        PlayCard(Suit.heart, Rank.king),
-        PlayCard(Suit.spade, Rank.queen)
+        PlayCard(Rank.king, Suit.heart),
+        PlayCard(Rank.queen, Suit.spade)
       ]),
       const Tableau(1): PlayCardList(const [
-        PlayCard(Suit.spade, Rank.king),
-        PlayCard(Suit.heart, Rank.queen)
+        PlayCard(Rank.king, Suit.spade),
+        PlayCard(Rank.queen, Suit.heart)
       ]),
       const Tableau(2): PlayCardList(const [
-        PlayCard(Suit.diamond, Rank.king),
-        PlayCard(Suit.club, Rank.queen),
+        PlayCard(Rank.king, Suit.diamond),
+        PlayCard(Rank.queen, Suit.club),
       ]),
       const Tableau(3): PlayCardList(const [
-        PlayCard(Suit.club, Rank.king),
+        PlayCard(Rank.king, Suit.club),
       ]),
     });
 

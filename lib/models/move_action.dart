@@ -416,12 +416,12 @@ class FlipExposedCardsFaceUp extends MoveAction {
 
 class FindCardsAndMove extends MoveAction {
   const FindCardsAndMove({
-    required this.where,
+    required this.which,
     this.firstCardOnly = false,
     required this.moveTo,
   });
 
-  final bool Function(PlayCard card, PlayCardList cardsOnPile) where;
+  final bool Function(PlayCard card, PlayCardList cardsOnPile) which;
   final bool firstCardOnly;
   final Pile moveTo;
 
@@ -429,7 +429,7 @@ class FindCardsAndMove extends MoveAction {
   MoveActionResult run(MoveActionArgs args) {
     final cardsOnPile = args.table.get(args.pile);
     final (remainingCards, foundCards) = cardsOnPile.splitWhere(
-      (c) => where(c, cardsOnPile),
+      (c) => which(c, cardsOnPile),
       firstCardOnly: firstCardOnly,
     );
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
@@ -216,17 +217,21 @@ class _GameTableState extends State<GameTable> {
               props.layout.showMarker?.resolve(widget.orientation) != false)
             Positioned.fromRect(
               rect: computeMarkerPlacement(pile).scale(gridUnit),
-              child: GestureDetector(
-                onTap: () {
-                  if (widget.table.get(pile).isEmpty) {
-                    _onCardTap(context, null, pile);
-                  }
-                },
-                child: _PileMarker(
-                  pile: pile,
-                  startsWith: buildRankStartingMarker(pile, props),
-                  canRecycle: canRecycle(pile, props),
-                  size: gridUnit,
+              child: Transform.rotate(
+                angle:
+                    (props.layout.rotation?.resolve(widget.orientation) ?? 0),
+                child: GestureDetector(
+                  onTap: () {
+                    if (widget.table.get(pile).isEmpty) {
+                      _onCardTap(context, null, pile);
+                    }
+                  },
+                  child: _PileMarker(
+                    pile: pile,
+                    startsWith: buildRankStartingMarker(pile, props),
+                    canRecycle: canRecycle(pile, props),
+                    size: gridUnit,
+                  ),
                 ),
               ),
             ),
@@ -458,30 +463,51 @@ class _GameTableState extends State<GameTable> {
       return widget.selectedCards?.contains(card) == true;
     }
 
+    Widget buildCard({
+      required int index,
+      required PlayCard card,
+      required Rect rect,
+      required bool hasShadow,
+    }) {
+      final cardAnimation = computeAnimation(index);
+
+      return AnimatedPositioned.fromRect(
+        key: ValueKey(card.faceUp),
+        duration: cardAnimation.duration,
+        curve: cardAnimation.curve,
+        rect: rect,
+        child: AnimatedRotation(
+          turns: (layout.rotation?.resolve(widget.orientation) ?? 0) / (2 * pi),
+          duration: cardAnimation.duration,
+          curve: cardAnimation.curve,
+          child: _CardWrapper(
+            cardSize: gridUnit,
+            shake: _shakingCards?.contains(card) == true,
+            onTouch: () => _onCardTouch(context, card, pile),
+            onTap: () => _onCardTap(context, card, pile),
+            card: card,
+            stackDirection: stackDirection,
+            isFirstCard: index == 0,
+            isLastCard: index == cards.length - 1,
+            highlighted: cardIsHighlighted(card),
+            selected: cardIsSelected(card),
+            hasShadow: hasShadow, // Bottom 3 card will have shadow
+          ),
+        ),
+      );
+    }
+
     switch (stackDirection) {
       case Direction.none:
         return [
           if (cards.isNotEmpty)
             for (final (i, card) in cards.indexed)
-              AnimatedPositioned.fromRect(
-                key: ValueKey(card.faceUp),
-                duration: computeAnimation(i).duration,
-                curve: computeAnimation(i).curve,
+              buildCard(
+                index: i,
+                card: card,
                 rect: computePosition(
                     card, Rect.fromLTWH(region.left, region.top, 1, 1)),
-                child: _CardWrapper(
-                  cardSize: gridUnit,
-                  shake: _shakingCards?.contains(card) == true,
-                  onTouch: () => _onCardTouch(context, card, pile),
-                  onTap: () => _onCardTap(context, card, pile),
-                  card: card,
-                  stackDirection: stackDirection,
-                  isFirstCard: i == 0,
-                  isLastCard: i == cards.length - 1,
-                  highlighted: cardIsHighlighted(card),
-                  selected: cardIsSelected(card),
-                  hasShadow: i < 3, // Bottom 3 card will have shadow
-                ),
+                hasShadow: i < 2, // Bottom cards will have shadow
               ),
         ];
 
@@ -511,33 +537,20 @@ class _GameTableState extends State<GameTable> {
 
         return [
           for (final (i, card) in cards.indexed)
-            AnimatedPositioned.fromRect(
-              key: ValueKey(card.faceUp),
-              duration: computeAnimation(i).duration,
-              curve: computeAnimation(i).curve,
+            buildCard(
+              index: i,
+              card: card,
               rect: computePosition(
                 card,
                 Rect.fromLTWH(region.left, region.top, 1, 1)
                     .shift(stackAnchor)
                     .shift(stackGapPositions[i]),
               ),
-              child: _CardWrapper(
-                cardSize: gridUnit,
-                shake: _shakingCards?.contains(card) == true,
-                onTouch: () => _onCardTouch(context, card, pile),
-                onTap: () => _onCardTap(context, card, pile),
-                card: card,
-                stackDirection: stackDirection,
-                isFirstCard: i == 0,
-                isLastCard: i == cards.length - 1,
-                highlighted: cardIsHighlighted(card),
-                selected: cardIsSelected(card),
-                hasShadow: previewCards != 0
-                    // Only visible cards have shadow
-                    ? i >= cards.length - 1 - previewCards
-                    // All cards have shadow
-                    : true,
-              ),
+              hasShadow: previewCards != 0
+                  // Only visible cards have shadow
+                  ? i >= cards.length - 1 - previewCards
+                  // All cards have shadow
+                  : true,
             ),
         ];
     }

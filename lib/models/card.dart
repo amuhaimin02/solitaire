@@ -79,7 +79,7 @@ class PlayCard {
   final bool flipped;
   final int deck;
 
-  const PlayCard(this.suit, this.rank, {this.deck = 1, this.flipped = false});
+  const PlayCard(this.rank, this.suit, {this.deck = 1, this.flipped = false});
 
   @override
   String toString() {
@@ -108,12 +108,12 @@ class PlayCard {
 
   PlayCard get faceDown {
     if (flipped == true) return this;
-    return PlayCard(suit, rank, deck: deck, flipped: true);
+    return PlayCard(rank, suit, deck: deck, flipped: true);
   }
 
   PlayCard get faceUp {
     if (flipped == false) return this;
-    return PlayCard(suit, rank, deck: deck, flipped: false);
+    return PlayCard(rank, suit, deck: deck, flipped: false);
   }
 
   bool isSameSuitWith(PlayCard other) {
