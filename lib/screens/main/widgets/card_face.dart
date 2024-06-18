@@ -32,7 +32,7 @@ class CardFace extends StatelessWidget {
     final cardShortestSide = size.shortestSide;
     final cardTheme = Theme.of(context).gameCardTheme;
 
-    final iconPath = 'assets/${card.suit.name}.png';
+    final iconPath = 'assets/images/old/${card.suit.name}.png';
 
     final Color backgroundColor, foregroundColor;
     switch (card.suit.color) {
@@ -57,8 +57,8 @@ class CardFace extends StatelessWidget {
       Alignment.center => Alignment.bottomRight,
       Alignment.topCenter => Alignment.topRight,
       Alignment.bottomCenter => Alignment.bottomRight,
-      Alignment.centerLeft => Alignment.bottomLeft,
-      Alignment.centerRight => Alignment.bottomRight,
+      Alignment.centerLeft => Alignment.centerLeft,
+      Alignment.centerRight => Alignment.centerRight,
       _ => throw ArgumentError('Label alignment is not valid: $labelAlignment'),
     };
 
