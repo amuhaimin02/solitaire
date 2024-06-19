@@ -73,6 +73,7 @@ dev_dependencies:
   freezed: ^2.5.2
   json_serializable: ^6.8.0
   theme_tailor: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -119,3 +120,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "icons/icon.png"
+  adaptive_icon_background: "#424242"
+  adaptive_icon_foreground: "icons/icon-foreground.png"
+  web:
+    generate: true
+    image_path: "icons/icon.png"
+    background_color: "#hexcode"
+    theme_color: "#424242"
+  macos:
+    generate: true
+    image_path: "icons/icon.png"
