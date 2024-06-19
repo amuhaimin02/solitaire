@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../animations.dart';
 import '../../../config.dart';
@@ -119,8 +117,6 @@ class _GameTableState extends State<GameTable> {
 
   @override
   Widget build(BuildContext context) {
-    final cardTheme = Theme.of(context).gameCardTheme;
-
     final Size tableSize;
 
     if (widget.shrinkVerticalSpaces) {

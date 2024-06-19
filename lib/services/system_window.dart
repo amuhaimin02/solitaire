@@ -27,7 +27,6 @@ class SystemWindow {
   }
 
   void setStatusBarTheme(Brightness brightness) {
-    print('Set status color $brightness');
     // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     //   statusBarBrightness: brightness,
     //   statusBarIconBrightness: brightness,
@@ -46,8 +45,6 @@ class SystemWindow {
   }
 
   void setStatusBarVisibility(bool visible) {
-    print('Set status bar $visible');
-
     SystemChrome.setEnabledSystemUIMode(
       visible ? SystemUiMode.edgeToEdge : SystemUiMode.immersiveSticky,
       // overlays: visible ? SystemUiOverlay.values : [],

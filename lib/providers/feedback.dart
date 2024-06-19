@@ -1,8 +1,10 @@
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../models/game_status.dart';
 import '../models/pile.dart';
+import '../services/all.dart';
 import 'game_logic.dart';
 import 'game_move_history.dart';
 import 'settings.dart';
@@ -34,7 +36,7 @@ void feedback(FeedbackRef ref) {
     }
   }
 
-  print('Status: $gameStatus, Feedback: $lastMove, Move: $moveType');
+  srv<Logger>().d('Status: $gameStatus, Feedback: $lastMove, Move: $moveType');
 
   final target = lastMove?.action.move?.to;
 

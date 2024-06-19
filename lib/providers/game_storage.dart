@@ -30,18 +30,18 @@ class GameStorage extends _$GameStorage {
   DateTime build() => DateTime.now();
 
   Future<List<int>> _convertToBytes(GameData gameData) async {
-    final saveData = services<GameDataSerializer>().serialize(gameData);
+    final saveData = srv<GameDataSerializer>().serialize(gameData);
     final compressedSaveData = await compressText(saveData);
     return compressedSaveData;
   }
 
   Future<GameData> _convertFromBytes(List<int> bytes) async {
     final decompressedSaveData = await decompressText(bytes);
-    return services<GameDataSerializer>().deserialize(decompressedSaveData);
+    return srv<GameDataSerializer>().deserialize(decompressedSaveData);
   }
 
   Future<void> quickSave(GameData gameData) async {
-    final fileHandler = services<FileHandler>();
+    final fileHandler = srv<FileHandler>();
     final bytes = await _convertToBytes(gameData);
 
     fileHandler.save(quickSaveFileName(gameData.metadata.kind), bytes);
@@ -49,14 +49,14 @@ class GameStorage extends _$GameStorage {
   }
 
   Future<GameData> restoreQuickSave(SolitaireGame game) async {
-    final fileHandler = services<FileHandler>();
+    final fileHandler = srv<FileHandler>();
     final saveData = await fileHandler.load(quickSaveFileName(game));
 
     return _convertFromBytes(saveData);
   }
 
   Future<void> deleteQuickSave(SolitaireGame game) async {
-    final fileHandler = services<FileHandler>();
+    final fileHandler = srv<FileHandler>();
     await fileHandler.remove(quickSaveFileName(game));
     ref.invalidateSelf();
   }
@@ -94,7 +94,7 @@ class GameStorage extends _$GameStorage {
 @riverpod
 Future<List<SolitaireGame>> continuableGames(ContinuableGamesRef ref) async {
   ref.watch(gameStorageProvider);
-  final fileHandler = services<FileHandler>();
+  final fileHandler = srv<FileHandler>();
   final saveFiles = await fileHandler.list('');
 
   final allGamesMapped = ref

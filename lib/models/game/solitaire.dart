@@ -39,6 +39,10 @@ abstract class SolitaireGame {
 
   List<MoveAttempt> get autoSolve => const [];
 
+  bool get canShowHints => true;
+
+  bool get canUndoAndRedo => true;
+
   @override
   String toString() => name;
 

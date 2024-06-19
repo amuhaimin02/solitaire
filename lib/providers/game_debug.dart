@@ -26,7 +26,7 @@ class GameDebug extends _$GameDebug {
     if (game.kind is! Klondike) {
       return;
     }
-    final generator = services<PlayCardGenerator>();
+    final generator = srv<PlayCardGenerator>();
 
     final presetCards = PlayTable.fromMap({
       const Stock(0): PlayCardList(const [

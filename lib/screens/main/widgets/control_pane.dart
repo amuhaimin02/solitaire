@@ -17,6 +17,7 @@ class ControlPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final moves = ref.watch(moveHistoryProvider.notifier);
+    final game = ref.watch(currentGameProvider);
 
     // Only watching so this widget can be updated whenever move count changes.
     // Mainly for undo/redo button
@@ -33,7 +34,7 @@ class ControlPane extends ConsumerWidget {
         },
         icon: const Icon(Icons.restart_alt, size: 24),
       ),
-      if (ref.watch(settingsShowHintButtonProvider))
+      if (game.kind.canShowHints && ref.watch(settingsShowHintButtonProvider))
         IconButton(
           tooltip: 'Hint',
           onPressed: () {
@@ -47,7 +48,8 @@ class ControlPane extends ConsumerWidget {
           },
           icon: const Icon(Icons.lightbulb, size: 24),
         ),
-      if (ref.watch(settingsShowUndoRedoButtonProvider)) ...[
+      if (game.kind.canUndoAndRedo &&
+          ref.watch(settingsShowUndoRedoButtonProvider)) ...[
         TapHoldDetector(
           interval: const Duration(milliseconds: 100),
           delayBeforeHold: const Duration(milliseconds: 500),

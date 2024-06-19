@@ -1,8 +1,6 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../animations.dart';
 import '../../../models/action.dart';
 import '../../../models/card.dart';
 import '../../../models/card_list.dart';
@@ -92,7 +90,6 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 return cards.isAllFacingUp;
               },
               onCardTap: (card, pile) async {
-                print('card tap $card $pile');
                 ScaffoldMessenger.of(context).clearSnackBars();
                 final controller = ref.read(gameControllerProvider.notifier);
 

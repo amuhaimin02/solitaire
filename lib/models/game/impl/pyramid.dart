@@ -116,7 +116,10 @@ class Pyramid extends SolitaireGame {
             ),
           ),
           pickable: const [
-            CardIsOnTop(),
+            // TODO: This causes conflicts where
+            //  1. Hint doesn't show correctly in waste pile
+            //  2. Auto move doesn't work if moving to waste
+            // CardIsOnTop(),
           ],
           placeable: const [
             BuildupRankValueAddUpTo(13),

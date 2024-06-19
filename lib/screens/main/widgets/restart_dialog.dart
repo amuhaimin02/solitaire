@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/game_logic.dart';
-import '../../../providers/themes.dart';
 
 class RestartDialog extends ConsumerWidget {
   const RestartDialog({super.key});

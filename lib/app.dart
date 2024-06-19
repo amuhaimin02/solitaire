@@ -61,10 +61,10 @@ class SolitaireApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(settingsShowStatusBarProvider, (_, visible) {
-      services<SystemWindow>().setStatusBarVisibility(visible);
+      srv<SystemWindow>().setStatusBarVisibility(visible);
     });
     ref.listen(themeBaseModeProvider, (_, themeMode) {
-      services<SystemWindow>().setStatusBarTheme(switch (themeMode) {
+      srv<SystemWindow>().setStatusBarTheme(switch (themeMode) {
         ThemeMode.dark => Brightness.light,
         ThemeMode.light => Brightness.dark,
         ThemeMode.system => Brightness.dark,

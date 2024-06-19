@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../utils/types.dart';
 import 'card.dart';
@@ -454,8 +454,6 @@ class BuildupRankAbove extends MoveCheck {
     }
     final lastCardOnPile = args.cardsOnPile.last;
     final firstCardOnHand = args.cards.first;
-
-    print('last: $lastCardOnPile, first: $firstCardOnHand');
 
     if (gap != null) {
       return lastCardOnPile.rank.next(gap: gap!, wrapping: wrapping) ==

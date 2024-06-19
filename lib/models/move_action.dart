@@ -176,7 +176,7 @@ class SetupNewDeck extends MoveAction {
 
   @override
   MoveActionResult run(MoveActionArgs args) {
-    final newCards = services<PlayCardGenerator>().generateShuffledDeck(
+    final newCards = srv<PlayCardGenerator>().generateShuffledDeck(
       numberOfDecks: count,
       CustomPRNG.create(args.metadata!.seed),
       criteria: (card) {

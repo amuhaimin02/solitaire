@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../providers/game_logic.dart';
-import '../../../providers/settings.dart';
-import '../../../services/system_window.dart';
 import '../../../widgets/popup_button.dart';
 import 'debug_pane.dart';
 

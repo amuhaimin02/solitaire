@@ -49,21 +49,6 @@ class GrandfathersClock extends SolitaireGame {
     PlayCard(Rank.eight, Suit.diamond),
   ];
 
-  static const _clockDialTargetRank = [
-    Rank.queen,
-    Rank.ace,
-    Rank.two,
-    Rank.three,
-    Rank.four,
-    Rank.five,
-    Rank.six,
-    Rank.seven,
-    Rank.eight,
-    Rank.nine,
-    Rank.ten,
-    Rank.jack,
-  ];
-
   @override
   GameSetup construct() {
     const clockCenterPortrait = Point<double>(3.5, 1.75);

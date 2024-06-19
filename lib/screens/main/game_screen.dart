@@ -16,7 +16,6 @@ import '../../providers/settings.dart';
 import '../../providers/shared_preferences.dart';
 import '../../providers/themes.dart';
 import '../../widgets/animated_visibility.dart';
-import '../../widgets/bottom_padded.dart';
 import '../../widgets/celebration_effect.dart';
 import '../../widgets/message_overlay.dart';
 import '../../widgets/mini_toast.dart';
@@ -138,18 +137,15 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
     if (ref.read(gameControllerProvider) == GameStatus.started) {
       ref.read(playTimeProvider.notifier).resume();
     }
-    print('Game resumed');
   }
 
   @override
   void onLeave() {
     if (ref.read(gameControllerProvider) != GameStatus.started) {
-      print('Game not started. Skipping');
       return;
     }
     final gameData = ref.read(gameControllerProvider.notifier).suspend();
     ref.read(gameStorageProvider.notifier).quickSave(gameData);
-    print('Game saved');
   }
 
   @override

@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart';
 
 class HostPlatform {
   static bool get isWeb => kIsWeb;

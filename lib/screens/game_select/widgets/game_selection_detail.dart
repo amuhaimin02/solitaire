@@ -48,8 +48,7 @@ class GameSelectionDetail extends ConsumerWidget {
                       child: GameTable(
                         key: ValueKey(selectedGame),
                         game: selectedGame,
-                        table:
-                            services<PlayTableGenerator>().generateSampleSetup(
+                        table: srv<PlayTableGenerator>().generateSampleSetup(
                           selectedGame,
                           randomSeed,
                         ),
