@@ -31,6 +31,7 @@ class CardFace extends StatelessWidget {
   Widget build(BuildContext context) {
     final cardShortestSide = size.shortestSide;
     final cardTheme = Theme.of(context).gameCardTheme;
+    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     final iconPath = 'assets/images/old/${card.suit.name}.png';
 
@@ -122,9 +123,16 @@ class CardFace extends StatelessWidget {
                 child: AnimatedContainer(
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                        image: AssetImage(iconPath),
-                        colorFilter: ColorFilter.mode(
-                            foregroundColor, BlendMode.srcATop)),
+                      image: ResizeImage(
+                        AssetImage(iconPath),
+                        width: (iconSize * devicePixelRatio).round(),
+                        height: (iconSize * devicePixelRatio).round(),
+                      ),
+                      colorFilter: ColorFilter.mode(
+                        foregroundColor,
+                        BlendMode.srcATop,
+                      ),
+                    ),
                   ),
                   duration: cardMoveAnimation.duration,
                   curve: cardMoveAnimation.curve,
