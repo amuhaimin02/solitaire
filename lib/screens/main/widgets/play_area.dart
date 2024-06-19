@@ -15,6 +15,7 @@ import '../../../providers/game_move_history.dart';
 import '../../../providers/settings.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/message_overlay.dart';
+import '../../../widgets/mini_toast.dart';
 import 'auto_solve_button.dart';
 import 'game_table.dart';
 import 'user_action_indicator.dart';
@@ -99,7 +100,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 if (pileInfo.onTap != null) {
                   final result = controller.tryMove(MoveIntent(pile, pile));
                   if (result is MoveForbidden) {
-                    _showMoveForbiddenPopup(context, result);
+                    _showMoveForbiddenToast(context, result);
                   }
                   _clearSelection();
                   return null;
@@ -156,7 +157,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
 
                 ScaffoldMessenger.of(context).clearSnackBars();
                 if (result is MoveForbidden) {
-                  _showMoveForbiddenPopup(context, result);
+                  _showMoveForbiddenToast(context, result);
                 }
                 return null;
               },
@@ -177,30 +178,17 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
     );
   }
 
-  void _showMoveForbiddenPopup(BuildContext context, MoveForbidden move) {
+  void _showMoveForbiddenToast(BuildContext context, MoveForbidden move) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     if (move.reason.isEmpty) {
       return;
     }
 
-    final overlay = Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        margin: const EdgeInsets.all(32),
-        child: Material(
-          color: colorScheme.error,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: Text(
-              move.reason,
-              style: textTheme.bodyMedium!.copyWith(color: colorScheme.onError),
-            ),
-          ),
-        ),
-      ),
+    final overlay = MiniToast(
+      backgroundColor: colorScheme.error,
+      foregroundColor: colorScheme.onError,
+      child: Text(move.reason),
     );
 
     MessageOverlay.of(context).show(overlay);

@@ -115,7 +115,9 @@ class Pyramid extends SolitaireGame {
               landscape: Rect.fromLTWH(7.5, 0.5, 1, 1),
             ),
           ),
-          pickable: const [],
+          pickable: const [
+            CardIsOnTop(),
+          ],
           placeable: const [
             BuildupRankValueAddUpTo(13),
           ],

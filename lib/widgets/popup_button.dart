@@ -88,11 +88,17 @@ class PopupButton extends StatelessWidget {
                       clipBehavior: Clip.antiAlias,
                       child: Scrollbar(
                         thumbVisibility: true,
-                        child: ListView(
-                          primary: true,
-                          shrinkWrap: true,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          children: builder(context),
+                        child: MediaQuery.removePadding(
+                          // Remove extraneous padding on children ListTiles caused by internal SafeArea
+                          context: context,
+                          removeLeft: true,
+                          removeRight: true,
+                          child: ListView(
+                            primary: true,
+                            shrinkWrap: true,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            children: builder(context),
+                          ),
                         ),
                       ),
                     ),

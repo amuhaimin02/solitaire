@@ -26,6 +26,7 @@ import '../../../widgets/shakeable.dart';
 import '../../../widgets/shrinkable.dart';
 import '../../../widgets/ticking_number.dart';
 import 'card_view.dart';
+import 'pile_marker.dart';
 
 // Relation of touch points to position of the card.
 // (0.5, 0.5) indicates touch point at card center
@@ -226,7 +227,7 @@ class _GameTableState extends State<GameTable> {
                       _onCardTap(context, null, pile);
                     }
                   },
-                  child: _PileMarker(
+                  child: PileMarker(
                     pile: pile,
                     startsWith: buildRankStartingMarker(pile, props),
                     canRecycle: canRecycle(pile, props),
@@ -826,25 +827,24 @@ class _CardCountIndicator extends StatelessWidget {
         child: Shrinkable(
           show: count > 0,
           alignment: Alignment.bottomCenter,
-          child: Container(
-            width: size.shortestSide * 0.5,
-            height: size.shortestSide * 0.5,
-            decoration: BoxDecoration(
+          child: SizedBox(
+            width: size.shortestSide * 0.45,
+            height: size.shortestSide * 0.45,
+            child: Material(
+              type: MaterialType.circle,
               color: colorScheme.secondary,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: TickingNumber(
-                count,
-                duration: cardMoveAnimation.duration * 1.5,
-                curve: cardMoveAnimation.curve,
-                style: TextStyle(
-                  color: colorScheme.onSecondary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: size.shortestSide * 0.25,
-                  height: 1,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: TickingNumber(
+                  count,
+                  duration: cardMoveAnimation.duration * 1.5,
+                  curve: cardMoveAnimation.curve,
+                  style: TextStyle(
+                    color: colorScheme.onSecondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: size.shortestSide * 0.25,
+                    height: 1,
+                  ),
                 ),
               ),
             ),
@@ -874,142 +874,26 @@ class _PileCycleIndicator extends StatelessWidget {
       translation: const Offset(0, 1),
       child: Align(
         alignment: Alignment.topCenter,
-        child: Container(
-          decoration: ShapeDecoration(
-            color: colorScheme.secondary,
-            shape: const StadiumBorder(),
-          ),
-          padding: EdgeInsets.all(size.shortestSide * 0.1),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '$cycleCount / $cycleLimit',
-              style: TextStyle(
-                color: colorScheme.onSecondary,
-                fontWeight: FontWeight.bold,
-                fontSize: size.shortestSide * 0.2,
-                height: 1,
+        child: Material(
+          type: MaterialType.card,
+          color: colorScheme.secondary,
+          borderRadius: BorderRadius.circular(9999),
+          child: Container(
+            padding: EdgeInsets.all(size.shortestSide * 0.1),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$cycleCount / $cycleLimit',
+                style: TextStyle(
+                  color: colorScheme.onSecondary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: size.shortestSide * 0.2,
+                  height: 1,
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PileMarker extends StatelessWidget {
-  const _PileMarker({
-    super.key,
-    required this.pile,
-    required this.startsWith,
-    required this.canRecycle,
-    required this.size,
-  });
-
-  final Pile pile;
-
-  final Rank? startsWith;
-
-  final bool? canRecycle;
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    final cardTheme = Theme.of(context).gameCardTheme;
-
-    final borderOnly =
-        Theme.of(context).gameTheme.tableBackgroundColor == Colors.black;
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final markerColor = colorScheme.onSurface.withOpacity(0.26);
-    final markerIconSize = size.shortestSide * 0.5;
-    final markerTextSize = size.shortestSide * 0.5;
-    //
-    // IconData getFoundationIcon() {
-    //   return switch (startsWith) {
-    //     Rank.ace => MdiIcons.alphaACircle,
-    //     Rank.two => MdiIcons.numeric2Circle,
-    //     Rank.three => MdiIcons.numeric3Circle,
-    //     Rank.four => MdiIcons.numeric4Circle,
-    //     Rank.five => MdiIcons.numeric5Circle,
-    //     Rank.six => MdiIcons.numeric6Circle,
-    //     Rank.seven => MdiIcons.numeric7Circle,
-    //     Rank.eight => MdiIcons.numeric8Circle,
-    //     Rank.nine => MdiIcons.numeric9Circle,
-    //     Rank.ten => MdiIcons.numeric10Circle,
-    //     Rank.jack => MdiIcons.alphaJCircle,
-    //     Rank.queen => MdiIcons.alphaQCircle,
-    //     Rank.king => MdiIcons.alphaKCircle,
-    //     null => MdiIcons.starCircle,
-    //   };
-    // }
-    //
-    // IconData getTableauIcon() {
-    //   return switch (startsWith) {
-    //     Rank.ace => MdiIcons.alphaABox,
-    //     Rank.two => MdiIcons.numeric2Box,
-    //     Rank.three => MdiIcons.numeric3Box,
-    //     Rank.four => MdiIcons.numeric4Box,
-    //     Rank.five => MdiIcons.numeric5Box,
-    //     Rank.six => MdiIcons.numeric6Box,
-    //     Rank.seven => MdiIcons.numeric7Box,
-    //     Rank.eight => MdiIcons.numeric8Box,
-    //     Rank.nine => MdiIcons.numeric9Box,
-    //     Rank.ten => MdiIcons.numeric10Box,
-    //     Rank.jack => MdiIcons.alphaJBox,
-    //     Rank.queen => MdiIcons.alphaQBox,
-    //     Rank.king => MdiIcons.alphaKBox,
-    //     null => MdiIcons.starBox,
-    //   };
-    // }
-
-    final Widget? label;
-    switch (pile) {
-      case Stock():
-        if (canRecycle == null) {
-          throw ArgumentError(
-              'Stock pile must have canRecycle property for pile marker');
-        }
-        label = Icon(
-          canRecycle == true ? MdiIcons.refresh : Icons.block,
-          color: markerColor,
-          size: markerIconSize,
-        );
-      case Foundation() || Tableau() when startsWith != null:
-        label = Text(
-          startsWith!.symbol,
-          style:
-              GoogleFonts.dosis(color: markerColor, fontSize: markerTextSize),
-        );
-      case Waste():
-        label = Icon(
-          MdiIcons.cardsPlaying,
-          color: markerColor,
-          size: markerIconSize,
-        );
-      default:
-        label = null;
-    }
-
-    return Container(
-      padding: EdgeInsets.all(size.shortestSide * cardTheme.margin),
-      child: Container(
-        decoration: BoxDecoration(
-          color: borderOnly ? null : colorScheme.onSurface.withOpacity(0.12),
-          borderRadius:
-              BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
-          border: borderOnly
-              ? Border.all(
-                  color: colorScheme.onSurface.withOpacity(0.24),
-                  width: 2,
-                )
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: label ?? const SizedBox(),
       ),
     );
   }

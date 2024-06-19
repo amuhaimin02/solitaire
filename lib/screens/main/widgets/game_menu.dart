@@ -51,50 +51,53 @@ class GameMenuButton extends StatelessWidget {
       )
     ];
 
-    return PopupButton(
-      tooltip: 'Menu',
-      icon: const Icon(Icons.menu),
-      builder: (context) {
-        void dismiss() {
-          Navigator.pop(context);
-        }
+    return SizedBox.square(
+      dimension: kToolbarHeight,
+      child: PopupButton(
+        tooltip: 'Menu',
+        icon: const Icon(Icons.menu),
+        builder: (context) {
+          void dismiss() {
+            Navigator.pop(context);
+          }
 
-        return [
-          const SizedBox(height: 4),
-          const _CurrentGameDisplay(),
-          ListTile(
-            leading: Icon(MdiIcons.cardsPlaying),
-            title: const Text('Change game'),
-            onTap: () {
-              dismiss();
-              context.go('/select');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.local_library),
-            title: const Text('How to play'),
-            onTap: () {
-              dismiss();
-              context.go('/select');
-            },
-          ),
-          const Divider(),
-          for (final option in allOptions)
+          return [
+            const SizedBox(height: 4),
+            const _CurrentGameDisplay(),
             ListTile(
-              leading: Icon(option.icon),
-              title: Text(option.label),
+              leading: Icon(MdiIcons.cardsPlaying),
+              title: const Text('Change game'),
               onTap: () {
                 dismiss();
-                option.onTap(context);
+                context.go('/select');
               },
             ),
-          const Divider(),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: DebugPane(),
-          ),
-        ];
-      },
+            ListTile(
+              leading: const Icon(Icons.local_library),
+              title: const Text('How to play'),
+              onTap: () {
+                dismiss();
+                context.go('/select');
+              },
+            ),
+            const Divider(),
+            for (final option in allOptions)
+              ListTile(
+                leading: Icon(option.icon),
+                title: Text(option.label),
+                onTap: () {
+                  dismiss();
+                  option.onTap(context);
+                },
+              ),
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: DebugPane(),
+            ),
+          ];
+        },
+      ),
     );
   }
 }

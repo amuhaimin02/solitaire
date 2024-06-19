@@ -105,6 +105,7 @@ class SolitaireApp extends ConsumerWidget {
 
     GameCardTheme cardTheme = GameCardTheme.from(
       colorScheme: colorScheme,
+      labelFontFamily: 'Dosis',
       tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
       useClassicColors: ref.watch(themeUseClassicCardColorsProvider),
       contrastingFaceColors: ref.watch(themeUseContrastingCardColorsProvider),

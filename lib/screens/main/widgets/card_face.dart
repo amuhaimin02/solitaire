@@ -97,7 +97,8 @@ class CardFace extends StatelessWidget {
                     child: AnimatedDefaultTextStyle(
                       duration: cardMoveAnimation.duration,
                       curve: cardMoveAnimation.curve,
-                      style: GoogleFonts.dosis(
+                      style: GoogleFonts.getFont(
+                        cardTheme.labelFontFamily,
                         fontSize: labelSize,
                         height: 1,
                         color: foregroundColor,

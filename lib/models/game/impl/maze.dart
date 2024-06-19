@@ -59,7 +59,7 @@ class Maze extends SolitaireGame {
                           BuildupRankAbove(gap: 1),
                           BuildupSameSuit(),
                         ],
-                      )
+                      ),
                     ],
                     wrapping: true,
                   ),

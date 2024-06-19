@@ -63,6 +63,7 @@ class GameTheme extends ThemeExtension<GameTheme> with _$GameThemeTailorMixin {
 class GameCardTheme extends ThemeExtension<GameCardTheme>
     with _$GameCardThemeTailorMixin {
   const GameCardTheme({
+    required this.labelFontFamily,
     required this.facePlainColor,
     required this.faceAccentColor,
     required this.labelPlainColor,
@@ -75,6 +76,9 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     this.cornerRadius = 0.1,
     this.compressStack = false,
   });
+
+  @override
+  final String labelFontFamily;
 
   @override
   final Color facePlainColor;
@@ -111,6 +115,7 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
 
   factory GameCardTheme.from({
     required ColorScheme colorScheme,
+    required String labelFontFamily,
     bool tintedCardFace = false,
     bool useClassicColors = false,
     bool contrastingFaceColors = false,
@@ -144,6 +149,7 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     }
 
     return GameCardTheme(
+      labelFontFamily: labelFontFamily,
       facePlainColor: cardFacePlainColor,
       faceAccentColor: cardFaceAccentColor,
       labelPlainColor: cardLabelPlainColor,

@@ -9,15 +9,12 @@ import '../../../utils/host_platform.dart';
 class ScreenRotateButton extends ConsumerWidget {
   const ScreenRotateButton({super.key});
 
-  static const size =
-      kToolbarHeight; // match Material's AppBar leading icon size
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (HostPlatform.isMobile &&
         ref.watch(settingsShowScreenRotateButtonProvider)) {
       return SizedBox.square(
-        dimension: size,
+        dimension: kToolbarHeight,
         child: IconButton(
           tooltip: 'Change screen rotation',
           onPressed: () {

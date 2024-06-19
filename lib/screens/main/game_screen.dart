@@ -19,6 +19,7 @@ import '../../widgets/animated_visibility.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/celebration_effect.dart';
 import '../../widgets/message_overlay.dart';
+import '../../widgets/mini_toast.dart';
 import '../../widgets/ripple_background.dart';
 import '../../widgets/screen_visibility.dart';
 import '../game_select/widgets/continue_failed_dialog.dart';
@@ -167,7 +168,8 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
       }
     });
     ref.listen(currentGameProvider, (previousGame, newGame) {
-      if (previousGame?.startedTime != newGame.startedTime) {
+      if (previousGame != null &&
+          previousGame.startedTime != newGame.startedTime) {
         Future.delayed(standardAnimation.duration, () {
           ref.read(themeBaseRandomizeColorProvider.notifier).tryShuffleColor();
         });
@@ -180,140 +182,135 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
       enabled: isFinished,
       child: OrientationBuilder(
         builder: (context, orientation) {
-          return Scaffold(
-            appBar: AppBar(
-              forceMaterialTransparency: true,
-              leading: const GameMenuButton(),
-              actions: orientation == Orientation.portrait
-                  ? const [ScreenRotateButton()]
-                  : null,
-            ),
-            extendBodyBehindAppBar: true,
-            body: RippleBackground(
-              decoration: isFinished
-                  ? BoxDecoration(
-                      color: Theme.of(context).gameTheme.winningBackgroundColor)
-                  : BoxDecoration(
-                      color: Theme.of(context).gameTheme.tableBackgroundColor),
-              child: BottomPadded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final colorScheme = Theme.of(context).colorScheme;
-                    // final isMobile = constraints.biggest.shortestSide < 600;
+          return RippleBackground(
+            decoration: isFinished
+                ? BoxDecoration(
+                    color: Theme.of(context).gameTheme.winningBackgroundColor)
+                : BoxDecoration(
+                    color: Theme.of(context).gameTheme.tableBackgroundColor),
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final colorScheme = Theme.of(context).colorScheme;
+                  // final isMobile = constraints.biggest.shortestSide < 600;
 
-                    const playAreaMargin = EdgeInsets.all(8);
+                  const playAreaMargin = EdgeInsets.all(8);
 
-                    final divider = SizedBox(
-                      width: 48,
-                      child: Divider(height: 24, color: colorScheme.onSurface),
-                    );
+                  final divider = SizedBox(
+                    width: 48,
+                    child: Divider(height: 24, color: colorScheme.onSurface),
+                  );
 
-                    final gameStatus = ref.watch(gameControllerProvider);
-                    final isPreparing = gameStatus == GameStatus.initializing ||
-                        gameStatus == GameStatus.preparing;
+                  final gameStatus = ref.watch(gameControllerProvider);
+                  final isPreparing = gameStatus == GameStatus.initializing ||
+                      gameStatus == GameStatus.preparing;
 
-                    return AnimatedVisibility(
-                      visible: _isStarted,
-                      duration: themeChangeAnimation.duration,
-                      child: switch (orientation) {
-                        Orientation.landscape => Stack(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    left: viewPadding.left + 56,
-                                    right: viewPadding
-                                        .right), // Make room for the back button
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Flexible(
-                                      child: IgnorePointer(
-                                        ignoring: isPreparing,
-                                        child: Padding(
-                                          padding: playAreaMargin,
-                                          child: ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 1000,
-                                                maxHeight: 1000),
-                                            child: PlayArea(
-                                              orientation: orientation,
-                                            ),
+                  return AnimatedVisibility(
+                    visible: _isStarted,
+                    duration: themeChangeAnimation.duration,
+                    child: switch (orientation) {
+                      Orientation.landscape => Row(
+                          children: [
+                            const Column(
+                              children: [
+                                GameMenuButton(),
+                                ScreenRotateButton()
+                              ],
+                            ),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: IgnorePointer(
+                                      ignoring: isPreparing,
+                                      child: Padding(
+                                        padding: playAreaMargin,
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 1000, maxHeight: 1000),
+                                          child: PlayArea(
+                                            orientation: orientation,
                                           ),
                                         ),
                                       ),
                                     ),
-                                    AnimatedVisibility(
-                                      visible: !isPreparing,
-                                      child: Container(
-                                        width: 120,
-                                        margin: const EdgeInsets.fromLTRB(
-                                            8, 8, 8, 8),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            StatusPane(
-                                                orientation: orientation),
-                                            divider,
-                                            ControlPane(
-                                                orientation: orientation),
-                                          ],
-                                        ),
+                                  ),
+                                  AnimatedVisibility(
+                                    visible: !isPreparing,
+                                    child: Container(
+                                      width: 120,
+                                      margin:
+                                          const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          StatusPane(orientation: orientation),
+                                          divider,
+                                          ControlPane(orientation: orientation),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              Positioned(
-                                left: viewPadding.left,
-                                top: viewPadding.top + kToolbarHeight,
-                                child: const ScreenRotateButton(),
-                              ),
-                            ],
-                          ),
-                        Orientation.portrait => Padding(
-                            padding: const EdgeInsets.only(
-                                top: 56), // Make room for the back button
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            ),
+                          ],
+                        ),
+                      Orientation.portrait => Column(
+                          children: [
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 32),
-                                  child: AnimatedVisibility(
-                                    visible: !isPreparing,
-                                    child: StatusPane(orientation: orientation),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: IgnorePointer(
-                                    ignoring: isPreparing,
-                                    child: Padding(
-                                      padding: playAreaMargin,
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                            maxWidth: 1000, maxHeight: 1000),
-                                        child: PlayArea(
-                                          orientation: orientation,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 32),
-                                  child: AnimatedVisibility(
-                                    visible: !isPreparing,
-                                    child:
-                                        ControlPane(orientation: orientation),
-                                  ),
-                                ),
+                                GameMenuButton(),
+                                ScreenRotateButton()
                               ],
                             ),
-                          ),
-                      },
-                    );
-                  },
-                ),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 32),
+                                    child: AnimatedVisibility(
+                                      visible: !isPreparing,
+                                      child:
+                                          StatusPane(orientation: orientation),
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: IgnorePointer(
+                                      ignoring: isPreparing,
+                                      child: Padding(
+                                        padding: playAreaMargin,
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 1000, maxHeight: 1000),
+                                          child: PlayArea(
+                                            orientation: orientation,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 32),
+                                    child: AnimatedVisibility(
+                                      visible: !isPreparing,
+                                      child: ControlPane(
+                                        orientation: orientation,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                    },
+                  );
+                },
               ),
             ),
           );
@@ -329,38 +326,22 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
 
     if (!mounted) return;
 
-    final overlay = Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        margin: const EdgeInsets.all(32),
-        child: Material(
-          color: colorScheme.inverseSurface,
-          elevation: 8,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DefaultTextStyle(
-                  style: textTheme.titleSmall!
-                      .copyWith(color: colorScheme.onInverseSurface),
-                  child: isContinueGame
-                      ? const Text('Continuing last game')
-                      : const Text('Starting game'),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  game.name,
-                  style: textTheme.titleLarge!
-                      .copyWith(color: colorScheme.inversePrimary),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+    final overlay = MiniToast(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          isContinueGame
+              ? const Text('Continuing last game')
+              : const Text('Starting game'),
+          const SizedBox(height: 4),
+          Text(
+            game.name,
+            style: textTheme.titleLarge!
+                .copyWith(color: colorScheme.inversePrimary),
+            textAlign: TextAlign.center,
           ),
-        ),
+        ],
       ),
     );
 
