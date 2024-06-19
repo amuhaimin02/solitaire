@@ -50,6 +50,10 @@ extension MapExtension<K, V> on Map<K, V> {
   Iterable<(K, V)> get items {
     return entries.map((entry) => (entry.key, entry.value));
   }
+
+  Map<V, K> inverseKeyValue() {
+    return Map.fromEntries(entries.map((e) => MapEntry(e.value, e.key)));
+  }
 }
 
 extension PrintableDuration on Duration {

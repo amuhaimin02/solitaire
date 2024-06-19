@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:change_case/change_case.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -316,7 +315,7 @@ class BuildupStartsWith extends MoveCheck {
   @override
   String get errorMessage {
     if (rank != null) {
-      return 'Buildup must start with ${rank!.name.toCapitalCase()}';
+      return 'Buildup must start with ${rank!.name}';
     } else {
       // TODO: Find out how to customize a constant error message
       return 'Buildup must start with the indicated rank';
@@ -597,8 +596,7 @@ class PileTopCardIsRank extends MoveCheck {
   final Rank rank;
 
   @override
-  String get errorMessage =>
-      'Cards on pile must be ${rank.name.toCapitalCase()}';
+  String get errorMessage => 'Cards on pile must be ${rank.name}';
 
   @override
   bool check(MoveCheckArgs args) {
@@ -612,8 +610,7 @@ class PileTopCardIsNotRank extends MoveCheck {
   final Rank rank;
 
   @override
-  String get errorMessage =>
-      'Cards on pile must not be ${rank.name.toCapitalCase()}';
+  String get errorMessage => 'Cards on pile must not be ${rank.name}';
 
   @override
   bool check(MoveCheckArgs args) {

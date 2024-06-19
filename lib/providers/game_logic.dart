@@ -85,7 +85,7 @@ class CurrentGame extends _$CurrentGame {
     return GameMetadata(
       kind: ref.watch(allSolitaireGamesProvider).first,
       startedTime: DateTime.now(),
-      seed: '1234',
+      seed: '',
     );
   }
 

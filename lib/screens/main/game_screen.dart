@@ -154,7 +154,6 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
 
   @override
   Widget build(BuildContext context) {
-    final viewPadding = MediaQuery.of(context).viewPadding;
     final isFinished = ref
         .watch(gameControllerProvider.select((s) => s == GameStatus.finished));
 
@@ -169,6 +168,7 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
     });
     ref.listen(currentGameProvider, (previousGame, newGame) {
       if (previousGame != null &&
+          previousGame.seed.isNotEmpty &&
           previousGame.startedTime != newGame.startedTime) {
         Future.delayed(standardAnimation.duration, () {
           ref.read(themeBaseRandomizeColorProvider.notifier).tryShuffleColor();

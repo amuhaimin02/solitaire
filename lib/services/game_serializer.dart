@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:quiver/collection.dart';
-
 import '../models/action.dart';
 import '../models/card.dart';
 import '../models/card_list.dart';
@@ -334,30 +332,32 @@ class PileSerializer implements Serializer<Pile> {
 }
 
 class PlayCardSerializer implements Serializer<PlayCard> {
-  static final _playCardSuitSymbols = BiMap<Suit, String>()
-    ..addAll({
-      Suit.diamond: 'D',
-      Suit.club: 'C',
-      Suit.heart: 'H',
-      Suit.spade: 'S',
-    });
+  static final _suitToSymbol = {
+    Suit.diamond: 'D',
+    Suit.club: 'C',
+    Suit.heart: 'H',
+    Suit.spade: 'S',
+  };
 
-  static final _playCardRankSymbols = BiMap<Rank, String>()
-    ..addAll({
-      Rank.ace: 'A',
-      Rank.two: '2',
-      Rank.three: '3',
-      Rank.four: '4',
-      Rank.five: '5',
-      Rank.six: '6',
-      Rank.seven: '7',
-      Rank.eight: '8',
-      Rank.nine: '9',
-      Rank.ten: 'T',
-      Rank.jack: 'J',
-      Rank.queen: 'Q',
-      Rank.king: 'K',
-    });
+  static final _rankToSymbol = {
+    Rank.ace: 'A',
+    Rank.two: '2',
+    Rank.three: '3',
+    Rank.four: '4',
+    Rank.five: '5',
+    Rank.six: '6',
+    Rank.seven: '7',
+    Rank.eight: '8',
+    Rank.nine: '9',
+    Rank.ten: 'T',
+    Rank.jack: 'J',
+    Rank.queen: 'Q',
+    Rank.king: 'K',
+  };
+
+  static final _symbolToSuit = _suitToSymbol.inverseKeyValue();
+
+  static final _symbolToRank = _rankToSymbol.inverseKeyValue();
 
   const PlayCardSerializer();
 
@@ -365,8 +365,8 @@ class PlayCardSerializer implements Serializer<PlayCard> {
   String serialize(PlayCard card) {
     final buffer = StringBuffer();
 
-    buffer.write(_playCardRankSymbols[card.rank]);
-    buffer.write(_playCardSuitSymbols[card.suit]);
+    buffer.write(_rankToSymbol[card.rank]);
+    buffer.write(_suitToSymbol[card.suit]);
 
     final deck = card.deck;
     if (deck >= _maxRadixSize) {
@@ -384,8 +384,8 @@ class PlayCardSerializer implements Serializer<PlayCard> {
     assert(raw.length == 4, 'card token must be exactly 4 characters');
     return PlayCard(
       // Rank comes before suit
-      _playCardRankSymbols.inverse[raw[0]]!,
-      _playCardSuitSymbols.inverse[raw[1]]!,
+      _symbolToRank[raw[0]]!,
+      _symbolToSuit[raw[1]]!,
       deck: int.parse(raw[2], radix: _maxRadixSize),
       flipped: switch (raw[3]) {
         '-' => true,
