@@ -943,52 +943,54 @@ class _CardDragOverlayState extends State<_CardDragOverlay> {
       }
     }
 
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: (event) {
-        _startTouchPoint = event.localPosition;
-        widget.onTouch();
-      },
-      onPointerMove: (event) {
-        if (!_dragging &&
-            (event.localPosition - _startTouchPoint).distanceSquared >
-                dragThresholdDistanceSquared) {
-          setState(() {
-            _dragging = true;
-          });
-          widget.onDrag(event.localPosition);
-        }
+    return RepaintBoundary(
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (event) {
+          _startTouchPoint = event.localPosition;
+          widget.onTouch();
+        },
+        onPointerMove: (event) {
+          if (!_dragging &&
+              (event.localPosition - _startTouchPoint).distanceSquared >
+                  dragThresholdDistanceSquared) {
+            setState(() {
+              _dragging = true;
+            });
+            widget.onDrag(event.localPosition);
+          }
 
-        if (_dragging) {
-          setState(() {
-            _touchPoint = event.localPosition;
-          });
-        }
-      },
-      onPointerUp: (event) => onPointerStop(event.localPosition),
-      onPointerCancel: (event) => onPointerStop(event.localPosition),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          if (_dragging && widget.draggedCards != null)
-            for (final (i, card) in widget.draggedCards!.indexed)
-              Positioned.fromRect(
-                rect: (const Rect.fromLTWH(0, 0, 1, 1)
-                        .translate(0, i * 0.3)
-                        .translate(-cardTouchOffset.dx, -cardTouchOffset.dy))
-                    .scale(widget.gridUnit)
-                    .translate(_touchPoint.dx, _touchPoint.dy),
-                child: _CardWrapper(
-                  card: card,
-                  cardSize: widget.gridUnit,
-                  isMoving: true,
-                  stackDirection: Direction.down,
-                  isFirstCard: i == 0,
-                  isLastCard: i == widget.draggedCards!.length - 1,
-                  hasShadow: true,
-                ),
-              )
-        ],
+          if (_dragging) {
+            setState(() {
+              _touchPoint = event.localPosition;
+            });
+          }
+        },
+        onPointerUp: (event) => onPointerStop(event.localPosition),
+        onPointerCancel: (event) => onPointerStop(event.localPosition),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            if (_dragging && widget.draggedCards != null)
+              for (final (i, card) in widget.draggedCards!.indexed)
+                Positioned.fromRect(
+                  rect: (const Rect.fromLTWH(0, 0, 1, 1)
+                          .translate(0, i * 0.3)
+                          .translate(-cardTouchOffset.dx, -cardTouchOffset.dy))
+                      .scale(widget.gridUnit)
+                      .translate(_touchPoint.dx, _touchPoint.dy),
+                  child: _CardWrapper(
+                    card: card,
+                    cardSize: widget.gridUnit,
+                    isMoving: true,
+                    stackDirection: Direction.down,
+                    isFirstCard: i == 0,
+                    isLastCard: i == widget.draggedCards!.length - 1,
+                    hasShadow: true,
+                  ),
+                )
+          ],
+        ),
       ),
     );
   }

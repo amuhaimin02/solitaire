@@ -123,7 +123,7 @@ class Scorpion extends SolitaireGame {
   @override
   List<MoveAttemptTo> get quickMove {
     return [
-      const MoveAttemptTo<Tableau>(roll: true),
+      const MoveAttemptTo<Tableau>(),
     ];
   }
 }

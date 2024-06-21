@@ -27,7 +27,7 @@ class Yukon extends SolitaireGame {
   LayoutProperty<Size> get tableSize {
     return const LayoutProperty(
       portrait: Size(7, 6),
-      landscape: Size(10, 4),
+      landscape: Size(9, 4),
     );
   }
 
@@ -86,7 +86,7 @@ class Yukon extends SolitaireGame {
           layout: const PileLayout(
             region: LayoutProperty(
               portrait: Rect.fromLTWH(6, 0, 1, 1),
-              landscape: Rect.fromLTWH(9, 2.5, 1, 1),
+              landscape: Rect.fromLTWH(7.5, 0, 1, 1),
             ),
           ),
           virtual: true,
@@ -120,7 +120,7 @@ class Yukon extends SolitaireGame {
   List<MoveAttemptTo> get quickMove {
     return const [
       MoveAttemptTo<Foundation>(),
-      MoveAttemptTo<Tableau>(roll: true),
+      MoveAttemptTo<Tableau>(),
     ];
   }
 

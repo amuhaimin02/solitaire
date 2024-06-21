@@ -140,7 +140,7 @@ class FreeCell extends SolitaireGame {
       MoveAttemptTo<Foundation>(
         onlyIf: (from, to, args) => from is! Foundation,
       ),
-      const MoveAttemptTo<Tableau>(roll: true),
+      const MoveAttemptTo<Tableau>(),
       MoveAttemptTo<Reserve>(
         onlyIf: (from, to, args) => from is Tableau,
       ),

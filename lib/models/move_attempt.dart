@@ -85,13 +85,11 @@ class MoveCompletedPairs<From extends Pile, To extends Pile>
 class MoveAttemptTo<To extends Pile> {
   const MoveAttemptTo({
     this.onlyIf,
-    this.roll = false,
     this.prioritizeNonEmptySpaces = false,
     this.prioritizeShorterStacks = false,
   });
 
   final MoveAttemptTest? onlyIf;
-  final bool roll;
   final bool prioritizeNonEmptySpaces;
   final bool prioritizeShorterStacks;
 
@@ -99,7 +97,7 @@ class MoveAttemptTo<To extends Pile> {
     Iterable<To> pileIterator = args.table.allPilesOfType<To>();
     final from = args.from!;
 
-    if (roll && args.from.runtimeType == To) {
+    if (args.from.runtimeType == To) {
       pileIterator = pileIterator.roll(from: from).skip(1);
     }
     if (prioritizeNonEmptySpaces || prioritizeShorterStacks) {

@@ -14,7 +14,7 @@ class CardView extends StatelessWidget {
     super.key,
     required this.card,
     required this.size,
-    this.elevation,
+    this.elevation = 2,
     this.hideFace = false,
     this.highlighted = false,
     this.selected = false,
@@ -23,7 +23,7 @@ class CardView extends StatelessWidget {
 
   final PlayCard card;
 
-  final double? elevation;
+  final double elevation;
 
   final bool hideFace;
 
@@ -39,6 +39,7 @@ class CardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final cardTheme = Theme.of(context).gameCardTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final elevationScaled = elevation * size.shortestSide * 0.01;
 
     return Flippable(
       duration: cardMoveAnimation.duration,
@@ -48,7 +49,7 @@ class CardView extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius:
               BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
-          boxShadow: [SoftShadow(elevation ?? 2)],
+          boxShadow: [SoftShadow(elevationScaled)],
         ),
         child: CardFace(
           card: card,
@@ -60,7 +61,7 @@ class CardView extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius:
               BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
-          boxShadow: [SoftShadow(elevation ?? 2)],
+          boxShadow: [SoftShadow(elevationScaled)],
         ),
         child: CardBack(size: size),
       ),

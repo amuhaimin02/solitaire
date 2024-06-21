@@ -142,7 +142,7 @@ class Spider extends SolitaireGame {
   @override
   List<MoveAttemptTo> get quickMove {
     return [
-      const MoveAttemptTo<Tableau>(roll: true, prioritizeNonEmptySpaces: true),
+      const MoveAttemptTo<Tableau>(prioritizeNonEmptySpaces: true),
     ];
   }
 

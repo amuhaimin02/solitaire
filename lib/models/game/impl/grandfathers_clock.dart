@@ -185,7 +185,7 @@ class GrandfathersClock extends SolitaireGame {
   List<MoveAttemptTo> get quickMove {
     return const [
       MoveAttemptTo<Grid>(),
-      MoveAttemptTo<Tableau>(roll: true),
+      MoveAttemptTo<Tableau>(),
     ];
   }
 }

@@ -187,7 +187,7 @@ class Canfield extends SolitaireGame {
       MoveAttemptTo<Foundation>(
         onlyIf: (from, to, args) => from is! Foundation,
       ),
-      const MoveAttemptTo<Tableau>(roll: true),
+      const MoveAttemptTo<Tableau>(),
     ];
   }
 
