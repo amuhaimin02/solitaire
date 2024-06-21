@@ -55,6 +55,7 @@ dependencies:
   fast_immutable_collections: ^10.2.4
   confetti: ^0.7.0
   logger: ^2.3.0
+  audioplayers: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -89,6 +90,7 @@ flutter:
   assets:
     - assets/images/old/
     - assets/images/alt/
+    - assets/audio/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -37,6 +37,7 @@ class GameTable extends StatefulWidget {
     required this.table,
     this.interactive = true,
     this.onCardTap,
+    this.onCardDrag,
     this.onCardDrop,
     this.canDragCards,
     this.highlightedCards,
@@ -52,6 +53,8 @@ class GameTable extends StatefulWidget {
   final SolitaireGame game;
 
   final FutureOr<PlayCardList?> Function(PlayCard? card, Pile pile)? onCardTap;
+
+  final Function(PlayCardList cards, Pile pile)? onCardDrag;
 
   final FutureOr<PlayCardList?> Function(PlayCard card, Pile from, Pile to)?
       onCardDrop;
@@ -372,6 +375,9 @@ class _GameTableState extends State<GameTable> {
         setState(() {
           _isDragging = true;
         });
+        if (_touchingPile != null && _touchingCards != null) {
+          widget.onCardDrag?.call(_touchingCards!, _touchingPile!);
+        }
       },
       onDrop: (touchPoint) {
         setState(() {

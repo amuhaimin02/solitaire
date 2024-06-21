@@ -24,7 +24,7 @@ class ScreenRotateButton extends ConsumerWidget {
               Orientation.portrait => Orientation.landscape,
               Orientation.landscape => Orientation.portrait,
             };
-            srv<SystemWindow>().toggleOrientation(targetOrientation);
+            svc<SystemWindow>().toggleOrientation(targetOrientation);
           },
           icon: const Icon(Icons.screen_rotation_alt),
         ),

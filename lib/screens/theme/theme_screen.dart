@@ -57,7 +57,7 @@ class ThemeScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 400, maxHeight: 400),
           child: GameTable(
             game: SolitaireDemo(),
-            table: srv<PlayTableGenerator>()
+            table: svc<PlayTableGenerator>()
                 .generateSampleSetup(SolitaireDemo(), randomSeed),
             interactive: false,
             animateMovement: true,

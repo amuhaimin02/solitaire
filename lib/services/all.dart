@@ -6,21 +6,23 @@ import 'file_handler.dart';
 import 'game_serializer.dart';
 import 'play_card_generator.dart';
 import 'play_table_generator.dart';
+import 'sound_effect.dart';
 import 'system_window.dart';
 
-final srv = GetIt.instance;
+final svc = GetIt.instance;
 
 void setupServices() {
-  srv.registerLazySingleton<FileHandler>(() {
+  svc.registerLazySingleton<FileHandler>(() {
     if (kIsWeb) {
       return WebFileHandler();
     } else {
       return StandardFileHandler();
     }
   });
-  srv.registerSingleton(const GameDataSerializer());
-  srv.registerSingleton(const PlayCardGenerator());
-  srv.registerSingleton(const PlayTableGenerator());
-  srv.registerSingleton(const SystemWindow());
-  srv.registerSingleton(Logger());
+  svc.registerSingleton(const GameDataSerializer());
+  svc.registerSingleton(const PlayCardGenerator());
+  svc.registerSingleton(const PlayTableGenerator());
+  svc.registerSingleton(const SystemWindow());
+  svc.registerSingleton(SoundEffect());
+  svc.registerSingleton(Logger());
 }

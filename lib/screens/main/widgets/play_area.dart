@@ -11,6 +11,8 @@ import '../../../models/pile.dart';
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_move_history.dart';
 import '../../../providers/settings.dart';
+import '../../../services/all.dart';
+import '../../../services/sound_effect.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/message_overlay.dart';
 import '../../../widgets/mini_toast.dart';
@@ -90,7 +92,6 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 return cards.isAllFacingUp;
               },
               onCardTap: (card, pile) async {
-                ScaffoldMessenger.of(context).clearSnackBars();
                 final controller = ref.read(gameControllerProvider.notifier);
 
                 final pileInfo = game.kind.setup.get(pile);
@@ -147,13 +148,20 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
 
                 return null;
               },
+              onCardDrag: (cards, pile) {
+                if (ref.read(settingsEnableSoundsProvider)) {
+                  svc<SoundEffect>().cardPick.play();
+                }
+              },
               onCardDrop: (card, from, to) {
                 final controller = ref.read(gameControllerProvider.notifier);
 
                 final result = controller.tryMove(MoveIntent(from, to, card));
 
-                ScaffoldMessenger.of(context).clearSnackBars();
                 if (result is MoveForbidden) {
+                  if (ref.read(settingsEnableSoundsProvider)) {
+                    svc<SoundEffect>().cardError.play();
+                  }
                   _showMoveForbiddenToast(context, result);
                 }
                 return null;
