@@ -106,7 +106,12 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
 
                 if (oneTapMoveEnabled && card != null) {
                   final result = controller.tryQuickMove(card, pile);
-                  return result is MoveSuccess ? null : PlayCardList([card]);
+                  if (result is MoveSuccess) {
+                    return null;
+                  } else {
+                    _playSound(svc<SoundEffect>().uiDeny);
+                    return PlayCardList([card]);
+                  }
                 }
 
                 if (twoTapMoveEnabled) {
@@ -138,6 +143,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                     } else {
                       final firstSelectedCard = _selectedCard;
                       _clearSelection();
+                      _playSound(svc<SoundEffect>().uiDeny);
                       return PlayCardList([
                         firstSelectedCard!,
                         if (card != null) card,
@@ -149,9 +155,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 return null;
               },
               onCardDrag: (cards, pile) {
-                if (ref.read(settingsEnableSoundsProvider)) {
-                  svc<SoundEffect>().cardPick.play();
-                }
+                _playSound(svc<SoundEffect>().cardPick);
               },
               onCardDrop: (card, from, to) {
                 final controller = ref.read(gameControllerProvider.notifier);
@@ -159,9 +163,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 final result = controller.tryMove(MoveIntent(from, to, card));
 
                 if (result is MoveForbidden) {
-                  if (ref.read(settingsEnableSoundsProvider)) {
-                    svc<SoundEffect>().cardError.play();
-                  }
+                  _playSound(svc<SoundEffect>().uiError);
                   _showMoveForbiddenToast(context, result);
                 }
                 return null;
@@ -181,6 +183,12 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
         );
       },
     );
+  }
+
+  void _playSound(SoundEffectItem sfx) {
+    if (ref.read(settingsEnableSoundsProvider)) {
+      sfx.play();
+    }
   }
 
   void _showMoveForbiddenToast(BuildContext context, MoveForbidden move) {

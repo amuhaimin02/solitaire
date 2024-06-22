@@ -33,6 +33,8 @@ void feedback(FeedbackRef ref) {
   final lastMove = ref.watch(lastMoveProvider);
   final gameStatus = ref.watch(gameControllerProvider);
   final moveType = ref.watch(currentMoveTypeProvider);
+  final vibrationEnabled = ref.watch(settingsEnableVibrationProvider);
+  final soundsEnabled = ref.watch(settingsEnableSoundsProvider);
 
   if (gameStatus == GameStatus.started) {
     if (ref.read(feedbackIsFirstLaunchProvider)) {
@@ -42,7 +44,7 @@ void feedback(FeedbackRef ref) {
 
   svc<Logger>().d('Status: $gameStatus, Feedback: $lastMove, Move: $moveType');
 
-  if (ref.read(settingsEnableVibrationProvider)) {
+  if (vibrationEnabled) {
     final target = lastMove?.action.move?.to;
 
     switch (target) {
@@ -56,7 +58,7 @@ void feedback(FeedbackRef ref) {
     }
   }
 
-  if (ref.read(settingsEnableSoundsProvider)) {
+  if (soundsEnabled) {
     final soundEffect = svc<SoundEffect>();
     switch (gameStatus) {
       case GameStatus.ready:
@@ -66,7 +68,7 @@ void feedback(FeedbackRef ref) {
       case GameStatus.preparing:
         final keyframes = _computeCardDistributionKeyframes(lastMove!.table);
         for (final duration in keyframes) {
-          Future.delayed(duration, () => soundEffect.cardMove1.play());
+          Future.delayed(duration, () => soundEffect.cardMove2.play());
         }
       case GameStatus.started || GameStatus.autoSolving:
         switch (lastMove?.action) {

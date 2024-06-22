@@ -20,6 +20,8 @@ import '../models/play_data.dart';
 import '../models/play_table.dart';
 import '../models/score_summary.dart';
 import '../models/user_action.dart';
+import '../services/all.dart';
+import '../services/sound_effect.dart';
 import '../utils/collections.dart';
 import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
@@ -700,6 +702,10 @@ class HintedCards extends _$HintedCards {
 
   void highlight(PlayCardList cards) {
     _highlightTimer?.cancel();
+
+    if (ref.read(settingsEnableSoundsProvider)) {
+      svc<SoundEffect>().uiHint.play();
+    }
 
     state = cards;
     _highlightTimer = Timer(const Duration(milliseconds: 1500), () {
