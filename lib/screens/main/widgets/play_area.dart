@@ -109,7 +109,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                   if (result is MoveSuccess) {
                     return null;
                   } else {
-                    _playSound(svc<SoundEffect>().uiDeny);
+                    _playSound(SoundEffect.uiDeny);
                     return PlayCardList([card]);
                   }
                 }
@@ -143,7 +143,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                     } else {
                       final firstSelectedCard = _selectedCard;
                       _clearSelection();
-                      _playSound(svc<SoundEffect>().uiDeny);
+                      _playSound(SoundEffect.uiDeny);
                       return PlayCardList([
                         firstSelectedCard!,
                         if (card != null) card,
@@ -155,7 +155,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 return null;
               },
               onCardDrag: (cards, pile) {
-                _playSound(svc<SoundEffect>().cardPick);
+                _playSound(SoundEffect.cardPick);
               },
               onCardDrop: (card, from, to) {
                 final controller = ref.read(gameControllerProvider.notifier);
@@ -163,7 +163,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                 final result = controller.tryMove(MoveIntent(from, to, card));
 
                 if (result is MoveForbidden) {
-                  _playSound(svc<SoundEffect>().uiError);
+                  _playSound(SoundEffect.uiError);
                   _showMoveForbiddenToast(context, result);
                 }
                 return null;
@@ -185,9 +185,9 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
     );
   }
 
-  void _playSound(SoundEffectItem sfx) {
+  void _playSound(SoundEffect sfx) {
     if (ref.read(settingsEnableSoundsProvider)) {
-      sfx.play();
+      svc<SoundEffectManager>().play(sfx);
     }
   }
 

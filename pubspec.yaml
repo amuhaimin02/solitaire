@@ -55,7 +55,7 @@ dependencies:
   fast_immutable_collections: ^10.2.4
   confetti: ^0.7.0
   logger: ^2.3.0
-  audioplayers: ^6.0.0
+  soundpool: ^2.4.1
 
 dev_dependencies:
   flutter_test:

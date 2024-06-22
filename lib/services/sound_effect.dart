@@ -1,44 +1,46 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart';
+import 'package:soundpool/soundpool.dart';
 
-class SoundEffect {
-  SoundEffect() {
-    AudioPlayer.global.setAudioContext(AudioContext(
-      android: const AudioContextAndroid(
-        contentType: AndroidContentType.sonification,
-        usageType: AndroidUsageType.game,
-      ),
-      iOS: AudioContextIOS(),
-    ));
+class SoundEffectManager {
+  final Soundpool soundpool;
+  final Map<SoundEffect, int> _soundIDs = {};
+
+  SoundEffectManager()
+      : soundpool = Soundpool.fromOptions(
+            options: const SoundpoolOptions(maxStreams: 8)) {
+    initialize();
   }
 
-  final balloonPop = SoundEffectItem('audio/balloon_pop.mp3');
-  final cardPick = SoundEffectItem('audio/card_pick.wav');
+  Future<void> initialize() async {
+    for (final item in SoundEffect.values) {
+      final soundID =
+          await rootBundle.load('assets/${item.assetPath}').then((soundData) {
+        return soundpool.load(soundData);
+      });
+      _soundIDs[item] = soundID;
+    }
+  }
 
-  final cardMove1 =
-      SoundEffectItem('audio/card_move_1.wav', multipleSound: true);
-  final cardMove2 = SoundEffectItem('audio/card_move_2.wav');
-  final cardFlip1 = SoundEffectItem('audio/card_flip_1.wav');
-  final cardFlip2 = SoundEffectItem('audio/card_flip_2.wav');
-  final uiError = SoundEffectItem('audio/ui_error.wav');
-  final uiHint = SoundEffectItem('audio/ui_hint.wav');
-  final uiDeny = SoundEffectItem('audio/ui_deny.wav');
+  void play(SoundEffect item) {
+    final soundID = _soundIDs[item];
+    if (soundID != null) {
+      soundpool.play(soundID);
+    }
+  }
 }
 
-class SoundEffectItem {
-  SoundEffectItem(this.assetPath, {this.multipleSound = false}) {
-    _setupPlayer();
-  }
-
-  void _setupPlayer() async {
-    _player = await AudioPool.create(
-        source: AssetSource(assetPath), maxPlayers: multipleSound ? 8 : 1);
-  }
+enum SoundEffect {
+  balloonPop('audio/balloon_pop.mp3'),
+  cardPick('audio/card_pick.wav'),
+  cardMove1('audio/card_move_1.wav'),
+  cardMove2('audio/card_move_2.wav'),
+  cardFlip1('audio/card_flip_1.wav'),
+  cardFlip2('audio/card_flip_2.wav'),
+  uiError('audio/ui_error.wav'),
+  uiHint('audio/ui_hint.wav'),
+  uiDeny('audio/ui_deny.wav');
 
   final String assetPath;
-  final bool multipleSound;
-  AudioPool? _player;
 
-  void play() {
-    _player?.start();
-  }
+  const SoundEffect(this.assetPath);
 }

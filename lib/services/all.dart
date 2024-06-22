@@ -23,6 +23,6 @@ void setupServices() {
   svc.registerSingleton(const PlayCardGenerator());
   svc.registerSingleton(const PlayTableGenerator());
   svc.registerSingleton(const SystemWindow());
-  svc.registerSingleton(SoundEffect());
+  svc.registerSingleton(SoundEffectManager());
   svc.registerSingleton(Logger());
 }

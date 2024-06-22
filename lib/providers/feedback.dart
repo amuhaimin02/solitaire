@@ -59,34 +59,35 @@ void feedback(FeedbackRef ref) {
   }
 
   if (soundsEnabled) {
-    final soundEffect = svc<SoundEffect>();
+    final soundEffect = svc<SoundEffectManager>();
     switch (gameStatus) {
       case GameStatus.ready:
       // noop
       case GameStatus.initializing:
-        soundEffect.cardFlip2.play();
+        soundEffect.play(SoundEffect.cardFlip2);
       case GameStatus.preparing:
         final keyframes = _computeCardDistributionKeyframes(lastMove!.table);
         for (final duration in keyframes) {
-          Future.delayed(duration, () => soundEffect.cardMove2.play());
+          Future.delayed(
+              duration, () => soundEffect.play(SoundEffect.cardMove2));
         }
       case GameStatus.started || GameStatus.autoSolving:
         switch (lastMove?.action) {
           case Move(:final to):
             if (to is Foundation) {
-              soundEffect.cardMove2.play();
+              soundEffect.play(SoundEffect.cardMove2);
             } else {
-              soundEffect.cardMove1.play();
+              soundEffect.play(SoundEffect.cardMove1);
             }
           case Draw():
-            soundEffect.cardFlip1.play();
+            soundEffect.play(SoundEffect.cardFlip1);
           case Deal():
-            soundEffect.cardFlip2.play();
+            soundEffect.play(SoundEffect.cardFlip2);
           default:
           // noop
         }
       case GameStatus.finished:
-        soundEffect.balloonPop.play();
+        soundEffect.play(SoundEffect.balloonPop);
     }
   }
 }

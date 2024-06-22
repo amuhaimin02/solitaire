@@ -704,7 +704,7 @@ class HintedCards extends _$HintedCards {
     _highlightTimer?.cancel();
 
     if (ref.read(settingsEnableSoundsProvider)) {
-      svc<SoundEffect>().uiHint.play();
+      svc<SoundEffectManager>().play(SoundEffect.uiHint);
     }
 
     state = cards;
