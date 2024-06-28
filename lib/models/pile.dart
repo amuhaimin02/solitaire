@@ -51,7 +51,7 @@ class Grid extends Pile {
 extension PileIteration<T extends Pile> on Iterable<T> {
   Iterable<T> roll({required Pile from}) {
     switch (T) {
-      case const (Stock) || const (Waste):
+      case const (Stock) || const (Waste) || const (Grid):
         // Return as is as there is nothing to iterate
         return this;
       case const (Foundation) || const (Tableau) || const (Reserve):
@@ -77,7 +77,7 @@ extension PileIteration<T extends Pile> on Iterable<T> {
 
         return rollingIteration;
       default:
-        throw AssertionError('T is not a pile type');
+        throw AssertionError('T is not a pile type, $T');
     }
   }
 }

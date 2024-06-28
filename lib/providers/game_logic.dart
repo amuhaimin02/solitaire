@@ -21,7 +21,7 @@ import '../models/play_table.dart';
 import '../models/score_summary.dart';
 import '../models/user_action.dart';
 import '../services/all.dart';
-import '../services/sound_effect.dart';
+import '../services/sound_effects.dart';
 import '../utils/collections.dart';
 import '../utils/prng.dart';
 import '../utils/stopwatch.dart';
@@ -704,7 +704,7 @@ class HintedCards extends _$HintedCards {
     _highlightTimer?.cancel();
 
     if (ref.read(settingsEnableSoundsProvider)) {
-      svc<SoundEffectManager>().play(SoundEffect.uiHint);
+      svc<SoundEffectsManager>().play(SoundEffect.uiHint);
     }
 
     state = cards;

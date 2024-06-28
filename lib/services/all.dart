@@ -6,7 +6,7 @@ import 'file_handler.dart';
 import 'game_serializer.dart';
 import 'play_card_generator.dart';
 import 'play_table_generator.dart';
-import 'sound_effect.dart';
+import 'sound_effects.dart';
 import 'system_window.dart';
 
 final svc = GetIt.instance;
@@ -23,6 +23,6 @@ void setupServices() {
   svc.registerSingleton(const PlayCardGenerator());
   svc.registerSingleton(const PlayTableGenerator());
   svc.registerSingleton(const SystemWindow());
-  svc.registerSingleton(SoundEffectManager());
+  svc.registerSingleton(SoundEffectsManager());
   svc.registerSingleton(Logger());
 }

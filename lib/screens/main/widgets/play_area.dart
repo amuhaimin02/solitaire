@@ -12,7 +12,7 @@ import '../../../providers/game_logic.dart';
 import '../../../providers/game_move_history.dart';
 import '../../../providers/settings.dart';
 import '../../../services/all.dart';
-import '../../../services/sound_effect.dart';
+import '../../../services/sound_effects.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/message_overlay.dart';
 import '../../../widgets/mini_toast.dart';
@@ -109,7 +109,6 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                   if (result is MoveSuccess) {
                     return null;
                   } else {
-                    _playSound(SoundEffect.uiDeny);
                     return PlayCardList([card]);
                   }
                 }
@@ -143,7 +142,6 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                     } else {
                       final firstSelectedCard = _selectedCard;
                       _clearSelection();
-                      _playSound(SoundEffect.uiDeny);
                       return PlayCardList([
                         firstSelectedCard!,
                         if (card != null) card,
@@ -187,7 +185,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
 
   void _playSound(SoundEffect sfx) {
     if (ref.read(settingsEnableSoundsProvider)) {
-      svc<SoundEffectManager>().play(sfx);
+      svc<SoundEffectsManager>().play(sfx);
     }
   }
 

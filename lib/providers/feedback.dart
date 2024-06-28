@@ -8,7 +8,7 @@ import '../models/game_status.dart';
 import '../models/pile.dart';
 import '../models/play_table.dart';
 import '../services/all.dart';
-import '../services/sound_effect.dart';
+import '../services/sound_effects.dart';
 import 'game_logic.dart';
 import 'game_move_history.dart';
 import 'settings.dart';
@@ -59,7 +59,7 @@ void feedback(FeedbackRef ref) {
   }
 
   if (soundsEnabled) {
-    final soundEffect = svc<SoundEffectManager>();
+    final soundEffect = svc<SoundEffectsManager>();
     switch (gameStatus) {
       case GameStatus.ready:
       // noop

@@ -1,11 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:soundpool/soundpool.dart';
 
-class SoundEffectManager {
+class SoundEffectsManager {
   final Soundpool soundpool;
   final Map<SoundEffect, int> _soundIDs = {};
 
-  SoundEffectManager()
+  SoundEffectsManager()
       : soundpool = Soundpool.fromOptions(
             options: const SoundpoolOptions(maxStreams: 8)) {
     initialize();
@@ -37,8 +37,7 @@ enum SoundEffect {
   cardFlip1('audio/card_flip_1.wav'),
   cardFlip2('audio/card_flip_2.wav'),
   uiError('audio/ui_error.wav'),
-  uiHint('audio/ui_hint.wav'),
-  uiDeny('audio/ui_deny.wav');
+  uiHint('audio/ui_hint.wav');
 
   final String assetPath;
 
