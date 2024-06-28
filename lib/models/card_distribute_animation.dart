@@ -8,7 +8,7 @@ class CardDistributeAnimationDelay {
   const CardDistributeAnimationDelay();
 
   Duration compute(Pile pile, int cardIndex) {
-    final delayFactor = cardMoveAnimation.duration * 0.25 * timeDilation;
+    final delayFactor = cardMoveAnimation.duration * 0.25;
 
     if (pile is Grid) {
       final (x, y) = pile.xy;

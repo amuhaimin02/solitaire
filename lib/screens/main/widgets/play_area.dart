@@ -142,6 +142,7 @@ class _PlayAreaState extends ConsumerState<PlayArea> {
                     } else {
                       final firstSelectedCard = _selectedCard;
                       _clearSelection();
+                      _playSound(SoundEffect.uiError);
                       return PlayCardList([
                         firstSelectedCard!,
                         if (card != null) card,

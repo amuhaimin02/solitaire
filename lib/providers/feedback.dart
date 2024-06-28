@@ -1,3 +1,4 @@
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -69,7 +70,7 @@ void feedback(FeedbackRef ref) {
         final keyframes = _computeCardDistributionKeyframes(lastMove!.table);
         for (final duration in keyframes) {
           Future.delayed(
-              duration, () => soundEffect.play(SoundEffect.cardMove2));
+              duration, () => soundEffect.play(SoundEffect.cardSwipe));
         }
       case GameStatus.started || GameStatus.autoSolving:
         switch (lastMove?.action) {
@@ -101,7 +102,7 @@ List<Duration> _computeCardDistributionKeyframes(PlayTable table) {
     if (cardsOnPile.isNotEmpty) {
       for (int i = 0; i < cardsOnPile.length; i++) {
         final duration = delay.compute(pile, i);
-        keyframes.add(duration);
+        keyframes.add(duration * timeDilation);
       }
     }
   }

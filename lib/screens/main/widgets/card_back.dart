@@ -59,7 +59,7 @@ class GradientCardCover extends CustomPainter {
   });
 
   static const gradientSteps = 8;
-  static const hueSpan = 45.0;
+  static const hueSpan = 20.0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -67,13 +67,13 @@ class GradientCardCover extends CustomPainter {
     final paint = Paint();
 
     final gradientColors = [
-      for (int i = -(gradientSteps ~/ 2); i <= gradientSteps ~/ 2; i++)
-        color.shiftHue(hueSpan * i / gradientSteps)
+      for (int i = 0; i <= gradientSteps; i++)
+        color.shiftHue(-hueSpan * i / gradientSteps)
     ];
 
     paint.shader = LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
       colors: gradientColors,
     ).createShader(drawArea);
 

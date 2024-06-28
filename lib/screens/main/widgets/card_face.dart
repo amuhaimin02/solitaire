@@ -112,17 +112,22 @@ class CardFace extends StatelessWidget {
               duration: cardMoveAnimation.duration,
               curve: cardMoveAnimation.curve,
               alignment: iconAlignment,
-              child: TweenAnimationBuilder(
-                tween: Tween(begin: iconSize, end: iconSize),
-                duration: cardMoveAnimation.duration,
-                curve: cardMoveAnimation.curve,
-                builder: (context, size, child) {
-                  return Icon(
-                    _suitIcons[card.suit],
-                    color: foregroundColor,
-                    size: size,
-                  );
-                },
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: cardShortestSide * 0.05,
+                ),
+                child: TweenAnimationBuilder(
+                  tween: Tween(begin: iconSize, end: iconSize),
+                  duration: cardMoveAnimation.duration,
+                  curve: cardMoveAnimation.curve,
+                  builder: (context, size, child) {
+                    return Icon(
+                      _suitIcons[card.suit],
+                      color: foregroundColor,
+                      size: size,
+                    );
+                  },
+                ),
               ),
             ),
           ],

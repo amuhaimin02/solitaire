@@ -162,15 +162,6 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
         });
       }
     });
-    ref.listen(currentGameProvider, (previousGame, newGame) {
-      if (previousGame != null &&
-          previousGame.seed.isNotEmpty &&
-          previousGame.startedTime != newGame.startedTime) {
-        Future.delayed(standardAnimation.duration, () {
-          ref.read(themeBaseRandomizeColorProvider.notifier).tryShuffleColor();
-        });
-      }
-    });
 
     ref.watch(feedbackProvider);
 
@@ -358,8 +349,8 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
     if (confirm == true) {
       final game = ref.read(currentGameProvider);
       ref.read(gameControllerProvider.notifier).startNew(game.kind);
-    } else {
-      // Navigator.pop(context);
+      // Change theme color when starting new game
+      ref.read(themeBaseRandomizeColorProvider.notifier).tryShuffleColor();
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/game_logic.dart';
+import '../../../providers/themes.dart';
 
 class RestartDialog extends ConsumerWidget {
   const RestartDialog({super.key});
@@ -27,6 +28,11 @@ class RestartDialog extends ConsumerWidget {
             Navigator.pop(context);
             final game = ref.read(currentGameProvider);
             ref.read(gameControllerProvider.notifier).startNew(game.kind);
+
+            // Change theme color when starting new game
+            ref
+                .read(themeBaseRandomizeColorProvider.notifier)
+                .tryShuffleColor();
           },
           icon: const Icon(Icons.restart_alt),
           label: const Text('New game'),

@@ -36,6 +36,7 @@ enum SoundEffect {
   cardMove2('audio/card_move_2.wav'),
   cardFlip1('audio/card_flip_1.wav'),
   cardFlip2('audio/card_flip_2.wav'),
+  cardSwipe('audio/card_swipe.wav'),
   uiError('audio/ui_error.wav'),
   uiHint('audio/ui_hint.wav');
 
