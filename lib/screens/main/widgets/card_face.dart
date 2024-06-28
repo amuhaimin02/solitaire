@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../animations.dart';
 import '../../../models/card.dart';
 import '../../../models/game_theme.dart';
+import '../../../models/icons/card_suit_icons.dart';
 
 class CardFace extends StatelessWidget {
   const CardFace({
@@ -20,20 +20,17 @@ class CardFace extends StatelessWidget {
 
   final Alignment labelAlignment;
 
-  static final suitIcons = {
-    Suit.diamond: MdiIcons.cardsDiamond,
-    Suit.club: MdiIcons.cardsClub,
-    Suit.heart: MdiIcons.cardsHeart,
-    Suit.spade: MdiIcons.cardsSpade,
+  static final _suitIcons = {
+    Suit.diamond: CardSuitIcons.diamonds,
+    Suit.club: CardSuitIcons.clovers,
+    Suit.heart: CardSuitIcons.hearts,
+    Suit.spade: CardSuitIcons.spades,
   };
 
   @override
   Widget build(BuildContext context) {
     final cardShortestSide = size.shortestSide;
     final cardTheme = Theme.of(context).gameCardTheme;
-    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-
-    final iconPath = 'assets/images/old/${card.suit.name}.png';
 
     final Color backgroundColor, foregroundColor;
     switch (card.suit.color) {
@@ -67,10 +64,10 @@ class CardFace extends StatelessWidget {
 
     if (labelAlignment == Alignment.center) {
       labelSize = cardShortestSide * 0.5;
-      iconSize = cardShortestSide * 0.6;
+      iconSize = cardShortestSide * 0.75;
     } else {
       labelSize = cardShortestSide * 0.4;
-      iconSize = cardShortestSide * 0.28;
+      iconSize = cardShortestSide * 0.45;
     }
 
     return Container(
@@ -115,30 +112,17 @@ class CardFace extends StatelessWidget {
               duration: cardMoveAnimation.duration,
               curve: cardMoveAnimation.curve,
               alignment: iconAlignment,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: cardShortestSide * 0.1,
-                  horizontal: cardShortestSide * 0.06,
-                ),
-                child: AnimatedContainer(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: ResizeImage(
-                        AssetImage(iconPath),
-                        width: (iconSize * devicePixelRatio).round(),
-                        height: (iconSize * devicePixelRatio).round(),
-                      ),
-                      colorFilter: ColorFilter.mode(
-                        foregroundColor,
-                        BlendMode.srcATop,
-                      ),
-                    ),
-                  ),
-                  duration: cardMoveAnimation.duration,
-                  curve: cardMoveAnimation.curve,
-                  width: iconSize,
-                  height: iconSize,
-                ),
+              child: TweenAnimationBuilder(
+                tween: Tween(begin: iconSize, end: iconSize),
+                duration: cardMoveAnimation.duration,
+                curve: cardMoveAnimation.curve,
+                builder: (context, size, child) {
+                  return Icon(
+                    _suitIcons[card.suit],
+                    color: foregroundColor,
+                    size: size,
+                  );
+                },
               ),
             ),
           ],
