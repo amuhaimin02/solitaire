@@ -1,10 +1,11 @@
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/game/all.dart';
 import '../models/game/solitaire.dart';
+import '../services/all.dart';
 import '../utils/types.dart';
-import 'shared_preferences.dart';
 
 part 'game_selection.g.dart';
 
@@ -44,10 +45,7 @@ class FavoritedGames extends _$FavoritedGames {
   static const preferenceKey = 'favorite';
   @override
   List<SolitaireGame> build() {
-    final prefs = ref.read(sharedPreferencesInstanceProvider);
-    if (prefs == null) {
-      return [];
-    }
+    final prefs = svc<SharedPreferences>();
     final favoritedTags = prefs.getStringList(preferenceKey) ?? [];
 
     final allGamesMapped =
@@ -63,20 +61,14 @@ class FavoritedGames extends _$FavoritedGames {
   }
 
   void addToFavorite(SolitaireGame game) {
-    final prefs = ref.read(sharedPreferencesInstanceProvider);
-    if (prefs == null) {
-      return;
-    }
+    final prefs = svc<SharedPreferences>();
     final favoritedTags = prefs.getStringList(preferenceKey) ?? [];
     prefs.setStringList(preferenceKey, [...favoritedTags, game.tag]);
     ref.invalidateSelf();
   }
 
   void removeFromFavorite(SolitaireGame game) {
-    final prefs = ref.read(sharedPreferencesInstanceProvider);
-    if (prefs == null) {
-      return;
-    }
+    final prefs = svc<SharedPreferences>();
     final favoritedTags = prefs.getStringList(preferenceKey) ?? [];
     prefs.setStringList(preferenceKey,
         favoritedTags.whereNot((tag) => tag == game.tag).toList());

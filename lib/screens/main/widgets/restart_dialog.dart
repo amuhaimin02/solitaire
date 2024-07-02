@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/game_logic.dart';
+import '../../../providers/statistics.dart';
 import '../../../providers/themes.dart';
 
 class RestartDialog extends ConsumerWidget {
@@ -25,6 +26,11 @@ class RestartDialog extends ConsumerWidget {
         ),
         FilledButton.icon(
           onPressed: () {
+            if (!ref.read(isGameFinishedProvider)) {
+              // Record current game to statistics
+              ref.read(statisticsUpdaterProvider.notifier).recordCurrentGame();
+            }
+
             Navigator.pop(context);
             final game = ref.read(currentGameProvider);
             ref.read(gameControllerProvider.notifier).startNew(game.kind);

@@ -14,6 +14,7 @@ import '../../providers/game_selection.dart';
 import '../../providers/game_storage.dart';
 import '../../providers/settings.dart';
 import '../../providers/shared_preferences.dart';
+import '../../providers/statistics.dart';
 import '../../providers/themes.dart';
 import '../../widgets/animated_visibility.dart';
 import '../../widgets/celebration_effect.dart';
@@ -67,8 +68,6 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
         final continuableGames =
             await ref.read(continuableGamesProvider.future);
 
-        // Wait for shared prefs to load first
-        await ref.read(sharedPreferenceProvider.future);
         final lastPlayedGameTag = ref.read(settingsLastPlayedGameProvider);
 
         lastPlayedGame =
@@ -158,6 +157,7 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
         Future.microtask(() async {
           _showFinishDialog(context);
           final game = ref.read(currentGameProvider);
+          ref.read(statisticsUpdaterProvider.notifier).recordCurrentGame();
           ref.read(gameStorageProvider.notifier).deleteQuickSave(game.kind);
         });
       }

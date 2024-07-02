@@ -3,18 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/serializer.dart';
-
-part 'shared_preferences.g.dart';
-
-@Riverpod(keepAlive: true)
-Future<SharedPreferences> sharedPreference(SharedPreferenceRef ref) async {
-  return await SharedPreferences.getInstance();
-}
-
-@riverpod
-SharedPreferences? sharedPreferencesInstance(SharedPreferencesInstanceRef ref) {
-  return ref.watch(sharedPreferenceProvider).value;
-}
+import '../services/all.dart';
 
 mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
   abstract final String key;
@@ -26,10 +15,7 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
   Serializer? get serializer => null;
 
   T get() {
-    final prefs = ref.watch(sharedPreferencesInstanceProvider);
-    if (prefs == null) {
-      return defaultValue;
-    }
+    final prefs = svc<SharedPreferences>();
     final storedValue = _readFromPrefs(prefs, key);
     if (storedValue == null) {
       return defaultValue;
@@ -38,19 +24,13 @@ mixin SharedPreferencesProviderMixin<T> on AutoDisposeNotifier<T> {
   }
 
   void set(T value) {
-    final prefs = ref.watch(sharedPreferencesInstanceProvider);
-    if (prefs == null) {
-      return;
-    }
+    final prefs = svc<SharedPreferences>();
     _saveToPrefs(prefs, key, value);
     state = value;
   }
 
   void toggle() {
-    final prefs = ref.watch(sharedPreferencesInstanceProvider);
-    if (prefs == null) {
-      return;
-    }
+    final prefs = svc<SharedPreferences>();
     if (T == bool) {
       state = _saveToPrefs(prefs, key, !(state as bool) as T);
     } else if (options != null) {

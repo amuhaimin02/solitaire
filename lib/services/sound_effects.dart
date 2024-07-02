@@ -7,7 +7,7 @@ class SoundEffectsManager {
 
   SoundEffectsManager()
       : soundpool = Soundpool.fromOptions(
-            options: const SoundpoolOptions(maxStreams: 8)) {
+            options: const SoundpoolOptions(maxStreams: 16)) {
     initialize();
   }
 
