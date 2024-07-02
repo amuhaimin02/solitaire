@@ -56,7 +56,7 @@ extension MapExtension<K, V> on Map<K, V> {
   }
 }
 
-extension PrintableDuration on Duration {
+extension DurationExtension on Duration {
   static final maxDisplayableDuration = const Duration(minutes: 100).inSeconds;
 
   String toMMSSString() {
@@ -70,6 +70,19 @@ extension PrintableDuration on Duration {
     final secondString = seconds % 60;
 
     return '${minuteString.toString().padLeft(2, '0')}:${secondString.toString().padLeft(2, '0')}';
+  }
+
+  String toNaturalHMSString() {
+    int hours = inHours;
+    int minutes = inMinutes % 60;
+    int seconds = inSeconds % 60;
+
+    // TODO: Localize
+    if (hours > 0) {
+      return '$hours hr $minutes min $seconds sec';
+    } else {
+      return '$minutes min $seconds sec';
+    }
   }
 }
 

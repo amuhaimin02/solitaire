@@ -134,18 +134,6 @@ int statisticsTotalGamesWon(StatisticsTotalGamesWonRef ref) {
 }
 
 @riverpod
-double statisticsGamesWinPercentage(
-    StatisticsGamesWinPercentageRef ref, SolitaireGame game) {
-  final winCount = ref.watch(statisticsGamesWonProvider(game));
-  final totalGames = ref.watch(statisticsGamesPlayedProvider(game));
-
-  if (totalGames == 0) {
-    return 0;
-  }
-  return winCount / totalGames * 100;
-}
-
-@riverpod
 int statisticsTotalGameTypesPlayed(StatisticsTotalGameTypesPlayedRef ref) {
   return ref
       .watch(allSolitaireGamesProvider)
