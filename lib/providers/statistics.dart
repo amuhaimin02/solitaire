@@ -1,9 +1,14 @@
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:csv/csv.dart';
 
 import '../models/game/solitaire.dart';
+import '../screens/statistics/models/game_statistics_entry.dart';
+import '../screens/statistics/models/statistics_display_mode.dart';
 import '../services/all.dart';
+import '../services/file_handler.dart';
+import '../utils/compress.dart';
 import '../utils/types.dart';
 import 'game_logic.dart';
 import 'game_move_history.dart';
@@ -16,8 +21,24 @@ const _statisticsPlaytimeSuffix = 'playtime';
 const _statisticsGameCountSuffix = 'games';
 const _statisticsWinCountSuffix = 'won';
 
+const _statisticsFolder = 'stats';
+const _statisticsFileExtension = 'solitairestats';
+const _statisticsRecentFileSuffix = 'recent';
+const _statisticsHighScoreFileSuffix = 'highscore';
+
+const _statisticsRecentListLimit = 20;
+const _statisticsHighScoreListLimit = 20;
+
 String _getPrefsKey(SolitaireGame game, String suffix) {
   return '${_statisticsPrefix}_${game.tag}_$suffix';
+}
+
+String _gameStatisticsFilePath(SolitaireGame game, GameStatisticsType type) {
+  final suffix = switch (type) {
+    GameStatisticsType.highScore => _statisticsHighScoreFileSuffix,
+    GameStatisticsType.recent => _statisticsRecentFileSuffix,
+  };
+  return '$_statisticsFolder/${game.tag}-$suffix.$_statisticsFileExtension';
 }
 
 @riverpod
@@ -39,10 +60,14 @@ class StatisticsUpdater extends _$StatisticsUpdater {
 
     await _updateGameStatistics(
       game: game.kind,
-      playTime: playTime,
-      moves: moves?.state.moveNumber ?? 0,
-      score: moves?.state.score ?? 0,
-      isFinished: isFinished,
+      entry: GameStatisticsEntry(
+        startedTime: game.startedTime,
+        randomSeed: game.seed,
+        playTime: playTime,
+        moves: moves?.state.moveNumber ?? 0,
+        score: moves?.state.score ?? 0,
+        isSolved: isFinished,
+      ),
     );
 
     ref.invalidateSelf();
@@ -76,15 +101,53 @@ class StatisticsUpdater extends _$StatisticsUpdater {
 
   Future<void> _updateGameStatistics({
     required SolitaireGame game,
-    required Duration playTime,
-    required int moves,
-    required int score,
-    required bool isFinished,
-  }) async {}
+    required GameStatisticsEntry entry,
+  }) async {
+    // Store this game on recent list
+    // The entry will be placed in the top of the list
+    final recentList = await ref.read(
+        statisticsForGameProvider(game, GameStatisticsType.recent).future);
+    recentList.insert(0, entry);
+    await _storeGameStatisticsFile(game, GameStatisticsType.recent,
+        recentList.take(_statisticsRecentListLimit).toList());
+
+    // Store this game on high score list
+    // The entry will be placed in the suitable slot
+    final highScoreList = await ref.read(
+        statisticsForGameProvider(game, GameStatisticsType.highScore).future);
+    highScoreList.add(entry);
+    highScoreList.sort((a, b) {
+      return b.score.compareTo(a.score);
+    });
+    await _storeGameStatisticsFile(game, GameStatisticsType.highScore,
+        highScoreList.take(_statisticsHighScoreListLimit).toList());
+  }
 
   void _incrementAndUpdate(SharedPreferences prefs, String key, int value) {
     final currentValue = prefs.getInt(key) ?? 0;
     prefs.setInt(key, currentValue + value);
+  }
+
+  Future<void> _storeGameStatisticsFile(
+    SolitaireGame game,
+    GameStatisticsType type,
+    List<GameStatisticsEntry> entries,
+  ) async {
+    const csvConverter = ListToCsvConverter();
+    final csvString = csvConverter.convert(entries.map((entry) {
+      return [
+        entry.startedTime.toIso8601String(),
+        entry.playTime.inMilliseconds,
+        entry.randomSeed,
+        entry.moves,
+        entry.score,
+        entry.isSolved ? 1 : 0,
+      ];
+    }).toList());
+    await svc<FileHandler>().save(
+      _gameStatisticsFilePath(game, type),
+      await compressText(csvString),
+    );
   }
 }
 
@@ -147,4 +210,31 @@ int statisticsTotalGameTypesWon(StatisticsTotalGameTypesWonRef ref) {
       .watch(allSolitaireGamesProvider)
       .map((game) => ref.watch(statisticsGamesWonProvider(game)))
       .count((totalWins) => totalWins > 0);
+}
+
+@riverpod
+Future<List<GameStatisticsEntry>> statisticsForGame(StatisticsForGameRef ref,
+    SolitaireGame game, GameStatisticsType type) async {
+  final fileHandler = svc<FileHandler>();
+
+  final filePath = _gameStatisticsFilePath(game, type);
+
+  if (!await fileHandler.exists(filePath)) {
+    return [];
+  }
+
+  final rawData = await fileHandler.load(filePath);
+  final csvString = await decompressText(rawData);
+  const csvConverter = CsvToListConverter();
+  final entries = csvConverter.convert(csvString);
+  return entries.map((entry) {
+    return GameStatisticsEntry(
+      startedTime: DateTime.parse(entry[0] as String),
+      playTime: Duration(milliseconds: entry[1] as int),
+      randomSeed: entry[2] as String,
+      moves: entry[3] as int,
+      score: entry[4] as int,
+      isSolved: entry[5] == 1,
+    );
+  }).toList();
 }

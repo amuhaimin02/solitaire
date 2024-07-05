@@ -115,4 +115,10 @@ extension DateTimeExtension on DateTime {
   String toPathFriendlyString() {
     return _pathFriendlyDateFormat.format(this);
   }
+
+  static final _naturalFormat = DateFormat.yMd().add_jm();
+
+  String toNaturalDateTimeString() {
+    return _naturalFormat.format(this);
+  }
 }

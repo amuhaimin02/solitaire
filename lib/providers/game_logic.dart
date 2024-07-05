@@ -79,7 +79,7 @@ bool playTimeIsRunning(PlayTimeIsRunningRef ref) {
   return ref.watch(stopwatchProvider).isRunning;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CurrentGame extends _$CurrentGame {
   // TODO: Make nullable
   @override

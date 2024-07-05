@@ -18,6 +18,8 @@ part 'game_storage.g.dart';
 
 const saveFileExtension = 'solitairesave';
 
+const savesFolder = 'saves';
+
 String quickSaveFileName(SolitaireGame game) =>
     'continue-${game.tag}.$saveFileExtension';
 
@@ -44,20 +46,22 @@ class GameStorage extends _$GameStorage {
     final fileHandler = svc<FileHandler>();
     final bytes = await _convertToBytes(gameData);
 
-    fileHandler.save(quickSaveFileName(gameData.metadata.kind), bytes);
+    fileHandler.save(
+        '$savesFolder/${quickSaveFileName(gameData.metadata.kind)}', bytes);
     ref.invalidateSelf();
   }
 
   Future<GameData> restoreQuickSave(SolitaireGame game) async {
     final fileHandler = svc<FileHandler>();
-    final saveData = await fileHandler.load(quickSaveFileName(game));
+    final saveData =
+        await fileHandler.load('$savesFolder/${quickSaveFileName(game)}');
 
     return _convertFromBytes(saveData);
   }
 
   Future<void> deleteQuickSave(SolitaireGame game) async {
     final fileHandler = svc<FileHandler>();
-    await fileHandler.remove(quickSaveFileName(game));
+    await fileHandler.remove('$savesFolder/${quickSaveFileName(game)}');
     ref.invalidateSelf();
   }
 
@@ -95,7 +99,7 @@ class GameStorage extends _$GameStorage {
 Future<List<SolitaireGame>> continuableGames(ContinuableGamesRef ref) async {
   ref.watch(gameStorageProvider);
   final fileHandler = svc<FileHandler>();
-  final saveFiles = await fileHandler.list('');
+  final saveFiles = await fileHandler.list(savesFolder);
 
   final allGamesMapped = ref
       .watch(allSolitaireGamesProvider)

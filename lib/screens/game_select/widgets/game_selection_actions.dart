@@ -4,7 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_storage.dart';
-import '../../../widgets/popup_button.dart';
+import '../../../widgets/overlay_button.dart';
 import 'import_failed_dialog.dart';
 
 class GameSelectionActions extends ConsumerWidget {
@@ -12,9 +12,10 @@ class GameSelectionActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return PopupButton(
+    return OverlayButton.icon(
+      tooltip: 'More actions',
       icon: const Icon(Icons.more_vert),
-      builder: (popupContext) {
+      overlayBuilder: (popupContext) {
         void dismiss() {
           Navigator.pop(popupContext);
         }

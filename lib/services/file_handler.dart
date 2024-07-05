@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'all.dart';
@@ -36,6 +34,7 @@ class StandardFileHandler extends FileHandler {
   Future<void> save(String filePath, List<int> fileData) async {
     final baseDir = svc<SaveDirectory>();
     final targetFile = File('${baseDir.path}/$filePath');
+    targetFile.createSync(recursive: true);
     targetFile.writeAsBytesSync(fileData);
   }
 

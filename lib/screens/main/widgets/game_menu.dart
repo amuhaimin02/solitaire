@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../providers/game_logic.dart';
-import '../../../widgets/popup_button.dart';
+import '../../../widgets/overlay_button.dart';
 import 'debug_pane.dart';
 
 class _GameMenuOptions {
@@ -51,10 +51,10 @@ class GameMenuButton extends StatelessWidget {
 
     return SizedBox.square(
       dimension: kToolbarHeight,
-      child: PopupButton(
+      child: OverlayButton.icon(
         tooltip: 'Menu',
         icon: const Icon(Icons.menu),
-        builder: (context) {
+        overlayBuilder: (context) {
           void dismiss() {
             Navigator.pop(context);
           }

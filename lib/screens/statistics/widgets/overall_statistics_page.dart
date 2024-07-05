@@ -1,45 +1,46 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../models/game/solitaire.dart';
 import '../../../providers/game_selection.dart';
 import '../../../providers/statistics.dart';
 import '../../../utils/types.dart';
-import '../../../widgets/popup_button.dart';
+import '../../../widgets/overlay_button.dart';
+import '../../../widgets/two_pane.dart';
 import '../models/statistics_display_mode.dart';
-import 'game_statistics_list_tile.dart';
-import 'statistics_insights.dart';
+import 'overall_statistics_list_tile.dart';
+import 'overall_statistics_insights.dart';
 
-class OverallStatistics extends ConsumerStatefulWidget {
-  const OverallStatistics({super.key});
+class OverallStatisticsPage extends ConsumerStatefulWidget {
+  const OverallStatisticsPage({super.key});
 
   @override
-  ConsumerState<OverallStatistics> createState() => _OverallStatisticsState();
+  ConsumerState<OverallStatisticsPage> createState() =>
+      _OverallStatisticsState();
 }
 
-class _OverallStatisticsState extends ConsumerState<OverallStatistics> {
-  StatisticsDisplayMode _displayMode = StatisticsDisplayMode.wins;
+class _OverallStatisticsState extends ConsumerState<OverallStatisticsPage> {
+  OverallStatisticsDisplayMode _displayMode =
+      OverallStatisticsDisplayMode.gamesAndWins;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     num getPrimaryStatsValue(SolitaireGame game) {
       switch (_displayMode) {
-        case StatisticsDisplayMode.playTime:
+        case OverallStatisticsDisplayMode.playTime:
           return ref.watch(statisticsPlayTimeProvider(game)).inMilliseconds;
-        case StatisticsDisplayMode.gamesAndWins:
+        case OverallStatisticsDisplayMode.gamesAndWins:
           return ref.watch(statisticsGamesPlayedProvider(game));
-        case StatisticsDisplayMode.wins:
+        case OverallStatisticsDisplayMode.wins:
           return ref.watch(statisticsGamesWonProvider(game));
       }
     }
 
     num? getSecondaryStatsValue(SolitaireGame game) {
       switch (_displayMode) {
-        case StatisticsDisplayMode.gamesAndWins:
+        case OverallStatisticsDisplayMode.gamesAndWins:
           return ref.watch(statisticsGamesWonProvider(game));
         default:
           return null;
@@ -60,50 +61,57 @@ class _OverallStatisticsState extends ConsumerState<OverallStatistics> {
 
     Widget buildValueLabel(SolitaireGame game, num value) {
       switch (_displayMode) {
-        case StatisticsDisplayMode.playTime:
+        case OverallStatisticsDisplayMode.playTime:
           final duration = Duration(milliseconds: value as int);
           return Text(duration.toNaturalHMSString());
-        case StatisticsDisplayMode.gamesAndWins:
+        case OverallStatisticsDisplayMode.gamesAndWins:
           final wins = collectedSecondaryStatsValues[game] ?? 0;
-          final winPercentage = wins / value * 100;
+          final winPercentage = value > 0 ? wins / value * 100 : 0;
           return Text(
               '$value games, $wins wins (${winPercentage.toStringAsFixed(2)} %)');
-        case StatisticsDisplayMode.wins:
+        case OverallStatisticsDisplayMode.wins:
           return Text('$value wins');
       }
     }
 
+    String getDisplayModeLabel(OverallStatisticsDisplayMode mode) {
+      return switch (mode) {
+        OverallStatisticsDisplayMode.gamesAndWins => 'Games & wins',
+        OverallStatisticsDisplayMode.wins => 'Wins',
+        OverallStatisticsDisplayMode.playTime => 'Play time',
+      };
+    }
+
+    IconData getDisplayModeIcon(OverallStatisticsDisplayMode mode) {
+      return switch (mode) {
+        OverallStatisticsDisplayMode.gamesAndWins => MdiIcons.cardsPlaying,
+        OverallStatisticsDisplayMode.wins => MdiIcons.partyPopper,
+        OverallStatisticsDisplayMode.playTime => MdiIcons.clockOutline,
+      };
+    }
+
     Widget buildSortButton() {
-      return PopupButton(
-        icon: const Icon(Icons.sort),
-        builder: (context) {
+      return OverlayButton(
+        buttonBuilder: (context, trigger) {
+          return OutlinedButton.icon(
+            icon: const Icon(Icons.sort),
+            onPressed: trigger,
+            label: Text('Sort: ${getDisplayModeLabel(_displayMode)}'),
+          );
+        },
+        overlayBuilder: (context) {
           void dismiss() => Navigator.pop(context);
 
           return [
-            ListTile(
-              leading: const Icon(Icons.access_time),
-              title: const Text('Import game'),
-              onTap: () => setState(() {
-                _displayMode = StatisticsDisplayMode.playTime;
-                dismiss();
-              }),
-            ),
-            ListTile(
-              leading: const Icon(Icons.access_time),
-              title: const Text('Games and wins'),
-              onTap: () => setState(() {
-                _displayMode = StatisticsDisplayMode.gamesAndWins;
-                dismiss();
-              }),
-            ),
-            ListTile(
-              leading: const Icon(Icons.access_time),
-              title: const Text('Wins'),
-              onTap: () => setState(() {
-                _displayMode = StatisticsDisplayMode.wins;
-                dismiss();
-              }),
-            ),
+            for (final mode in OverallStatisticsDisplayMode.values)
+              ListTile(
+                leading: Icon(getDisplayModeIcon(mode)),
+                title: Text(getDisplayModeLabel(mode)),
+                onTap: () => setState(() {
+                  _displayMode = mode;
+                  dismiss();
+                }),
+              ),
           ];
         },
       );
@@ -121,16 +129,13 @@ class _OverallStatisticsState extends ConsumerState<OverallStatistics> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Sorted by: ${_displayMode.label}',
-                    style: textTheme.bodyLarge),
                 buildSortButton(),
               ],
             ),
           ),
           for (final entry in collectedPrimaryStatsValues.entries
               .sortedBy((e) => e.value)
-              .reversed
-              .where((e) => e.value > 0))
+              .reversed)
             GameStatisticsListTile(
               game: entry.key,
               value: entry.value,
@@ -138,7 +143,12 @@ class _OverallStatisticsState extends ConsumerState<OverallStatistics> {
               valueLabelBuilder: (_, value) =>
                   buildValueLabel(entry.key, value),
               maxRefValue: maxPrimaryStatsValue,
+              onTap: () {
+                ref.read(selectedGameProvider.notifier).select(entry.key);
+                TwoPane.of(context).pushSecondary();
+              },
             ),
+          const SizedBox(height: 16),
         ],
       ),
     );

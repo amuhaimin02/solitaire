@@ -4,27 +4,37 @@ import 'package:flutter/services.dart';
 import '../animations.dart';
 import '../utils/widgets.dart';
 
-class PopupButton extends StatelessWidget {
-  const PopupButton({
+class OverlayButton extends StatelessWidget {
+  const OverlayButton({
     super.key,
-    required this.icon,
-    this.tooltip,
-    required this.builder,
+    required this.overlayBuilder,
+    required this.buttonBuilder,
   });
 
-  final Icon icon;
+  factory OverlayButton.icon({
+    required String tooltip,
+    required Widget icon,
+    required List<Widget> Function(BuildContext context) overlayBuilder,
+  }) {
+    return OverlayButton(
+      buttonBuilder: (context, trigger) {
+        return IconButton(
+          tooltip: tooltip,
+          icon: icon,
+          onPressed: trigger,
+        );
+      },
+      overlayBuilder: overlayBuilder,
+    );
+  }
 
-  final String? tooltip;
-
-  final List<Widget> Function(BuildContext context) builder;
+  final List<Widget> Function(BuildContext context) overlayBuilder;
+  final Widget Function(BuildContext context, VoidCallback trigger)
+      buttonBuilder;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: () => _onPressed(context),
-      icon: icon,
-    );
+    return buttonBuilder(context, () => _onPressed(context));
   }
 
   Future<void> _onPressed(BuildContext context) async {
@@ -97,7 +107,7 @@ class PopupButton extends StatelessWidget {
                             primary: true,
                             shrinkWrap: true,
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            children: builder(context),
+                            children: overlayBuilder(context),
                           ),
                         ),
                       ),

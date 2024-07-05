@@ -1,9 +1,3 @@
-enum StatisticsDisplayMode {
-  playTime('Play time'),
-  gamesAndWins('Games & wins'),
-  wins('Wins');
+enum OverallStatisticsDisplayMode { gamesAndWins, wins, playTime }
 
-  final String label;
-
-  const StatisticsDisplayMode(this.label);
-}
+enum GameStatisticsType { highScore, recent }

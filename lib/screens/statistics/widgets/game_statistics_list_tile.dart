@@ -1,58 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-import '../../../models/game/solitaire.dart';
+import '../../../utils/types.dart';
+import '../models/game_statistics_entry.dart';
 
-class GameStatisticsListTile<T extends num> extends ConsumerWidget {
-  const GameStatisticsListTile({
-    super.key,
-    required this.game,
-    required this.valueLabelBuilder,
-    required this.value,
-    required this.secondaryValue,
-    required this.maxRefValue,
-  });
+class GameStatisticsListTile extends StatelessWidget {
+  const GameStatisticsListTile(
+      {super.key, required this.index, required this.entry});
 
-  final SolitaireGame game;
-  final Widget Function(BuildContext, T) valueLabelBuilder;
-  final T value;
-  final T? secondaryValue;
-  final T maxRefValue;
+  final int index;
+  final GameStatisticsEntry entry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ListTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    Widget buildIconTextPair(IconData icon, String text) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: Text(game.name)),
-          valueLabelBuilder(context, value),
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(text),
         ],
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: Stack(
-          children: [
-            LinearProgressIndicator(
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(24),
-              value: value / maxRefValue,
-            ),
-            if (secondaryValue != null)
-              LinearProgressIndicator(
-                minHeight: 8,
-                borderRadius: BorderRadius.circular(24),
-                value: secondaryValue! / maxRefValue,
-                color: colorScheme.onSurface,
-                backgroundColor: Colors.transparent,
-              ),
-          ],
+      );
+    }
+
+    return ListTile(
+      tileColor: entry.isSolved
+          ? colorScheme.tertiaryContainer.withOpacity(0.38)
+          : null,
+      leading: SizedBox(
+        width: textTheme.headlineMedium!.fontSize! * 1.2,
+        child: Text(
+          '${index + 1}',
+          style:
+              textTheme.headlineMedium!.copyWith(color: colorScheme.secondary),
+          textAlign: TextAlign.end,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {},
+      horizontalTitleGap: 24,
+      title: Wrap(
+        spacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          buildIconTextPair(MdiIcons.trophyVariant, entry.score.toString()),
+          buildIconTextPair(MdiIcons.cards, entry.moves.toString()),
+          buildIconTextPair(
+              MdiIcons.clockOutline, entry.playTime.toNaturalHMSString()),
+        ],
+      ),
+      subtitle: Text(entry.startedTime.toNaturalDateTimeString()),
+      trailing:
+          entry.isSolved ? Text('Solved', style: textTheme.labelLarge) : null,
     );
   }
 }
