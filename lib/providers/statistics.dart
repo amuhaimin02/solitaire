@@ -44,7 +44,7 @@ String _gameStatisticsFilePath(SolitaireGame game, GameStatisticsType type) {
 @riverpod
 class StatisticsUpdater extends _$StatisticsUpdater {
   @override
-  void build() {}
+  DateTime build() => DateTime.now();
 
   Future<void> recordCurrentGame() async {
     final game = ref.read(currentGameProvider);
@@ -69,7 +69,6 @@ class StatisticsUpdater extends _$StatisticsUpdater {
         isSolved: isFinished,
       ),
     );
-
     ref.invalidateSelf();
   }
 
@@ -144,16 +143,35 @@ class StatisticsUpdater extends _$StatisticsUpdater {
         entry.isSolved ? 1 : 0,
       ];
     }).toList());
-    await svc<FileHandler>().save(
+    final fileHandler = svc<FileHandler>();
+    await fileHandler.save(
       _gameStatisticsFilePath(game, type),
       await compressText(csvString),
     );
+  }
+
+  Future<void> clearGameStatistics(SolitaireGame game) async {
+    final prefs = svc<SharedPreferences>();
+
+    prefs.remove(_getPrefsKey(game, _statisticsPlaytimeSuffix));
+    prefs.remove(_getPrefsKey(game, _statisticsGameCountSuffix));
+    prefs.remove(_getPrefsKey(game, _statisticsWinCountSuffix));
+
+    final fileHandler = svc<FileHandler>();
+    await fileHandler
+        .remove(_gameStatisticsFilePath(game, GameStatisticsType.highScore));
+    await fileHandler
+        .remove(_gameStatisticsFilePath(game, GameStatisticsType.recent));
+
+    ref.invalidateSelf();
   }
 }
 
 @riverpod
 Duration statisticsPlayTime(
     StatisticsTotalPlayTimeRef ref, SolitaireGame game) {
+  ref.watch(statisticsUpdaterProvider);
+
   final prefs = svc<SharedPreferences>();
   return Duration(
       milliseconds:
@@ -162,6 +180,8 @@ Duration statisticsPlayTime(
 
 @riverpod
 Duration statisticsTotalPlayTime(StatisticsTotalPlayTimeRef ref) {
+  ref.watch(statisticsUpdaterProvider);
+
   return ref.watch(allSolitaireGamesProvider).fold(
         Duration.zero,
         (total, game) => total + ref.watch(statisticsPlayTimeProvider(game)),
@@ -170,12 +190,16 @@ Duration statisticsTotalPlayTime(StatisticsTotalPlayTimeRef ref) {
 
 @riverpod
 int statisticsGamesPlayed(StatisticsGamesPlayedRef ref, SolitaireGame game) {
+  ref.watch(statisticsUpdaterProvider);
+
   final prefs = svc<SharedPreferences>();
   return prefs.getInt(_getPrefsKey(game, _statisticsGameCountSuffix)) ?? 0;
 }
 
 @riverpod
 int statisticsTotalGamesPlayed(StatisticsTotalGamesPlayedRef ref) {
+  ref.watch(statisticsUpdaterProvider);
+
   return ref
       .watch(allSolitaireGamesProvider)
       .map((game) => ref.watch(statisticsGamesPlayedProvider(game)))
@@ -184,12 +208,16 @@ int statisticsTotalGamesPlayed(StatisticsTotalGamesPlayedRef ref) {
 
 @riverpod
 int statisticsGamesWon(StatisticsGamesWonRef ref, SolitaireGame game) {
+  ref.watch(statisticsUpdaterProvider);
+
   final prefs = svc<SharedPreferences>();
   return prefs.getInt(_getPrefsKey(game, _statisticsWinCountSuffix)) ?? 0;
 }
 
 @riverpod
 int statisticsTotalGamesWon(StatisticsTotalGamesWonRef ref) {
+  ref.watch(statisticsUpdaterProvider);
+
   return ref
       .watch(allSolitaireGamesProvider)
       .map((game) => ref.watch(statisticsGamesWonProvider(game)))
@@ -198,6 +226,8 @@ int statisticsTotalGamesWon(StatisticsTotalGamesWonRef ref) {
 
 @riverpod
 int statisticsTotalGameTypesPlayed(StatisticsTotalGameTypesPlayedRef ref) {
+  ref.watch(statisticsUpdaterProvider);
+
   return ref
       .watch(allSolitaireGamesProvider)
       .map((game) => ref.watch(statisticsGamesPlayedProvider(game)))
@@ -206,6 +236,8 @@ int statisticsTotalGameTypesPlayed(StatisticsTotalGameTypesPlayedRef ref) {
 
 @riverpod
 int statisticsTotalGameTypesWon(StatisticsTotalGameTypesWonRef ref) {
+  ref.watch(statisticsUpdaterProvider);
+
   return ref
       .watch(allSolitaireGamesProvider)
       .map((game) => ref.watch(statisticsGamesWonProvider(game)))
@@ -215,6 +247,8 @@ int statisticsTotalGameTypesWon(StatisticsTotalGameTypesWonRef ref) {
 @riverpod
 Future<List<GameStatisticsEntry>> statisticsForGame(StatisticsForGameRef ref,
     SolitaireGame game, GameStatisticsType type) async {
+  ref.watch(statisticsUpdaterProvider);
+
   final fileHandler = svc<FileHandler>();
 
   final filePath = _gameStatisticsFilePath(game, type);

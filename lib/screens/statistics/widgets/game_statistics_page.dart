@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import '../../../models/game/solitaire.dart';
 import '../../../providers/game_selection.dart';
 import '../../../providers/statistics.dart';
 import '../../../widgets/empty_message.dart';
@@ -62,21 +63,75 @@ class _GameStatisticsPageState extends ConsumerState<GameStatisticsPage> {
         ref.watch(statisticsForGameProvider(selectedGame, _displayType));
 
     return Scaffold(
-      appBar: TwoPane.of(context).isActive ? null : AppBar(),
+      appBar: AppBar(
+        automaticallyImplyLeading: !TwoPane.of(context).isActive,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            tooltip: 'Clear statistics',
+            onPressed: () => _onDeletePressed(context, selectedGame),
+          )
+        ],
+      ),
       body: ListView(
         children: [
           GameStatisticsInsights(game: selectedGame),
           buildDisplayModeSelection(),
-          if (statsItem is AsyncData)
-            for (final (index, item) in statsItem.value!.indexed)
-              GameStatisticsListTile(index: index, entry: item)
+          if (statsItem.hasValue)
+            if (statsItem.value!.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 60.0),
+                child: EmptyMessage(
+                  icon: Icon(Icons.leaderboard),
+                  title: Text('No records yet'),
+                ),
+              )
+            else
+              for (final (index, item) in statsItem.value!.indexed)
+                GameStatisticsListTile(
+                  index: index,
+                  entry: item,
+                  showIndex: _displayType == GameStatisticsType.highScore,
+                )
           else if (statsItem.hasError)
             // TODO: Temporary
             Text(statsItem.error.toString())
-          else
-            const Center(child: CircularProgressIndicator()),
         ],
       ),
     );
+  }
+
+  Future<void> _onDeletePressed(
+      BuildContext context, SolitaireGame game) async {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear statistics?'),
+        content: Text(
+            'Are you sure to clear and reset statistics for ${game.name}? This will remove all records associated with this game.'),
+        actions: [
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Clear'),
+          )
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref
+          .read(statisticsUpdaterProvider.notifier)
+          .clearGameStatistics(game);
+    }
   }
 }

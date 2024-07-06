@@ -5,6 +5,7 @@ import '../../../models/game/solitaire.dart';
 import '../../../providers/game_logic.dart';
 import '../../../providers/statistics.dart';
 import '../../../utils/types.dart';
+import '../../../widgets/leveled_progress_ring.dart';
 
 class GameStatisticsInsights extends ConsumerWidget {
   const GameStatisticsInsights({super.key, required this.game});
@@ -55,11 +56,12 @@ class GameStatisticsInsights extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 24,
+                  runSpacing: 16,
                   children: [
                     buildStatsItem(games.toString(), 'Games'),
                     buildStatsItem(wins.toString(), 'Wins'),
                     buildStatsItem(
-                        playTime.toNaturalHMSString(), 'Total play time'),
+                        playTime.toSimpleHMSString(), 'Total play time'),
                   ],
                 )
               ],
@@ -67,34 +69,35 @@ class GameStatisticsInsights extends ConsumerWidget {
           ),
           SizedBox.square(
             dimension: 144,
-            child: Container(
-              decoration: ShapeDecoration(
-                shape: CircleBorder(
-                  side: BorderSide(width: 12, color: colorScheme.primary),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                LeveledProgressRing(
+                  value: winPercentage / 100,
                 ),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${winPercentage.toStringAsFixed(2)}%',
-                        style: textTheme.headlineMedium!
-                            .copyWith(color: colorScheme.primary),
-                      ),
-                      Text(
-                        'Win rate',
-                        style: textTheme.labelLarge!
-                            .copyWith(color: colorScheme.onSurface),
-                      ),
-                    ],
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${winPercentage.toStringAsFixed(2)}%',
+                          style: textTheme.headlineMedium!
+                              .copyWith(color: colorScheme.primary),
+                        ),
+                        Text(
+                          'Win rate',
+                          style: textTheme.labelLarge!
+                              .copyWith(color: colorScheme.onSurface),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           )
         ],

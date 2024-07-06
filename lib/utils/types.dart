@@ -84,6 +84,22 @@ extension DurationExtension on Duration {
       return '$minutes min $seconds sec';
     }
   }
+
+  String toSimpleHMSString() {
+    int hours = inHours;
+    int minutes = inMinutes % 60;
+    int seconds = inSeconds % 60;
+
+    String pad(int value) {
+      return value.toString().padLeft(2, '0');
+    }
+
+    if (hours > 0) {
+      return '$hours:${pad(minutes)}:${pad(seconds)}';
+    } else {
+      return '$minutes:${pad(seconds)}';
+    }
+  }
 }
 
 extension ChunkableString on String {

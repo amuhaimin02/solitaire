@@ -134,8 +134,7 @@ class _OverallStatisticsState extends ConsumerState<OverallStatisticsPage> {
             ),
           ),
           for (final entry in collectedPrimaryStatsValues.entries
-              .sortedBy((e) => e.value)
-              .reversed)
+              .sorted((a, b) => b.value.compareTo(a.value)))
             GameStatisticsListTile(
               game: entry.key,
               value: entry.value,

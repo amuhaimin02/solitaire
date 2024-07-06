@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/game/solitaire.dart';
+import '../../../widgets/leveled_progress_bar.dart';
 
 class GameStatisticsListTile<T extends num> extends StatelessWidget {
   const GameStatisticsListTile({
@@ -22,8 +23,6 @@ class GameStatisticsListTile<T extends num> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return ListTile(
       title: Text(game.name),
       subtitle: Column(
@@ -31,22 +30,10 @@ class GameStatisticsListTile<T extends num> extends StatelessWidget {
         children: [
           valueLabelBuilder(context, value),
           const SizedBox(height: 8),
-          Stack(
-            children: [
-              LinearProgressIndicator(
-                minHeight: 8,
-                borderRadius: BorderRadius.circular(24),
-                value: value / maxRefValue,
-              ),
-              if (secondaryValue != null)
-                LinearProgressIndicator(
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(24),
-                  value: secondaryValue! / maxRefValue,
-                  color: colorScheme.tertiaryContainer,
-                  backgroundColor: Colors.transparent,
-                ),
-            ],
+          LeveledProgressBar(
+            value: value / maxRefValue,
+            secondaryValue:
+                secondaryValue != null ? secondaryValue! / maxRefValue : null,
           ),
         ],
       ),
