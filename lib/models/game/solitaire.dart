@@ -2,9 +2,9 @@ import 'dart:ui';
 
 import '../../config.dart';
 import '../../utils/types.dart';
+import '../game_scoring.dart';
 import '../move_attempt.dart';
 import '../move_check.dart';
-import '../move_event.dart';
 import '../pile.dart';
 import '../pile_property.dart';
 
@@ -27,7 +27,7 @@ abstract class SolitaireGame {
 
   List<MoveCheck> get objectives;
 
-  int determineScore(MoveEvent event) => 0;
+  GameScoring? get scoring => null;
 
   List<MoveCheck>? get canAutoSolve => null;
 

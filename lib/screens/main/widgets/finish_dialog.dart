@@ -34,7 +34,8 @@ class FinishDialog extends ConsumerWidget {
                     children: [
                       Text('Moves: ${scoreSummary.moves}'),
                       const Spacer(),
-                      Text('Time: ${scoreSummary.playTime.toMMSSString()}'),
+                      Text(
+                          'Time: ${scoreSummary.playTime.toSimpleHMSString()}'),
                     ],
                   ),
                 ),
@@ -49,26 +50,26 @@ class FinishDialog extends ConsumerWidget {
                     textAlign: TextAlign.end,
                   ),
                 ),
-                ListTile(
-                  title: const Text('Bonus'),
-                  subtitle: const Text('700,000 / play seconds'),
-                  trailing: Text(
-                    '+${scoreSummary.bonusScore}',
-                    style: textTheme.titleLarge!
-                        .copyWith(color: colorScheme.onSurfaceVariant),
-                    textAlign: TextAlign.end,
+                if (scoreSummary.hasBonus)
+                  ListTile(
+                    title: const Text('Bonus'),
+                    trailing: Text(
+                      '+${scoreSummary.bonusScore}',
+                      style: textTheme.titleLarge!
+                          .copyWith(color: colorScheme.onSurfaceVariant),
+                      textAlign: TextAlign.end,
+                    ),
                   ),
-                ),
-                ListTile(
-                  title: const Text('Penalty'),
-                  subtitle: const Text('2 points every 10 seconds'),
-                  trailing: Text(
-                    '-${scoreSummary.penaltyScore}',
-                    style: textTheme.titleLarge!
-                        .copyWith(color: colorScheme.error),
-                    textAlign: TextAlign.end,
+                if (scoreSummary.hasPenalty)
+                  ListTile(
+                    title: const Text('Penalty'),
+                    trailing: Text(
+                      '-${scoreSummary.penaltyScore}',
+                      style: textTheme.titleLarge!
+                          .copyWith(color: colorScheme.error),
+                      textAlign: TextAlign.end,
+                    ),
                   ),
-                ),
                 const Divider(),
                 ListTile(
                   title: const Text('Final score'),

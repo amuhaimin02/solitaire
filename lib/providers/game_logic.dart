@@ -413,10 +413,12 @@ class GameController extends _$GameController {
   }
 
   ScoreSummary getScoreSummary() {
+    final game = ref.read(currentGameProvider);
+
     return ScoreSummary(
       playTime: ref.read(playTimeProvider),
-      moves: ref.read(currentMoveNumberProvider) ?? 0,
-      obtainedScore: ref.read(currentScoreProvider) ?? 0,
+      scoring: game.kind.scoring,
+      moveState: ref.read(currentMoveProvider)!.state,
     );
   }
 
@@ -610,8 +612,14 @@ class GameController extends _$GameController {
 
   int _calculateScore(List<MoveEvent> events) {
     final game = ref.read(currentGameProvider);
-    return events.fold(
-        0, (prev, event) => prev + game.kind.determineScore(event));
+    final scoring = game.kind.scoring;
+
+    if (scoring != null) {
+      return events.fold(
+          0, (prev, event) => prev + scoring.determineScore(event));
+    } else {
+      return 0;
+    }
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {

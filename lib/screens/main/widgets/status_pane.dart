@@ -64,7 +64,7 @@ class TimeLabel extends ConsumerWidget {
         builder: (context, snapshot) {
           final playTime = ref.read(playTimeProvider);
           ref.invalidate(playTimeProvider);
-          return Text(playTime.toMMSSString());
+          return Text(playTime.toSimpleHMSString());
         },
       ),
     );

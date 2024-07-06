@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../utils/types.dart';
 import '../../card.dart';
 import '../../direction.dart';
+import '../../game_scoring.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
@@ -175,17 +176,35 @@ class Klondike extends SolitaireGame {
   }
 
   @override
-  int determineScore(MoveEvent event) {
-    // Scoring according to https://en.wikipedia.org/wiki/Klondike_(solitaire)
-    return switch (event) {
-      MoveMade(from: Waste(), to: Tableau()) => 5,
-      MoveMade(from: Waste(), to: Foundation()) => 10,
-      MoveMade(from: Tableau(), to: Foundation()) => 10,
-      TableauReveal() => 5,
-      MoveMade(from: Foundation(), to: Tableau()) => -15,
-      RecycleMade() => -100,
-      _ => 0,
-    };
+  GameScoring get scoring {
+    return GameScoring(
+      determineScore: (event) {
+        // Scoring according to https://en.wikipedia.org/wiki/Klondike_(solitaire)
+        return switch (event) {
+          MoveMade(from: Waste(), to: Tableau()) => 5,
+          MoveMade(from: Waste(), to: Foundation()) => 10,
+          MoveMade(from: Tableau(), to: Foundation()) => 10,
+          TableauReveal() => 5,
+          MoveMade(from: Foundation(), to: Tableau()) => -15,
+          RecycleMade() => -100,
+          _ => 0,
+        };
+      },
+      bonusOnFinish: (playTime, moveState) {
+        if (playTime > const Duration(seconds: 30)) {
+          return 700000 ~/ playTime.inSeconds;
+        } else {
+          return 0;
+        }
+      },
+      penaltyOnFinish: (playTime, moveState) {
+        if (playTime > const Duration(seconds: 10)) {
+          return (playTime.inSeconds ~/ 10) * 2;
+        } else {
+          return 0;
+        }
+      },
+    );
   }
 
   @override

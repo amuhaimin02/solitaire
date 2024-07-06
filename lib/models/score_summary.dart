@@ -1,27 +1,39 @@
+import 'game_scoring.dart';
+import 'move_record.dart';
+
 /// https://en.wikipedia.org/wiki/Klondike_(solitaire)#Computerized_versions
 class ScoreSummary {
-  ScoreSummary(
-      {required this.playTime,
-      required this.moves,
-      required this.obtainedScore});
+  ScoreSummary({
+    required this.playTime,
+    required this.scoring,
+    required this.moveState,
+  });
 
   final Duration playTime;
 
-  final int obtainedScore;
+  final GameScoring? scoring;
 
-  final int moves;
+  final MoveState moveState;
+
+  int get moves => moveState.moveNumber;
+
+  int get obtainedScore => moveState.score;
+
+  bool get hasBonus => scoring?.bonusOnFinish != null;
+
+  bool get hasPenalty => scoring?.penaltyOnFinish != null;
 
   int get bonusScore {
-    if (playTime > const Duration(seconds: 30)) {
-      return 700000 ~/ playTime.inSeconds;
+    if (hasBonus) {
+      return scoring!.bonusOnFinish!(playTime, moveState);
     } else {
       return 0;
     }
   }
 
   int get penaltyScore {
-    if (playTime > const Duration(seconds: 10)) {
-      return (playTime.inSeconds ~/ 10) * 2;
+    if (hasPenalty) {
+      return scoring!.penaltyOnFinish!(playTime, moveState);
     } else {
       return 0;
     }

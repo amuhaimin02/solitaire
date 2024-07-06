@@ -59,19 +59,6 @@ extension MapExtension<K, V> on Map<K, V> {
 extension DurationExtension on Duration {
   static final maxDisplayableDuration = const Duration(minutes: 100).inSeconds;
 
-  String toMMSSString() {
-    final seconds = inSeconds;
-
-    if (seconds >= maxDisplayableDuration) {
-      return '99:59';
-    }
-
-    final minuteString = seconds ~/ 60;
-    final secondString = seconds % 60;
-
-    return '${minuteString.toString().padLeft(2, '0')}:${secondString.toString().padLeft(2, '0')}';
-  }
-
   String toNaturalHMSString() {
     int hours = inHours;
     int minutes = inMinutes % 60;
