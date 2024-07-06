@@ -10,11 +10,13 @@ class GameStatisticsListTile extends StatelessWidget {
     required this.index,
     required this.entry,
     this.showIndex = true,
+    this.isVegasScoring = false,
   });
 
   final int index;
   final GameStatisticsEntry entry;
   final bool showIndex;
+  final bool isVegasScoring;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,9 @@ class GameStatisticsListTile extends StatelessWidget {
         spacing: 16,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          buildIconTextPair(MdiIcons.trophyVariant, entry.score.toString()),
+          buildIconTextPair(
+              isVegasScoring ? MdiIcons.currencyUsd : MdiIcons.trophyVariant,
+              entry.score.toString()),
           buildIconTextPair(MdiIcons.cards, entry.moves.toString()),
           buildIconTextPair(
               MdiIcons.clockOutline, entry.playTime.toSimpleHMSString()),

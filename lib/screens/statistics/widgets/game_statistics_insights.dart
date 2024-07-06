@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/game/solitaire.dart';
-import '../../../providers/game_logic.dart';
 import '../../../providers/statistics.dart';
 import '../../../utils/types.dart';
 import '../../../widgets/leveled_progress_ring.dart';

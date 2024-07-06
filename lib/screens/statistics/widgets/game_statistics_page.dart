@@ -62,6 +62,8 @@ class _GameStatisticsPageState extends ConsumerState<GameStatisticsPage> {
     final statsItem =
         ref.watch(statisticsForGameProvider(selectedGame, _displayType));
 
+    final isVegasScoring = selectedGame.scoring.vegasScoring;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !TwoPane.of(context).isActive,
@@ -92,6 +94,7 @@ class _GameStatisticsPageState extends ConsumerState<GameStatisticsPage> {
                   index: index,
                   entry: item,
                   showIndex: _displayType == GameStatisticsType.highScore,
+                  isVegasScoring: isVegasScoring,
                 )
           else if (statsItem.hasError)
             // TODO: Temporary

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../providers/game_logic.dart';
 import '../../../utils/types.dart';
@@ -13,6 +14,35 @@ class FinishDialog extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final scoreSummary =
         ref.watch(gameControllerProvider.notifier).getScoreSummary();
+
+    final isVegasScoring = scoreSummary.scoring.vegasScoring;
+
+    String getScoreText(int score) {
+      if (isVegasScoring) {
+        return '\$ $score';
+      } else {
+        return '$score';
+      }
+    }
+
+    Widget buildScoreText(int score,
+        {required TextStyle style, String prefix = ''}) {
+      if (isVegasScoring) {
+        return Text.rich(
+          TextSpan(children: [
+            TextSpan(text: prefix),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Icon(MdiIcons.currencyUsd, color: style.color),
+            ),
+            TextSpan(text: '$score'),
+          ]),
+          style: style,
+        );
+      } else {
+        return Text('$prefix$score', style: style);
+      }
+    }
 
     return AlertDialog(
       title: const Text('You win!'),
@@ -43,41 +73,39 @@ class FinishDialog extends ConsumerWidget {
                 ListTile(
                   title: const Text('Obtained'),
                   subtitle: const Text('Score during play'),
-                  trailing: Text(
-                    '${scoreSummary.obtainedScore}',
+                  trailing: buildScoreText(
+                    scoreSummary.obtainedScore,
                     style: textTheme.titleLarge!
                         .copyWith(color: colorScheme.onSurfaceVariant),
-                    textAlign: TextAlign.end,
                   ),
                 ),
                 if (scoreSummary.hasBonus)
                   ListTile(
                     title: const Text('Bonus'),
-                    trailing: Text(
-                      '+${scoreSummary.bonusScore}',
+                    trailing: buildScoreText(
+                      scoreSummary.bonusScore,
                       style: textTheme.titleLarge!
                           .copyWith(color: colorScheme.onSurfaceVariant),
-                      textAlign: TextAlign.end,
+                      prefix: '+',
                     ),
                   ),
                 if (scoreSummary.hasPenalty)
                   ListTile(
                     title: const Text('Penalty'),
-                    trailing: Text(
-                      '-${scoreSummary.penaltyScore}',
+                    trailing: buildScoreText(
+                      scoreSummary.penaltyScore,
+                      prefix: '−',
                       style: textTheme.titleLarge!
                           .copyWith(color: colorScheme.error),
-                      textAlign: TextAlign.end,
                     ),
                   ),
                 const Divider(),
                 ListTile(
                   title: const Text('Final score'),
-                  trailing: Text(
-                    '${scoreSummary.finalScore}',
+                  trailing: buildScoreText(
+                    scoreSummary.finalScore,
                     style: textTheme.headlineMedium!
                         .copyWith(color: colorScheme.primary),
-                    textAlign: TextAlign.end,
                   ),
                 ),
               ],

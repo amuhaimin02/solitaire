@@ -9,6 +9,7 @@ import '../models/card.dart';
 import '../models/card_distribute_animation.dart';
 import '../models/card_list.dart';
 import '../models/game/solitaire.dart';
+import '../models/game_scoring.dart';
 import '../models/game_status.dart';
 import '../models/move_action.dart';
 import '../models/move_attempt.dart';
@@ -18,7 +19,6 @@ import '../models/move_result.dart';
 import '../models/pile.dart';
 import '../models/play_data.dart';
 import '../models/play_table.dart';
-import '../models/score_summary.dart';
 import '../models/user_action.dart';
 import '../services/all.dart';
 import '../services/sound_effects.dart';
@@ -128,9 +128,12 @@ class GameController extends _$GameController {
     // Start distribute cards according to game
     final setupTable = _setupCards(initialTable);
     state = GameStatus.preparing;
-    ref
-        .read(moveHistoryProvider.notifier)
-        .add(setupTable, const GameStart(), isAutoMove: true);
+    ref.read(moveHistoryProvider.notifier).add(
+          setupTable,
+          const GameStart(),
+          score: game.scoring.startingScore,
+          isAutoMove: true,
+        );
 
     // Wait for animation to finish (this ties up to game table animation logic
     await Future.delayed(
@@ -412,12 +415,11 @@ class GameController extends _$GameController {
     }
   }
 
-  ScoreSummary getScoreSummary() {
+  GameScoreSummary getScoreSummary() {
     final game = ref.read(currentGameProvider);
 
-    return ScoreSummary(
+    return game.kind.scoring.getScoreSummary(
       playTime: ref.read(playTimeProvider),
-      scoring: game.kind.scoring,
       moveState: ref.read(currentMoveProvider)!.state,
     );
   }
@@ -614,12 +616,8 @@ class GameController extends _$GameController {
     final game = ref.read(currentGameProvider);
     final scoring = game.kind.scoring;
 
-    if (scoring != null) {
-      return events.fold(
-          0, (prev, event) => prev + scoring.determineScore(event));
-    } else {
-      return 0;
-    }
+    return events.fold(
+        0, (prev, event) => prev + scoring.determineScore(event));
   }
 
   Iterable<(PlayCard card, Pile pile)> _getAllMovableCards() sync* {

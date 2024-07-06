@@ -27,7 +27,7 @@ abstract class SolitaireGame {
 
   List<MoveCheck> get objectives;
 
-  GameScoring? get scoring => null;
+  GameScoring get scoring => GameScoring(determineScore: (event) => 0);
 
   List<MoveCheck>? get canAutoSolve => null;
 

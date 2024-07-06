@@ -7,6 +7,7 @@ import 'impl/freecell.dart';
 import 'impl/golf.dart';
 import 'impl/grandfathers_clock.dart';
 import 'impl/klondike.dart';
+import 'impl/klondike_vegas.dart';
 import 'impl/maze.dart';
 import 'impl/penguin.dart';
 import 'impl/putt_putt.dart';
@@ -21,10 +22,10 @@ import 'impl/tripeaks.dart';
 import 'impl/yukon.dart';
 
 final allGamesList = [
-  Klondike(numberOfDraws: 1, vegasScoring: false),
-  Klondike(numberOfDraws: 3, vegasScoring: false),
-  Klondike(numberOfDraws: 1, vegasScoring: true),
-  Klondike(numberOfDraws: 3, vegasScoring: true),
+  Klondike(numberOfDraws: 1),
+  Klondike(numberOfDraws: 3),
+  KlondikeVegas(numberOfDraws: 1),
+  KlondikeVegas(numberOfDraws: 3),
   FreeCell(),
   EightOff(),
   Penguin(),

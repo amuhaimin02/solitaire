@@ -1,5 +1,3 @@
-import 'package:flutter/scheduler.dart';
-
 import '../animations.dart';
 import 'pile.dart';
 

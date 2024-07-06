@@ -78,15 +78,45 @@ class ScoreLabel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+
+    final isVegasScoring = ref.watch(
+        currentGameProvider.select((game) => game.kind.scoring.vegasScoring));
+
     final score = ref.watch(currentScoreProvider);
 
     return FittedBox(
       fit: BoxFit.scaleDown,
-      child: Text(
-        '${score ?? 0}',
-        style: textTheme.displayMedium!.copyWith(color: colorScheme.onSurface),
-        textAlign: TextAlign.center,
-      ),
+      child: isVegasScoring
+          ? Container(
+              decoration: ShapeDecoration(
+                color: colorScheme.secondary,
+                shape: const StadiumBorder(),
+              ),
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    MdiIcons.currencyUsd,
+                    size: 36,
+                    color: colorScheme.onSecondary,
+                  ),
+                  Text(
+                    '${score ?? 0}',
+                    style: textTheme.displaySmall!
+                        .copyWith(color: colorScheme.onSecondary),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : Text(
+              '${score ?? 0}',
+              style: textTheme.displayMedium!
+                  .copyWith(color: colorScheme.onSurface),
+              textAlign: TextAlign.center,
+            ),
     );
   }
 }

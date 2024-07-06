@@ -14,22 +14,18 @@ import '../../rank_order.dart';
 import '../solitaire.dart';
 
 class Klondike extends SolitaireGame {
-  Klondike({required this.numberOfDraws, this.vegasScoring = false});
+  Klondike({required this.numberOfDraws});
 
   final int numberOfDraws;
 
-  final bool vegasScoring;
-
   @override
-  String get name =>
-      'Klondike Draw $numberOfDraws${vegasScoring ? ' (Vegas)' : ''}';
+  String get name => 'Klondike Draw $numberOfDraws';
 
   @override
   String get family => 'Klondike';
 
   @override
-  String get tag =>
-      'klondike-draw-$numberOfDraws${vegasScoring ? '-vegas' : ''}';
+  String get tag => 'klondike-draw-$numberOfDraws';
 
   @override
   LayoutProperty<Size> get tableSize {
@@ -115,9 +111,9 @@ class Klondike extends SolitaireGame {
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],
           canTap: [
-            CanRecyclePile(
-              limit: vegasScoring ? numberOfDraws : intMaxValue,
-              willTakeFrom: const Waste(0),
+            const CanRecyclePile(
+              limit: intMaxValue,
+              willTakeFrom: Waste(0),
             ),
           ],
           onTap: [
