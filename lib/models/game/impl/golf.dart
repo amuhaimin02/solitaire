@@ -3,9 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../direction.dart';
+import '../../game_scoring.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
+import '../../move_event.dart';
 import '../../pile.dart';
 import '../../pile_property.dart';
 import '../solitaire.dart';
@@ -90,6 +92,25 @@ class Golf extends SolitaireGame {
             BuildupOneRankNearer(),
           ],
         ),
+      },
+    );
+  }
+
+  @override
+  GameScoring get scoring {
+    return GameScoring(
+      startingScore: 35,
+      lowerIsBetter: true,
+      determineScore: (event) {
+        switch (event) {
+          case MoveMade(from: Tableau(), to: Waste()):
+            return -1;
+          default:
+            return 0;
+        }
+      },
+      bonusOnFinish: (playTime, table, moveState) {
+        return -table.get(const Stock(0)).length;
       },
     );
   }

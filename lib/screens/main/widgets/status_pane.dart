@@ -99,12 +99,12 @@ class ScoreLabel extends ConsumerWidget {
                 children: [
                   Icon(
                     MdiIcons.currencyUsd,
-                    size: 36,
+                    size: 32,
                     color: colorScheme.onSecondary,
                   ),
                   Text(
                     '${score ?? 0}',
-                    style: textTheme.displaySmall!
+                    style: textTheme.headlineLarge!
                         .copyWith(color: colorScheme.onSecondary),
                     textAlign: TextAlign.center,
                   ),

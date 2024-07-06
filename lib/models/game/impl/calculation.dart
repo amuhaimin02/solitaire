@@ -18,7 +18,7 @@ class Calculation extends SirTommy {
   GameSetup construct() {
     GameSetup setup = super.construct();
 
-    setup = setup.adjust(
+    setup = setup.modify(
       const Stock(0),
       (props) => props.copyWith(
         onSetup: [
@@ -34,7 +34,7 @@ class Calculation extends SirTommy {
     );
 
     for (int i = 0; i < 4; i++) {
-      setup = setup.adjust(
+      setup = setup.modify(
         Foundation(i),
         (props) => props.copyWith(
           pickable: const [

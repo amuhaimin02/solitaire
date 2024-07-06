@@ -115,9 +115,11 @@ class StatisticsUpdater extends _$StatisticsUpdater {
     final highScoreList = await ref.read(
         statisticsForGameProvider(game, GameStatisticsType.highScore).future);
     highScoreList.add(entry);
-    highScoreList.sort((a, b) {
-      return b.score.compareTo(a.score);
-    });
+
+    highScoreList.sort(game.scoring.lowerIsBetter
+        ? (a, b) => a.score.compareTo(b.score)
+        : (a, b) => b.score.compareTo(a.score));
+
     await _storeGameStatisticsFile(game, GameStatisticsType.highScore,
         highScoreList.take(_statisticsHighScoreListLimit).toList());
   }

@@ -25,12 +25,10 @@ class FinishDialog extends ConsumerWidget {
       }
     }
 
-    Widget buildScoreText(int score,
-        {required TextStyle style, String prefix = ''}) {
+    Widget buildScoreText(int score, {required TextStyle style}) {
       if (isVegasScoring) {
         return Text.rich(
           TextSpan(children: [
-            TextSpan(text: prefix),
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
               child: Icon(MdiIcons.currencyUsd, color: style.color),
@@ -40,7 +38,7 @@ class FinishDialog extends ConsumerWidget {
           style: style,
         );
       } else {
-        return Text('$prefix$score', style: style);
+        return Text('$score', style: style);
       }
     }
 
@@ -86,15 +84,13 @@ class FinishDialog extends ConsumerWidget {
                       scoreSummary.bonusScore,
                       style: textTheme.titleLarge!
                           .copyWith(color: colorScheme.onSurfaceVariant),
-                      prefix: '+',
                     ),
                   ),
                 if (scoreSummary.hasPenalty)
                   ListTile(
                     title: const Text('Penalty'),
                     trailing: buildScoreText(
-                      scoreSummary.penaltyScore,
-                      prefix: '−',
+                      -scoreSummary.penaltyScore,
                       style: textTheme.titleLarge!
                           .copyWith(color: colorScheme.error),
                     ),

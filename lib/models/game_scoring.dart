@@ -1,16 +1,21 @@
 import 'move_event.dart';
 import 'move_record.dart';
+import 'play_table.dart';
 
 class GameScoring {
   final int Function(MoveEvent event) determineScore;
 
-  final int Function(Duration playTime, MoveState state)? bonusOnFinish;
+  final int Function(Duration playTime, PlayTable table, MoveState state)?
+      bonusOnFinish;
 
-  final int Function(Duration playTime, MoveState state)? penaltyOnFinish;
+  final int Function(Duration playTime, PlayTable table, MoveState state)?
+      penaltyOnFinish;
 
   final int startingScore;
 
   final bool vegasScoring;
+
+  final bool lowerIsBetter;
 
   const GameScoring({
     required this.determineScore,
@@ -18,14 +23,20 @@ class GameScoring {
     this.penaltyOnFinish,
     this.startingScore = 0,
     this.vegasScoring = false,
+    this.lowerIsBetter = false,
   });
 
   GameScoreSummary getScoreSummary({
     required Duration playTime,
+    required PlayTable table,
     required MoveState moveState,
   }) {
     return GameScoreSummary(
-        playTime: playTime, scoring: this, moveState: moveState);
+      playTime: playTime,
+      scoring: this,
+      table: table,
+      moveState: moveState,
+    );
   }
 }
 
@@ -33,12 +44,15 @@ class GameScoreSummary {
   GameScoreSummary({
     required this.playTime,
     required this.scoring,
+    required this.table,
     required this.moveState,
   });
 
   final Duration playTime;
 
   final GameScoring scoring;
+
+  final PlayTable table;
 
   final MoveState moveState;
 
@@ -52,7 +66,7 @@ class GameScoreSummary {
 
   int get bonusScore {
     if (hasBonus) {
-      return scoring.bonusOnFinish!(playTime, moveState);
+      return scoring.bonusOnFinish!(playTime, table, moveState);
     } else {
       return 0;
     }
@@ -60,7 +74,7 @@ class GameScoreSummary {
 
   int get penaltyScore {
     if (hasPenalty) {
-      return scoring.penaltyOnFinish!(playTime, moveState);
+      return scoring.penaltyOnFinish!(playTime, table, moveState);
     } else {
       return 0;
     }

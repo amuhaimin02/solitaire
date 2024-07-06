@@ -59,7 +59,7 @@ class GameSetup {
 
   final GameSetupMap setup;
 
-  GameSetup adjust(Pile pile, PileProperty Function(PileProperty) changeProp) {
+  GameSetup modify(Pile pile, PileProperty Function(PileProperty) changeProp) {
     return GameSetup(
       setup: {
         ...setup,

@@ -16,7 +16,7 @@ class PuttPutt extends Golf {
   GameSetup construct() {
     final setup = super.construct();
 
-    return setup.adjust(
+    return setup.modify(
       const Waste(0),
       (props) => props.copyWith(
         placeable: const [BuildupOneRankNearer(wrapping: true)],

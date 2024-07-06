@@ -18,12 +18,12 @@ class KlondikeVegas extends Klondike {
   GameSetup construct() {
     final setup = super.construct();
 
-    return setup.adjust(
+    return setup.modify(
       const Stock(0),
       (props) => props.copyWith(
         canTap: [
           CanRecyclePile(
-            limit: numberOfDraws + 2,
+            limit: numberOfDraws,
             willTakeFrom: const Waste(0),
           ),
         ],

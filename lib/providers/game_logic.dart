@@ -420,6 +420,7 @@ class GameController extends _$GameController {
 
     return game.kind.scoring.getScoreSummary(
       playTime: ref.read(playTimeProvider),
+      table: ref.read(currentMoveProvider)!.table,
       moveState: ref.read(currentMoveProvider)!.state,
     );
   }

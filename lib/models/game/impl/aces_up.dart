@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../../card.dart';
 import '../../direction.dart';
+import '../../game_scoring.dart';
 import '../../move_action.dart';
 import '../../move_attempt.dart';
 import '../../move_check.dart';
+import '../../move_event.dart';
 import '../../pile.dart';
 import '../../pile_property.dart';
 import '../solitaire.dart';
@@ -95,6 +97,20 @@ class AcesUp extends SolitaireGame {
           pickable: const [NotAllowed()],
           placeable: const [NotAllowed()],
         ),
+      },
+    );
+  }
+
+  @override
+  GameScoring get scoring {
+    return GameScoring(
+      determineScore: (event) {
+        switch (event) {
+          case MoveMade(to: Waste()):
+            return 1;
+          default:
+            return 0;
+        }
       },
     );
   }

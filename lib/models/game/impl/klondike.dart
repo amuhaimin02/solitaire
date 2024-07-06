@@ -186,14 +186,14 @@ class Klondike extends SolitaireGame {
           _ => 0,
         };
       },
-      bonusOnFinish: (playTime, moveState) {
+      bonusOnFinish: (playTime, table, moveState) {
         if (playTime > const Duration(seconds: 30)) {
           return 700000 ~/ playTime.inSeconds;
         } else {
           return 0;
         }
       },
-      penaltyOnFinish: (playTime, moveState) {
+      penaltyOnFinish: (playTime, table, moveState) {
         if (playTime > const Duration(seconds: 10)) {
           return (playTime.inSeconds ~/ 10) * 2;
         } else {
