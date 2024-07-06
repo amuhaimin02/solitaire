@@ -21,8 +21,11 @@ Future<void> setupServices() async {
       return StandardFileHandler();
     }
   });
+
+  if (!kIsWeb) {
+    svc.registerSingleton(await SaveDirectory.getInstance());
+  }
   svc.registerSingleton(await SharedPreferences.getInstance());
-  svc.registerSingleton(await SaveDirectory.getInstance());
   svc.registerSingleton(const GameDataSerializer());
   svc.registerSingleton(const PlayCardGenerator());
   svc.registerSingleton(const PlayTableGenerator());

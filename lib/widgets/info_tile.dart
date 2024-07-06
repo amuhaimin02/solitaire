@@ -9,15 +9,12 @@ class InfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final color = colorScheme.tertiary;
+    final color = colorScheme.secondary;
 
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      child: ListTile(
-        leading: Icon(Icons.info_outline, color: color, size: 20),
-        title: message,
-        titleTextStyle: textTheme.labelLarge!.copyWith(color: color),
-      ),
+    return ListTile(
+      leading: const SizedBox(),
+      title: message,
+      titleTextStyle: textTheme.labelLarge!.copyWith(color: color),
     );
   }
 }

@@ -129,8 +129,7 @@ class SettingsScreen extends ConsumerWidget {
                 },
               ),
               const InfoTile(
-                message: Text(
-                    'Only either one-tap or two-tap move can be enabled at a time'),
+                message: Text('Only either one of the options can be enabled'),
               ),
               const SectionTitle('Assistance'),
               SwitchListTile(
@@ -177,7 +176,8 @@ class SettingsScreen extends ConsumerWidget {
                 },
               ),
               const InfoTile(
-                message: Text('Some games might not support these controls.'),
+                message:
+                    Text('Some games might not support these assistances.'),
               ),
             ],
           ),

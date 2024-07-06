@@ -75,7 +75,8 @@ class GameStatisticsInsights extends ConsumerWidget {
                   value: winPercentage / 100,
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(24.0) +
+                      const EdgeInsets.only(top: 8),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Column(
