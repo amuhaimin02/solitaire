@@ -6,6 +6,8 @@ import '../../../models/user_action.dart';
 import '../../../providers/game_logic.dart';
 import '../../../providers/game_move_history.dart';
 import '../../../providers/settings.dart';
+import '../../../widgets/message_overlay.dart';
+import '../../../widgets/mini_toast.dart';
 import '../../../widgets/tap_hold_detector.dart';
 import 'restart_dialog.dart';
 
@@ -18,6 +20,7 @@ class ControlPane extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final moves = ref.watch(moveHistoryProvider.notifier);
     final game = ref.watch(currentGameProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Only watching so this widget can be updated whenever move count changes.
     // Mainly for undo/redo button
@@ -41,9 +44,13 @@ class ControlPane extends ConsumerWidget {
             final hasMoves =
                 ref.read(gameControllerProvider.notifier).highlightHints();
             if (!hasMoves) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No moves available')),
+              final overlay = MiniToast(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+                child: const Text('No moves available'),
               );
+
+              MessageOverlay.of(context).show(overlay);
             }
           },
           icon: const Icon(Icons.lightbulb, size: 24),
