@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../animations.dart';
+import '../../models/card.dart';
 import '../../models/game/impl/demo.dart';
 import '../../models/game_theme.dart';
 import '../../providers/themes.dart';
 import '../../services/all.dart';
 import '../../services/play_table_generator.dart';
+import '../../utils/types.dart';
 import '../../widgets/bottom_padded.dart';
 import '../../widgets/ripple_background.dart';
 import '../../widgets/section_title.dart';
+import '../../widgets/tiled_selection.dart';
 import '../../widgets/two_pane.dart';
+import '../main/widgets/card_back.dart';
+import '../main/widgets/card_face.dart';
 import '../main/widgets/game_table.dart';
 import 'widgets/color_selection_tile.dart';
 
@@ -81,6 +86,26 @@ class _SettingsList extends ConsumerWidget {
     final cardFaceStyle = ref.watch(themeCardFaceStyleProvider);
     final cardBackStyle = ref.watch(themeCardBackStyleProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
+
+    Widget wrapCardTheme({
+      CardFaceStyle? faceStyle,
+      CardBackStyle? backStyle,
+      required Widget child,
+    }) {
+      final gameCardTheme = Theme.of(context).gameCardTheme;
+
+      return Theme(
+        data: Theme.of(context).copyWith(extensions: [
+          GameCardTheme.from(
+            colorScheme: colorScheme,
+            labelFontFamily: gameCardTheme.labelFontFamily,
+            faceStyle: faceStyle ?? gameCardTheme.faceStyle,
+            backStyle: backStyle ?? gameCardTheme.backStyle,
+          )
+        ]),
+        child: child,
+      );
+    }
 
     return Center(
       child: SizedBox(
@@ -181,23 +206,26 @@ class _SettingsList extends ConsumerWidget {
             const SectionTitle('Background'),
             ListTile(
               title: const Text('Background style'),
-              subtitle: SegmentedButton(
-                segments: const [
-                  ButtonSegment(
-                      value: TableBackgroundStyle.simple,
-                      label: Text('Simple')),
-                  ButtonSegment(
-                      value: TableBackgroundStyle.colored,
-                      label: Text('Colored')),
-                  ButtonSegment(
-                      value: TableBackgroundStyle.gradient,
-                      label: Text('Gradient')),
+              subtitle: TiledSelection(
+                items: [
+                  for (final style in TableBackgroundStyle.values)
+                    TiledSelectionItem(
+                      value: style,
+                      label: Text(style.name.capitalize()),
+                      child: Container(
+                        decoration: GameTheme.from(
+                          colorScheme: colorScheme,
+                          tableBackgroundStyle: style,
+                        ).getTableBackgroundDecoration().copyWith(
+                            border: Border.all(color: colorScheme.outline)),
+                      ),
+                    ),
                 ],
-                selected: {tableBackgroundStyle},
+                selected: tableBackgroundStyle,
                 onSelectionChanged: (value) {
                   ref
                       .read(themeTableBackgroundStyleProvider.notifier)
-                      .set(value.single);
+                      .set(value);
                 },
               ),
             ),
@@ -216,39 +244,64 @@ class _SettingsList extends ConsumerWidget {
             const SectionTitle('Card'),
             ListTile(
               title: const Text('Card face'),
-              subtitle: SegmentedButton(
-                segments: const [
-                  ButtonSegment(
-                      value: CardFaceStyle.accent, label: Text('Accent')),
-                  ButtonSegment(
-                      value: CardFaceStyle.tinted, label: Text('Tinted')),
-                  ButtonSegment(
-                      value: CardFaceStyle.mixed, label: Text('Mixed')),
-                  ButtonSegment(
-                      value: CardFaceStyle.classic, label: Text('Classic')),
+              subtitle: TiledSelection(
+                items: [
+                  for (final style in CardFaceStyle.values)
+                    TiledSelectionItem(
+                      value: style,
+                      label: Text(style.name.capitalize()),
+                      child: wrapCardTheme(
+                        faceStyle: style,
+                        child: Stack(
+                          children: [
+                            Align(
+                              alignment: Alignment.topLeft,
+                              child: CardFace(
+                                card: const PlayCard(Rank.jack, Suit.spade),
+                                labelAlignment: Alignment.center,
+                                size: cardSizeRatio.scale(15),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: CardFace(
+                                card: const PlayCard(Rank.ace, Suit.heart),
+                                labelAlignment: Alignment.center,
+                                size: cardSizeRatio.scale(15),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
-                selected: {cardFaceStyle},
+                selected: cardFaceStyle,
                 onSelectionChanged: (value) {
-                  ref
-                      .read(themeCardFaceStyleProvider.notifier)
-                      .set(value.single);
+                  ref.read(themeCardFaceStyleProvider.notifier).set(value);
                 },
               ),
             ),
             ListTile(
               title: const Text('Card back'),
-              subtitle: SegmentedButton(
-                segments: const [
-                  ButtonSegment(
-                      value: CardBackStyle.solid, label: Text('Solid')),
-                  ButtonSegment(
-                      value: CardBackStyle.gradient, label: Text('Gradient')),
+              subtitle: TiledSelection(
+                items: [
+                  for (final style in CardBackStyle.values)
+                    TiledSelectionItem(
+                      value: style,
+                      label: Text(style.name.capitalize()),
+                      child: Center(
+                        child: wrapCardTheme(
+                          backStyle: style,
+                          child: CardBack(
+                            size: cardSizeRatio.scale(18),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
-                selected: {cardBackStyle},
+                selected: cardBackStyle,
                 onSelectionChanged: (value) {
-                  ref
-                      .read(themeCardBackStyleProvider.notifier)
-                      .set(value.single);
+                  ref.read(themeCardBackStyleProvider.notifier).set(value);
                 },
               ),
             ),

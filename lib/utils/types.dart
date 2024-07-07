@@ -15,6 +15,10 @@ extension StringExtension on String {
   bool containsIgnoreCase(String substring) {
     return toLowerCase().contains(substring.toLowerCase());
   }
+
+  String capitalize() {
+    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
+  }
 }
 
 extension IterableExtension<T> on Iterable<T> {
@@ -109,6 +113,12 @@ extension RectExtension on Rect {
       width * scaleSize.width,
       height * scaleSize.height,
     );
+  }
+}
+
+extension SizeExtension on Size {
+  Size scale(double factor) {
+    return Size(width * factor, height * factor);
   }
 }
 

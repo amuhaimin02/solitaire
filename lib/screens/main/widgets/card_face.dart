@@ -76,6 +76,8 @@ class CardFace extends StatelessWidget {
         borderRadius:
             BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
       ),
+      width: size.width,
+      height: size.height,
       child: ClipRRect(
         clipBehavior: Clip.hardEdge,
         borderRadius:

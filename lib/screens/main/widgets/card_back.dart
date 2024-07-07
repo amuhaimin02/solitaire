@@ -22,6 +22,7 @@ class CardBack extends StatelessWidget {
           BorderRadius.circular(size.shortestSide * cardTheme.cornerRadius),
       child: CustomPaint(
         painter: painter,
+        child: SizedBox.fromSize(size: size),
       ),
     );
   }
