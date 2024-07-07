@@ -96,19 +96,16 @@ class OverlayButton extends StatelessWidget {
                       elevation: 24,
                       borderRadius: BorderRadius.circular(16),
                       clipBehavior: Clip.antiAlias,
-                      child: Scrollbar(
-                        thumbVisibility: true,
-                        child: MediaQuery.removePadding(
-                          // Remove extraneous padding on children ListTiles caused by internal SafeArea
-                          context: context,
-                          removeLeft: true,
-                          removeRight: true,
-                          child: ListView(
-                            primary: true,
-                            shrinkWrap: true,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            children: overlayBuilder(context),
-                          ),
+                      child: MediaQuery.removePadding(
+                        // Remove extraneous padding on children ListTiles caused by internal SafeArea
+                        context: context,
+                        removeLeft: true,
+                        removeRight: true,
+                        child: ListView(
+                          primary: true,
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          children: overlayBuilder(context),
                         ),
                       ),
                     ),

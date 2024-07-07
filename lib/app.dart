@@ -138,7 +138,9 @@ class SolitaireApp extends ConsumerWidget {
         behavior: SnackBarBehavior.floating,
         // width: 400,
       ),
-      scrollbarTheme: const ScrollbarThemeData(),
+      scrollbarTheme: const ScrollbarThemeData(
+        thumbVisibility: WidgetStatePropertyAll(true),
+      ),
       extensions: [gameTheme, cardTheme],
     );
 

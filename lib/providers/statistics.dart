@@ -52,6 +52,15 @@ class StatisticsUpdater extends _$StatisticsUpdater {
     final moves = ref.read(currentMoveProvider);
     final isFinished = ref.read(isGameFinishedProvider);
 
+    final moveRecordLength =
+        ref.read(moveRecordListProvider.select((list) => list.length));
+
+    if (moveRecordLength <= 2) {
+      // Do not record if play has not been made yet.
+      // TODO: Restarting the same game will reset this
+      return;
+    }
+
     await _updateOverallStatistics(
       game: game.kind,
       playTime: playTime,
@@ -114,7 +123,7 @@ class StatisticsUpdater extends _$StatisticsUpdater {
     // The entry will be placed in the suitable slot
     final highScoreList = await ref.read(
         statisticsForGameProvider(game, GameStatisticsType.highScore).future);
-    highScoreList.add(entry);
+    highScoreList.insert(0, entry);
 
     highScoreList.sort(game.scoring.lowerIsBetter
         ? (a, b) => a.score.compareTo(b.score)

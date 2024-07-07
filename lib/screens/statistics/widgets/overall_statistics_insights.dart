@@ -22,11 +22,11 @@ class StatisticsInsights extends ConsumerWidget {
     final totalGameTypeWins = ref.watch(statisticsTotalGameTypesWonProvider);
 
     final bodyTextStyle =
-        textTheme.bodyLarge!.copyWith(color: colorScheme.onSurface);
+        textTheme.bodyMedium!.copyWith(color: colorScheme.onSurface);
     final playTimeTextStyle =
-        textTheme.displaySmall!.copyWith(color: colorScheme.primary);
+        textTheme.headlineLarge!.copyWith(color: colorScheme.primary);
     final numbersTextStyle =
-        textTheme.headlineSmall!.copyWith(color: colorScheme.primary);
+        textTheme.titleLarge!.copyWith(color: colorScheme.primary);
 
     Widget buildTotalPlayTime() {
       return Text(

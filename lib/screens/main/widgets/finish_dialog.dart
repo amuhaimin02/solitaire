@@ -49,63 +49,59 @@ class FinishDialog extends ConsumerWidget {
       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       content: SizedBox(
         width: 300,
-        child: Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            primary: true,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ListTile(
-                  title: Row(
-                    children: [
-                      Text('Moves: ${scoreSummary.moves}'),
-                      const Spacer(),
-                      Text(
-                          'Time: ${scoreSummary.playTime.toSimpleHMSString()}'),
-                    ],
-                  ),
+        child: SingleChildScrollView(
+          primary: true,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ListTile(
+                title: Row(
+                  children: [
+                    Text('Moves: ${scoreSummary.moves}'),
+                    const Spacer(),
+                    Text('Time: ${scoreSummary.playTime.toSimpleHMSString()}'),
+                  ],
                 ),
-                const Divider(),
+              ),
+              const Divider(),
+              ListTile(
+                title: const Text('Obtained'),
+                subtitle: const Text('Score during play'),
+                trailing: buildScoreText(
+                  scoreSummary.obtainedScore,
+                  style: textTheme.titleLarge!
+                      .copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+              if (scoreSummary.hasBonus)
                 ListTile(
-                  title: const Text('Obtained'),
-                  subtitle: const Text('Score during play'),
+                  title: const Text('Bonus'),
                   trailing: buildScoreText(
-                    scoreSummary.obtainedScore,
+                    scoreSummary.bonusScore,
                     style: textTheme.titleLarge!
                         .copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ),
-                if (scoreSummary.hasBonus)
-                  ListTile(
-                    title: const Text('Bonus'),
-                    trailing: buildScoreText(
-                      scoreSummary.bonusScore,
-                      style: textTheme.titleLarge!
-                          .copyWith(color: colorScheme.onSurfaceVariant),
-                    ),
-                  ),
-                if (scoreSummary.hasPenalty)
-                  ListTile(
-                    title: const Text('Penalty'),
-                    trailing: buildScoreText(
-                      -scoreSummary.penaltyScore,
-                      style: textTheme.titleLarge!
-                          .copyWith(color: colorScheme.error),
-                    ),
-                  ),
-                const Divider(),
+              if (scoreSummary.hasPenalty)
                 ListTile(
-                  title: const Text('Final score'),
+                  title: const Text('Penalty'),
                   trailing: buildScoreText(
-                    scoreSummary.finalScore,
-                    style: textTheme.headlineMedium!
-                        .copyWith(color: colorScheme.primary),
+                    -scoreSummary.penaltyScore,
+                    style: textTheme.titleLarge!
+                        .copyWith(color: colorScheme.error),
                   ),
                 ),
-              ],
-            ),
+              const Divider(),
+              ListTile(
+                title: const Text('Final score'),
+                trailing: buildScoreText(
+                  scoreSummary.finalScore,
+                  style: textTheme.headlineMedium!
+                      .copyWith(color: colorScheme.primary),
+                ),
+              ),
+            ],
           ),
         ),
       ),

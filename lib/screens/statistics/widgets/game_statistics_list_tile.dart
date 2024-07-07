@@ -39,14 +39,16 @@ class GameStatisticsListTile extends StatelessWidget {
       leading: showIndex
           ? SizedBox(
               width: 24,
-              child: Text(
-                '${index + 1}',
-                style: textTheme.headlineMedium!
-                    .copyWith(color: colorScheme.secondary),
-                textAlign: TextAlign.end,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '${index + 1}',
+                  style: textTheme.headlineSmall!
+                      .copyWith(color: colorScheme.secondary),
+                ),
               ),
             )
-          : Icon(MdiIcons.clockOutline),
+          : Icon(MdiIcons.circleSmall),
       horizontalTitleGap: 24,
       title: Wrap(
         spacing: 16,
