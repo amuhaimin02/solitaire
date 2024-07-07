@@ -43,7 +43,7 @@ void feedback(FeedbackRef ref) {
     }
   }
 
-  svc<Logger>().d('Status: $gameStatus, Feedback: $lastMove, Move: $moveType');
+  // svc<Logger>().d('Status: $gameStatus, Feedback: $lastMove, Move: $moveType');
 
   if (vibrationEnabled) {
     final target = lastMove?.action.move?.to;
@@ -98,6 +98,9 @@ List<Duration> _computeCardDistributionKeyframes(PlayTable table) {
   final keyframes = <Duration>{};
 
   for (final pile in table.allPiles()) {
+    if (pile is Stock) {
+      continue;
+    }
     final cardsOnPile = table.get(pile);
     if (cardsOnPile.isNotEmpty) {
       for (int i = 0; i < cardsOnPile.length; i++) {

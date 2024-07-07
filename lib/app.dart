@@ -73,7 +73,9 @@ class SolitaireApp extends ConsumerWidget {
 
     ThemeMode themeMode = ref.watch(themeBaseModeProvider);
     final themeColor = ref.watch(themeBaseColorProvider);
-    final coloredBackground = ref.watch(themeBackgroundColoredProvider);
+    final tableBackgroundStyle = ref.watch(themeTableBackgroundStyleProvider);
+    final cardFaceStyle = ref.watch(themeCardFaceStyleProvider);
+    final cardBackStyle = ref.watch(themeCardBackStyleProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
 
     if (themeMode == ThemeMode.system) {
@@ -106,17 +108,15 @@ class SolitaireApp extends ConsumerWidget {
     GameCardTheme cardTheme = GameCardTheme.from(
       colorScheme: colorScheme,
       labelFontFamily: 'Dosis',
-      tintedCardFace: amoledDarkTheme && themeMode == ThemeMode.dark,
-      useClassicColors: ref.watch(themeUseClassicCardColorsProvider),
-      contrastingFaceColors: ref.watch(themeUseContrastingCardColorsProvider),
+      faceStyle: cardFaceStyle,
+      backStyle: cardBackStyle,
     ).copyWith(
       compressStack: ref.watch(themeCompressCardStackProvider),
-      backStyle: ref.watch(themeCardBackStyleProvider),
     );
 
     GameTheme gameTheme = GameTheme.from(
       colorScheme: colorScheme,
-      coloredBackground: coloredBackground,
+      tableBackgroundStyle: tableBackgroundStyle,
     );
 
     ThemeData appTheme = ThemeData(
@@ -146,7 +146,9 @@ class SolitaireApp extends ConsumerWidget {
       textTheme: GoogleFonts.manropeTextTheme(appTheme.textTheme),
     );
 
-    if (amoledDarkTheme && themeMode == ThemeMode.dark) {
+    if (amoledDarkTheme &&
+        themeMode == ThemeMode.dark &&
+        tableBackgroundStyle == TableBackgroundStyle.simple) {
       appTheme = appTheme.copyWith(
         scaffoldBackgroundColor: Colors.black,
         extensions: [

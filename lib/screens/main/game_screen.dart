@@ -169,11 +169,9 @@ class _GameScreenState extends ConsumerState<GameScreenBody>
       child: OrientationBuilder(
         builder: (context, orientation) {
           return RippleBackground(
-            decoration: isFinished
-                ? BoxDecoration(
-                    color: Theme.of(context).gameTheme.winningBackgroundColor)
-                : BoxDecoration(
-                    color: Theme.of(context).gameTheme.tableBackgroundColor),
+            decoration: Theme.of(context)
+                .gameTheme
+                .getTableBackgroundDecoration(isWinning: isFinished),
             child: SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {

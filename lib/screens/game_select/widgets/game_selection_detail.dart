@@ -42,7 +42,9 @@ class GameSelectionDetail extends ConsumerWidget {
                   final isInModal = !TwoPane.of(context).isActive;
 
                   final gameTableWidget = Container(
-                    color: Theme.of(context).gameTheme.tableBackgroundColor,
+                    decoration: Theme.of(context)
+                        .gameTheme
+                        .getTableBackgroundDecoration(),
                     padding: const EdgeInsets.all(32),
                     child: Center(
                       child: GameTable(

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:theme_tailor_annotation/theme_tailor_annotation.dart';
 
@@ -26,35 +27,88 @@ const cardSizeRatio = Size(2.5, 3.5);
 
 enum CardBackStyle { solid, gradient }
 
+enum CardFaceStyle { accent, tinted, mixed, classic }
+
+enum TableBackgroundStyle { simple, colored, gradient }
+
 @TailorMixin(themeGetter: ThemeGetter.onThemeData)
 class GameTheme extends ThemeExtension<GameTheme> with _$GameThemeTailorMixin {
   const GameTheme({
     required this.tableBackgroundColor,
+    this.tableBackgroundSecondaryColor = Colors.transparent,
     required this.winningBackgroundColor,
-    required this.hintHighlightColor,
+    this.winningBackgroundSecondaryColor = Colors.transparent,
+    this.tableBackgroundStyle = TableBackgroundStyle.simple,
   });
 
   @override
   final Color tableBackgroundColor;
 
   @override
+  final Color tableBackgroundSecondaryColor;
+
+  @override
   final Color winningBackgroundColor;
 
   @override
-  final Color hintHighlightColor;
+  final Color winningBackgroundSecondaryColor;
+
+  @override
+  final TableBackgroundStyle tableBackgroundStyle;
 
   factory GameTheme.from({
     required ColorScheme colorScheme,
-    bool coloredBackground = false,
+    required TableBackgroundStyle tableBackgroundStyle,
   }) {
-    return GameTheme(
-      tableBackgroundColor: coloredBackground
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceContainer,
-      winningBackgroundColor: coloredBackground
-          ? colorScheme.surfaceContainer
-          : colorScheme.primaryContainer,
-      hintHighlightColor: colorScheme.error,
+    switch (tableBackgroundStyle) {
+      case TableBackgroundStyle.simple:
+        return GameTheme(
+          tableBackgroundStyle: tableBackgroundStyle,
+          tableBackgroundColor: colorScheme.surfaceContainer,
+          winningBackgroundColor: colorScheme.primaryContainer,
+        );
+      case TableBackgroundStyle.colored:
+        return GameTheme(
+          tableBackgroundStyle: tableBackgroundStyle,
+          tableBackgroundColor: colorScheme.primaryContainer,
+          winningBackgroundColor: colorScheme.surfaceContainer,
+        );
+      case TableBackgroundStyle.gradient:
+        return GameTheme(
+          tableBackgroundStyle: tableBackgroundStyle,
+          tableBackgroundColor: colorScheme.primaryContainer,
+          tableBackgroundSecondaryColor: colorScheme.tertiaryContainer,
+          winningBackgroundColor: colorScheme.surfaceContainer,
+          winningBackgroundSecondaryColor: colorScheme.primaryContainer,
+        );
+    }
+  }
+
+  BoxDecoration getTableBackgroundDecoration({bool isWinning = false}) {
+    final Color startColor, endColor;
+
+    switch (tableBackgroundStyle) {
+      case TableBackgroundStyle.simple || TableBackgroundStyle.colored:
+        if (isWinning) {
+          startColor = endColor = winningBackgroundColor;
+        } else {
+          startColor = endColor = tableBackgroundColor;
+        }
+      case TableBackgroundStyle.gradient:
+        if (isWinning) {
+          startColor = winningBackgroundColor;
+          endColor = winningBackgroundSecondaryColor;
+        } else {
+          startColor = tableBackgroundColor;
+          endColor = tableBackgroundSecondaryColor;
+        }
+    }
+    return BoxDecoration(
+      gradient: LinearGradient(
+        colors: [startColor, endColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
     );
   }
 }
@@ -64,6 +118,7 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
     with _$GameCardThemeTailorMixin {
   const GameCardTheme({
     required this.labelFontFamily,
+    this.faceStyle = CardFaceStyle.accent,
     required this.facePlainColor,
     required this.faceAccentColor,
     required this.labelPlainColor,
@@ -79,6 +134,9 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
 
   @override
   final String labelFontFamily;
+
+  @override
+  final CardFaceStyle faceStyle;
 
   @override
   final Color facePlainColor;
@@ -116,36 +174,35 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
   factory GameCardTheme.from({
     required ColorScheme colorScheme,
     required String labelFontFamily,
-    bool tintedCardFace = false,
-    bool useClassicColors = false,
-    bool contrastingFaceColors = false,
+    required CardFaceStyle faceStyle,
+    required CardBackStyle backStyle,
   }) {
-    final isDark = colorScheme.brightness == Brightness.dark;
+    Color cardLabelPlainColor,
+        cardLabelAccentColor,
+        cardFacePlainColor,
+        cardFaceAccentColor;
 
-    Color cardLabelPlainColor = colorScheme.onSurfaceVariant;
-    Color cardLabelAccentColor = colorScheme.primary;
-    Color cardFacePlainColor = colorScheme.surfaceContainerLowest;
-    Color cardFaceAccentColor = colorScheme.surfaceContainerLowest;
-
-    if (tintedCardFace && isDark) {
-      cardLabelPlainColor = colorScheme.onSurfaceVariant;
-      cardLabelAccentColor = colorScheme.onPrimaryContainer;
-      cardFacePlainColor = colorScheme.surfaceContainerLowest;
-      cardFaceAccentColor = colorScheme.onPrimary;
-    }
-
-    if (contrastingFaceColors) {
-      cardFacePlainColor = colorScheme.surfaceContainerLowest;
-      cardFaceAccentColor = colorScheme.inverseSurface;
-      cardLabelPlainColor = colorScheme.primary;
-      cardLabelAccentColor = colorScheme.inversePrimary;
-    }
-
-    if (useClassicColors) {
-      cardLabelPlainColor = Colors.grey.shade900;
-      cardLabelAccentColor = Colors.red.shade600;
-      cardFacePlainColor = Colors.grey.shade50;
-      cardFaceAccentColor = Colors.grey.shade50;
+    switch (faceStyle) {
+      case CardFaceStyle.accent:
+        cardLabelPlainColor = colorScheme.onSurfaceVariant;
+        cardLabelAccentColor = colorScheme.primary;
+        cardFacePlainColor = colorScheme.surfaceContainerLowest;
+        cardFaceAccentColor = colorScheme.surfaceContainerLowest;
+      case CardFaceStyle.tinted:
+        cardLabelPlainColor = colorScheme.onSurfaceVariant;
+        cardLabelAccentColor = colorScheme.onPrimaryContainer;
+        cardFacePlainColor = colorScheme.surfaceContainerLowest;
+        cardFaceAccentColor = colorScheme.onPrimary;
+      case CardFaceStyle.mixed:
+        cardFacePlainColor = colorScheme.surfaceContainerLowest;
+        cardFaceAccentColor = colorScheme.inverseSurface;
+        cardLabelPlainColor = colorScheme.primary;
+        cardLabelAccentColor = colorScheme.inversePrimary;
+      case CardFaceStyle.classic:
+        cardLabelPlainColor = Colors.grey.shade900;
+        cardLabelAccentColor = Colors.red.shade600;
+        cardFacePlainColor = Colors.grey.shade50;
+        cardFaceAccentColor = Colors.grey.shade50;
     }
 
     return GameCardTheme(
@@ -154,6 +211,8 @@ class GameCardTheme extends ThemeExtension<GameCardTheme>
       faceAccentColor: cardFaceAccentColor,
       labelPlainColor: cardLabelPlainColor,
       labelAccentColor: cardLabelAccentColor,
+      faceStyle: faceStyle,
+      backStyle: backStyle,
       backColor: colorScheme.primary,
       backSecondaryColor: colorScheme.tertiary,
     );

@@ -44,16 +44,19 @@ class ThemeBaseColor extends _$ThemeBaseColor
 }
 
 @riverpod
-class ThemeBackgroundColored extends _$ThemeBackgroundColored
+class ThemeTableBackgroundStyle extends _$ThemeTableBackgroundStyle
     with SharedPreferencesProviderMixin {
   @override
-  final String key = 'theme_background_colored';
+  final String key = 'theme_table_background_style';
 
   @override
-  final bool defaultValue = false;
+  List<TableBackgroundStyle>? get options => TableBackgroundStyle.values;
 
   @override
-  bool build() => get();
+  TableBackgroundStyle defaultValue = TableBackgroundStyle.simple;
+
+  @override
+  TableBackgroundStyle build() => get();
 }
 
 @riverpod
@@ -95,19 +98,6 @@ class ThemeBaseRandomizeColor extends _$ThemeBaseRandomizeColor
 }
 
 @riverpod
-class ThemeUseClassicCardColors extends _$ThemeUseClassicCardColors
-    with SharedPreferencesProviderMixin {
-  @override
-  final String key = 'theme_use_classic_card_colors';
-
-  @override
-  final bool defaultValue = false;
-
-  @override
-  bool build() => get();
-}
-
-@riverpod
 class ThemeCompressCardStack extends _$ThemeCompressCardStack
     with SharedPreferencesProviderMixin {
   @override
@@ -121,16 +111,19 @@ class ThemeCompressCardStack extends _$ThemeCompressCardStack
 }
 
 @riverpod
-class ThemeUseContrastingCardColors extends _$ThemeUseContrastingCardColors
+class ThemeCardFaceStyle extends _$ThemeCardFaceStyle
     with SharedPreferencesProviderMixin {
   @override
-  final String key = 'theme_use_contrasting_card_colors';
+  final String key = 'theme_card_face_style';
 
   @override
-  final bool defaultValue = false;
+  CardFaceStyle defaultValue = CardFaceStyle.accent;
 
   @override
-  bool build() => get();
+  List<CardFaceStyle>? get options => CardFaceStyle.values;
+
+  @override
+  CardFaceStyle build() => get();
 }
 
 @riverpod

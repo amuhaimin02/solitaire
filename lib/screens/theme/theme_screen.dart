@@ -47,9 +47,7 @@ class ThemeScreen extends ConsumerWidget {
     return AnimatedContainer(
       duration: themeChangeAnimation.duration,
       curve: themeChangeAnimation.curve,
-      decoration: BoxDecoration(
-        color: Theme.of(context).gameTheme.tableBackgroundColor,
-      ),
+      decoration: Theme.of(context).gameTheme.getTableBackgroundDecoration(),
       padding: const EdgeInsets.all(24) +
           EdgeInsets.only(left: MediaQuery.of(context).viewPadding.left),
       child: Center(
@@ -79,7 +77,9 @@ class _SettingsList extends ConsumerWidget {
     final themeColor = ref.watch(themeBaseColorProvider);
 
     final randomizeColor = ref.watch(themeBaseRandomizeColorProvider);
-    final coloredBackground = ref.watch(themeBackgroundColoredProvider);
+    final tableBackgroundStyle = ref.watch(themeTableBackgroundStyleProvider);
+    final cardFaceStyle = ref.watch(themeCardFaceStyleProvider);
+    final cardBackStyle = ref.watch(themeCardBackStyleProvider);
     final amoledDarkTheme = ref.watch(themeBackgroundAmoledProvider);
 
     return Center(
@@ -179,69 +179,78 @@ class _SettingsList extends ConsumerWidget {
               ),
             ),
             const SectionTitle('Background'),
+            ListTile(
+              title: const Text('Background style'),
+              subtitle: SegmentedButton(
+                segments: const [
+                  ButtonSegment(
+                      value: TableBackgroundStyle.simple,
+                      label: Text('Simple')),
+                  ButtonSegment(
+                      value: TableBackgroundStyle.colored,
+                      label: Text('Colored')),
+                  ButtonSegment(
+                      value: TableBackgroundStyle.gradient,
+                      label: Text('Gradient')),
+                ],
+                selected: {tableBackgroundStyle},
+                onSelectionChanged: (value) {
+                  ref
+                      .read(themeTableBackgroundStyleProvider.notifier)
+                      .set(value.single);
+                },
+              ),
+            ),
             SwitchListTile(
               title: const Text('AMOLED dark background'),
               subtitle:
                   const Text('Use pitch black background when on dark mode'),
               value: amoledDarkTheme,
-              onChanged: !coloredBackground && themeMode != ThemeMode.light
+              onChanged: themeMode != ThemeMode.light &&
+                      tableBackgroundStyle == TableBackgroundStyle.simple
                   ? (value) {
                       ref.read(themeBackgroundAmoledProvider.notifier).toggle();
                     }
                   : null,
             ),
-            SwitchListTile(
-              title: const Text('Colored table background'),
-              subtitle: const Text(
-                  'Use strong colors of the theme for the table background'),
-              value: coloredBackground,
-              onChanged: (value) {
-                ref.read(themeBackgroundColoredProvider.notifier).toggle();
-              },
-            ),
             const SectionTitle('Card'),
-            SwitchListTile(
-              title: const Text('Standard card colors'),
-              subtitle: const Text(
-                  'Use standard red-black labels with white background.'),
-              value: ref.watch(themeUseClassicCardColorsProvider),
-              onChanged: (value) {
-                ref.read(themeUseClassicCardColorsProvider.notifier).toggle();
-
-                if (value) {
+            ListTile(
+              title: const Text('Card face'),
+              subtitle: SegmentedButton(
+                segments: const [
+                  ButtonSegment(
+                      value: CardFaceStyle.accent, label: Text('Accent')),
+                  ButtonSegment(
+                      value: CardFaceStyle.tinted, label: Text('Tinted')),
+                  ButtonSegment(
+                      value: CardFaceStyle.mixed, label: Text('Mixed')),
+                  ButtonSegment(
+                      value: CardFaceStyle.classic, label: Text('Classic')),
+                ],
+                selected: {cardFaceStyle},
+                onSelectionChanged: (value) {
                   ref
-                      .read(themeUseContrastingCardColorsProvider.notifier)
-                      .set(false);
-                }
-              },
+                      .read(themeCardFaceStyleProvider.notifier)
+                      .set(value.single);
+                },
+              ),
             ),
-            SwitchListTile(
-              title: const Text('Contrasting card colors'),
-              subtitle: const Text('Mix light and dark card colors.'),
-              value: ref.watch(themeUseContrastingCardColorsProvider),
-              onChanged: (value) {
-                ref
-                    .read(themeUseContrastingCardColorsProvider.notifier)
-                    .toggle();
-
-                if (value) {
+            ListTile(
+              title: const Text('Card back'),
+              subtitle: SegmentedButton(
+                segments: const [
+                  ButtonSegment(
+                      value: CardBackStyle.solid, label: Text('Solid')),
+                  ButtonSegment(
+                      value: CardBackStyle.gradient, label: Text('Gradient')),
+                ],
+                selected: {cardBackStyle},
+                onSelectionChanged: (value) {
                   ref
-                      .read(themeUseClassicCardColorsProvider.notifier)
-                      .set(false);
-                }
-              },
-            ),
-            // TODO: Change to selection
-            SwitchListTile(
-              title: const Text('Card back style'),
-              subtitle: const Text('Choose solid or gradient'),
-              value: ref.watch(themeCardBackStyleProvider) ==
-                  CardBackStyle.gradient,
-              onChanged: (value) {
-                ref
-                    .read(themeCardBackStyleProvider.notifier)
-                    .set(value ? CardBackStyle.gradient : CardBackStyle.solid);
-              },
+                      .read(themeCardBackStyleProvider.notifier)
+                      .set(value.single);
+                },
+              ),
             ),
             const SectionTitle('Arrangement'),
             SwitchListTile(
