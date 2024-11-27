@@ -2,6 +2,10 @@
 
 A simple solitaire card game
 
+## Play on web
+
+<a href="https://amuhaimin02.github.io/solitaire/" target="_blank">Open Solitaire in new tab</a>
+
 ## Features
 
 - Minimalist design, focuses on simplicity, but customizable to an extent
