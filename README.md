@@ -4,7 +4,7 @@ A simple solitaire card game
 
 ## Play on web
 
-<a href="https://amuhaimin02.github.io/solitaire/" target="_blank">Open Solitaire in new tab</a>
+<a href="https://amuhaimin02.github.io/solitaire/">Open Solitaire/a>
 
 ## Features
 
