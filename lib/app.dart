@@ -8,9 +8,7 @@ import 'animations.dart';
 import 'models/game_theme.dart';
 import 'providers/settings.dart';
 import 'providers/themes.dart';
-import 'screens/about/about_screen.dart';
 import 'screens/game_select/game_selection_screen.dart';
-import 'screens/help/help_screen.dart';
 import 'screens/main/game_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/statistics/statistics_screen.dart';
@@ -40,14 +38,6 @@ final _router = GoRouter(
         GoRoute(
           path: 'statistics',
           builder: (context, state) => const StatisticsScreen(),
-        ),
-        GoRoute(
-          path: 'help',
-          builder: (context, state) => const HelpScreen(),
-        ),
-        GoRoute(
-          path: 'about',
-          builder: (context, state) => const AboutScreen(),
         ),
       ],
     ),

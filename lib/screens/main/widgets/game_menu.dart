@@ -37,16 +37,6 @@ class GameMenuButton extends StatelessWidget {
         label: 'Statistics',
         onTap: (context) => context.go('/statistics'),
       ),
-      _GameMenuOptions(
-        icon: Icons.help,
-        label: 'Help',
-        onTap: (context) => context.go('/help'),
-      ),
-      _GameMenuOptions(
-        icon: Icons.info,
-        label: 'About',
-        onTap: (context) => context.go('/about'),
-      )
     ];
 
     return SizedBox.square(
@@ -70,14 +60,6 @@ class GameMenuButton extends StatelessWidget {
                 context.go('/select');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.local_library),
-              title: const Text('How to play'),
-              onTap: () {
-                dismiss();
-                context.go('/select');
-              },
-            ),
             const Divider(),
             for (final option in allOptions)
               ListTile(
@@ -88,11 +70,11 @@ class GameMenuButton extends StatelessWidget {
                   option.onTap(context);
                 },
               ),
-            const Divider(),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: DebugPane(),
-            ),
+            // const Divider(),
+            // const Padding(
+            //   padding: EdgeInsets.all(8.0),
+            //   child: DebugPane(),
+            // ),
           ];
         },
       ),

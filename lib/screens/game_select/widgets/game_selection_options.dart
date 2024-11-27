@@ -68,16 +68,6 @@ class GameSelectionOptions extends ConsumerWidget {
           },
         ),
       FilledButton.tonalIcon(
-        onPressed: () {},
-        icon: const Icon(Icons.local_library),
-        label: const Text('How to play'),
-      ),
-      FilledButton.tonalIcon(
-        onPressed: () {},
-        icon: const Icon(Icons.videocam),
-        label: const Text('View demo'),
-      ),
-      FilledButton.tonalIcon(
         onPressed: () {
           context.go('/statistics');
         },

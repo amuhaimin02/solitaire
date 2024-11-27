@@ -85,21 +85,9 @@ class GameSelectionDetail extends ConsumerWidget {
                           color: colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Details of gameplay will be available here. '
-                        'Details of gameplay will be available here. '
-                        'Details of gameplay will be available here. '
-                        'Details of gameplay will be available here. ',
-                        style: textTheme.bodyMedium!.copyWith(
-                          color: colorScheme.onSurface,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                       const SizedBox(height: 24),
                       GameSelectionOptions(
-                        singleLine: constraints.maxHeight <= 500,
+                        singleLine: true,
                         game: selectedGame,
                       ),
                     ],

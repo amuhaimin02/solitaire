@@ -68,8 +68,7 @@ class _GameSelectionSearchState extends ConsumerState<GameSelectionSearch> {
             return const EmptyMessage(
               icon: Icon(Icons.search),
               title: Text('Search for a game'),
-              body: Text(
-                  'Type the name of a game you want to look for.\nName variations are supported as well.'),
+              body: Text('Type the name of a game you want to look for'),
             );
           }
 
