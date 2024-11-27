@@ -1,16 +1,62 @@
-# solitaire
+# Solitaire
 
-A new Flutter project.
+A simple solitaire card game
+
+## Features
+
+- Minimalist design, focuses on simplicity, but customizable to an extent
+- Day and night themes, colorful or gradient, according to your liking
+- Over 20+ different kinds of games to enjoy, including the classic Klondike
+- Drop and continue playing anytime
+- Statistics to keep track on your play
+- Responsive design, works on mobile, tablet and desktop display
+- Load & save games when you need it
+
+## Screenshots
+
+![Screenshot desktop 1](/github/screenshots/screen-desktop-1.png)
+
+![Screenshot desktop 2](/github/screenshots/screen-desktop-2.png)
+
+![Screenshot desktop 3](/github/screenshots/screen-desktop-3.png)
+
+![Screenshot desktop 4](/github/screenshots/screen-desktop-4.png)
+
+![Screenshot mobile 1](/github/screenshots/screen-mobile-1.png)
+
+![Screenshot mobile 2](/github/screenshots/screen-mobile-2.png)
+
+![Screenshot mobile 3](/github/screenshots/screen-mobile-3.png)
+
+![Screenshot mobile 4](/github/screenshots/screen-mobile-4.png)
+
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
+To run this project, you need:
+- [Flutter SDK](https://flutter.dev/docs/get-started/install)
+- A device or emulator with Flutter support.
 
-A few resources to get you started if this is your first Flutter project:
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/amuhaimin02/solitaire.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd solitaire
+   ```
+3. Get the dependencies:
+   ```bash
+   flutter pub get
+   ```
+4. Run the app:
+   ```bash
+   flutter run
+   ```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## License
+This project is licensed under the GNU General Public License v3.0. You are free to use, modify, and distribute this software under the terms of the GPLv3.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+For more details, see the [LICENSE](LICENSE) file or visit the [official GPLv3 documentation](https://www.gnu.org/licenses/gpl-3.0.en.html).
